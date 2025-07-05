@@ -1,0 +1,188 @@
+#include "pser.h"
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+void ee_token(struct Fpfc *f, struct Token *t, char *msg) { // error exit
+	fprintf(stderr, "%s%s:%d:%d:%s ОШИБКА: %s [%s]:[%d]%s\n", COLOR_WHITE,
+			f->path, t->p->line, t->p->col, COLOR_RED, msg, t->view->st,
+			t->code, COLOR_RESET);
+	print_source_line(f->code, t->p->line, COLOR_LIGHT_RED);
+	exit(1);
+}
+
+// print warning
+void pw(struct Fpfc *f, struct Pos *p, const char *const msg) {
+	if (NEED_WARN) {
+		fprintf(stderr, "%s%s:%d:%d%s ПРЕДУПРЕЖДЕНИЕ: %s%s\n", COLOR_WHITE,
+				f->path, p->line, p->col, COLOR_LIGHT_PURPLE, msg, COLOR_RESET);
+		print_source_line(f->code, p->line, COLOR_LIGHT_PURPLE);
+	}
+}
+
+struct Pser *new_pser(char *filename, uc debug) {
+	struct Pser *p = malloc(sizeof(struct Pser));
+	struct Tzer *t = new_tzer(filename);
+	p->f = t->f;
+
+	struct PList *ts = tze(t, 10);
+	free(t);
+	p->pos = 0;
+	p->ts = ts;
+	p->debug = debug;
+	p->ds = new_plist(3);
+	return p;
+}
+
+struct Inst *new_inst(struct Pser *p, enum IP_Code code, struct PList *os,
+					  struct Token *t) {
+	struct Inst *i = malloc(sizeof(struct Inst));
+	struct Pos *pos = malloc(sizeof(struct Pos));
+	i->f = p->f;
+	pos->col = t->p->col;
+	pos->line = t->p->line;
+	i->p = pos;
+
+	i->os = os;
+	i->code = code;
+	return i;
+}
+
+struct Token *get_pser_token(struct Pser *p, long off) {
+	long i = p->pos + off;
+	return p->ts->size > i ? p->ts->st[i] : p->ts->st[p->ts->size - 1];
+}
+
+struct Token *next_pser_get(struct Pser *p, long off) {
+	consume(p);
+	return pser_cur(p);
+	//p->pos++;
+	//return get_pser_token(p, off);
+}
+
+// TODO:
+struct Defn *is_defn(struct Pser *p, char *v) {
+	struct Defn *d;
+	for (uint32_t i = 0; i < p->ds->size; i++) {
+		d = plist_get(p->ds, i);
+		if (sc(v, d->view))
+			return d;
+	}
+	return 0;
+}
+
+const char *const ERR_WRONG_TOKEN = "Неверное выражение.";
+
+const char *const EXPECTED__STR = "Ожидалась строка.";
+const char *const EXPECTED__INT = "Ожидалось целое число.";
+const char *const EXPECTED__FPN = "Ожидалось вещественное число.";
+const char *const EXPECTED__PAR_L = "Ожидалась '(' скобка.";
+const char *const EXPECTED__PAR_R = "Ожидалась ')' скобка.";
+const char *const EXPECTED__PAR_C_L = "Ожидалась '[' скобка.";
+const char *const EXPECTED__PAR_C_R = "Ожидалась ']' скобка.";
+const char *const EXPECTED__COLO = "Ожидалось ':'.";
+const char *const EXPECTED__ID = "Ожидалось имя или слово.";
+
+const char *const STR_EOF = "_КОНЕЦ_ФАЙЛА_";
+// parser directives
+const char *const STR_DEFINE = "вот";
+const char *const STR_INCLUDE = "влечь";
+// words
+const char *const STR_LET = "пусть";
+const char *const STR_ASM = "_асм";
+const char *const STR_ENUM = "счет";
+
+struct Inst *get_inst(struct Pser *p) {
+	struct Token *cur = pser_cur(p), *n;
+	struct PList *os = new_plist(1);
+	char *cv = (char *)cur->view->st;
+	enum IP_Code code = IP_NONE;
+
+	while (cur->code == SLASHN || cur->code == SEP)
+		cur = absorb(p);
+	n = get_pser_token(p, 1);
+
+	// fill *os in funcs
+	switch (cur->code) {
+	case EF:
+		code = IP_EOI;
+		break;
+	case ID:
+		if (sc(cv, STR_ASM))
+			code = inst_pser_asm(p, os);
+		else if (sc(cv, STR_INCLUDE))
+			code = inst_pser_include(p, os);
+		else if (sc(cv, STR_DEFINE))
+			code = inst_pser_define(p);
+		else if (sc(cv, STR_ENUM))
+			code = inst_pser_enum(p, os);
+
+		if (code != IP_NONE)
+			break;
+	default:
+		ee_token(p->f, cur, "НЕИЗВЕСТНАЯ КОМАНДА");
+	}
+	//	type expression
+	//
+	// 	IP_DECLARE_STRUCT, // here need type expression to know type size
+	//
+	// 	IP_DECLARE_FUNCTION_SIGNATURE,
+	// 	IP_DECLARE_FUNCTION,
+	//
+	// 	IP_DECLARE_LABEL,
+	// 	IP_GOTO,
+	//
+	// 	IP_LET,
+	//
+	// 	expression,
+	//
+	// 	IP_EQU,
+	// 	IP_PLUS_EQU,
+	// 	IP_MINUS_EQU,
+	// 	IP_MUL_EQU,
+	// 	IP_DIV_EQU,
+	// 	IP_SHR_EQU,
+	// 	IP_SHL_EQU,
+	//
+	// 	IP_LOOP,
+	//
+	// 	IP_IF_ELIF_ELSE,
+	// 	IP_WHILE_LOOP,
+	// 	IP_FOR_LOOP,
+	//
+	// 	IP_MATCH, // TODO: I_MATCH
+
+	return new_inst(p, code, os, cur);
+}
+
+void include_in_is(struct Pser *p, struct PList *is, struct Inst *i) {
+	struct Token *path = plist_get(i->os, 0);
+	blist_add(path->str, 0); // string 0 terminator
+
+	struct Pser *tmp_p = new_pser((char *)path->str->st, p->debug);
+	plist_free(tmp_p->ds);
+	tmp_p->ds = p->ds;
+	struct PList *inc = pse(tmp_p);
+
+	for (uint32_t j = 0; j < inc->size; j++)
+		plist_add(is, plist_get(inc, j));
+
+	free(tmp_p);
+	free(inc);
+}
+
+struct PList *pse(struct Pser *p) {
+	struct PList *is = new_plist(p->ts->cap_pace); // why not
+
+	struct Inst *i = get_inst(p);
+	while (i->code != IP_EOI) {
+		if (i->code == IP_INCLUDE)
+			include_in_is(p, is, i);
+		else if (i->code != IP_NONE)
+			plist_add(is, i);
+		i = get_inst(p);
+	}
+	plist_add(is, i);
+
+	return is;
+}
