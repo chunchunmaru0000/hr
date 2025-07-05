@@ -7,7 +7,7 @@ void ee_token(struct Fpfc *f, struct Token *t, char *msg) { // error exit
 	fprintf(stderr, "%s%s:%d:%d:%s ОШИБКА: %s [%s]:[%d]%s\n", COLOR_WHITE,
 			f->path, t->p->line, t->p->col, COLOR_RED, msg, t->view->st,
 			t->code, COLOR_RESET);
-	print_source_line(f->code, t->p->line, COLOR_LIGHT_RED);
+	print_source_line(f->code, t->p, COLOR_LIGHT_RED, 0);
 	exit(1);
 }
 
@@ -16,8 +16,13 @@ void pw(struct Fpfc *f, struct Pos *p, const char *const msg) {
 	if (NEED_WARN) {
 		fprintf(stderr, "%s%s:%d:%d%s ПРЕДУПРЕЖДЕНИЕ: %s%s\n", COLOR_WHITE,
 				f->path, p->line, p->col, COLOR_LIGHT_PURPLE, msg, COLOR_RESET);
-		print_source_line(f->code, p->line, COLOR_LIGHT_PURPLE);
+		print_source_line(f->code, p, COLOR_LIGHT_PURPLE, 0);
 	}
+}
+
+void eei(struct Fpfc *f, struct Inst *t, const char *const msg,
+		 const char *const sgst) {
+	ee(f, t->p, msg);
 }
 
 struct Pser *new_pser(char *filename, uc debug) {

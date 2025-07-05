@@ -51,7 +51,7 @@ void gen_Fasm_Linux_64_text(struct Gner *g) {
 			bprol_add(g, '\n');
 			break;
 		default:
-			ee(in->f, in->p, "eeeeerror");
+			eei(in->f, in, "eeeeerror", 0);
 		}
 	}
 end_gen_Fasm_text_loop:;

@@ -27,5 +27,7 @@ struct Tzer {
 struct Tzer *new_tzer(char *);
 struct Token *new_token(struct Tzer *);
 struct PList *tze(struct Tzer *, long);
-void print_source_line(const char *, uint32_t, const char *const);
+void print_source_line(const char *, struct Pos *, const char *const, char *);
 void ee(struct Fpfc *, struct Pos *, const char *const);
+void eet(struct Fpfc *f, struct Token *t, const char *const msg,
+		 const char *const sgst);

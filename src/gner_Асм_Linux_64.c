@@ -51,7 +51,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			bprol_add(g, '\n');
 			break;
 		default:
-			ee(in->f, in->p, "эээ");
+			eei(in->f, in, "эээ", 0);
 		}
 	}
 end_gen_Асм_text_loop:;

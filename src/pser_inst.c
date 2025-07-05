@@ -73,7 +73,7 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 
 			plist_add(os, cur);
 		} else if (cur->code != PAR_R)
-			ee(p->f, cur->p, EXPECTED__ID);
+			eet(p->f, cur, EXPECTED__ID, 0);
 	}
 	match(p, cur, PAR_R);
 
@@ -111,7 +111,7 @@ struct FunArg *parse_arg(struct Pser *p, struct FunArg *from) {
 
 	arg->type = type_expr(p);
 	if (from && !types_sizes_do_match(from->type->code, arg->type->code))
-		ee(p->f, c->p, TYPES_SIZES_NOT_MATCH);
+		eet(p->f, c, TYPES_SIZES_NOT_MATCH, 0); // TODO: somehow get arg token
 
 	c = pser_cur(p);
 	if (c->code == COMMA) {
@@ -126,12 +126,7 @@ void parse_args(struct Pser *p, struct PList *os) {
 	struct Token *c = absorb(p); // skip '('
 
 	while (not_ef_and(PAR_R, c)) {
-		if (c->code == EXCL) {
-			consume(p);
-			plist_add(os, parse_arg(p, 0));
-			break;
-		} else
-			plist_add(os, parse_arg(p, 0));
+		plist_add(os, parse_arg(p, 0));
 		c = pser_cur(p);
 	}
 	match(p, c, PAR_R);
@@ -140,6 +135,7 @@ void parse_args(struct Pser *p, struct PList *os) {
 enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	uc is_sign_flag = 0;
 	uint32_t i;
+	struct FunArg *arg;
 
 	struct Token *cur = absorb(p); // skip фц
 	expect(p, cur, ID);
@@ -155,14 +151,18 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	parse_args(p, os);
 	plist_add(os, type_expr(p));
 
-	if (is_sign_flag){
+	if (is_sign_flag) {
 		// TODO: and need to add it to somewhere i believe
 		return IP_DECLARE_FUNCTION_SIGNATURE;
 	}
 
-	for (i = 0; i < os->size - 1; i++)
-		if (((struct FunArg *)plist_get(os, i))->arg_names->size == 0)
-			ee(p->f, pser_cur(p)->p, NOT_FUN_SIGN_NEED_ARG_NAMES);
+	for (i = 0; i < os->size - 1; i++) {
+		arg = plist_get(os, i);
+
+		if (arg->arg_names->size == 0)
+			eet(p->f, cur, NOT_FUN_SIGN_NEED_ARG_NAMES, 0);
+		// TODO: recursive check on either names also
+	}
 	plist_add(os, 0); // args terminator
 
 	// parse block statement

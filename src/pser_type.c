@@ -59,7 +59,7 @@ struct TypeExpr *type_expr(struct Pser *p) {
 					goto ret_type_expr;
 				}
 			}
-			ee(p->f, cur->p, NOT_A_TYPE_WORD);
+			eet(p->f, cur, NOT_A_TYPE_WORD, 0);
 		}
 	} else if (cur->code == MUL) {
 		texpr->code = TC_PTR;
@@ -79,12 +79,12 @@ struct TypeExpr *type_expr(struct Pser *p) {
 			plist_add(texpr->data.arr, (void *)-1);
 		else if (cur->code == INT) {
 			if (cur->number < -1)
-				ee(p->f, cur->p, WRONG_ARR_SIZE);
+				eet(p->f, cur, WRONG_ARR_SIZE, 0);
 			plist_add(texpr->data.arr, (void *)cur->number);
 			consume(p); // consume arr size
 			cur = pser_cur(p);
 		} else
-			ee(p->f, cur->p, ERR_WRONG_TOKEN_NUM_PAR_C_R);
+			eet(p->f, cur, ERR_WRONG_TOKEN_NUM_PAR_C_R, 0);
 
 		expect(p, cur, PAR_C_R); // expect ]
 
@@ -100,11 +100,11 @@ struct TypeExpr *type_expr(struct Pser *p) {
 		if (cur->code == EXCL) {
 			consume(p); // consume !
 			plist_add(texpr->data.arr, type_expr(p));
-			expect(p, cur, PAR_R); // expect )
+			expect(p, pser_cur(p), PAR_R); // expect )
 		} else if (cur->code == PAR_R) {
 			// nothing
 		} else
-			ee(p->f, cur->p, FUN_TYPE_END_OF_FILE);
+			eet(p->f, cur, FUN_TYPE_END_OF_FILE, 0);
 	}
 
 ret_type_expr:

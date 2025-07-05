@@ -4,75 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char *const COLOR_BLACK = "\x1B[30m";
-const char *const COLOR_LIGHT_BLACK = "\033[90m";
-const char *const COLOR_LIGHT_RED = "\x1B[91m";
-const char *const COLOR_RED = "\x1B[31m";
-const char *const COLOR_GREEN = "\x1B[32m";
-const char *const COLOR_YELLOW = "\x1B[33m";
-const char *const COLOR_BLUE = "\x1B[34m";
-const char *const COLOR_PURPLE = "\x1B[35m";
-const char *const COLOR_LIGHT_PURPLE = "\033[95m";
-const char *const COLOR_GAY = "\x1B[36m";
-const char *const COLOR_WHITE = "\x1B[37m";
-const char *const COLOR_RESET = "\x1B[0m";
-const char *const TEXT_TAB = "    ";
-
-// uc *st; // start
-// uint32_t cap_pace;
-// uint32_t cap;
-// uint32_t size;
-
 struct BList EMPTY_STR_B = {"_", 0, 1, 1};
 struct BList EOF_STR_B = {"_КОНЕЦ_ФАЙЛА_", 0, 23, 23}; // конец файла
-
-const char *write_ln(const char *line) {
-	while (*line && *line != '\n') {
-		if (*line == '\t')
-			printf("%s", TEXT_TAB);
-		else
-			putchar(*line);
-		line++;
-	}
-	if (*line == '\n')
-		line++;
-	return line;
-}
-
-void print_source_line(const char *source_code, uint32_t line,
-					   const char *const color) {
-	line--;
-	const char *str_start = source_code;
-	size_t nc = line;
-	if (line)
-		nc--;
-	while (nc) {
-		if (*str_start == '\n')
-			nc--;
-		str_start++;
-	}
-
-	printf("%s%5d |", COLOR_RESET, line);
-	if (line)
-		str_start = write_ln(str_start);
-	putchar('\n');
-
-	printf("%5d |%s", line + 1, color);
-	str_start = write_ln(str_start);
-	printf("%s\n", COLOR_RESET);
-
-	printf("%5d |", line + 2);
-	if (*str_start)
-		write_ln(str_start);
-	putchar('\n');
-}
-
-void ee(struct Fpfc *f, struct Pos *p, const char *const msg) { // error exit
-	fprintf(stderr, "%s%s:%d:%d %sОШИБКА: %s\n", COLOR_WHITE, f->path, p->line,
-			p->col, COLOR_RED, msg);
-	print_source_line(f->code, p->line, COLOR_LIGHT_RED);
-	exit(1);
-}
 
 struct Tzer *new_tzer(char *filename) {
 	struct Tzer *t = malloc(sizeof(struct Tzer));

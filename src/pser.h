@@ -28,7 +28,7 @@ struct Token *get_pser_token(struct Pser *, long);
 #define expect(pser, t, c)                                                     \
 	do {                                                                       \
 		if ((t)->code != (c))                                                  \
-			ee((pser)->f, (t)->p, EXPECTED__##c);                              \
+			eet((pser)->f, (t), EXPECTED__##c, EXPECTED__##c);                 \
 	} while (0)
 
 #define consume(p) ((p)->pos++)
@@ -146,14 +146,14 @@ struct FunArg {
 	struct FunArg *either;
 };
 
-#define types_sizes_do_match(t1, t2)                                          \
-	(((t1) >= TC_VOID && (t2) >= TC_VOID) ||                                    \
-		((t1) >= TC_INT32 && (t2) >= TC_INT32 && (t1) < TC_VOID &&             \
-		 (t2) < TC_INT32) ||                                                   \
-		((t1) >= TC_INT16 && (t2) >= TC_INT16 && (t1) < TC_INT32 &&            \
-		 (t2) < TC_INT32) ||                                                   \
-		((t1) >= TC_INT8 && (t2) >= TC_INT8 && (t1) < TC_INT16 &&              \
-		 (t2) < TC_INT16))
+#define types_sizes_do_match(t1, t2)                                           \
+	(((t1) >= TC_VOID && (t2) >= TC_VOID) ||                                   \
+	 ((t1) >= TC_INT32 && (t2) >= TC_INT32 && (t1) < TC_VOID &&                \
+	  (t2) < TC_VOID) ||                                                      \
+	 ((t1) >= TC_INT16 && (t2) >= TC_INT16 && (t1) < TC_INT32 &&               \
+	  (t2) < TC_INT32) ||                                                      \
+	 ((t1) >= TC_INT8 && (t2) >= TC_INT8 && (t1) < TC_INT16 &&                 \
+	  (t2) < TC_INT16))
 
 void *expression(struct Pser *);
 struct TypeExpr *type_expr(struct Pser *);
@@ -167,3 +167,6 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os);
 
 struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,
 					  struct Token *);
+
+void eei(struct Fpfc *f, struct Inst *t, const char *const msg,
+		 const char *const sgst);
