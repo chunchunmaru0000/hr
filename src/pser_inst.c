@@ -1,4 +1,6 @@
 #include "pser.h"
+#include <stdint.h>
+#include <stdio.h>
 
 // TODO: is it possible to do better str search
 enum IP_Code inst_pser_define(struct Pser *p) {
@@ -78,11 +80,11 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 	return IP_DECLARE_ENUM;
 }
 
-// struct FunArg {
-// 	struct PList *arg_names; // PList of Tokens
-// 	struct TypeExpr *type;
-// 	struct FunArg *either;
-// };
+const char *const TYPES_SIZES_NOT_MATCH =
+	"Размеры типов для одного участка памяти должны быть одинаковы.";
+const char *const NOT_FUN_SIGN_NEED_ARG_NAMES =
+	"При объявлении функции полностью, а не только ее сигнатуры, все аргументы "
+	"должны иметь имена.";
 
 struct FunArg *new_arg() {
 	struct FunArg *arg = malloc(sizeof(struct FunArg));
@@ -92,10 +94,9 @@ struct FunArg *new_arg() {
 	return arg;
 }
 
-struct FunArg *parge_arg(struct Pser *p, struct FunArg *from) {
+struct FunArg *parse_arg(struct Pser *p, struct FunArg *from) {
 	struct FunArg *arg = new_arg();
 	struct Token *c = pser_cur(p);
-
 	while (not_ef_and(COLO, c)) {
 		expect(p, c, ID);
 		plist_add(arg->arg_names, c);
@@ -109,13 +110,13 @@ struct FunArg *parge_arg(struct Pser *p, struct FunArg *from) {
 	match(p, c, COLO);
 
 	arg->type = type_expr(p);
-	if (from && types_sizes_not_match(from, arg))
+	if (from && !types_sizes_do_match(from->type->code, arg->type->code))
 		ee(p->f, c->p, TYPES_SIZES_NOT_MATCH);
 
 	c = pser_cur(p);
 	if (c->code == COMMA) {
 		consume(p);
-		arg->either = parge_arg(p, arg);
+		arg->either = parse_arg(p, arg);
 	}
 
 	return arg;
@@ -127,17 +128,18 @@ void parse_args(struct Pser *p, struct PList *os) {
 	while (not_ef_and(PAR_R, c)) {
 		if (c->code == EXCL) {
 			consume(p);
-			plist_add(os, parge_arg(p, 0));
+			plist_add(os, parse_arg(p, 0));
 			break;
 		} else
-			plist_add(os, parge_arg(p, 0));
+			plist_add(os, parse_arg(p, 0));
 		c = pser_cur(p);
 	}
 	match(p, c, PAR_R);
 }
 
 enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
-	uc is_sing_flag = 0;
+	uc is_sign_flag = 0;
+	uint32_t i;
 
 	struct Token *cur = absorb(p); // skip фц
 	expect(p, cur, ID);
@@ -145,14 +147,22 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 	cur = absorb(p);
 	if (cur->code == EXCL) {
-		is_sing_flag = 1;
+		is_sign_flag = 1;
 		cur = absorb(p); // skip !
 	}
 	expect(p, cur, PAR_L);
 
 	parse_args(p, os);
-	if (is_sing_flag)
+	plist_add(os, type_expr(p));
+
+	if (is_sign_flag){
+		// TODO: and need to add it to somewhere i believe
 		return IP_DECLARE_FUNCTION_SIGNATURE;
+	}
+
+	for (i = 0; i < os->size - 1; i++)
+		if (((struct FunArg *)plist_get(os, i))->arg_names->size == 0)
+			ee(p->f, pser_cur(p)->p, NOT_FUN_SIGN_NEED_ARG_NAMES);
 	plist_add(os, 0); // args terminator
 
 	// parse block statement

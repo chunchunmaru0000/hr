@@ -56,8 +56,8 @@ struct Token *get_pser_token(struct Pser *p, long off) {
 struct Token *next_pser_get(struct Pser *p, long off) {
 	consume(p);
 	return pser_cur(p);
-	//p->pos++;
-	//return get_pser_token(p, off);
+	// p->pos++;
+	// return get_pser_token(p, off);
 }
 
 // TODO:
@@ -91,6 +91,7 @@ const char *const STR_INCLUDE = "влечь";
 const char *const STR_LET = "пусть";
 const char *const STR_ASM = "_асм";
 const char *const STR_ENUM = "счет";
+const char *const STR_FUN = "фц";
 
 struct Inst *get_inst(struct Pser *p) {
 	struct Token *cur = pser_cur(p), *n;
@@ -108,7 +109,9 @@ struct Inst *get_inst(struct Pser *p) {
 		code = IP_EOI;
 		break;
 	case ID:
-		if (sc(cv, STR_ASM))
+		if (sc(cv, STR_FUN))
+			code = inst_pser_dare_fun(p, os);
+		else if (sc(cv, STR_ASM))
 			code = inst_pser_asm(p, os);
 		else if (sc(cv, STR_INCLUDE))
 			code = inst_pser_include(p, os);
@@ -122,8 +125,6 @@ struct Inst *get_inst(struct Pser *p) {
 	default:
 		ee_token(p->f, cur, "НЕИЗВЕСТНАЯ КОМАНДА");
 	}
-	//	type expression
-	//
 	// 	IP_DECLARE_STRUCT, // here need type expression to know type size
 	//
 	// 	IP_DECLARE_FUNCTION_SIGNATURE,

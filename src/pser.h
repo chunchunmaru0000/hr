@@ -146,6 +146,15 @@ struct FunArg {
 	struct FunArg *either;
 };
 
+#define types_sizes_do_match(t1, t2)                                          \
+	(((t1) >= TC_VOID && (t2) >= TC_VOID) ||                                    \
+		((t1) >= TC_INT32 && (t2) >= TC_INT32 && (t1) < TC_VOID &&             \
+		 (t2) < TC_INT32) ||                                                   \
+		((t1) >= TC_INT16 && (t2) >= TC_INT16 && (t1) < TC_INT32 &&            \
+		 (t2) < TC_INT32) ||                                                   \
+		((t1) >= TC_INT8 && (t2) >= TC_INT8 && (t1) < TC_INT16 &&              \
+		 (t2) < TC_INT16))
+
 void *expression(struct Pser *);
 struct TypeExpr *type_expr(struct Pser *);
 
@@ -154,6 +163,7 @@ enum IP_Code inst_pser_include(struct Pser *p, struct PList *os);
 enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os);
 #define HAVE_NUM -0.25
 enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os);
+enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os);
 
 struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,
 					  struct Token *);
