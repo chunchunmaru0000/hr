@@ -1,6 +1,5 @@
 #include "pser.h"
 #include <stdint.h>
-#include <stdio.h>
 
 // TODO: is it possible to do better str search
 enum IP_Code inst_pser_define(struct Pser *p) {
@@ -32,8 +31,7 @@ enum IP_Code inst_pser_include(struct Pser *p, struct PList *os) {
 	// TODO: make relative folder addressation
 	struct Token *path = absorb(p);
 
-	consume(p);
-	expect(p, path, STR);
+	match(p, path, STR);
 
 	plist_add(os, path);
 	return IP_INCLUDE;
@@ -42,8 +40,7 @@ enum IP_Code inst_pser_include(struct Pser *p, struct PList *os) {
 enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os) {
 	struct Token *code = absorb(p);
 
-	consume(p); // skip str
-	expect(p, code, STR);
+	match(p, code, STR);
 
 	plist_add(os, code);
 	return IP_ASM;
@@ -82,9 +79,6 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 
 const char *const TYPES_SIZES_NOT_MATCH =
 	"Размеры типов для одного участка памяти должны быть одинаковы.";
-const char *const NOT_FUN_SIGN_NEED_ARG_NAMES =
-	"При объявлении функции полностью, а не только ее сигнатуры, все аргументы "
-	"должны иметь имена.";
 
 struct FunArg *new_arg() {
 	struct FunArg *arg = malloc(sizeof(struct FunArg));
@@ -96,7 +90,10 @@ struct FunArg *new_arg() {
 
 struct FunArg *parse_arg(struct Pser *p, struct FunArg *from) {
 	struct FunArg *arg = new_arg();
+
 	struct Token *c = pser_cur(p);
+	expect(p, c, ID); // ensures min one name
+
 	while (not_ef_and(COLO, c)) {
 		expect(p, c, ID);
 		plist_add(arg->arg_names, c);
@@ -133,39 +130,20 @@ void parse_args(struct Pser *p, struct PList *os) {
 }
 
 enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
-	uc is_sign_flag = 0;
-	uint32_t i;
-	struct FunArg *arg;
-
 	struct Token *cur = absorb(p); // skip фц
 	expect(p, cur, ID);
 	plist_add(os, cur);
 
 	cur = absorb(p);
-	if (cur->code == EXCL) {
-		is_sign_flag = 1;
-		cur = absorb(p); // skip !
-	}
 	expect(p, cur, PAR_L);
 
 	parse_args(p, os);
 	plist_add(os, type_expr(p));
-
-	if (is_sign_flag) {
-		// TODO: and need to add it to somewhere i believe
-		return IP_DECLARE_FUNCTION_SIGNATURE;
-	}
-
-	for (i = 0; i < os->size - 1; i++) {
-		arg = plist_get(os, i);
-
-		if (arg->arg_names->size == 0)
-			eet(p->f, cur, NOT_FUN_SIGN_NEED_ARG_NAMES, 0);
-		// TODO: recursive check on either names also
-	}
 	plist_add(os, 0); // args terminator
 
+	match(p, pser_cur(p), PAR_L);
 	// parse block statement
+	match(p, pser_cur(p), PAR_R);
 
 	return IP_DECLARE_FUNCTION;
 }

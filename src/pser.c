@@ -20,9 +20,9 @@ void pw(struct Fpfc *f, struct Pos *p, const char *const msg) {
 	}
 }
 
-void eei(struct Fpfc *f, struct Inst *t, const char *const msg,
+void eei(struct Fpfc *f, struct Inst *in, const char *const msg,
 		 const char *const sgst) {
-	ee(f, t->p, msg);
+	eet(f, in->start_token, msg, sgst);
 }
 
 struct Pser *new_pser(char *filename, uc debug) {
@@ -42,11 +42,8 @@ struct Pser *new_pser(char *filename, uc debug) {
 struct Inst *new_inst(struct Pser *p, enum IP_Code code, struct PList *os,
 					  struct Token *t) {
 	struct Inst *i = malloc(sizeof(struct Inst));
-	struct Pos *pos = malloc(sizeof(struct Pos));
 	i->f = p->f;
-	pos->col = t->p->col;
-	pos->line = t->p->line;
-	i->p = pos;
+	i->start_token = t;
 
 	i->os = os;
 	i->code = code;
@@ -88,6 +85,16 @@ const char *const EXPECTED__PAR_C_R = "Ожидалась ']' скобка.";
 const char *const EXPECTED__COLO = "Ожидалось ':'.";
 const char *const EXPECTED__ID = "Ожидалось имя или слово.";
 
+const char *const SUGGEST__STR = "строка";
+const char *const SUGGEST__PAR_L = "(";
+const char *const SUGGEST__PAR_R = ")";
+const char *const SUGGEST__PAR_C_L = "[";
+const char *const SUGGEST__PAR_C_R = "]";
+const char *const SUGGEST__COLO = ":";
+const char *const SUGGEST__ID = "имя";
+const char *const SUGGEST__INT = "целое";
+const char *const SUGGEST__FPN = "вещественное";
+
 const char *const STR_EOF = "_КОНЕЦ_ФАЙЛА_";
 // parser directives
 const char *const STR_DEFINE = "вот";
@@ -100,7 +107,7 @@ const char *const STR_FUN = "фц";
 
 struct Inst *get_inst(struct Pser *p) {
 	struct Token *cur = pser_cur(p), *n;
-	struct PList *os = new_plist(1);
+	struct PList *os = new_plist(2);
 	char *cv = (char *)cur->view->st;
 	enum IP_Code code = IP_NONE;
 
@@ -128,11 +135,11 @@ struct Inst *get_inst(struct Pser *p) {
 		if (code != IP_NONE)
 			break;
 	default:
-		ee_token(p->f, cur, "НЕИЗВЕСТНАЯ КОМАНДА");
+		eet(p->f, cur, ERR_WRONG_TOKEN, 0);
+		// ee_token(p->f, cur, ERR_WRONG_TOKEN, );
 	}
 	// 	IP_DECLARE_STRUCT, // here need type expression to know type size
 	//
-	// 	IP_DECLARE_FUNCTION_SIGNATURE,
 	// 	IP_DECLARE_FUNCTION,
 	//
 	// 	IP_DECLARE_LABEL,

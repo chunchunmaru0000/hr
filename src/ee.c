@@ -37,7 +37,7 @@ const char *write_ln(const char *line) {
 	return line;
 }
 
-uint32_t get_ut8_chars_to_pos(const char *str, int col) {
+uint32_t get_utf8_chars_to_pos(const char *str, int col) {
 	uint32_t chars = 0;
 	// TODO: do it good with proper 0b10... and all
 	for (; col > 0; col--) {
@@ -45,15 +45,12 @@ uint32_t get_ut8_chars_to_pos(const char *str, int col) {
 			chars += TEXT_TAB_SPACES - 1;
 		else if (*str & 0b10000000) {
 			if ((*str & 0b11100000) == 0b11000000) {
-				// chars += 2;
 				str += 1;
 				col -= 1;
 			} else if ((*str & 0b11110000) == 0b11100000) {
-				// chars += 3;
 				str += 2;
 				col -= 2;
 			} else if ((*str & 0b11111000) == 0b11110000) {
-				// chars += 4;
 				str += 3;
 				col -= 3;
 			}
@@ -83,7 +80,7 @@ void print_source_line(const char *source_code, struct Pos *p,
 		str_start = write_ln(str_start);
 	putchar('\n');
 
-	ut8_chars_to_pos = get_ut8_chars_to_pos(str_start, p->col);
+	ut8_chars_to_pos = get_utf8_chars_to_pos(str_start, p->col - 1);
 
 	printf("%5d |%s", line + 1, color);
 	str_start = write_ln(str_start);
@@ -125,20 +122,23 @@ void ee(struct Fpfc *f, struct Pos *p, const char *const msg) { // error exit
 void eet(struct Fpfc *f, struct Token *t, const char *const msg,
 		 const char *const sgst) {
 	char *help;
-	uint32_t help_len, sgst_len = -1;
+	uint32_t token_chars_len, help_len, sgst_len = -1;
 	if (sgst)
 		sgst_len = strlen(sgst);
 
-	help_len = t->view->size + 1 + sgst_len;
+	token_chars_len =
+		get_utf8_chars_to_pos((const char *)t->view->st, t->view->size);
+
+	help_len = token_chars_len + 1 + sgst_len;
 	help = malloc(help_len + 1);
 
 	help[help_len] = 0; // terminate
-	for (uint32_t i = 0; i < t->view->size; i++)
+	for (uint32_t i = 0; i < token_chars_len; i++)
 		help[i] = UNDERLINE_CHAR; // fill with underline
 
 	if (sgst) {
 		help[t->view->size] = '\n'; // split by \n
-		memcpy(help + t->view->size + 1, sgst, sgst_len);
+		memcpy(help + token_chars_len + 1, sgst, sgst_len);
 	}
 
 	fprintf(stderr, "%s%s:%d:%d %sОШИБКА: %s\n", COLOR_WHITE, f->path,

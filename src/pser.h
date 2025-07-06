@@ -14,6 +14,16 @@ extern const char *const EXPECTED__ID;
 extern const char *const EXPECTED__INT;
 extern const char *const EXPECTED__FPN;
 
+extern const char *const SUGGEST__STR;
+extern const char *const SUGGEST__PAR_L;
+extern const char *const SUGGEST__PAR_R;
+extern const char *const SUGGEST__PAR_C_L;
+extern const char *const SUGGEST__PAR_C_R;
+extern const char *const SUGGEST__COLO;
+extern const char *const SUGGEST__ID;
+extern const char *const SUGGEST__INT;
+extern const char *const SUGGEST__FPN;
+
 struct Pser {
 	struct Fpfc *f;
 	struct PList *ts; // tokens
@@ -28,7 +38,7 @@ struct Token *get_pser_token(struct Pser *, long);
 #define expect(pser, t, c)                                                     \
 	do {                                                                       \
 		if ((t)->code != (c))                                                  \
-			eet((pser)->f, (t), EXPECTED__##c, EXPECTED__##c);                 \
+			eet((pser)->f, (t), EXPECTED__##c, SUGGEST__##c);                 \
 	} while (0)
 
 #define consume(p) ((p)->pos++)
@@ -64,7 +74,6 @@ enum IP_Code {
 	IP_SHL_EQU,
 
 	IP_DECLARE_ENUM,
-	IP_DECLARE_FUNCTION_SIGNATURE,
 	IP_DECLARE_FUNCTION,
 	IP_DECLARE_STRUCT,
 	IP_DECLARE_LABEL,
@@ -87,7 +96,7 @@ struct Word {
 struct Inst {
 	enum IP_Code code;
 	struct Fpfc *f;
-	struct Pos *p;
+	struct Token *start_token;
 	struct PList *os;
 };
 
@@ -149,7 +158,7 @@ struct FunArg {
 #define types_sizes_do_match(t1, t2)                                           \
 	(((t1) >= TC_VOID && (t2) >= TC_VOID) ||                                   \
 	 ((t1) >= TC_INT32 && (t2) >= TC_INT32 && (t1) < TC_VOID &&                \
-	  (t2) < TC_VOID) ||                                                      \
+	  (t2) < TC_VOID) ||                                                       \
 	 ((t1) >= TC_INT16 && (t2) >= TC_INT16 && (t1) < TC_INT32 &&               \
 	  (t2) < TC_INT32) ||                                                      \
 	 ((t1) >= TC_INT8 && (t2) >= TC_INT8 && (t1) < TC_INT16 &&                 \
