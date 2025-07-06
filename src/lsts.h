@@ -34,6 +34,7 @@ struct BList {
 
 struct BList *new_blist(uint32_t cap_pace);
 struct BList *blist_from_str(char *str, uint32_t str_len);
+void convert_blist_to_blist_from_str(struct BList *l);
 uint32_t blist_add(struct BList *, uc);
 uint32_t blist_cut(struct BList *);
 uc blist_get(struct BList *, uint32_t);

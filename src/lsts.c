@@ -83,6 +83,12 @@ struct BList *blist_from_str(char *str, uint32_t str_len) {
 	return l;
 }
 
+void convert_blist_to_blist_from_str(struct BList *l) {
+	blist_add(l, 0);
+	l->cap_pace = 0;
+	l->size--;
+}
+
 uint32_t blist_add(struct BList *l, uc p) {
 	if (l->size >= l->cap) {
 		l->cap += l->cap_pace;

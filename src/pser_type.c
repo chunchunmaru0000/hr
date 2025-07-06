@@ -18,29 +18,6 @@ const struct TypeWord TYPE_WORDS[] = {
 const struct TypeWord TYPE_WORD_STRUCT = {"лик", TC_STRUCT, 6};
 const struct TypeWord TYPE_WORD_PTR = {"ук", TC_PTR, 4};
 const struct TypeWord TYPE_WORD_FUN = {"фц", TC_FUN, 4};
-// 	{"м", TC_ARR},
-// {"фц", TC_FUN},		{"*", TC_PTR},
-
-// union TypeData {
-// 	struct TypeExpr *ptr_target;
-// 	struct BList *struct_name;
-// 	struct PList *args;
-// 	struct PList *arr;
-// };
-//
-// struct TypeExpr {
-// 	// type code
-// 	enum TypeCode code;
-// 	/*
-// 	 * if [[ ptr ]] -> TypeExpr *
-// 	 * if [[ struct ]] -> name blist
-// 	 * if [[ fun ]] -> plist of TypeExpr * where last type is return type
-// 	 * if [[ arr ]] -> plist with two items
-// 	 * - first item is TypeExpr *
-// 	 * - second item is long that is len of arr, if len is -1 then any len
-// 	 */
-// 	union TypeData data;
-// };
 
 struct BList *num_to_str(long num) {
 	char *num_view = malloc(11); // 0x23456789 = 10 chars + 0 term
@@ -129,6 +106,7 @@ void get_global_signature(struct GlobVar *var) {
 	blat_blist(signature, type_part);
 	blist_clear_free(type_part);
 
+	convert_blist_to_blist_from_str(signature);
 	var->signature = signature;
 }
 
