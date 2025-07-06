@@ -25,6 +25,16 @@ void eei(struct Fpfc *f, struct Inst *in, const char *const msg,
 	eet(f, in->start_token, msg, sgst);
 }
 
+void get_global_signature(struct GlobVar *var) {
+	struct BList *signature = new_blist(32);
+
+	blat(signature, var->name->view->st, var->name->view->size);
+	// TODO: type signature part
+	printf("### TODO: type signature part\n");
+
+	var->signature = signature;
+}
+
 struct Pser *new_pser(char *filename, uc debug) {
 	struct Pser *p = malloc(sizeof(struct Pser));
 	struct Tzer *t = new_tzer(filename);
@@ -36,6 +46,7 @@ struct Pser *new_pser(char *filename, uc debug) {
 	p->ts = ts;
 	p->debug = debug;
 	p->ds = new_plist(3);
+	p->global_vars = new_plist(16);
 	return p;
 }
 
@@ -105,7 +116,7 @@ const char *const STR_ASM = "_асм";
 const char *const STR_ENUM = "счет";
 const char *const STR_FUN = "фц";
 
-struct Inst *get_inst(struct Pser *p) {
+struct Inst *get_global_inst(struct Pser *p) {
 	struct Token *cur = pser_cur(p), *n;
 	struct PList *os = new_plist(2);
 	char *cv = (char *)cur->view->st;
@@ -121,9 +132,10 @@ struct Inst *get_inst(struct Pser *p) {
 		code = IP_EOI;
 		break;
 	case ID:
-		if (sc(cv, STR_FUN))
+		if (sc(cv, STR_FUN)) {
+			os->cap_pace = 16;
 			code = inst_pser_dare_fun(p, os);
-		else if (sc(cv, STR_ASM))
+		} else if (sc(cv, STR_ASM))
 			code = inst_pser_asm(p, os);
 		else if (sc(cv, STR_INCLUDE))
 			code = inst_pser_include(p, os);
@@ -187,13 +199,13 @@ void include_in_is(struct Pser *p, struct PList *is, struct Inst *i) {
 struct PList *pse(struct Pser *p) {
 	struct PList *is = new_plist(p->ts->cap_pace); // why not
 
-	struct Inst *i = get_inst(p);
+	struct Inst *i = get_global_inst(p);
 	while (i->code != IP_EOI) {
 		if (i->code == IP_INCLUDE)
 			include_in_is(p, is, i);
 		else if (i->code != IP_NONE)
 			plist_add(is, i);
-		i = get_inst(p);
+		i = get_global_inst(p);
 	}
 	plist_add(is, i);
 

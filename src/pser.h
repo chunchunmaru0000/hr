@@ -30,6 +30,7 @@ struct Pser {
 	size_t pos;
 	uc debug;
 	struct PList *ds; // #define's
+	struct PList *global_vars; // global variables
 };
 struct Pser *new_pser(char *, uc);
 struct PList *pse(struct Pser *); // instructions
@@ -131,7 +132,7 @@ struct TypeWord {
 union TypeData {
 	struct TypeExpr *ptr_target;
 	struct BList *struct_name;
-	struct PList *fun;
+	struct PList *args;
 	struct PList *arr;
 };
 
@@ -149,10 +150,18 @@ struct TypeExpr {
 	union TypeData data;
 };
 
+struct TypeExpr *get_type_expr(enum TypeCode);
+
 struct FunArg {
 	struct PList *arg_names; // PList of Tokens
 	struct TypeExpr *type;
 	struct FunArg *either;
+};
+
+struct GlobVar {
+	struct Token *name;
+	struct TypeExpr *type;
+	struct BList *signature;
 };
 
 #define types_sizes_do_match(t1, t2)                                           \
@@ -176,6 +185,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os);
 
 struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,
 					  struct Token *);
+void get_global_signature(struct GlobVar *);
 
 void eei(struct Fpfc *f, struct Inst *t, const char *const msg,
 		 const char *const sgst);

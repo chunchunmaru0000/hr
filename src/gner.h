@@ -5,15 +5,16 @@ struct Gner {
 	enum Target t;
 	uc debug;
 
-	struct PList *is;
 	uint32_t pos;
+	struct PList *is;
+	struct PList *global_vars;
 
 	struct BList *bprol;
 	struct BList *prol;
 	struct BList *text;
 };
 
-struct Gner *new_gner(struct PList *, enum Target, uc);
+struct Gner *new_gner(struct Pser *, enum Target, uc);
 void gen(struct Gner *);
 
 #define blat_str_prol(g, str, str_len)                                         \

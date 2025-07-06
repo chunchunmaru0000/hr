@@ -90,7 +90,7 @@ struct TypeExpr *type_expr(struct Pser *p) {
 
 	} else if (cur->code == PAR_L) {
 		texpr->code = TC_FUN;
-		texpr->data.fun = new_plist(2);
+		texpr->data.args = new_plist(2);
 
 		cur = absorb(p);
 		while (cur->code != PAR_R && cur->code != EXCL && cur->code != EF) {

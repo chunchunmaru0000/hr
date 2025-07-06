@@ -1,17 +1,18 @@
 #include "gner.h"
 
-struct Gner *new_gner(struct PList *is, enum Target tget, uc debug) {
+struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 	struct Gner *g = malloc(sizeof(struct Gner));
 
 	g->t = tget;
 	g->debug = debug;
 
-	g->is = is;
+	g->is = pse(p);
 	g->pos = 0;
 
 	g->bprol = new_blist(128);
 	g->prol = new_blist(128);
 	g->text = new_blist(128);
+	g->global_vars = p->global_vars;
 
 	return g;
 }

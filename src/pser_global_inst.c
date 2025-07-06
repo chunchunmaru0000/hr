@@ -130,19 +130,44 @@ void parse_args(struct Pser *p, struct PList *os) {
 }
 
 enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
+	uint32_t i;
+
+	struct FunArg *arg;
+	struct TypeExpr *type;
+	struct GlobVar *fun_variable = malloc(sizeof(struct GlobVar));
+	struct TypeExpr *fun_type = get_type_expr(TC_FUN);
+	fun_type->data.args = new_plist(2);
+
 	struct Token *cur = absorb(p); // skip фц
 	expect(p, cur, ID);
 	plist_add(os, cur);
+	fun_variable->name = cur;
+	fun_variable->type = fun_type;
 
 	cur = absorb(p);
 	expect(p, cur, PAR_L);
 
 	parse_args(p, os);
-	plist_add(os, type_expr(p));
-	plist_add(os, 0); // args terminator
+	for (i = 1; i < os->size; i++) {
+		arg = plist_get(os, i);
+		plist_add(fun_type->data.args, arg->type);
+	}
 
+	type = type_expr(p);
+	plist_add(os, type);
+
+	plist_add(fun_type->data.args, type);
+	get_global_signature(fun_variable);
+	plist_add(p->global_vars, fun_variable);
+
+	plist_add(os, 0); // args terminator
 	match(p, pser_cur(p), PAR_L);
+
 	// parse block statement
+
+	// * локальные инструкции хранятся в операндах глобальной инструкции,
+	//   после терминирующего нуля
+
 	match(p, pser_cur(p), PAR_R);
 
 	return IP_DECLARE_FUNCTION;
