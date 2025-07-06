@@ -77,8 +77,17 @@ struct BList *new_blist(uint32_t cap_pace) {
 
 struct BList *blist_from_str(char *str, uint32_t str_len) {
 	struct BList *l = malloc(sizeof(struct BList));
+// 	l->cap_pace = str_len + 1;
+// 	l->cap = str_len + 1;
+// 	l->st = malloc(l->cap_pace * sizeof(uc));
+// 	l->size = 0;
+//
+// 	blat(l, (uc *)str, str_len + 1);
+// 	l->size--;
+
 	l->cap_pace = 0;
 	l->size = str_len;
+	l->cap = str_len - 1;
 	l->st = (uc *)str;
 	return l;
 }

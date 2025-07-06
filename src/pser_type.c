@@ -99,8 +99,7 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 void get_global_signature(struct GlobVar *var) {
 	struct BList *signature = new_blist(32), *type_part;
 
-	blat(signature, var->name->view->st, var->name->view->size);
-	blist_add(signature, '_');
+	blat_blist(signature, var->name->view);
 	blist_add(signature, '_');
 	type_part = type_to_blist_from_str(var->type);
 	blat_blist(signature, type_part);
@@ -155,7 +154,6 @@ struct TypeExpr *get_type_expr(enum TypeCode code) {
 	struct TypeExpr *texpr = malloc(sizeof(struct TypeExpr));
 	texpr->data.ptr_target = 0;
 	texpr->code = code;
-
 	return texpr;
 }
 

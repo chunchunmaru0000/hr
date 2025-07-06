@@ -93,14 +93,21 @@ void print_source_line(const char *source_code, struct Pos *p,
 		while (*help_end) {
 			while (*help_end && *help_end != '\n')
 				help_end++;
-			*help_end = 0; // terminate line
+			//printf("\t\t|%d|%s|\n", help_end[0], help);
+			if (*help_end) {   // if not str end
+				*help_end = 0; // terminate line
 
-			printf("      |%s", COLOR_GREEN);
-			print_spaces(ut8_chars_to_pos);
-			printf("%s%s\n", help, COLOR_RESET);
+				printf("      |%s", COLOR_GREEN);
+				print_spaces(ut8_chars_to_pos);
+				printf("%s%s\n", help, COLOR_RESET);
 
-			help_end++;
-			help = help_end;
+				help_end++;
+				help = help_end;
+			} else {
+				printf("      |%s", COLOR_GREEN);
+				print_spaces(ut8_chars_to_pos);
+				printf("%s%s\n", help, COLOR_RESET);
+			}
 		}
 
 		free(help_start); // its malloced so in case of warns
@@ -137,7 +144,7 @@ void eet(struct Fpfc *f, struct Token *t, const char *const msg,
 		help[i] = UNDERLINE_CHAR; // fill with underline
 
 	if (sgst) {
-		help[t->view->size] = '\n'; // split by \n
+		help[token_chars_len] = '\n'; // split by \n
 		memcpy(help + token_chars_len + 1, sgst, sgst_len);
 	}
 
@@ -146,3 +153,4 @@ void eet(struct Fpfc *f, struct Token *t, const char *const msg,
 	print_source_line(f->code, t->p, COLOR_LIGHT_RED, help);
 	exit(1);
 }
+
