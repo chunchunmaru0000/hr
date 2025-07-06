@@ -164,7 +164,7 @@ struct GlobVar {
 	struct TypeExpr *type;
 	struct BList *signature;
 	// also need to have value? because its compile time value
-	void * value;
+	void *value;
 };
 
 #define types_sizes_do_match(t1, t2)                                           \
@@ -190,6 +190,7 @@ struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,
 					  struct Token *);
 struct BList *num_to_str(long num);
 void get_global_signature(struct GlobVar *);
+int are_types_equal(struct TypeExpr *, struct TypeExpr *);
 
 void eei(struct Fpfc *f, struct Inst *t, const char *const msg,
 		 const char *const sgst);

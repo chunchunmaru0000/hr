@@ -110,6 +110,43 @@ void get_global_signature(struct GlobVar *var) {
 	var->signature = signature;
 }
 
+/*
+this funstion only exists cuz its faster than comparison of
+two function signature strings
+*/
+int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
+	if (t1->code != t2->code)
+		return 0;
+
+	// here codes are equal so code of t1 is aslo code of t2
+	if (t1->code < TC_PTR)
+		return 1;
+
+	uint32_t res = 0;
+
+	if (t1->code == TC_PTR) {
+		res = are_types_equal(t1->data.ptr_target, t2->data.ptr_target);
+	} else if (t1->code == TC_STRUCT) {
+		res = sc((char *)t1->data.struct_name->st,
+				 (char *)t2->data.struct_name->st);
+	} else if (t1->code == TC_ARR) {
+		res = are_types_equal(plist_get(t1->data.arr, 0),
+							  plist_get(t2->data.arr, 0)) &&
+			  plist_get(t1->data.arr, 1) == plist_get(t2->data.arr, 1);
+	} else { // TC_FUN
+		if (t1->data.args->size != t2->data.args->size)
+			return 0;
+		for (; res < t1->data.args->size; res++) {
+			if (!are_types_equal(plist_get(t1->data.args, res),
+								 plist_get(t2->data.args, res)))
+				return 0;
+		}
+		res = 1;
+	}
+
+	return res;
+}
+
 const char *const STR_STR_TW = "стр";
 const char *const STR_STRUCT_TW = "лик";
 const char *const STR_ENUM_TW = "счет";

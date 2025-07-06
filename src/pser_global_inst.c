@@ -79,6 +79,12 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 
 const char *const TYPES_SIZES_NOT_MATCH =
 	"Размеры типов для одного участка памяти должны быть одинаковы.";
+const char *const FUN_SIGNATURES_OVERLAP =
+	"Сигнатура данной функции повторяет сигнатуру другой уже объявленной "
+	"функции, даже если типы записаны по разному но равны по смыслу(например "
+	"'*ц8' и 'стр'), их сигнатуры будут равны.";
+const char *const SUGGEST_FIX_FUN_SIGNATURES_OVERLAP =
+	"изменить типы аругментов функции";
 
 struct FunArg *new_arg() {
 	struct FunArg *arg = malloc(sizeof(struct FunArg));
@@ -134,7 +140,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 	struct FunArg *arg;
 	struct TypeExpr *type;
-	struct GlobVar *fun_variable = malloc(sizeof(struct GlobVar));
+	struct GlobVar *fun_variable = malloc(sizeof(struct GlobVar)), *tmp_var;
 	struct TypeExpr *fun_type = get_type_expr(TC_FUN);
 	fun_type->data.args = new_plist(2);
 
@@ -155,8 +161,18 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 	type = type_expr(p);
 	plist_add(os, type);
-
 	plist_add(fun_type->data.args, type);
+
+	for (i = 0; i < p->global_vars->size; i++) {
+		tmp_var = plist_get(p->global_vars, i);
+
+		if (sc((char *)tmp_var->name->view->st,
+			   (char *)fun_variable->name->view->st) &&
+			are_types_equal(tmp_var->type, fun_variable->type))
+			eet(p->f, fun_variable->name, FUN_SIGNATURES_OVERLAP,
+				SUGGEST_FIX_FUN_SIGNATURES_OVERLAP);
+	}
+
 	get_global_signature(fun_variable);
 	plist_add(p->global_vars, fun_variable);
 	plist_set(os, 0, fun_variable);
