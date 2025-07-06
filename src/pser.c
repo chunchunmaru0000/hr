@@ -25,16 +25,6 @@ void eei(struct Fpfc *f, struct Inst *in, const char *const msg,
 	eet(f, in->start_token, msg, sgst);
 }
 
-void get_global_signature(struct GlobVar *var) {
-	struct BList *signature = new_blist(32);
-
-	blat(signature, var->name->view->st, var->name->view->size);
-	// TODO: type signature part
-	printf("### TODO: type signature part\n");
-
-	var->signature = signature;
-}
-
 struct Pser *new_pser(char *filename, uc debug) {
 	struct Pser *p = malloc(sizeof(struct Pser));
 	struct Tzer *t = new_tzer(filename);

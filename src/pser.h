@@ -29,7 +29,7 @@ struct Pser {
 	struct PList *ts; // tokens
 	size_t pos;
 	uc debug;
-	struct PList *ds; // #define's
+	struct PList *ds;		   // #define's
 	struct PList *global_vars; // global variables
 };
 struct Pser *new_pser(char *, uc);
@@ -39,7 +39,7 @@ struct Token *get_pser_token(struct Pser *, long);
 #define expect(pser, t, c)                                                     \
 	do {                                                                       \
 		if ((t)->code != (c))                                                  \
-			eet((pser)->f, (t), EXPECTED__##c, SUGGEST__##c);                 \
+			eet((pser)->f, (t), EXPECTED__##c, SUGGEST__##c);                  \
 	} while (0)
 
 #define consume(p) ((p)->pos++)
@@ -127,6 +127,7 @@ enum TypeCode {
 struct TypeWord {
 	char *view;
 	enum TypeCode code;
+	uint32_t view_len;
 };
 
 union TypeData {
@@ -162,6 +163,8 @@ struct GlobVar {
 	struct Token *name;
 	struct TypeExpr *type;
 	struct BList *signature;
+	// also need to have value? because its compile time value
+	void * value;
 };
 
 #define types_sizes_do_match(t1, t2)                                           \
@@ -185,6 +188,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os);
 
 struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,
 					  struct Token *);
+struct BList *num_to_str(long num);
 void get_global_signature(struct GlobVar *);
 
 void eei(struct Fpfc *f, struct Inst *t, const char *const msg,

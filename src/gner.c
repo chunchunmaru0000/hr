@@ -30,18 +30,3 @@ void gen(struct Gner *g) {
 		break;
 	}
 }
-
-struct BList *num_to_str(long num) {
-	char *num_view = malloc(11); // 0x23456789 = 10 chars + 0 term
-	int four_bits;
-	num_view[10] = 0;
-	num_view[0] = '0';
-	num_view[1] = 'x';
-
-	for (int i = 0; i < 8; i++) {
-		four_bits = ((num >> ((7 - i) * 4)) & 0b1111);
-		num_view[2 + i] = four_bits + (four_bits < 0xa ? '0' : 'a' - 0xa);
-	}
-
-	return blist_from_str(num_view, 10);
-}
