@@ -140,7 +140,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 	struct Token *cur = absorb(p); // skip фц
 	expect(p, cur, ID);
-	plist_add(os, cur);
+	plist_add(os, 0);
 	fun_variable->name = cur;
 	fun_variable->type = fun_type;
 
@@ -159,6 +159,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	plist_add(fun_type->data.args, type);
 	get_global_signature(fun_variable);
 	plist_add(p->global_vars, fun_variable);
+	plist_set(os, 0, fun_variable);
 
 	plist_add(os, 0); // args terminator
 	match(p, pser_cur(p), PAR_L);

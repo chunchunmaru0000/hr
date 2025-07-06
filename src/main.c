@@ -9,7 +9,6 @@ int main() {
 
 	struct Pser *p = new_pser(filename, 1);
 	struct Gner *g = new_gner(p, T_Асм_Linux_64, 1);
-	free(p);
 	gen(g);
 
 	long bytes = g->bprol->size + g->prol->size + g->text->size;

@@ -3,12 +3,17 @@
 char STR_FASM_FORMAT[] = "format ELF64 executable 3\n";
 char STR_FASM_SEGMENT[] = "segment readable executable\n";
 
+uint32_t STR_FASM_FORMAT_LEN = loa(STR_FASM_FORMAT);
+uint32_t STR_FASM_SEGMENT_LEN = loa(STR_FASM_SEGMENT);
+
 void gen_Fasm_Linux_64_prolog(struct Gner *g) {
-	blat_str_prol(g, STR_FASM_FORMAT, loa(STR_FASM_FORMAT));
-	blat_str_prol(g, STR_FASM_SEGMENT, loa(STR_FASM_SEGMENT));
+	blat_str_prol(g, STR_FASM_FORMAT);
+	blat_str_prol(g, STR_FASM_SEGMENT);
 }
 
 char STR_FASM_EQU[] = " equ ";
+
+uint32_t STR_FASM_EQU_LEN = loa(STR_FASM_EQU);
 
 void gen_Fasm_Linux_64_text(struct Gner *g) {
 	uint32_t i, j;
@@ -33,10 +38,10 @@ void gen_Fasm_Linux_64_text(struct Gner *g) {
 			for (j = 1; j < in->os->size; j++) {
 				tok2 = plist_get(in->os, j);
 
-				blat_blist(g->bprol, tok->view);					// ЧЕТО
-				bprol_add(g, '.');									// .
-				blat_blist(g->bprol, tok2->view);					// ИМЯ
-				blat_str_bprol(g, STR_FASM_EQU, loa(STR_FASM_EQU)); // equ
+				blat_blist(g->bprol, tok->view);  // ЧЕТО
+				bprol_add(g, '.');				  // .
+				blat_blist(g->bprol, tok2->view); // ИМЯ
+				blat_str_bprol(g, STR_FASM_EQU);  // equ
 
 				if (tok2->fpn == HAVE_NUM)
 					blat_blist(g->bprol, tok2->str);

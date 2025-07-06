@@ -14,6 +14,7 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 	g->text = new_blist(128);
 	g->global_vars = p->global_vars;
 
+	free(p);
 	return g;
 }
 
