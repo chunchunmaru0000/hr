@@ -4,14 +4,14 @@
 // TODO: is it possible to do better str search
 enum IP_Code inst_pser_define(struct Pser *p) {
 	struct Defn *d;
-	char *view = (char *)absorb(p)->view;
+	struct BList *view = absorb(p)->view;
 	consume(p); // skip name token
 	void *expr = expression(p);
 
 	for (long i = 0; i < p->ds->size; i++) {
 		d = plist_get(p->ds, i);
 
-		if (sc(view, d->view)) {
+		if (sc((char *)view->st, (char *)d->view->st)) {
 			// expression can be freed here cuz it doesnt holds pointers that
 			// it mallocs, it only borrows them
 			free(d->value);
@@ -47,32 +47,41 @@ enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os) {
 }
 
 enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
-	struct Token *enum_name = absorb(p), *cur, *num;
+	struct Token *enum_name = absorb(p);
+	expect(p, enum_name, ID);
 	plist_add(os, enum_name);
 
-	cur = absorb(p);
-	expect(p, cur, PAR_L);
-	while (not_ef_and(PAR_R, cur)) {
-		// consumes PAR_L or ID or num
-		cur = absorb(p);
-		if (cur->code == ID) {
-			num = get_pser_token(p, 1);
+	struct Token *c, *num;
+	struct Defn *defn;
+	long counter = 0;
 
-			if (num->code == INT) {
-				// so now its ID with number 1000iq tokens
-				cur->number = num->number;
-				cur->str = num->view; // and its view as str 2000iq tokens
-				// REMEMBER: when ID and fpn = HAVE_NUM means have num
-				cur->fpn = HAVE_NUM;
-				consume(p); // consume cur
-			} else
-				cur->fpn = 0.0;
+	c = absorb(p);
+	expect(p, c, PAR_L);
 
-			plist_add(os, cur);
-		} else if (cur->code != PAR_R)
-			eet(p->f, cur, EXPECTED__ID, 0);
+	for (c = absorb(p); not_ef_and(PAR_R, c); c = absorb(p)) {
+		expect(p, c, ID);
+		defn = malloc(sizeof(struct Defn));
+		defn->view = new_blist(0);
+		blat_blist(defn->view, enum_name->view); // enum name
+		blist_add(defn->view, '.');				 // .
+		blat_blist(defn->view, c->view);		 // thing name
+
+		blist_add(defn->view, '\0'); // \0 terminated
+		defn->view->size--;
+
+		num = get_pser_token(p, 1);
+
+		if (num->code == INT) {
+			defn->value = (void *)num->number;
+			consume(p); // consume ID
+		} else
+			defn->value = (void *)counter;
+
+		plist_add(p->ds, defn);
+		plist_add(os, defn);
+		counter++;
 	}
-	match(p, cur, PAR_R);
+	match(p, c, PAR_R);
 
 	return IP_DECLARE_ENUM;
 }
@@ -85,6 +94,13 @@ const char *const FUN_SIGNATURES_OVERLAP =
 	"'*ц8' и 'стр'), их сигнатуры будут равны.";
 const char *const SUGGEST_FIX_FUN_SIGNATURES_OVERLAP =
 	"изменить типы аругментов функции";
+const char *const SEVERAL_ARGS_CANT_SHARE_MEM =
+	"Несколько аргументов объявленных таким образом не могут иметь синонимы с "
+	"другими типом, так как они принадлежат к разным участкам памяти.";
+const char *const DELETE_ARGS_OR_COMMA = "удалить аргументы или запятую";
+const char *const COMMA_ARGS_CAN_BE_ONLY_BY_ONE =
+	"Аргументы для одного участка памяти могут быть только по одному, иначе "
+	"это уже не один участок памяти.";
 
 struct FunArg *new_arg() {
 	struct FunArg *arg = malloc(sizeof(struct FunArg));
@@ -94,42 +110,107 @@ struct FunArg *new_arg() {
 	return arg;
 }
 
-struct FunArg *parse_arg(struct Pser *p, struct FunArg *from) {
+// struct FunArg *parse_arg(struct Pser *p, struct FunArg *from) {
+// 	struct FunArg *arg = new_arg();
+//
+// 	struct Token *c = pser_cur(p);
+// 	expect(p, c, ID); // ensures min one name
+//
+// 	while (not_ef_and(COLO, c)) {
+// 		expect(p, c, ID);
+// 		plist_add(arg->arg_names, c);
+//
+// 		c = absorb(p);
+// 		if (pser_cur(p)->code == DIV)
+// 			c = absorb(p);
+// 		else
+// 			continue;
+// 	}
+// 	match(p, c, COLO);
+//
+// 	arg->type = type_expr(p);
+// 	if (from && !types_sizes_do_match(from->type->code, arg->type->code))
+// 		eet(p->f, c, TYPES_SIZES_NOT_MATCH, 0); // TODO: somehow get arg token
+//
+// 	c = pser_cur(p);
+// 	if (c->code == COMMA) {
+// 		consume(p);
+// 		arg->either = parse_arg(p, arg);
+// 	}
+//
+// 	return arg;
+// }
+//
+// void parse_args(struct Pser *p, struct PList *os) {
+// 	struct Token *c = absorb(p); // skip '('
+//
+// 	while (not_ef_and(PAR_R, c)) {
+// 		plist_add(os, parse_arg(p, 0));
+// 		c = pser_cur(p);
+// 	}
+// 	match(p, c, PAR_R);
+// }
+
+struct PList *parse_arg(struct Pser *p, struct FunArg *from) {
+	struct PList *args = new_plist(2), *eithers;
 	struct FunArg *arg = new_arg();
+	struct TypeExpr *type;
+	plist_add(args, arg);
 
 	struct Token *c = pser_cur(p);
 	expect(p, c, ID); // ensures min one name
+	plist_add(arg->arg_names, c);
 
 	while (not_ef_and(COLO, c)) {
-		expect(p, c, ID);
-		plist_add(arg->arg_names, c);
-
 		c = absorb(p);
-		if (pser_cur(p)->code == DIV)
-			c = absorb(p);
-		else
-			continue;
+		if (c->code == ID) {
+			arg = new_arg();
+			plist_add(arg->arg_names, c);
+			plist_add(args, arg);
+		} else
+			while (c->code == DIV) {
+				c = absorb(p);
+				expect(p, c, ID);
+				plist_add(arg->arg_names, c);
+			}
 	}
 	match(p, c, COLO);
+	uc is_one_memory = args->size == 1;
 
-	arg->type = type_expr(p);
-	if (from && !types_sizes_do_match(from->type->code, arg->type->code))
-		eet(p->f, c, TYPES_SIZES_NOT_MATCH, 0); // TODO: somehow get arg token
+	type = type_expr(p);
+
+	if (is_one_memory && from &&
+		!types_sizes_do_match(from->type->code, type->code))
+		eet(p->f, c, TYPES_SIZES_NOT_MATCH,
+			0); // TODO: somehow get arg type token
 
 	c = pser_cur(p);
 	if (c->code == COMMA) {
+		if (!is_one_memory)
+			eet(p->f, c, SEVERAL_ARGS_CANT_SHARE_MEM, DELETE_ARGS_OR_COMMA);
 		consume(p);
-		arg->either = parse_arg(p, arg);
+
+		eithers = parse_arg(p, arg);
+		if (eithers->size == 1)
+			arg->either = plist_get(eithers, 0);
+		else
+			eet(p->f, c, COMMA_ARGS_CAN_BE_ONLY_BY_ONE, 0);
 	}
 
-	return arg;
+	return args;
 }
 
 void parse_args(struct Pser *p, struct PList *os) {
 	struct Token *c = absorb(p); // skip '('
+	struct PList *args;
+	uint32_t i;
 
 	while (not_ef_and(PAR_R, c)) {
-		plist_add(os, parse_arg(p, 0));
+		args = parse_arg(p, 0);
+		// TODO: plat
+		for (i = 0; i < args->size; i++)
+			plist_add(os, plist_get(args, i));
+		free(args);
 		c = pser_cur(p);
 	}
 	match(p, c, PAR_R);

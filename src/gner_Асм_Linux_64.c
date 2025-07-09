@@ -25,6 +25,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 	struct Token *tok, *tok2;
 	struct BList *some_blist;
 	struct GlobVar *global_var;
+	struct Defn *defn;
 
 	for (i = 0; i < g->is->size; i++) {
 		in = plist_get(g->is, i);
@@ -38,24 +39,37 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			blat_blist(g->text, tok->str);
 			break;
 		case IP_DECLARE_ENUM:
-			tok = plist_get(in->os, 0);
-
+			// 			tok = plist_get(in->os, 0);
+			//
+			// 			for (j = 1; j < in->os->size; j++) {
+			// 				tok2 = plist_get(in->os, j);
+			//
+			// 				blat_str_bprol(g, STR_ASM_EQU);	  // вот
+			// 				blat_blist(g->bprol, tok->view);  // ЧЕТО
+			// 				bprol_add(g, '.');				  // .
+			// 				blat_blist(g->bprol, tok2->view); // ИМЯ
+			// 				bprol_add(g, ' ');				  //
+			//
+			// 				if (tok2->fpn == HAVE_NUM)
+			// 					blat_blist(g->bprol, tok2->str);
+			// 				else {
+			// 					some_blist = num_to_str(j - 1);
+			// 					blat_blist(g->bprol, some_blist);
+			// 					blist_clear_free(some_blist);
+			// 				}
+			// 				bprol_add(g, '\n');
+			// 			}
 			for (j = 1; j < in->os->size; j++) {
-				tok2 = plist_get(in->os, j);
+				defn = plist_get(in->os, j);
 
-				blat_str_bprol(g, STR_ASM_EQU);	  // вот
-				blat_blist(g->bprol, tok->view);  // ЧЕТО
-				bprol_add(g, '.');				  // .
-				blat_blist(g->bprol, tok2->view); // ИМЯ
-				bprol_add(g, ' ');				  //
+				blat_str_bprol(g, STR_ASM_EQU); // вот
+				blat_blist(g->bprol, defn->view);
+				bprol_add(g, ' ');
+				// num
+				some_blist = num_to_str((long)defn->value);
+				blat_blist(g->bprol, some_blist);
+				blist_clear_free(some_blist);
 
-				if (tok2->fpn == HAVE_NUM)
-					blat_blist(g->bprol, tok2->str);
-				else {
-					some_blist = num_to_str(j - 1);
-					blat_blist(g->bprol, some_blist);
-					blist_clear_free(some_blist);
-				}
 				bprol_add(g, '\n');
 			}
 

@@ -85,7 +85,7 @@ enum IP_Code {
 };
 
 struct Defn {
-	char *view;
+	struct BList *view;
 	void *value;
 };
 

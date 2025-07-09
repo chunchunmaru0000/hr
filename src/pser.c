@@ -68,7 +68,7 @@ struct Defn *is_defn(struct Pser *p, char *v) {
 	struct Defn *d;
 	for (uint32_t i = 0; i < p->ds->size; i++) {
 		d = plist_get(p->ds, i);
-		if (sc(v, d->view))
+		if (sc(v, (char *)d->view->st))
 			return d;
 	}
 	return 0;
