@@ -71,19 +71,20 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 	} else if (type->code == TC_FUN) {
 		blat(str, (uc *)TYPE_WORD_FUN.view, TYPE_WORD_FUN.view_len);
 		blist_add(str, '{');
-		for (i = 0; i < type->data.args->size - 1; i++) {
-			tmp = type_to_blist_from_str(plist_get(type->data.args, i));
+		// -1 cuz lasr itteration after it
+		for (i = 0; i < type->data.args_types->size - 1; i++) {
+			tmp = type_to_blist_from_str(plist_get(type->data.args_types, i));
 			blat_blist(str, tmp);
 			blist_clear_free(tmp);
 			blist_add(str, '_');
 		}
 		// this is last itteration, i just dont wanna do if in the loop above
-		tmp = type_to_blist_from_str(plist_get(type->data.args, i));
+		tmp = type_to_blist_from_str(plist_get(type->data.args_types, i));
 		blat_blist(str, tmp);
 		blist_clear_free(tmp);
 
 		blist_add(str, '}');
-	} else
+	} else {
 		for (i = 0; i < loa(TYPE_WORDS); i++) {
 			type_word = TYPE_WORDS + i;
 
@@ -92,7 +93,10 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 				break;
 			}
 		}
+	}
 
+	// need to do convert_blist_to_blist_from_str after
+	// like in get_global_signature
 	return str;
 }
 
@@ -101,6 +105,7 @@ void get_global_signature(struct GlobVar *var) {
 
 	blat_blist(signature, var->name->view);
 	blist_add(signature, '_');
+
 	type_part = type_to_blist_from_str(var->type);
 	blat_blist(signature, type_part);
 	blist_clear_free(type_part);
@@ -133,11 +138,11 @@ int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
 							  plist_get(t2->data.arr, 0)) &&
 			  plist_get(t1->data.arr, 1) == plist_get(t2->data.arr, 1);
 	} else { // TC_FUN
-		if (t1->data.args->size != t2->data.args->size)
+		if (t1->data.args_types->size != t2->data.args_types->size)
 			return 0;
-		for (; res < t1->data.args->size; res++) {
-			if (!are_types_equal(plist_get(t1->data.args, res),
-								 plist_get(t2->data.args, res)))
+		for (; res < t1->data.args_types->size; res++) {
+			if (!are_types_equal(plist_get(t1->data.args_types, res),
+								 plist_get(t2->data.args_types, res)))
 				return 0;
 		}
 		res = 1;
@@ -221,7 +226,7 @@ struct TypeExpr *type_expr(struct Pser *p) {
 
 	} else if (cur->code == PAR_L) {
 		texpr->code = TC_FUN;
-		texpr->data.args = new_plist(2);
+		texpr->data.args_types = new_plist(2);
 
 		cur = absorb(p);
 		while (cur->code != PAR_R && cur->code != EXCL && cur->code != EF) {
@@ -230,7 +235,7 @@ struct TypeExpr *type_expr(struct Pser *p) {
 		}
 		if (cur->code == EXCL) {
 			consume(p); // consume !
-			plist_add(texpr->data.arr, type_expr(p));
+			plist_add(texpr->data.args_types, type_expr(p));
 			expect(p, pser_cur(p), PAR_R); // expect )
 		} else if (cur->code == PAR_R) {
 			// nothing

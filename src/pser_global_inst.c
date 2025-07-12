@@ -110,50 +110,10 @@ struct FunArg *new_arg() {
 	return arg;
 }
 
-// struct FunArg *parse_arg(struct Pser *p, struct FunArg *from) {
-// 	struct FunArg *arg = new_arg();
-//
-// 	struct Token *c = pser_cur(p);
-// 	expect(p, c, ID); // ensures min one name
-//
-// 	while (not_ef_and(COLO, c)) {
-// 		expect(p, c, ID);
-// 		plist_add(arg->arg_names, c);
-//
-// 		c = absorb(p);
-// 		if (pser_cur(p)->code == DIV)
-// 			c = absorb(p);
-// 		else
-// 			continue;
-// 	}
-// 	match(p, c, COLO);
-//
-// 	arg->type = type_expr(p);
-// 	if (from && !types_sizes_do_match(from->type->code, arg->type->code))
-// 		eet(p->f, c, TYPES_SIZES_NOT_MATCH, 0); // TODO: somehow get arg token
-//
-// 	c = pser_cur(p);
-// 	if (c->code == COMMA) {
-// 		consume(p);
-// 		arg->either = parse_arg(p, arg);
-// 	}
-//
-// 	return arg;
-// }
-//
-// void parse_args(struct Pser *p, struct PList *os) {
-// 	struct Token *c = absorb(p); // skip '('
-//
-// 	while (not_ef_and(PAR_R, c)) {
-// 		plist_add(os, parse_arg(p, 0));
-// 		c = pser_cur(p);
-// 	}
-// 	match(p, c, PAR_R);
-// }
-
 struct PList *parse_arg(struct Pser *p, struct FunArg *from) {
 	struct PList *args = new_plist(2), *eithers;
 	struct FunArg *arg = new_arg();
+	uint32_t i;
 	struct TypeExpr *type;
 	plist_add(args, arg);
 
@@ -172,6 +132,7 @@ struct PList *parse_arg(struct Pser *p, struct FunArg *from) {
 				c = absorb(p);
 				expect(p, c, ID);
 				plist_add(arg->arg_names, c);
+				c = pser_cur(p);
 			}
 	}
 	match(p, c, COLO);
@@ -190,11 +151,17 @@ struct PList *parse_arg(struct Pser *p, struct FunArg *from) {
 			eet(p->f, c, SEVERAL_ARGS_CANT_SHARE_MEM, DELETE_ARGS_OR_COMMA);
 		consume(p);
 
+		arg->type = type;
 		eithers = parse_arg(p, arg);
 		if (eithers->size == 1)
 			arg->either = plist_get(eithers, 0);
 		else
 			eet(p->f, c, COMMA_ARGS_CAN_BE_ONLY_BY_ONE, 0);
+	} else {
+		for (uint32_t i = 0; i < args->size; i++) {
+			arg = plist_get(args, i);
+			arg->type = type;
+		}
 	}
 
 	return args;
@@ -206,11 +173,12 @@ void parse_args(struct Pser *p, struct PList *os) {
 	uint32_t i;
 
 	while (not_ef_and(PAR_R, c)) {
-		args = parse_arg(p, 0);
 		// TODO: plat
+		args = parse_arg(p, 0);
 		for (i = 0; i < args->size; i++)
 			plist_add(os, plist_get(args, i));
-		free(args);
+
+		plist_free(args);
 		c = pser_cur(p);
 	}
 	match(p, c, PAR_R);
@@ -223,11 +191,11 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	struct TypeExpr *type;
 	struct GlobVar *fun_variable = malloc(sizeof(struct GlobVar)), *tmp_var;
 	struct TypeExpr *fun_type = get_type_expr(TC_FUN);
-	fun_type->data.args = new_plist(2);
+	fun_type->data.args_types = new_plist(2);
 
 	struct Token *cur = absorb(p); // skip фц
 	expect(p, cur, ID);
-	plist_add(os, 0);
+	plist_add(os, cur); // fun name
 	fun_variable->name = cur;
 	fun_variable->type = fun_type;
 
@@ -237,12 +205,15 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	parse_args(p, os);
 	for (i = 1; i < os->size; i++) {
 		arg = plist_get(os, i);
-		plist_add(fun_type->data.args, arg->type);
+
+		// it haves here types cuz fun type args are types
+		// its primary for signature
+		plist_add(fun_type->data.args_types, arg->type);
 	}
 
 	type = type_expr(p);
 	plist_add(os, type);
-	plist_add(fun_type->data.args, type);
+	plist_add(fun_type->data.args_types, type);
 
 	for (i = 0; i < p->global_vars->size; i++) {
 		tmp_var = plist_get(p->global_vars, i);

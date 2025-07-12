@@ -133,7 +133,7 @@ struct TypeWord {
 union TypeData {
 	struct TypeExpr *ptr_target;
 	struct BList *struct_name;
-	struct PList *args;
+	struct PList *args_types;
 	struct PList *arr;
 };
 
