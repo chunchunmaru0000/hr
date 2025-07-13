@@ -66,8 +66,7 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 		blist_add(defn->view, '.');				 // .
 		blat_blist(defn->view, c->view);		 // thing name
 
-		blist_add(defn->view, '\0'); // \0 terminated
-		defn->view->size--;
+		convert_blist_to_blist_from_str(defn->view);
 
 		num = get_pser_token(p, 1);
 
@@ -101,10 +100,14 @@ const char *const DELETE_ARGS_OR_COMMA = "удалить аргументы ил
 const char *const COMMA_ARGS_CAN_BE_ONLY_BY_ONE =
 	"Аргументы для одного участка памяти могут быть только по одному, иначе "
 	"это уже не один участок памяти.";
+const char *const TOO_MUCH_ARGS_FOR_NOW =
+	"Слишком много аргументов фукнции, на данный момент максимальное "
+	"количество аргуентов функции: 7.";
+const char *const SUGGEST_CUT_ARGS_SIZE = "уменьшить количество аргументов";
 
 struct FunArg *new_arg() {
 	struct FunArg *arg = malloc(sizeof(struct FunArg));
-	arg->arg_names = new_plist(1);
+	arg->names = new_plist(1);
 	arg->type = 0;
 	arg->either = 0;
 	return arg;
@@ -119,19 +122,19 @@ struct PList *parse_arg(struct Pser *p, struct FunArg *from) {
 
 	struct Token *c = pser_cur(p);
 	expect(p, c, ID); // ensures min one name
-	plist_add(arg->arg_names, c);
+	plist_add(arg->names, c);
 
 	while (not_ef_and(COLO, c)) {
 		c = absorb(p);
 		if (c->code == ID) {
 			arg = new_arg();
-			plist_add(arg->arg_names, c);
+			plist_add(arg->names, c);
 			plist_add(args, arg);
 		} else
 			while (c->code == DIV) {
 				c = absorb(p);
 				expect(p, c, ID);
-				plist_add(arg->arg_names, c);
+				plist_add(arg->names, c);
 				c = pser_cur(p);
 			}
 	}
@@ -195,7 +198,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 	struct Token *cur = absorb(p); // skip фц
 	expect(p, cur, ID);
-	plist_add(os, cur); // fun name
+	plist_add(os, 0); // reserved place for variable
 	fun_variable->name = cur;
 	fun_variable->type = fun_type;
 
@@ -210,6 +213,11 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 		// its primary for signature
 		plist_add(fun_type->data.args_types, arg->type);
 	}
+
+	// TODO: make args on stack
+	if (fun_type->data.args_types->size > MAX_ARGS_ON_REGISTERS)
+		eet(p->f, fun_variable->name, TOO_MUCH_ARGS_FOR_NOW,
+			SUGGEST_CUT_ARGS_SIZE);
 
 	type = type_expr(p);
 	plist_add(os, type);

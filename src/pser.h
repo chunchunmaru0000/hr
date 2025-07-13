@@ -3,6 +3,7 @@
 
 extern uc NEED_WARN;
 void pw(struct Fpfc *f, struct Pos *p, const char *const msg);
+#define MAX_ARGS_ON_REGISTERS 7
 
 extern const char *const EXPECTED__STR;
 extern const char *const EXPECTED__PAR_L;
@@ -124,6 +125,8 @@ enum TypeCode {
 	TC_STRUCT,
 };
 
+int get_type_code_size(enum TypeCode);
+
 struct TypeWord {
 	char *view;
 	enum TypeCode code;
@@ -154,7 +157,7 @@ struct TypeExpr {
 struct TypeExpr *get_type_expr(enum TypeCode);
 
 struct FunArg {
-	struct PList *arg_names; // PList of Tokens
+	struct PList *names; // PList of Tokens
 	struct TypeExpr *type;
 	struct FunArg *either;
 };

@@ -8,6 +8,13 @@ const char *const FUN_TYPE_END_OF_FILE =
 	"Скобки типа функции не были закрыты и был достигнут конец файла.";
 const char *const NOT_A_TYPE_WORD = "Ожидалось слово типа.";
 
+int get_type_code_size(enum TypeCode code) {
+	return code >= TC_VOID	  ? QWORD
+		   : code >= TC_INT32 ? DWORD
+		   : code >= TC_INT16 ? WORD
+							  : BYTE;
+}
+
 const struct TypeWord TYPE_WORDS[] = {
 	{"ч8", TC_INT8, 3},	   {"ц8", TC_UINT8, 3},	  {"ч16", TC_INT16, 4},
 	{"ц16", TC_UINT16, 4}, {"ч32", TC_INT32, 4},  {"ц32", TC_UINT32, 4},

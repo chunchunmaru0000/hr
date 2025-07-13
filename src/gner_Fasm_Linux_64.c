@@ -7,8 +7,8 @@ uint32_t STR_FASM_FORMAT_LEN = loa(STR_FASM_FORMAT);
 uint32_t STR_FASM_SEGMENT_LEN = loa(STR_FASM_SEGMENT);
 
 void gen_Fasm_Linux_64_prolog(struct Gner *g) {
-	blat_str_prol(g, STR_FASM_FORMAT);
-	blat_str_prol(g, STR_FASM_SEGMENT);
+	blat_str_prol(STR_FASM_FORMAT);
+	blat_str_prol(STR_FASM_SEGMENT);
 }
 
 char STR_FASM_EQU[] = " equ ";
@@ -39,9 +39,9 @@ void gen_Fasm_Linux_64_text(struct Gner *g) {
 				tok2 = plist_get(in->os, j);
 
 				blat_blist(g->bprol, tok->view);  // ЧЕТО
-				bprol_add(g, '.');				  // .
+				bprol_add('.');					  // .
 				blat_blist(g->bprol, tok2->view); // ИМЯ
-				blat_str_bprol(g, STR_FASM_EQU);  // equ
+				blat_str_bprol(STR_FASM_EQU);	  // equ
 
 				if (tok2->fpn == HAVE_NUM)
 					blat_blist(g->bprol, tok2->str);
@@ -50,10 +50,10 @@ void gen_Fasm_Linux_64_text(struct Gner *g) {
 					blat_blist(g->bprol, some_blist);
 					blist_clear_free(some_blist);
 				}
-				bprol_add(g, '\n');
+				bprol_add('\n');
 			}
 
-			bprol_add(g, '\n');
+			bprol_add('\n');
 			break;
 		default:
 			eei(in->f, in, "eeeeerror", 0);
