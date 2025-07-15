@@ -21,6 +21,13 @@ uint32_t STR_ASM_ENTER_STACK_FRAME_LEN = loa(STR_ASM_ENTER_STACK_FRAME);
 uint32_t STR_ASM_LEAVE_STACK_FRAME_LEN = loa(STR_ASM_LEAVE_STACK_FRAME);
 uint32_t STR_ASM_MOV_MEM_RSP_OPEN_LEN = loa(STR_ASM_LEAVE_STACK_FRAME);
 
+const struct Register regs[] = {
+	{"р8", 3, R_R8, QWORD},	  {"р9", 3, R_R9, QWORD},
+	{"р10", 3, R_R10, QWORD}, {"р11", 3, R_R11, QWORD},
+	{"р12", 3, R_R12, QWORD}, {"р13", 3, R_R13, QWORD},
+	{"р14", 3, R_R14, QWORD}, {"р15", 3, R_R15, QWORD},
+};
+
 void gen_Асм_Linux_64_text(struct Gner *g) {
 	uint32_t i, j;
 	struct Inst *in;
@@ -102,11 +109,15 @@ void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 			text_add(' ');
 			blat_blist(g->text, g->tmp_blist); // stack ptr
 			text_add('\n');
+
+			// mov [rsp - g->tmp_blist], register
 		}
 
+		arg = plist_get(in->os, i);
+	}
+
+	if (g->stack_counter) {
 		// sub rps g->stack_counter
 		// num_add(g, g->text, g->stack_counter);
-
-		arg = plist_get(in->os, i);
 	}
 }

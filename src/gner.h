@@ -1,5 +1,13 @@
 #include "pser.h"
+#include "regs.h"
 #include <stdint.h>
+
+struct Register {
+	const char *const name;
+	uint32_t len;
+	enum RegCode reg_code;
+	int size;
+};
 
 struct Gner {
 	enum Target t;
