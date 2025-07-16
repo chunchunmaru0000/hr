@@ -110,13 +110,13 @@ struct FunArg *new_arg() {
 	arg->names = new_plist(1);
 	arg->type = 0;
 	arg->either = 0;
+	arg->offset = 0;
 	return arg;
 }
 
-struct PList *parse_arg(struct Pser *p, struct FunArg *from) {
+struct PList *parse_arg(struct Pser *p, struct FunArg *from, long args_offset) {
 	struct PList *args = new_plist(2), *eithers;
 	struct FunArg *arg = new_arg();
-	uint32_t i;
 	struct TypeExpr *type;
 	plist_add(args, arg);
 
@@ -142,9 +142,12 @@ struct PList *parse_arg(struct Pser *p, struct FunArg *from) {
 	uc is_one_memory = args->size == 1;
 
 	type = type_expr(p);
+	// TODO: size_of_type
+	arg->offset = args_offset + size_of_type(type);
 
 	if (is_one_memory && from &&
-		!types_sizes_do_match(from->type->code, type->code))
+		(size_of_type(type) != size_of_type(from->type)))
+		//! types_sizes_do_match(from->type->code, type->code))
 		eet(p->f, c, TYPES_SIZES_NOT_MATCH,
 			0); // TODO: somehow get arg type token
 
@@ -155,7 +158,7 @@ struct PList *parse_arg(struct Pser *p, struct FunArg *from) {
 		consume(p);
 
 		arg->type = type;
-		eithers = parse_arg(p, arg);
+		eithers = parse_arg(p, arg, args_offset);
 		if (eithers->size == 1)
 			arg->either = plist_get(eithers, 0);
 		else
@@ -171,15 +174,21 @@ struct PList *parse_arg(struct Pser *p, struct FunArg *from) {
 }
 
 void parse_args(struct Pser *p, struct PList *os) {
+	long args_offset = 0;
 	struct Token *c = absorb(p); // skip '('
 	struct PList *args;
+	struct FunArg *arg;
 	uint32_t i;
 
 	while (not_ef_and(PAR_R, c)) {
 		// TODO: plat
-		args = parse_arg(p, 0);
-		for (i = 0; i < args->size; i++)
-			plist_add(os, plist_get(args, i));
+		args = parse_arg(p, 0, args_offset);
+
+		for (i = 0; i < args->size; i++) {
+			arg = plist_get(args, i);
+			plist_add(os, arg);
+		}
+		args_offset += arg->offset;
 
 		plist_free(args);
 		c = pser_cur(p);

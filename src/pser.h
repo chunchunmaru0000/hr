@@ -126,6 +126,7 @@ enum TypeCode {
 };
 
 int get_type_code_size(enum TypeCode);
+#define size_of_type(t) (get_type_code_size((t)->code))
 
 struct TypeWord {
 	char *view;
@@ -160,6 +161,7 @@ struct FunArg {
 	struct PList *names; // PList of Tokens
 	struct TypeExpr *type;
 	struct FunArg *either;
+	long offset;
 };
 
 struct GlobVar {

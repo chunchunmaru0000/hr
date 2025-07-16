@@ -28,6 +28,13 @@ const struct Register regs[] = {
 	{"р14", 3, R_R14, QWORD}, {"р15", 3, R_R15, QWORD},
 };
 
+const struct Register argument_regs[] = {
+	{"р8", 3, R_R8, QWORD},	  {"р9", 3, R_R9, QWORD},
+	{"р10", 3, R_R10, QWORD}, {"р11", 3, R_R11, QWORD},
+	{"р13", 3, R_R13, QWORD}, {"р14", 3, R_R14, QWORD},
+	{"р15", 3, R_R15, QWORD},
+};
+
 void gen_Асм_Linux_64_text(struct Gner *g) {
 	uint32_t i, j;
 	struct Inst *in;
@@ -70,8 +77,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			blat_str_text(STR_ASM_LABEL_END);			// :
 			blat_str_text(STR_ASM_ENTER_STACK_FRAME);
 
-			// put args on the stack
-			// put_args_on_the_stack_Асм_Linux_64(g, in);
+			//put_args_on_the_stack_Асм_Linux_64(g, in);
 			// function body
 
 			// g->stack_counter = 0;
@@ -91,6 +97,7 @@ void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	struct FunArg *arg = plist_get(in->os, 1);
 	struct LocalVar *var;
 	int argSize;
+	const struct Register *reg;
 
 	for (i = 2; arg; i++) {
 		// size of arg and eithers are equal by done so in pser
@@ -102,15 +109,23 @@ void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 								g->stack_counter);
 			plist_add(g->local_vars, var);
 
-			g->tmp_blist = num_to_str(g->stack_counter);
-
 			blat_str_text(STR_ASM_EQU);			  // вот
 			blat_blist(g->text, var->name->view); // name
 			text_add(' ');
+			g->tmp_blist = num_to_str(-g->stack_counter);
 			blat_blist(g->text, g->tmp_blist); // stack ptr
 			text_add('\n');
 
-			// mov [rsp - g->tmp_blist], register
+			// быть (рсп - g->tmp_blist) register
+			blat_str_text(STR_ASM_MOV_MEM_RSP_OPEN);
+			blat_blist(g->text, g->tmp_blist);
+			text_add(')');
+			text_add(' ');
+
+			// register that is need to put there
+			reg = argument_regs + i - 2;
+			blat(g->text, (uc *)reg->name, reg->len);
+			text_add('\n');
 		}
 
 		arg = plist_get(in->os, i);

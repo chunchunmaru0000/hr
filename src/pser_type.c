@@ -248,7 +248,8 @@ struct TypeExpr *type_expr(struct Pser *p) {
 			// nothing
 		} else
 			eet(p->f, cur, FUN_TYPE_END_OF_FILE, 0);
-	}
+	} else
+		eet(p->f, cur, NOT_A_TYPE_WORD, 0);
 
 ret_type_expr:
 	consume(p); // ] ) type_word struct_name str
