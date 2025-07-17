@@ -28,11 +28,44 @@ const struct Register regs[] = {
 	{"р14", 3, R_R14, QWORD}, {"р15", 3, R_R15, QWORD},
 };
 
-const struct Register argument_regs[] = {
-	{"р8", 3, R_R8, QWORD},	  {"р9", 3, R_R9, QWORD},
-	{"р10", 3, R_R10, QWORD}, {"р11", 3, R_R11, QWORD},
-	{"р13", 3, R_R13, QWORD}, {"р14", 3, R_R14, QWORD},
-	{"р15", 3, R_R15, QWORD},
+// пусть [[&лик Регистр реги_аргов 7] 4]
+const struct Register argument_regs[4][7] = {
+	{
+		{"б8", 3, R_R8B, BYTE},
+		{"б9", 3, R_R9B, BYTE},
+		{"б10", 4, R_R10B, BYTE},
+		{"б11", 4, R_R11B, BYTE},
+		{"б13", 4, R_R13B, BYTE},
+		{"б14", 4, R_R14B, BYTE},
+		{"б15", 4, R_R15B, BYTE},
+	},
+	{
+		{"д8", 3, R_R8W, WORD},
+		{"д9", 3, R_R9W, WORD},
+		{"д10", 4, R_R10W, WORD},
+		{"д11", 4, R_R11W, WORD},
+		{"д13", 4, R_R13W, WORD},
+		{"д14", 4, R_R14W, WORD},
+		{"д15", 4, R_R15W, WORD},
+	},
+	{
+		{"е8", 3, R_R8D, DWORD},
+		{"е9", 3, R_R9D, DWORD},
+		{"е10", 4, R_R10D, DWORD},
+		{"е11", 4, R_R11D, DWORD},
+		{"е13", 4, R_R13D, DWORD},
+		{"е14", 4, R_R14D, DWORD},
+		{"е15", 4, R_R15D, DWORD},
+	},
+	{
+		{"р8", 3, R_R8, QWORD},
+		{"р9", 3, R_R9, QWORD},
+		{"р10", 4, R_R10, QWORD},
+		{"р11", 4, R_R11, QWORD},
+		{"р13", 4, R_R13, QWORD},
+		{"р14", 4, R_R14, QWORD},
+		{"р15", 4, R_R15, QWORD},
+	},
 };
 
 void gen_Асм_Linux_64_text(struct Gner *g) {
@@ -77,8 +110,8 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			blat_str_text(STR_ASM_LABEL_END);			// :
 			blat_str_text(STR_ASM_ENTER_STACK_FRAME);
 
-			//put_args_on_the_stack_Асм_Linux_64(g, in);
-			// function body
+			// put_args_on_the_stack_Асм_Linux_64(g, in);
+			//  function body
 
 			// g->stack_counter = 0;
 			// free stack in return statement
@@ -89,6 +122,22 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 		}
 	}
 end_gen_Асм_text_loop:;
+}
+
+// фц взять_регстры_размера(размер:ч32) [лик Регистр 7]
+const struct Register (*get_regs_of_size(int size_of_var))[7] {
+	switch (size_of_var) {
+	case BYTE:
+		return argument_regs + 0;
+	case WORD:
+		return argument_regs + 1;
+	case DWORD:
+		return argument_regs + 2;
+	case QWORD:
+		return argument_regs + 3;
+	}
+	printf("\t\t\tЭЭЭ ЭЭЭ ЭЭЭ\n");
+	exit(1);
 }
 
 void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
@@ -104,6 +153,8 @@ void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		argSize = get_type_code_size(arg->type->code);
 		g->stack_counter -= argSize;
 
+		g->tmp_blist = num_to_str(g->stack_counter);
+
 		for (j = 0; j < arg->names->size; j++) {
 			var = new_local_var(plist_get(arg->names, j), arg->type,
 								g->stack_counter);
@@ -112,7 +163,6 @@ void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 			blat_str_text(STR_ASM_EQU);			  // вот
 			blat_blist(g->text, var->name->view); // name
 			text_add(' ');
-			g->tmp_blist = num_to_str(-g->stack_counter);
 			blat_blist(g->text, g->tmp_blist); // stack ptr
 			text_add('\n');
 
@@ -123,11 +173,12 @@ void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 			text_add(' ');
 
 			// register that is need to put there
-			reg = argument_regs + i - 2;
+			reg = get_regs_of_size(size_of_local(var))[i - 2];
 			blat(g->text, (uc *)reg->name, reg->len);
 			text_add('\n');
 		}
 
+		blist_clear(g->tmp_blist);
 		arg = plist_get(in->os, i);
 	}
 
