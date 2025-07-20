@@ -131,7 +131,7 @@ const struct Register *get_regs_of_size(int size_of_var, int i) {
 void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	// fun in->os are: fun va riable, args..., 0 term, ...
 	uint32_t i, j;
-	struct FunArg *arg = plist_get(in->os, 1);
+	struct Arg *arg = plist_get(in->os, 1);
 	struct LocalVar *var;
 	int argSize;
 	const struct Register *reg;

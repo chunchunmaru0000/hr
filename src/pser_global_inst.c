@@ -27,6 +27,8 @@ enum IP_Code inst_pser_define(struct Pser *p) {
 	return IP_NONE;
 }
 
+// ### os explanation:
+//   _ - ? inslude path string token ?
 enum IP_Code inst_pser_include(struct Pser *p, struct PList *os) {
 	// TODO: make relative folder addressation
 	struct Token *path = absorb(p);
@@ -37,6 +39,8 @@ enum IP_Code inst_pser_include(struct Pser *p, struct PList *os) {
 	return IP_INCLUDE;
 }
 
+// ### os explanation:
+//   _ - assembly string token
 enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os) {
 	struct Token *code = absorb(p);
 
@@ -46,6 +50,9 @@ enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os) {
 	return IP_ASM;
 }
 
+// ### os explanation:
+//   _ - name
+// ... - defns where name is name and value is num
 enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 	struct Token *enum_name = absorb(p);
 	expect(p, enum_name, ID);
@@ -105,8 +112,8 @@ const char *const TOO_MUCH_ARGS_FOR_NOW =
 	"количество аргуентов функции: 7.";
 const char *const SUGGEST_CUT_ARGS_SIZE = "уменьшить количество аргументов";
 
-struct FunArg *new_arg() {
-	struct FunArg *arg = malloc(sizeof(struct FunArg));
+struct Arg *new_arg() {
+	struct Arg *arg = malloc(sizeof(struct Arg));
 	arg->names = new_plist(1);
 	arg->type = 0;
 	arg->either = 0;
@@ -114,9 +121,9 @@ struct FunArg *new_arg() {
 	return arg;
 }
 
-struct PList *parse_arg(struct Pser *p, struct FunArg *from, long args_offset) {
+struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 	struct PList *args = new_plist(2), *eithers;
-	struct FunArg *arg = new_arg();
+	struct Arg *arg = new_arg();
 	struct TypeExpr *type;
 	plist_add(args, arg);
 
@@ -176,7 +183,7 @@ void parse_args(struct Pser *p, struct PList *os) {
 	long args_offset = 0;
 	struct Token *c = absorb(p); // skip '('
 	struct PList *args;
-	struct FunArg *arg;
+	struct Arg *arg;
 	uint32_t i;
 
 	while (not_ef_and(PAR_R, c)) {
@@ -195,10 +202,29 @@ void parse_args(struct Pser *p, struct PList *os) {
 	match(p, c, PAR_R);
 }
 
+// ### os explanation:
+//   _ - name
+// ... - fields that are Arg's
+enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
+	struct Token *cur = absorb(p); // skip лик
+	expect(p, cur, ID);
+	plist_add(os, cur); // struct name
+
+	match(p, pser_cur(p), PAR_L);
+	parse_args(p, os);
+
+	return IP_DECLARE_STRUCT;
+}
+
+// ### os explanation:
+//   _ - GlobVar with name and type
+// ... - Arg's
+//   0 - zero terminator
+// ... - ? function inctrustions ?
 enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	uint32_t i;
 
-	struct FunArg *arg;
+	struct Arg *arg;
 	struct TypeExpr *type;
 	struct GlobVar *fun_variable = malloc(sizeof(struct GlobVar)), *tmp_var;
 	struct TypeExpr *fun_type = get_type_expr(TC_FUN);

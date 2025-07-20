@@ -157,10 +157,10 @@ struct TypeExpr {
 
 struct TypeExpr *get_type_expr(enum TypeCode);
 
-struct FunArg {
+struct Arg {
 	struct PList *names; // PList of Tokens
 	struct TypeExpr *type;
-	struct FunArg *either;
+	struct Arg *either;
 	long offset;
 };
 
@@ -181,14 +181,15 @@ struct GlobVar {
 	 ((t1) >= TC_INT8 && (t2) >= TC_INT8 && (t1) < TC_INT16 &&                 \
 	  (t2) < TC_INT16))
 
-void *expression(struct Pser *);
+void *
+expression(struct Pser *);
 struct TypeExpr *type_expr(struct Pser *);
 
 enum IP_Code inst_pser_define(struct Pser *p);
 enum IP_Code inst_pser_include(struct Pser *p, struct PList *os);
 enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os);
-#define HAVE_NUM -0.25
 enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os);
+enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os);
 enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os);
 
 struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,

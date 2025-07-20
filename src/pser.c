@@ -103,8 +103,10 @@ const char *const STR_INCLUDE = "влечь";
 // words
 const char *const STR_LET = "пусть";
 const char *const STR_ASM = "_асм";
-const char *const STR_ENUM = "счет";
+
 const char *const STR_FUN = "фц";
+const char *const STR_ENUM = "счет";
+const char *const STR_STRUCT = "лик";
 
 struct Inst *get_global_inst(struct Pser *p) {
 	struct Token *cur = pser_cur(p), *n;
@@ -133,6 +135,8 @@ struct Inst *get_global_inst(struct Pser *p) {
 			code = inst_pser_define(p);
 		else if (sc(cv, STR_ENUM))
 			code = inst_pser_enum(p, os);
+		else if (sc(cv, STR_STRUCT))
+			code = inst_pser_struct(p, os);
 
 		if (code != IP_NONE)
 			break;

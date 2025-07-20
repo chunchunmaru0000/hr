@@ -43,7 +43,7 @@ void gen_Fasm_Linux_64_text(struct Gner *g) {
 				blat_blist(g->bprol, tok2->view); // ИМЯ
 				blat_str_bprol(STR_FASM_EQU);	  // equ
 
-				if (tok2->fpn == HAVE_NUM)
+				if (tok2->fpn == -0.25) // old code need to delete it all
 					blat_blist(g->bprol, tok2->str);
 				else {
 					some_blist = num_to_str(j - 1);
