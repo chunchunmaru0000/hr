@@ -181,8 +181,7 @@ struct GlobVar {
 	 ((t1) >= TC_INT8 && (t2) >= TC_INT8 && (t1) < TC_INT16 &&                 \
 	  (t2) < TC_INT16))
 
-void *
-expression(struct Pser *);
+void *expression(struct Pser *);
 struct TypeExpr *type_expr(struct Pser *);
 
 enum IP_Code inst_pser_define(struct Pser *p);

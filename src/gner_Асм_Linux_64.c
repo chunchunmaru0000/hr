@@ -16,12 +16,14 @@ char STR_ASM_ENTER_STACK_FRAME[] = "\tтолк рбп\n\tбыть рбп рсп\
 char STR_ASM_LEAVE_STACK_FRAME[] = "\tбыть рсп рбп\n\tвыт рбп\n\tвозд\n";
 char STR_ASM_MOV_MEM_RSP_OPEN[] = "\tбыть (рсп ";
 char STR_ASM_START_COMMENT[] = "\t; ";
+char STR_ASM_SUB_RSP[] = "\tминс рсп ";
 
 uint32_t STR_ASM_EQU_LEN = loa(STR_ASM_EQU);
 uint32_t STR_ASM_ENTER_STACK_FRAME_LEN = loa(STR_ASM_ENTER_STACK_FRAME);
 uint32_t STR_ASM_LEAVE_STACK_FRAME_LEN = loa(STR_ASM_LEAVE_STACK_FRAME);
 uint32_t STR_ASM_MOV_MEM_RSP_OPEN_LEN = loa(STR_ASM_MOV_MEM_RSP_OPEN);
 char STR_ASM_START_COMMENT_LEN = loa(STR_ASM_START_COMMENT);
+char STR_ASM_SUB_RSP_LEN = loa(STR_ASM_SUB_RSP);
 
 const struct Register regs[] = {
 	{"р8", 3, R_R8, QWORD},	  {"р9", 3, R_R9, QWORD},
@@ -70,10 +72,15 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 		case IP_EOI:
 			goto end_gen_Асм_text_loop;
 		case IP_ASM:
+			// ### os explanation:
+			//   _ - assembly string token
 			tok = plist_get(in->os, 0);
 			blat_blist(g->text, tok->str);
 			break;
 		case IP_DECLARE_ENUM:
+			// ### os explanation:
+			//   _ - name
+			// ... - defns where name is name and value is num
 			for (j = 1; j < in->os->size; j++) {
 				defn = plist_get(in->os, j);
 
@@ -86,7 +93,17 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 
 			bprol_add('\n');
 			break;
+		case IP_DECLARE_STRUCT:
+			// ### os explanation:
+			//   _ - name
+			// ... - fields that are Arg's
+			break;
 		case IP_DECLARE_FUNCTION:
+			// ### os explanation:
+			//   _ - GlobVar with name and type
+			// ... - Arg's
+			//   0 - zero terminator
+			// ... - ? function inctrustions ?
 			g->stack_counter = 0;
 			// TODO: maybe free em cuz they are in no need anywhere after
 			plist_clear(g->local_vars);
@@ -176,7 +193,8 @@ void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	}
 
 	if (g->stack_counter) {
-		// sub rps g->stack_counter
-		// num_add(g, g->text, g->stack_counter);
+		blat_str_text(STR_ASM_SUB_RSP);
+		num_add(g->text, -g->stack_counter);
+		text_add('\n');
 	}
 }

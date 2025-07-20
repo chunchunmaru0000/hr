@@ -38,8 +38,8 @@ void gen(struct Gner *);
 
 #define num_add(list, value)                                                   \
 	do {                                                                       \
-		g->tmp_blist = num_to_str(value);                                      \
-		blat_blist(list, g->tmp_blist);                                        \
+		g->tmp_blist = num_to_str((value));                                    \
+		blat_blist((list), g->tmp_blist);                                      \
 		blist_clear_free(g->tmp_blist);                                        \
 	} while (0);
 
