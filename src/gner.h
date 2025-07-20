@@ -4,7 +4,7 @@
 
 struct Register {
 	const char *const name;
-	uint32_t len;
+	uc len;
 	enum RegCode reg_code;
 	int size;
 };

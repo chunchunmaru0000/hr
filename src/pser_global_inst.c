@@ -142,8 +142,7 @@ struct PList *parse_arg(struct Pser *p, struct FunArg *from, long args_offset) {
 	uc is_one_memory = args->size == 1;
 
 	type = type_expr(p);
-	// TODO: size_of_type
-	arg->offset = args_offset + size_of_type(type);
+	arg->offset = args_offset;
 
 	if (is_one_memory && from &&
 		(size_of_type(type) != size_of_type(from->type)))
@@ -188,7 +187,7 @@ void parse_args(struct Pser *p, struct PList *os) {
 			arg = plist_get(args, i);
 			plist_add(os, arg);
 		}
-		args_offset += arg->offset;
+		args_offset += size_of_type(arg->type);
 
 		plist_free(args);
 		c = pser_cur(p);
@@ -229,7 +228,9 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 			SUGGEST_CUT_ARGS_SIZE);
 
 	type = type_expr(p);
-	plist_add(os, type);
+	// do i really need it here if its already in
+	// fun_type->data.args_types
+	// plist_add(os, type);
 	plist_add(fun_type->data.args_types, type);
 
 	for (i = 0; i < p->global_vars->size; i++) {
