@@ -35,8 +35,9 @@ struct Pser *new_pser(char *filename, uc debug) {
 	p->pos = 0;
 	p->ts = ts;
 	p->debug = debug;
-	p->ds = new_plist(3);
+	p->ds = new_plist(8);
 	p->global_vars = new_plist(16);
+	p->structs = new_plist(8);
 	return p;
 }
 
@@ -144,14 +145,12 @@ struct Inst *get_global_inst(struct Pser *p) {
 		eet(p->f, cur, ERR_WRONG_TOKEN, 0);
 		// ee_token(p->f, cur, ERR_WRONG_TOKEN, );
 	}
-	// 	IP_DECLARE_STRUCT, // here need type expression to know type size
-	//
 	// 	IP_DECLARE_FUNCTION,
+	//
+	// 	IP_LET,
 	//
 	// 	IP_DECLARE_LABEL,
 	// 	IP_GOTO,
-	//
-	// 	IP_LET,
 	//
 	// 	expression,
 	//
@@ -197,8 +196,11 @@ struct PList *pse(struct Pser *p) {
 	while (i->code != IP_EOI) {
 		if (i->code == IP_INCLUDE)
 			include_in_is(p, is, i);
-		else if (i->code != IP_NONE)
+		else if (i->code != IP_NONE) {
+			if (i->code == IP_DECLARE_STRUCT)
+				plist_add(p->structs, i);
 			plist_add(is, i);
+		}
 		i = get_global_inst(p);
 	}
 	plist_add(is, i);

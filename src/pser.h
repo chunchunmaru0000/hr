@@ -32,6 +32,7 @@ struct Pser {
 	uc debug;
 	struct PList *ds;		   // #define's
 	struct PList *global_vars; // global variables
+	struct PList *structs;	   // Inst's of IP_DECLARE_STRUCT
 };
 struct Pser *new_pser(char *, uc);
 struct PList *pse(struct Pser *); // instructions
@@ -58,15 +59,27 @@ enum IP_Code {
 	// directives
 	IP_NONE,
 	IP_EOI, // end of instructions
-
+	// any level
 	IP_ASM,
+	// global level
 	IP_INCLUDE,
-	IP_LET,
 	IP_DEFINE,
+	IP_DECLARE_ENUM,
+	IP_DECLARE_STRUCT,
+	IP_DECLARE_FUNCTION,
+	// local level
+	IP_LET,
+
+	IP_DECLARE_LABEL,
 	IP_GOTO,
+
 	IP_IF_ELIF_ELSE,
 	IP_MATCH, // TODO: I_MATCH
 
+	IP_LOOP,
+	IP_FOR_LOOP,
+	IP_WHILE_LOOP,
+	// expression level, not decided yet
 	IP_EQU,
 	IP_PLUS_EQU,
 	IP_MINUS_EQU,
@@ -74,15 +87,6 @@ enum IP_Code {
 	IP_DIV_EQU,
 	IP_SHR_EQU,
 	IP_SHL_EQU,
-
-	IP_DECLARE_ENUM,
-	IP_DECLARE_FUNCTION,
-	IP_DECLARE_STRUCT,
-	IP_DECLARE_LABEL,
-
-	IP_LOOP,
-	IP_FOR_LOOP,
-	IP_WHILE_LOOP,
 };
 
 struct Defn {

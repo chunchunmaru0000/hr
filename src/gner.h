@@ -14,10 +14,13 @@ struct Gner {
 	uc debug;
 
 	uint32_t pos;
+	long stack_counter;
+
 	struct PList *is;
+	struct PList *defines; // Defn's
+	struct PList *structs; // Inst's of IP_DECLARE_STRUC
 	struct PList *global_vars;
 	struct PList *local_vars;
-	long stack_counter;
 
 	struct BList *bprol; // before prolog
 	struct BList *prol;	 // prolog

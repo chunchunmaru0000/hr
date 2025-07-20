@@ -97,6 +97,8 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			// ### os explanation:
 			//   _ - name
 			// ... - fields that are Arg's
+
+			// gonna just do here thing for asm defns
 			break;
 		case IP_DECLARE_FUNCTION:
 			// ### os explanation:
