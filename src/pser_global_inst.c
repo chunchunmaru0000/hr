@@ -120,6 +120,10 @@ struct Arg *new_arg() {
 	return arg;
 }
 
+// this is kinda one item stack to know eithers is_one_mem or not
+// cuz do it via function atgument is kinda shit so at least global var
+uc is_one_memories_flag;
+
 struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 	struct PList *args = new_plist(2), *eithers;
 	struct Arg *arg = new_arg();
@@ -148,6 +152,7 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 	}
 	match(p, c, COLO);
 	uc is_one_memory = args->size == 1;
+	is_one_memories_flag = is_one_memory;
 
 	type = type_expr(p);
 	type_size = size_of_type(type);
@@ -170,10 +175,11 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 
 		// get new arg
 		eithers = parse_arg(p, arg, args_offset);
-		if (eithers->size != 1)
-			eet(p->f, c, COMMA_ARGS_CAN_BE_ONLY_BY_ONE, 0);
-
-		plist_add(args, plist_get(eithers, 0));
+		if (!is_one_memories_flag && eithers->size != 1)
+			eet(p->f, c, COMMA_ARGS_CAN_BE_ONLY_BY_ONE, DELETE_ARGS_OR_COMMA);
+		// add all and free
+		for (i = 0; i < eithers->size; i++)
+			plist_add(args, plist_get(eithers, i));
 		plist_free(eithers);
 	} else {
 		for (i = 0; i < args->size; i++) {
@@ -194,7 +200,6 @@ void parse_args(struct Pser *p, struct PList *os) {
 	uint32_t i;
 
 	while (not_ef_and(PAR_R, c)) {
-		// TODO: plat
 		args = parse_arg(p, 0, args_offset);
 
 		for (i = 0; i < args->size; i++) {
