@@ -154,9 +154,6 @@ void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {
 
 		bprol_add('\n');
 	}
-
-	if (arg->either)
-		declare_struct_arg(g, strct, arg->either);
 }
 
 // фц взять_регстры_размера(размер:ч32) [лик Регистр 7]

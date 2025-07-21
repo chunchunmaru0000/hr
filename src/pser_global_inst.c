@@ -116,7 +116,6 @@ struct Arg *new_arg() {
 	struct Arg *arg = malloc(sizeof(struct Arg));
 	arg->names = new_plist(1);
 	arg->type = 0;
-	arg->either = 0;
 	arg->offset = 0;
 	return arg;
 }
@@ -125,6 +124,8 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 	struct PList *args = new_plist(2), *eithers;
 	struct Arg *arg = new_arg();
 	struct TypeExpr *type;
+	uint32_t i;
+	int type_size;
 	plist_add(args, arg);
 
 	struct Token *c = pser_cur(p);
@@ -149,29 +150,35 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 	uc is_one_memory = args->size == 1;
 
 	type = type_expr(p);
-	arg->offset = args_offset;
+	type_size = size_of_type(type);
 
-	if (is_one_memory && from &&
-		(size_of_type(type) != size_of_type(from->type)))
-		//! types_sizes_do_match(from->type->code, type->code))
-		eet(p->f, c, TYPES_SIZES_NOT_MATCH,
-			0); // TODO: somehow get arg type token
+	// TODO: somehow get arg type token
+	if (is_one_memory && from && (type_size != size_of_type(from->type)))
+		eet(p->f, c, TYPES_SIZES_NOT_MATCH, 0);
+	if (!is_one_memory && from)
+		eet(p->f, c, SEVERAL_ARGS_CANT_SHARE_MEM, DELETE_ARGS_OR_COMMA);
 
 	c = pser_cur(p);
 	if (c->code == COMMA) {
 		if (!is_one_memory)
 			eet(p->f, c, SEVERAL_ARGS_CANT_SHARE_MEM, DELETE_ARGS_OR_COMMA);
-		consume(p);
+		consume(p); // consume ,
 
+		// set thing to the single arg
+		arg->offset = args_offset;
 		arg->type = type;
+
+		// get new arg
 		eithers = parse_arg(p, arg, args_offset);
-		if (eithers->size == 1)
-			arg->either = plist_get(eithers, 0);
-		else
+		if (eithers->size != 1)
 			eet(p->f, c, COMMA_ARGS_CAN_BE_ONLY_BY_ONE, 0);
+
+		plist_add(args, plist_get(eithers, 0));
+		plist_free(eithers);
 	} else {
-		for (uint32_t i = 0; i < args->size; i++) {
+		for (i = 0; i < args->size; i++) {
 			arg = plist_get(args, i);
+			arg->offset = args_offset + i * type_size;
 			arg->type = type;
 		}
 	}
@@ -194,7 +201,7 @@ void parse_args(struct Pser *p, struct PList *os) {
 			arg = plist_get(args, i);
 			plist_add(os, arg);
 		}
-		args_offset += size_of_type(arg->type);
+		args_offset = arg->offset + size_of_type(arg->type);
 
 		plist_free(args);
 		c = pser_cur(p);
