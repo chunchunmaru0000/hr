@@ -197,6 +197,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os);
 struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,
 					  struct Token *);
 struct BList *num_to_str(long num);
+struct BList *num_to_hex_str(long num);
 void get_global_signature(struct GlobVar *);
 int are_types_equal(struct TypeExpr *, struct TypeExpr *);
 

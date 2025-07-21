@@ -87,7 +87,7 @@ struct BList *blist_from_str(char *str, uint32_t str_len) {
 
 	l->cap_pace = 0;
 	l->size = str_len;
-	l->cap = str_len - 1;
+	l->cap = str_len;
 	l->st = (uc *)str;
 	return l;
 }

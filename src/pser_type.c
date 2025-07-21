@@ -26,7 +26,7 @@ const struct TypeWord TYPE_WORD_STRUCT = {"лик", TC_STRUCT, 6};
 const struct TypeWord TYPE_WORD_PTR = {"ук", TC_PTR, 4};
 const struct TypeWord TYPE_WORD_FUN = {"фц", TC_FUN, 4};
 
-struct BList *num_to_str(long num) {
+struct BList *num_to_hex_str(long num) {
 	char *num_view = malloc(11); // 0x23456789 = 10 chars + 0 term
 	int four_bits, i;
 	num_view[10] = 0;
@@ -40,13 +40,43 @@ struct BList *num_to_str(long num) {
 
 	return blist_from_str(num_view, 10);
 }
-// TODO:
-// struct BList *num_to_str(long num) {
-// 	char *num_view = malloc(3); // avrage len is kinda 1-2 chars + 0 terminator
-// 	int i;
-// 
-// 	return blist_from_str(num_view, num_view->size - 1);
-// }
+
+struct BList *num_to_str(long num) {
+	char *num_view;
+	long num_clone;
+	int num_len = 0, minus_flag = 0;
+
+	if (!num) {
+		num_view = malloc(2);
+		num_view[1] = '\0';
+		num_view[0] = '0';
+		return blist_from_str(num_view, 1);
+	}
+
+	if (num < 0) {
+		minus_flag = 1;
+		num_len = 1;
+		num *= -1;
+	}
+	num_clone = num;
+
+	for (; num_clone; num_len++)
+		num_clone /= 10;
+
+	num_view = malloc(num_len + 1);
+	num_view[num_len] = '\0';
+	num_clone = num_len;
+
+	for (; num; num_len--) {
+		num_view[num_len - 1] = (num % 10) + '0';
+		num /= 10;
+	}
+
+	if (minus_flag)
+		num_view[0] = '-';
+
+	return blist_from_str(num_view, num_clone);
+}
 
 struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 	struct BList *str = new_blist(9), *tmp;

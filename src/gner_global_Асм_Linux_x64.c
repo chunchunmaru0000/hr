@@ -149,8 +149,10 @@ void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {
 		bprol_add('.');
 		blat_blist(g->bprol, name->view);
 
-		bprol_add(' ');
+		bprol_add('\t');
 		num_add(g->bprol, arg->offset);
+		blat_str_bprol(STR_ASM_START_COMMENT);
+		num_hex_add(g->bprol, arg->offset);
 
 		bprol_add('\n');
 	}
@@ -185,22 +187,18 @@ void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		argSize = get_type_code_size(arg->type->code);
 		g->stack_counter -= argSize;
 
-		g->tmp_blist = num_to_str(g->stack_counter);
-
 		for (j = 0; j < arg->names->size; j++) {
 			var = new_local_var(plist_get(arg->names, j), arg->type,
 								g->stack_counter);
 			plist_add(g->local_vars, var);
-			// add equ to asm
 
-			blat_str_text(STR_ASM_START_COMMENT); // \t;
-			blat_blist(g->text, var->name->view); // name
-			text_add('\n');
 			text_add('\t');
 			blat_str_text(STR_ASM_EQU);			  // вот
 			blat_blist(g->text, var->name->view); // name
 			text_add(' ');
-			blat_blist(g->text, g->tmp_blist); // stack ptr
+			num_add(g->text, g->stack_counter);
+			blat_str_text(STR_ASM_START_COMMENT); // \t;
+			num_hex_add(g->text, g->stack_counter);
 			text_add('\n');
 		}
 		// быть (рсп - g->tmp_blist) register
@@ -215,7 +213,6 @@ void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		blat(g->text, (uc *)reg->name, reg->len);
 		text_add('\n');
 
-		blist_clear_free(g->tmp_blist);
 		arg = plist_get(in->os, i);
 	}
 

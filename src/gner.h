@@ -45,6 +45,12 @@ void gen(struct Gner *);
 		blat_blist((list), g->tmp_blist);                                      \
 		blist_clear_free(g->tmp_blist);                                        \
 	} while (0);
+#define num_hex_add(list, value)                                               \
+	do {                                                                       \
+		g->tmp_blist = num_to_hex_str((value));                                \
+		blat_blist((list), g->tmp_blist);                                      \
+		blist_clear_free(g->tmp_blist);                                        \
+	} while (0);
 
 void gen_Fasm_Linux_64_prolog(struct Gner *);
 void gen_Fasm_Linux_64_text(struct Gner *);
