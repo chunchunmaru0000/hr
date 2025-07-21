@@ -206,11 +206,11 @@ void parse_args(struct Pser *p, struct PList *os) {
 //   _ - name
 // ... - fields that are Arg's
 enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
-	struct Token *cur = absorb(p); // skip лик
-	expect(p, cur, ID);
-	plist_add(os, cur); // struct name
+	struct Token *c = absorb(p); // skip лик
+	expect(p, c, ID);
+	plist_add(os, c); // struct name
 
-	match(p, pser_cur(p), PAR_L);
+	expect(p, absorb(p), PAR_L);
 	parse_args(p, os);
 
 	return IP_DECLARE_STRUCT;

@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
+void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg);
 
 char STR_ASM_SEGMENT[] = "участок чит исп\n";
 char STR_ASM_LABEL_END[] = ":\n";
@@ -74,6 +75,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 		case IP_ASM:
 			// ### os explanation:
 			//   _ - assembly string token
+
 			tok = plist_get(in->os, 0);
 			blat_blist(g->text, tok->str);
 			break;
@@ -81,6 +83,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			// ### os explanation:
 			//   _ - name
 			// ... - defns where name is name and value is num
+
 			for (j = 1; j < in->os->size; j++) {
 				defn = plist_get(in->os, j);
 
@@ -98,7 +101,11 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			//   _ - name
 			// ... - fields that are Arg's
 
-			// gonna just do here thing for asm defns
+			tok = plist_get(in->os, 0);
+
+			for (j = 1; j < in->os->size; j++)
+				declare_struct_arg(g, tok, plist_get(in->os, j));
+			bprol_add('\n');
 			break;
 		case IP_DECLARE_FUNCTION:
 			// ### os explanation:
@@ -106,12 +113,12 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			// ... - Arg's
 			//   0 - zero terminator
 			// ... - ? function inctrustions ?
-			g->stack_counter = 0;
+
 			// TODO: maybe free em cuz they are in no need anywhere after
 			plist_clear(g->local_vars);
+			g->stack_counter = 0;
 
 			global_var = plist_get(in->os, 0);
-
 			blat_blist(g->text, global_var->signature); // fun label
 			blat_str_text(STR_ASM_LABEL_END);			// :
 			blat_str_text(STR_ASM_ENTER_STACK_FRAME);
@@ -129,6 +136,27 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 		}
 	}
 end_gen_Асм_text_loop:;
+}
+
+void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {
+	struct Token *name;
+
+	for (uint32_t i = 0; i < arg->names->size; i++) {
+		blat_str_bprol(STR_ASM_EQU);
+
+		blat_blist(g->bprol, strct->view);
+		name = plist_get(arg->names, i);
+		bprol_add('.');
+		blat_blist(g->bprol, name->view);
+
+		bprol_add(' ');
+		num_add(g->bprol, arg->offset);
+
+		bprol_add('\n');
+	}
+
+	if (arg->either)
+		declare_struct_arg(g, strct, arg->either);
 }
 
 // фц взять_регстры_размера(размер:ч32) [лик Регистр 7]

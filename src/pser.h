@@ -164,7 +164,7 @@ struct TypeExpr *get_type_expr(enum TypeCode);
 struct Arg {
 	struct PList *names; // PList of Tokens
 	struct TypeExpr *type;
-	struct Arg *either;
+	// struct Arg *either; // TODO: delete this and
 	long offset;
 };
 

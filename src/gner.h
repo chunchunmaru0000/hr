@@ -32,8 +32,8 @@ struct Gner {
 struct Gner *new_gner(struct Pser *, enum Target, uc);
 void gen(struct Gner *);
 
-#define blat_str_prol(str) (blat(g->prol, (uc *)(str), (str##_LEN - 1)))
 #define blat_str_bprol(str) (blat(g->bprol, (uc *)(str), (str##_LEN - 1)))
+#define blat_str_prol(str) (blat(g->prol, (uc *)(str), (str##_LEN - 1)))
 #define blat_str_text(str) (blat(g->text, (uc *)(str), (str##_LEN - 1)))
 #define bprol_add(byte) (blist_add(g->bprol, (byte)))
 #define prol_add(byte) (blist_add(g->prol, (byte)))
