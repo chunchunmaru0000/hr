@@ -11,9 +11,8 @@
 		gner_Fasm_Linux_64.c \
 	pser.c \
 		pser_type.c \
-		pser_global_inst.c \
+		pser_global_inst.c pser_local_inst.c \
 		pser_expr.c \
-	ee.c tzer.c \
-	lsts.c
+	ee.c tzer.c lsts.c
 	chmod +x ср
 	./ср

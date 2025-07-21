@@ -186,7 +186,10 @@ struct GlobVar {
 
 void *expression(struct Pser *);
 struct TypeExpr *type_expr(struct Pser *);
+struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,
+					  struct Token *);
 
+struct Inst *get_global_inst(struct Pser *p);
 enum IP_Code inst_pser_define(struct Pser *p);
 enum IP_Code inst_pser_include(struct Pser *p, struct PList *os);
 enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os);
@@ -194,8 +197,9 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os);
 enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os);
 enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os);
 
-struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,
-					  struct Token *);
+void parse_block_of_local_inst(struct Pser *p, struct PList *os);
+struct Inst *get_local_inst(struct Pser *p);
+
 struct BList *num_to_str(long num);
 struct BList *num_to_hex_str(long num);
 void get_global_signature(struct GlobVar *);

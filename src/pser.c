@@ -75,6 +75,15 @@ struct Defn *is_defn(struct Pser *p, char *v) {
 	return 0;
 }
 
+void parse_block_of_local_inst(struct Pser *p, struct PList *os) {
+	match(p, pser_cur(p), PAR_L);
+
+	while (not_ef_and(PAR_R, pser_cur(p)))
+		plist_add(os, get_local_inst(p));
+
+	match(p, pser_cur(p), PAR_R);
+}
+
 const char *const ERR_WRONG_TOKEN = "Неверное выражение.";
 
 const char *const EXPECTED__STR = "Ожидалась строка.";

@@ -112,7 +112,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			//   _ - GlobVar with name and type
 			// ... - Arg's
 			//   0 - zero terminator
-			// ... - ? function inctrustions ?
+			// ... - local inctrustions
 
 			// TODO: maybe free em cuz they are in no need anywhere after
 			plist_clear(g->local_vars);
@@ -204,8 +204,8 @@ void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		// быть (рсп - g->tmp_blist) register
 		blat_str_text(STR_ASM_MOV_MEM_RSP_OPEN);
 		blat_blist(g->text, var->name->view); // name
-		// blat_blist(g->text, g->tmp_blist);
 		text_add(')');
+
 		text_add(' ');
 		// register that is need to put there
 		int size = size_of_local(var);

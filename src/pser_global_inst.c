@@ -232,7 +232,7 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 //   _ - GlobVar with name and type
 // ... - Arg's
 //   0 - zero terminator
-// ... - ? function inctrustions ?
+// ... - local inctrustions
 enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	uint32_t i;
 
@@ -286,14 +286,8 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	plist_set(os, 0, fun_variable);
 
 	plist_add(os, 0); // args terminator
-	match(p, pser_cur(p), PAR_L);
 
-	// parse block statement
-
-	// * локальные инструкции хранятся в операндах глобальной инструкции,
-	//   после терминирующего нуля
-
-	match(p, pser_cur(p), PAR_R);
+	parse_block_of_local_inst(p, os);
 
 	return IP_DECLARE_FUNCTION;
 }
