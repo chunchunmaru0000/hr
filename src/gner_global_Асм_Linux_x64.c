@@ -1,7 +1,7 @@
 #include "gner.h"
 #include <stdio.h>
 
-void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
+uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg);
 
 char STR_ASM_SEGMENT[] = "участок чит исп\n";
@@ -59,7 +59,7 @@ const struct Register argument_regs_QWORD[7] = {
 };
 
 void gen_Асм_Linux_64_text(struct Gner *g) {
-	uint32_t i, j;
+	uint32_t i, j, local_i;
 	struct Inst *in;
 	struct Token *tok, *tok2;
 	struct GlobVar *global_var;
@@ -123,9 +123,10 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			blat_str_text(STR_ASM_LABEL_END);			// :
 			blat_str_text(STR_ASM_ENTER_STACK_FRAME);
 
-			put_args_on_the_stack_Асм_Linux_64(g, in);
+			local_i = put_args_on_the_stack_Асм_Linux_64(g, in);
 			//  function body
-
+			for (; local_i < in->os->size; local_i++)
+				gen_local_Асм_Linux_64(g, plist_get(in->os, local_i));
 			// g->stack_counter = 0;
 			// free stack in return statement
 			blat_str_text(STR_ASM_LEAVE_STACK_FRAME);
@@ -174,7 +175,7 @@ const struct Register *get_regs_of_size(int size_of_var, int i) {
 	exit(1);
 }
 
-void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
+uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	// fun in->os are: fun va riable, args..., 0 term, ...
 	uint32_t i, j;
 	struct Arg *arg = plist_get(in->os, 1);
@@ -221,4 +222,6 @@ void put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		num_add(g->text, -g->stack_counter);
 		text_add('\n');
 	}
+
+	return i;
 }

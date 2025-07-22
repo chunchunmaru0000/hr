@@ -25,6 +25,11 @@ extern const char *const SUGGEST__ID;
 extern const char *const SUGGEST__INT;
 extern const char *const SUGGEST__FPN;
 
+extern const char *const ERR_WRONG_TOKEN;
+
+extern const char *const STR_LET;
+extern const char *const STR_ASM;
+
 struct Pser {
 	struct Fpfc *f;
 	struct PList *ts; // tokens

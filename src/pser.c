@@ -152,32 +152,15 @@ struct Inst *get_global_inst(struct Pser *p) {
 			break;
 	default:
 		eet(p->f, cur, ERR_WRONG_TOKEN, 0);
-		// ee_token(p->f, cur, ERR_WRONG_TOKEN, );
 	}
-	// 	IP_DECLARE_FUNCTION,
+	// 	IP_DECLARE_FUNCTION body,
 	//
-	// 	IP_LET,
+	// 	global IP_LET,
 	//
-	// 	IP_DECLARE_LABEL,
-	// 	IP_GOTO,
+	// 	global IP_DECLARE_LABEL,
+	// 	global IP_GOTO,
 	//
-	// 	expression,
-	//
-	// 	IP_EQU,
-	// 	IP_PLUS_EQU,
-	// 	IP_MINUS_EQU,
-	// 	IP_MUL_EQU,
-	// 	IP_DIV_EQU,
-	// 	IP_SHR_EQU,
-	// 	IP_SHL_EQU,
-	//
-	// 	IP_LOOP,
-	//
-	// 	IP_IF_ELIF_ELSE,
-	// 	IP_WHILE_LOOP,
-	// 	IP_FOR_LOOP,
-	//
-	// 	IP_MATCH, // TODO: I_MATCH
+	// 	global expression,
 
 	return new_inst(p, code, os, cur);
 }

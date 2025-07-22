@@ -58,6 +58,8 @@ void gen_Fasm_Linux_64_text(struct Gner *);
 void gen_Асм_Linux_64_prolog(struct Gner *);
 void gen_Асм_Linux_64_text(struct Gner *);
 
+void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in);
+
 struct LocalVar {
 	struct Token *name;
 	struct TypeExpr *type;

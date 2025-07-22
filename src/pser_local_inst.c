@@ -1,6 +1,51 @@
 #include "pser.h"
 
-struct Inst *get_local_inst(struct Pser *p){
+struct Inst *get_local_inst(struct Pser *p) {
+	struct Token *cur = pser_cur(p), *n;
+	struct PList *os = new_plist(2);
+	char *cv = (char *)cur->view->st;
+	enum IP_Code code = IP_NONE;
 
-	return 0;
+	while (cur->code == SLASHN || cur->code == SEP)
+		cur = absorb(p);
+	n = get_pser_token(p, 1);
+
+	// fill *os in funcs
+	switch (cur->code) {
+	case EF:
+		code = IP_EOI;
+		break;
+	case ID:
+		if (sc(cv, STR_ASM))
+			code = inst_pser_asm(p, os);
+
+		if (code != IP_NONE)
+			break;
+	default:
+		eet(p->f, cur, ERR_WRONG_TOKEN, 0);
+	}
+	// 	IP_LET,
+	//
+	// 	IP_DECLARE_LABEL,
+	// 	IP_GOTO,
+	//
+	// 	expression,
+	//
+	// 	IP_EQU,
+	// 	IP_PLUS_EQU,
+	// 	IP_MINUS_EQU,
+	// 	IP_MUL_EQU,
+	// 	IP_DIV_EQU,
+	// 	IP_SHR_EQU,
+	// 	IP_SHL_EQU,
+	//
+	// 	IP_LOOP,
+	//
+	// 	IP_IF_ELIF_ELSE,
+	// 	IP_WHILE_LOOP,
+	// 	IP_FOR_LOOP,
+	//
+	// 	IP_MATCH, // TODO: I_MATCH
+
+	return new_inst(p, code, os, cur);
 }
