@@ -9,12 +9,17 @@ struct Register {
 	int size;
 };
 
+struct Fggs {
+	uc is_stack_used;
+};
+
 struct Gner {
 	enum Target t;
 	uc debug;
 
 	uint32_t pos;
 	long stack_counter;
+	struct Fggs *flags;
 
 	struct PList *is;
 	struct PList *defines; // Defn's
@@ -39,16 +44,20 @@ extern const uint32_t STR_ASM_LABEL_END_LEN;
 
 extern const char STR_ASM_EQU[];
 extern const char STR_ASM_ENTER_STACK_FRAME[];
-extern const char STR_ASM_LEAVE_STACK_FRAME[];
 extern const char STR_ASM_MOV_MEM_RSP_OPEN[];
 extern const char STR_ASM_START_COMMENT[];
 extern const char STR_ASM_SUB_RSP[];
+extern const char STR_ASM_LEAVE[];
+extern const char STR_ASM_RET[];
+
 extern const uint32_t STR_ASM_EQU_LEN;
 extern const uint32_t STR_ASM_ENTER_STACK_FRAME_LEN;
 extern const uint32_t STR_ASM_LEAVE_STACK_FRAME_LEN;
 extern const uint32_t STR_ASM_MOV_MEM_RSP_OPEN_LEN;
-extern const char STR_ASM_START_COMMENT_LEN;
-extern const char STR_ASM_SUB_RSP_LEN;
+extern const uint32_t STR_ASM_START_COMMENT_LEN;
+extern const uint32_t STR_ASM_SUB_RSP_LEN;
+extern const uint32_t STR_ASM_LEAVE_LEN;
+extern const uint32_t STR_ASM_RET_LEN;
 
 #define blat_str_bprol(str) (blat(g->bprol, (uc *)(str), (str##_LEN - 1)))
 #define blat_str_prol(str) (blat(g->prol, (uc *)(str), (str##_LEN - 1)))

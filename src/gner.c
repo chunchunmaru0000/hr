@@ -9,6 +9,7 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 	g->is = pse(p);
 	g->pos = 0;
 	g->stack_counter = 0;
+	g->flags = malloc(sizeof(struct Fggs));
 
 	g->bprol = new_blist(128);
 	g->prol = new_blist(128);

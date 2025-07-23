@@ -14,17 +14,19 @@ void gen_Асм_Linux_64_prolog(struct Gner *g) { blat_str_prol(STR_ASM_SEGMENT)
 
 const char STR_ASM_EQU[] = "вот ";
 const char STR_ASM_ENTER_STACK_FRAME[] = "\tтолк рбп\n\tбыть рбп рсп\n";
-const char STR_ASM_LEAVE_STACK_FRAME[] = "\tбыть рсп рбп\n\tвыт рбп\n\tвозд\n";
 const char STR_ASM_MOV_MEM_RSP_OPEN[] = "\tбыть (рсп ";
 const char STR_ASM_START_COMMENT[] = "\t; ";
 const char STR_ASM_SUB_RSP[] = "\tминс рсп ";
+const char STR_ASM_LEAVE[] = "\tвыйти\n";
+const char STR_ASM_RET[] = "\tвозд\n";
 
 const uint32_t STR_ASM_EQU_LEN = loa(STR_ASM_EQU);
 const uint32_t STR_ASM_ENTER_STACK_FRAME_LEN = loa(STR_ASM_ENTER_STACK_FRAME);
-const uint32_t STR_ASM_LEAVE_STACK_FRAME_LEN = loa(STR_ASM_LEAVE_STACK_FRAME);
 const uint32_t STR_ASM_MOV_MEM_RSP_OPEN_LEN = loa(STR_ASM_MOV_MEM_RSP_OPEN);
-const char STR_ASM_START_COMMENT_LEN = loa(STR_ASM_START_COMMENT);
-const char STR_ASM_SUB_RSP_LEN = loa(STR_ASM_SUB_RSP);
+const uint32_t STR_ASM_START_COMMENT_LEN = loa(STR_ASM_START_COMMENT);
+const uint32_t STR_ASM_SUB_RSP_LEN = loa(STR_ASM_SUB_RSP);
+const uint32_t STR_ASM_LEAVE_LEN = loa(STR_ASM_LEAVE);
+const uint32_t STR_ASM_RET_LEN = loa(STR_ASM_RET);
 
 const struct Register regs[] = {
 	{"р8", 3, R_R8, QWORD},	  {"р9", 3, R_R9, QWORD},
@@ -117,6 +119,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			// TODO: maybe free em cuz they are in no need anywhere after
 			plist_clear(g->local_vars);
 			g->stack_counter = 0;
+			g->flags->is_stack_used = 0;
 
 			global_var = plist_get(in->os, 0);
 			blat_blist(g->text, global_var->signature); // fun label
@@ -129,7 +132,10 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 				gen_local_Асм_Linux_64(g, plist_get(in->os, local_i));
 			// g->stack_counter = 0;
 			// free stack in return statement
-			blat_str_text(STR_ASM_LEAVE_STACK_FRAME);
+
+			if (g->flags->is_stack_used)
+				blat_str_text(STR_ASM_LEAVE);
+			blat_str_text(STR_ASM_RET);
 			text_add('\n');
 			break;
 		default:
@@ -219,11 +225,10 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 
 	// TODO: optimize it cuz mostly after it goes let statement some ot does two
 	// sub rsp instead of one
-	if (g->stack_counter) {
-		blat_str_text(STR_ASM_SUB_RSP);
-		num_add(g->text, -g->stack_counter);
-		text_add('\n');
-	}
-
+	// if (g->stack_counter) {
+	// 	blat_str_text(STR_ASM_SUB_RSP);
+	// 	num_add(g->text, -g->stack_counter);
+	// 	text_add('\n');
+	// }
 	return i;
 }

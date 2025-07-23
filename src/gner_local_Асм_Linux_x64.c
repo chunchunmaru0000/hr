@@ -75,9 +75,9 @@ void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		last_offset = arg->offset;
 	}
 
-	if (stack_was != g->stack_counter) {
-		blat_str_text(STR_ASM_SUB_RSP);
-		num_add(g->text, stack_was - g->stack_counter);
-		text_add('\n');
-	}
+	// if (stack_was != g->stack_counter) {
+	// 	blat_str_text(STR_ASM_SUB_RSP);
+	// 	num_add(g->text, stack_was - g->stack_counter);
+	// 	text_add('\n');
+	// }
 }
