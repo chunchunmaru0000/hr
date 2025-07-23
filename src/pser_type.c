@@ -195,6 +195,30 @@ int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
 	return res;
 }
 
+void free_type(struct TypeExpr *type) {
+	uint32_t i;
+
+	#include <stdio.h>
+	printf("here %d\n", type->code);
+	if (type->code == TC_PTR)
+		free_type(type->data.ptr_target);
+
+	else if (type->code == TC_ARR) {
+		free_type(plist_get(type->data.arr, 0));
+		plist_free(type->data.arr);
+
+	} else if (type->code == TC_FUN) {
+		for (i = 0; i < type->data.args_types->size; i++)
+			free_type(plist_get(type->data.args_types, i));
+		plist_free(type->data.args_types);
+	}
+	// else if (type->code == TC_STRUCT)
+	//     ; // nothing cuz this blist is part of a token
+	printf("here %d end\n", type->code);
+
+	free(type);
+}
+
 const char *const STR_STR_TW = "стр";
 const char *const STR_STRUCT_TW = "лик";
 const char *const STR_ENUM_TW = "счет";
@@ -274,7 +298,7 @@ struct TypeExpr *type_expr(struct Pser *p) {
 
 		cur = absorb(p);
 		while (cur->code != PAR_R && cur->code != EXCL && cur->code != EF) {
-			plist_add(texpr->data.arr, type_expr(p));
+			plist_add(texpr->data.args_types, type_expr(p));
 			cur = pser_cur(p);
 		}
 		if (cur->code == EXCL) {

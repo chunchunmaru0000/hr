@@ -260,15 +260,11 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 		plist_add(fun_type->data.args_types, arg->type);
 	}
 
-	// TODO: make args on stack
 	if (fun_type->data.args_types->size > MAX_ARGS_ON_REGISTERS)
 		eet(p->f, fun_variable->name, TOO_MUCH_ARGS_FOR_NOW,
 			SUGGEST_CUT_ARGS_SIZE);
 
 	type = type_expr(p);
-	// do i really need it here if its already in
-	// fun_type->data.args_types
-	// plist_add(os, type);
 	plist_add(fun_type->data.args_types, type);
 
 	for (i = 0; i < p->global_vars->size; i++) {
@@ -284,7 +280,6 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	get_global_signature(fun_variable);
 	plist_add(p->global_vars, fun_variable);
 	plist_set(os, 0, fun_variable);
-
 	plist_add(os, 0); // args terminator
 
 	parse_block_of_local_inst(p, os);

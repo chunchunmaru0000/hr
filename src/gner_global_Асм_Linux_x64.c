@@ -116,9 +116,10 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			//   0 - zero terminator
 			// ... - local inctrustions
 
-			// TODO: maybe free em cuz they are in no need anywhere after
-			plist_clear(g->local_vars);
 			g->stack_counter = 0;
+			free_and_clear_local_vars(g);
+			plist_clear(g->local_labels);
+			g->current_function = plist_get(in->os, 0);
 
 			g->flags->is_stack_used = 0;
 			g->flags->is_rbx_used = 0;
@@ -141,6 +142,8 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			blat_str_text(STR_ASM_LEAVE);
 			blat_str_text(STR_ASM_RET);
 			text_add('\n');
+
+			g->current_function = 0;
 			break;
 		default:
 			eei(in->f, in, "эээ", 0);
@@ -227,7 +230,6 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 		arg = plist_get(in->os, i);
 	}
 
-	// TODO: optimize it cuz mostly after it goes let statement some ot does two
 	// sub rsp instead of one
 	// if (g->stack_counter) {
 	// 	blat_str_text(STR_ASM_SUB_RSP);

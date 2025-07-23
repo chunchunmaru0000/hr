@@ -157,10 +157,10 @@ struct Inst *get_global_inst(struct Pser *p) {
 	//
 	// 	global IP_LET,
 	//
-	// 	global IP_DECLARE_LABEL,
-	// 	global IP_GOTO,
-	//
 	// 	global expression,
+	//
+	// 	global IP_DECLARE_LABEL, // like seem to be meaningless
+	// 	global IP_GOTO,
 
 	return new_inst(p, code, os, cur);
 }

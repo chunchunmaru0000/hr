@@ -32,6 +32,9 @@ struct Gner {
 	struct PList *global_vars;
 	struct PList *local_vars;
 
+	struct GlobVar *current_function;
+	struct PList *local_labels; // plist of tokens with labels names
+
 	struct BList *bprol; // before prolog
 	struct BList *prol;	 // prolog
 	struct BList *text;	 // main text
@@ -98,3 +101,4 @@ struct LocalVar {
 #define size_of_local(var) (size_of_type((var)->type))
 
 struct LocalVar *new_local_var(struct Token *, struct TypeExpr *, long);
+void free_and_clear_local_vars(struct Gner *g);

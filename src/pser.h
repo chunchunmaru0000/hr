@@ -35,6 +35,7 @@ struct Pser {
 	struct PList *ts; // tokens
 	size_t pos;
 	uc debug;
+
 	struct PList *ds;		   // #define's
 	struct PList *global_vars; // global variables
 	struct PList *structs;	   // Inst's of IP_DECLARE_STRUCT
@@ -165,6 +166,7 @@ struct TypeExpr {
 };
 
 struct TypeExpr *get_type_expr(enum TypeCode);
+void free_type(struct TypeExpr *type);
 
 struct Arg {
 	struct PList *names; // PList of Tokens
