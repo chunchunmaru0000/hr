@@ -11,6 +11,11 @@ struct Register {
 
 struct Fggs {
 	uc is_stack_used;
+	uc is_rbx_used;
+	uc is_r12_used;
+	// arguments only in registers, can be only done if there is no other args
+	// in the function and no stack usage
+	uc is_args_in_regs;
 };
 
 struct Gner {
@@ -44,7 +49,7 @@ extern const uint32_t STR_ASM_LABEL_END_LEN;
 
 extern const char STR_ASM_EQU[];
 extern const char STR_ASM_ENTER_STACK_FRAME[];
-extern const char STR_ASM_MOV_MEM_RSP_OPEN[];
+extern const char STR_ASM_MOV_MEM_RBP_OPEN[];
 extern const char STR_ASM_START_COMMENT[];
 extern const char STR_ASM_SUB_RSP[];
 extern const char STR_ASM_LEAVE[];
@@ -53,7 +58,7 @@ extern const char STR_ASM_RET[];
 extern const uint32_t STR_ASM_EQU_LEN;
 extern const uint32_t STR_ASM_ENTER_STACK_FRAME_LEN;
 extern const uint32_t STR_ASM_LEAVE_STACK_FRAME_LEN;
-extern const uint32_t STR_ASM_MOV_MEM_RSP_OPEN_LEN;
+extern const uint32_t STR_ASM_MOV_MEM_RBP_OPEN_LEN;
 extern const uint32_t STR_ASM_START_COMMENT_LEN;
 extern const uint32_t STR_ASM_SUB_RSP_LEN;
 extern const uint32_t STR_ASM_LEAVE_LEN;

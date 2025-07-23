@@ -14,7 +14,7 @@ void gen_Асм_Linux_64_prolog(struct Gner *g) { blat_str_prol(STR_ASM_SEGMENT)
 
 const char STR_ASM_EQU[] = "вот ";
 const char STR_ASM_ENTER_STACK_FRAME[] = "\tтолк рбп\n\tбыть рбп рсп\n";
-const char STR_ASM_MOV_MEM_RSP_OPEN[] = "\tбыть (рсп ";
+const char STR_ASM_MOV_MEM_RBP_OPEN[] = "\tбыть (рбп ";
 const char STR_ASM_START_COMMENT[] = "\t; ";
 const char STR_ASM_SUB_RSP[] = "\tминс рсп ";
 const char STR_ASM_LEAVE[] = "\tвыйти\n";
@@ -22,7 +22,7 @@ const char STR_ASM_RET[] = "\tвозд\n";
 
 const uint32_t STR_ASM_EQU_LEN = loa(STR_ASM_EQU);
 const uint32_t STR_ASM_ENTER_STACK_FRAME_LEN = loa(STR_ASM_ENTER_STACK_FRAME);
-const uint32_t STR_ASM_MOV_MEM_RSP_OPEN_LEN = loa(STR_ASM_MOV_MEM_RSP_OPEN);
+const uint32_t STR_ASM_MOV_MEM_RBP_OPEN_LEN = loa(STR_ASM_MOV_MEM_RBP_OPEN);
 const uint32_t STR_ASM_START_COMMENT_LEN = loa(STR_ASM_START_COMMENT);
 const uint32_t STR_ASM_SUB_RSP_LEN = loa(STR_ASM_SUB_RSP);
 const uint32_t STR_ASM_LEAVE_LEN = loa(STR_ASM_LEAVE);
@@ -119,7 +119,11 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			// TODO: maybe free em cuz they are in no need anywhere after
 			plist_clear(g->local_vars);
 			g->stack_counter = 0;
+
 			g->flags->is_stack_used = 0;
+			g->flags->is_rbx_used = 0;
+			g->flags->is_r12_used = 0;
+			g->flags->is_args_in_regs = 1;
 
 			global_var = plist_get(in->os, 0);
 			blat_blist(g->text, global_var->signature); // fun label
@@ -133,8 +137,8 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			// g->stack_counter = 0;
 			// free stack in return statement
 
-			if (g->flags->is_stack_used)
-				blat_str_text(STR_ASM_LEAVE);
+			// leaave also does pop rbp so its needed anyway
+			blat_str_text(STR_ASM_LEAVE);
 			blat_str_text(STR_ASM_RET);
 			text_add('\n');
 			break;
@@ -209,7 +213,7 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 			text_add('\n');
 		}
 		// быть (рсп - g->tmp_blist) register
-		blat_str_text(STR_ASM_MOV_MEM_RSP_OPEN);
+		blat_str_text(STR_ASM_MOV_MEM_RBP_OPEN);
 		blat_blist(g->text, var->name->view); // name
 		text_add(')');
 
