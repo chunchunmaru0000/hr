@@ -4,27 +4,27 @@
 uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg);
 
-char STR_ASM_SEGMENT[] = "участок чит исп\n";
-char STR_ASM_LABEL_END[] = ":\n";
+const char STR_ASM_SEGMENT[] = "участок чит исп\n";
+const char STR_ASM_LABEL_END[] = ":\n";
 
-uint32_t STR_ASM_SEGMENT_LEN = loa(STR_ASM_SEGMENT);
-uint32_t STR_ASM_LABEL_END_LEN = loa(STR_ASM_LABEL_END);
+const uint32_t STR_ASM_SEGMENT_LEN = loa(STR_ASM_SEGMENT);
+const uint32_t STR_ASM_LABEL_END_LEN = loa(STR_ASM_LABEL_END);
 
 void gen_Асм_Linux_64_prolog(struct Gner *g) { blat_str_prol(STR_ASM_SEGMENT); }
 
-char STR_ASM_EQU[] = "вот ";
-char STR_ASM_ENTER_STACK_FRAME[] = "\tтолк рбп\n\tбыть рбп рсп\n";
-char STR_ASM_LEAVE_STACK_FRAME[] = "\tбыть рсп рбп\n\tвыт рбп\n\tвозд\n";
-char STR_ASM_MOV_MEM_RSP_OPEN[] = "\tбыть (рсп ";
-char STR_ASM_START_COMMENT[] = "\t; ";
-char STR_ASM_SUB_RSP[] = "\tминс рсп ";
+const char STR_ASM_EQU[] = "вот ";
+const char STR_ASM_ENTER_STACK_FRAME[] = "\tтолк рбп\n\tбыть рбп рсп\n";
+const char STR_ASM_LEAVE_STACK_FRAME[] = "\tбыть рсп рбп\n\tвыт рбп\n\tвозд\n";
+const char STR_ASM_MOV_MEM_RSP_OPEN[] = "\tбыть (рсп ";
+const char STR_ASM_START_COMMENT[] = "\t; ";
+const char STR_ASM_SUB_RSP[] = "\tминс рсп ";
 
-uint32_t STR_ASM_EQU_LEN = loa(STR_ASM_EQU);
-uint32_t STR_ASM_ENTER_STACK_FRAME_LEN = loa(STR_ASM_ENTER_STACK_FRAME);
-uint32_t STR_ASM_LEAVE_STACK_FRAME_LEN = loa(STR_ASM_LEAVE_STACK_FRAME);
-uint32_t STR_ASM_MOV_MEM_RSP_OPEN_LEN = loa(STR_ASM_MOV_MEM_RSP_OPEN);
-char STR_ASM_START_COMMENT_LEN = loa(STR_ASM_START_COMMENT);
-char STR_ASM_SUB_RSP_LEN = loa(STR_ASM_SUB_RSP);
+const uint32_t STR_ASM_EQU_LEN = loa(STR_ASM_EQU);
+const uint32_t STR_ASM_ENTER_STACK_FRAME_LEN = loa(STR_ASM_ENTER_STACK_FRAME);
+const uint32_t STR_ASM_LEAVE_STACK_FRAME_LEN = loa(STR_ASM_LEAVE_STACK_FRAME);
+const uint32_t STR_ASM_MOV_MEM_RSP_OPEN_LEN = loa(STR_ASM_MOV_MEM_RSP_OPEN);
+const char STR_ASM_START_COMMENT_LEN = loa(STR_ASM_START_COMMENT);
+const char STR_ASM_SUB_RSP_LEN = loa(STR_ASM_SUB_RSP);
 
 const struct Register regs[] = {
 	{"р8", 3, R_R8, QWORD},	  {"р9", 3, R_R9, QWORD},
@@ -175,18 +175,18 @@ const struct Register *get_regs_of_size(int size_of_var, int i) {
 	exit(1);
 }
 
+// TODO: do via last_offset like in local so it wont be broken if the code
+// uses either's
 uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	// fun in->os are: fun va riable, args..., 0 term, ...
 	uint32_t i, j;
 	struct Arg *arg = plist_get(in->os, 1);
 	struct LocalVar *var;
-	int argSize;
 	const struct Register *reg;
 
 	for (i = 2; arg; i++) {
 		// size of arg and eithers are equal by done so in pser
-		argSize = get_type_code_size(arg->type->code);
-		g->stack_counter -= argSize;
+		g->stack_counter -= get_type_code_size(arg->type->code);
 
 		for (j = 0; j < arg->names->size; j++) {
 			var = new_local_var(plist_get(arg->names, j), arg->type,
@@ -217,6 +217,8 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 		arg = plist_get(in->os, i);
 	}
 
+	// TODO: optimize it cuz mostly after it goes let statement some ot does two
+	// sub rsp instead of one
 	if (g->stack_counter) {
 		blat_str_text(STR_ASM_SUB_RSP);
 		num_add(g->text, -g->stack_counter);

@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 enum Target {
-	T_Fasm_Linux_64,
+	//	T_Fasm_Linux_64,
 	T_Асм_Linux_64,
 };
 

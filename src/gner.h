@@ -32,6 +32,24 @@ struct Gner {
 struct Gner *new_gner(struct Pser *, enum Target, uc);
 void gen(struct Gner *);
 
+extern const char STR_ASM_SEGMENT[];
+extern const char STR_ASM_LABEL_END[];
+extern const uint32_t STR_ASM_SEGMENT_LEN;
+extern const uint32_t STR_ASM_LABEL_END_LEN;
+
+extern const char STR_ASM_EQU[];
+extern const char STR_ASM_ENTER_STACK_FRAME[];
+extern const char STR_ASM_LEAVE_STACK_FRAME[];
+extern const char STR_ASM_MOV_MEM_RSP_OPEN[];
+extern const char STR_ASM_START_COMMENT[];
+extern const char STR_ASM_SUB_RSP[];
+extern const uint32_t STR_ASM_EQU_LEN;
+extern const uint32_t STR_ASM_ENTER_STACK_FRAME_LEN;
+extern const uint32_t STR_ASM_LEAVE_STACK_FRAME_LEN;
+extern const uint32_t STR_ASM_MOV_MEM_RSP_OPEN_LEN;
+extern const char STR_ASM_START_COMMENT_LEN;
+extern const char STR_ASM_SUB_RSP_LEN;
+
 #define blat_str_bprol(str) (blat(g->bprol, (uc *)(str), (str##_LEN - 1)))
 #define blat_str_prol(str) (blat(g->prol, (uc *)(str), (str##_LEN - 1)))
 #define blat_str_text(str) (blat(g->text, (uc *)(str), (str##_LEN - 1)))
@@ -51,9 +69,6 @@ void gen(struct Gner *);
 		blat_blist((list), g->tmp_blist);                                      \
 		blist_clear_free(g->tmp_blist);                                        \
 	} while (0);
-
-void gen_Fasm_Linux_64_prolog(struct Gner *);
-void gen_Fasm_Linux_64_text(struct Gner *);
 
 void gen_Асм_Linux_64_prolog(struct Gner *);
 void gen_Асм_Linux_64_text(struct Gner *);

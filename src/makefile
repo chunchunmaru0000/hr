@@ -7,8 +7,8 @@
 ср:
 	gcc -o ср main.c \
 	gner.c \
-		gner_global_Асм_Linux_x64.c gner_local_Асм_Linux_x64.c \
-		gner_Fasm_Linux_64.c \
+		gner_global_Асм_Linux_x64.c \
+		gner_local_Асм_Linux_x64.c \
 	pser.c \
 		pser_type.c \
 		pser_global_inst.c pser_local_inst.c \

@@ -190,6 +190,7 @@ struct GlobVar {
 	  (t2) < TC_INT16))
 
 void *expression(struct Pser *);
+void parse_args(struct Pser *p, struct PList *os);
 struct TypeExpr *type_expr(struct Pser *);
 struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,
 					  struct Token *);
