@@ -210,112 +210,24 @@ void start_line(struct Tzer *t) {
 	t->p->line++;
 }
 
-struct S2Uc {
-	const uc len;
-	const char *s;
-	const uc c;
-	uc x;
-	uc xl;
-};
-#define SUC_NONE 255
-#define SUC_X 254
-
-#define s2ucs_SIZE 13
-struct S2Uc s2ucs[] = {
-	{2, "\\t", '\t'},  {2, "\\n", '\n'},  {2, "\\r", '\r'},	 {3, "\\т", '\t'},
-	{3, "\\н", '\n'},  {3, "\\р", '\r'},  {2, "\\0", '\0'},	 {2, "\\\"", '"'},
-	{2, "\\\\", '\\'}, {2, "\\x", SUC_X}, {2, "\\X", SUC_X}, {3, "\\х", SUC_X},
-	{3, "\\Х", SUC_X} // {2, "\'", '\''},
-};
-struct S2Uc none_s2uc = {0, "0", SUC_NONE};
-
-// абвгде
-// абстиф
-#define rus_hex_SIZE 42
-struct S2Uc rus_hex[] = {
-	{2, "а", 0xa}, {2, "А", 0xA}, {2, "б", 0xb}, {2, "Б", 0xB}, {2, "в", 0xc},
-	{2, "В", 0xC}, {2, "г", 0xd}, {2, "Г", 0xD}, {2, "д", 0xe}, {2, "Д", 0xE},
-	{2, "е", 0xf}, {2, "Е", 0xF}, {2, "с", 0xc}, {2, "С", 0xC}, {2, "т", 0xd},
-	{2, "Т", 0xD}, {2, "и", 0xe}, {2, "И", 0xE}, {2, "ф", 0xf}, {2, "Ф", 0xF},
-	{1, "a", 0xa}, {1, "A", 0xA}, {1, "b", 0xb}, {1, "B", 0xB}, {1, "c", 0xc},
-	{1, "C", 0xC}, {1, "d", 0xd}, {1, "D", 0xD}, {1, "e", 0xe}, {1, "E", 0xE},
-	{1, "f", 0xf}, {1, "F", 0xF}, {1, "0", 0x0}, {1, "1", 0x1}, {1, "2", 0x2},
-	{1, "3", 0x3}, {1, "4", 0x4}, {1, "5", 0x5}, {1, "6", 0x6}, {1, "7", 0x7},
-	{1, "8", 0x8}, {1, "9", 0x9},
-};
-char *const ERR_EXPECTED_NUM_STR =
-	"Ожидалась последовательность из двух 16-ричных чисел после комбинации "
-	"символов \\х__.";
-
-struct S2Uc *search_pattern(struct Tzer *t, const char *text,
-							struct S2Uc *pattern, long p_sz) {
-	struct S2Uc *suc, *rhex;
-	char *s = malloc(6); // max len + terminator
-
-	for (long i = 0; i < p_sz; i++) {
-		suc = pattern + i;
-		memcpy(s, text, suc->len);
-		s[suc->len] = 0;
-
-		if (sc(s, suc->s)) {
-			if (suc->c == SUC_X) {
-				text += suc->len;
-
-				rhex = search_pattern(t, text, rus_hex, rus_hex_SIZE);
-				if (rhex->c == SUC_NONE)
-					ee(t->f, t->p, ERR_EXPECTED_NUM_STR);
-				text += rhex->len;
-				suc->xl = rhex->len;
-				suc->x = rhex->c << 4;
-
-				rhex = search_pattern(t, text, rus_hex, rus_hex_SIZE);
-				if (rhex->c == SUC_NONE)
-					ee(t->f, t->p, ERR_EXPECTED_NUM_STR);
-				suc->xl += rhex->len;
-				suc->x += rhex->c;
-			}
-			goto search_pattern_ret;
-		}
-	}
-	suc = &none_s2uc;
-search_pattern_ret:
-	free(s);
-	return suc;
-}
-
 enum TCode str_token(struct Tzer *t, struct Token *token) {
-	long start_pos = t->pos, str_len = 2, suc_full_len;
-	struct BList *str_str = new_blist(16);
-	struct S2Uc *suc;
+	long start_pos = t->pos, str_len = 2;
+	struct BList *str_str = new_blist(64);
+	char c;
 
-	next(t); // skip "
-	while (cur(t) != '"' && cur(t)) {
-		if (cur(t) == '\n')
+	for (c = next(t); c != '"' && c; c = next(t)) {
+		if (c == '\n')
 			start_line(t);
-		if (cur(t) == '\\') {
-			suc = search_pattern(t, t->f->code + t->pos, s2ucs, s2ucs_SIZE);
-			if (suc->c != SUC_NONE) {
-				if (suc->c == SUC_X) {
-					blist_add(str_str, suc->x);
-					suc_full_len = suc->len + suc->xl;
-				} else {
-					blist_add(str_str, suc->c);
-					suc_full_len = suc->len;
-				}
-				t->pos += suc_full_len;
-				t->p->col += suc_full_len;
-				str_len += suc_full_len;
-			} else {
-				if (next(t) == '\n') // skip slash
-					start_line(t);
-				next(t); // skip char
-				str_len += 2;
-			}
-			continue;
+
+		if (c == '\\' && get_tzer_token(t, 1) == '"') {
+			str_len += 2;
+			next(t);
+
+			blist_add(str_str, '"');
+		} else {
+			str_len++;
+			blist_add(str_str, c);
 		}
-		blist_add(str_str, cur(t));
-		next(t);
-		str_len++;
 	}
 	next(t); // skip "
 
@@ -324,12 +236,6 @@ enum TCode str_token(struct Tzer *t, struct Token *token) {
 	strncpy(str_view, t->f->code + start_pos, str_len);
 	token->view = blist_from_str(str_view, str_len);
 
-	// char *str_str_view = malloc(str_len + 1 - 2);
-	// str_str_view[str_len - 2] = 0;
-	// strncpy(str_str_view, t->f->code + start_pos + 1, str_len - 2);
-	// token->str = blist_from_str(str_str_view, str_len - 2); // str_str;
-
-	token->view = blist_from_str(str_view, str_len);
 	token->str = str_str;
 	blist_cut(str_str);
 
