@@ -43,16 +43,31 @@ struct LocalVar *new_local_var(struct Token *name, struct TypeExpr *type,
 }
 
 void free_and_clear_local_vars(struct Gner *g) {
-	uint32_t i;
 	struct LocalVar *var;
+	uint32_t i, j = 0; //, last_j_start = 0;
+	struct PList *freed_type_pointers = new_plist(g->local_vars->size);
 
 	for (i = 0; i < g->local_vars->size; i++) {
 		var = plist_get(g->local_vars, i);
 
-		// TODO: fix
-		//free_type(var->type);
+		for (/*j = last_j_start*/; j < freed_type_pointers->size; j++) {
+			if (var->type == plist_get(freed_type_pointers, j)) {
+				// last_j_start optimizes search loop cuz vars with same type
+				// can occur only after already freed one and not before
+				// last_j_start = j;
+				// last_j_start like is kunda equal to last j loop so
+				// its useless
+				goto skip_freed_pointer_free;
+			}
+		}
+
+		free_type(var->type);
+		plist_add(freed_type_pointers, var->type);
+
+	skip_freed_pointer_free:;
 		free(var);
 	}
 
+	plist_free(freed_type_pointers);
 	plist_clear(g->local_vars);
 }

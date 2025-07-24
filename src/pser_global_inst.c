@@ -185,6 +185,7 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 		for (i = 0; i < args->size; i++) {
 			arg = plist_get(args, i);
 			arg->offset = args_offset + i * type_size;
+			// here multiple args can have one type that is shared memory
 			arg->type = type;
 		}
 	}

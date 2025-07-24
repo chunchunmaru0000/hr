@@ -198,8 +198,6 @@ int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
 void free_type(struct TypeExpr *type) {
 	uint32_t i;
 
-	#include <stdio.h>
-	printf("here %d\n", type->code);
 	if (type->code == TC_PTR)
 		free_type(type->data.ptr_target);
 
@@ -214,7 +212,6 @@ void free_type(struct TypeExpr *type) {
 	}
 	// else if (type->code == TC_STRUCT)
 	//     ; // nothing cuz this blist is part of a token
-	printf("here %d end\n", type->code);
 
 	free(type);
 }
