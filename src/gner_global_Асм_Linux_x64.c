@@ -116,33 +116,35 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			//   0 - zero terminator
 			// ... - local inctrustions
 
+			// reset things before
 			g->stack_counter = 0;
 			free_and_clear_local_vars(g);
 			plist_clear(g->local_labels);
 			g->current_function = plist_get(in->os, 0);
-
+			// reset flags
 			g->flags->is_stack_used = 0;
 			g->flags->is_rbx_used = 0;
 			g->flags->is_r12_used = 0;
 			g->flags->is_args_in_regs = 1;
-
+			// begin stack frame
+			// TODO: function prolog and function text
 			global_var = plist_get(in->os, 0);
 			blat_blist(g->text, global_var->signature); // fun label
 			blat_str_text(SA_LABEL_END);				// :
 			blat_str_text(SA_ENTER_STACK_FRAME);
-
 			local_i = put_args_on_the_stack_Асм_Linux_64(g, in);
-			//  function body
+
+			// function body
 			for (; local_i < in->os->size; local_i++)
 				gen_local_Асм_Linux_64(g, plist_get(in->os, local_i));
-			// g->stack_counter = 0;
 			// free stack in return statement
 
-			// leaave also does pop rbp so its needed anyway
+			// leave also does pop rbp so its needed anyway
 			blat_str_text(SA_LEAVE);
 			blat_str_text(SA_RET);
 			text_add('\n');
 
+			// reset things after
 			g->current_function = 0;
 			break;
 		default:

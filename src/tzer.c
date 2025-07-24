@@ -456,7 +456,6 @@ struct PList *tze(struct Tzer *t, long list_cap) {
 	struct Token *token = new_token(t);
 
 	while (token->code != EF) {
-		// TODO: do i really need slashn in future?
 		if (token->code != COM && token->code != SLASHN)
 			plist_add(l, token);
 		token = new_token(t);

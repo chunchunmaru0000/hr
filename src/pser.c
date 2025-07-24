@@ -64,17 +64,6 @@ struct Token *next_pser_get(struct Pser *p, long off) {
 	// return get_pser_token(p, off);
 }
 
-// TODO:
-struct Defn *is_defn(struct Pser *p, char *v) {
-	struct Defn *d;
-	for (uint32_t i = 0; i < p->ds->size; i++) {
-		d = plist_get(p->ds, i);
-		if (sc(v, (char *)d->view->st))
-			return d;
-	}
-	return 0;
-}
-
 void parse_block_of_local_inst(struct Pser *p, struct PList *os) {
 	match(p, pser_cur(p), PAR_L);
 
@@ -141,10 +130,6 @@ struct Inst *get_global_inst(struct Pser *p) {
 			code = inst_pser_dare_fun(p, os);
 		} else if (sc(cv, STR_ASM))
 			code = inst_pser_asm(p, os);
-		else if (sc(cv, STR_INCLUDE))
-			code = inst_pser_include(p, os);
-		else if (sc(cv, STR_DEFINE))
-			code = inst_pser_define(p);
 		else if (sc(cv, STR_ENUM))
 			code = inst_pser_enum(p, os);
 		else if (sc(cv, STR_STRUCT))
@@ -161,6 +146,8 @@ struct Inst *get_global_inst(struct Pser *p) {
 	//
 	// 	global expression,
 	//
+	//  IP_DEFINE
+	//  IP_INCLUDE
 	// 	global IP_DECLARE_LABEL, // like seem to be meaningless
 	// 	global IP_GOTO,
 

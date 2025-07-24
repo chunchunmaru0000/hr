@@ -1,44 +1,6 @@
 #include "pser.h"
 #include <stdint.h>
 
-// TODO: is it possible to do better str search
-enum IP_Code inst_pser_define(struct Pser *p) {
-	struct Defn *d;
-	struct BList *view = absorb(p)->view;
-	consume(p); // skip name token
-	void *expr = expression(p);
-
-	for (long i = 0; i < p->ds->size; i++) {
-		d = plist_get(p->ds, i);
-
-		if (sc((char *)view->st, (char *)d->view->st)) {
-			// expression can be freed here cuz it doesnt holds pointers that
-			// it mallocs, it only borrows them
-			free(d->value);
-			d->value = expr;
-			return IP_NONE;
-		}
-	}
-
-	d = malloc(sizeof(struct Defn));
-	d->view = view;
-	d->value = expr;
-	plist_add(p->ds, d);
-	return IP_NONE;
-}
-
-// ### os explanation:
-//   _ - ? inslude path string token ?
-enum IP_Code inst_pser_include(struct Pser *p, struct PList *os) {
-	// TODO: make relative folder addressation
-	struct Token *path = absorb(p);
-
-	match(p, path, STR);
-
-	plist_add(os, path);
-	return IP_INCLUDE;
-}
-
 // ### os explanation:
 //   _ - assembly string token
 enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os) {

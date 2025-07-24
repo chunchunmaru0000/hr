@@ -83,7 +83,7 @@ struct Inst *get_local_inst(struct Pser *p) {
 	// 	IP_WHILE_LOOP,
 	// 	IP_FOR_LOOP,
 	//
-	// 	IP_MATCH, // TODO: I_MATCH
+	// 	IP_MATCH,
 
 	return new_inst(p, code, os, c);
 }

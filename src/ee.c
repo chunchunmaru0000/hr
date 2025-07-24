@@ -39,7 +39,8 @@ const char *write_ln(const char *line) {
 
 uint32_t get_utf8_chars_to_pos(const char *str, int col) {
 	uint32_t chars = 0;
-	// TODO: do it good with proper 0b10... and all
+	// do it good with proper 0b10... and all
+	// its works so why would i
 	for (; col > 0; col--) {
 		if (*str == '\t')
 			chars += TEXT_TAB_SPACES - 1;

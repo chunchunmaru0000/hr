@@ -82,7 +82,7 @@ enum IP_Code {
 	IP_GOTO,
 
 	IP_IF_ELIF_ELSE,
-	IP_MATCH, // TODO: I_MATCH
+	IP_MATCH,
 
 	IP_LOOP,
 	IP_FOR_LOOP,
@@ -200,8 +200,8 @@ struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,
 					  struct Token *);
 
 struct Inst *get_global_inst(struct Pser *p);
-enum IP_Code inst_pser_define(struct Pser *p);
-enum IP_Code inst_pser_include(struct Pser *p, struct PList *os);
+// enum IP_Code inst_pser_define(struct Pser *p, struct PList *os);
+// enum IP_Code inst_pser_include(struct Pser *p, struct PList *os);
 enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os);
 enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os);
 enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os);
