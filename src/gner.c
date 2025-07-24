@@ -7,9 +7,17 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 	g->debug = debug;
 
 	g->is = pse(p);
+	// g->indent_level = 0;
 	g->pos = 0;
 	g->stack_counter = 0;
 	g->flags = malloc(sizeof(struct Fggs));
+
+	g->labels = malloc(sizeof(struct Lbls));
+	g->labels->loops = 0;
+	g->labels->whiles = 0;
+	g->labels->fors = 0;
+	g->labels->ifs = 0;
+	g->labels->elses = 0;
 
 	g->bprol = new_blist(128);
 	g->prol = new_blist(128);

@@ -100,5 +100,11 @@ enum RegCode {
 	R_XMM13,
 	R_XMM14,
 	R_XMM15,
+};
 
+struct Register {
+	const char *const name;
+	unsigned char len;
+	enum RegCode reg_code;
+	int size;
 };

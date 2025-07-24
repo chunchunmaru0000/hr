@@ -2,13 +2,6 @@
 #include "regs.h"
 #include <stdint.h>
 
-struct Register {
-	const char *const name;
-	uc len;
-	enum RegCode reg_code;
-	int size;
-};
-
 struct Fggs {
 	uc is_stack_used;
 	uc is_rbx_used;
@@ -18,13 +11,31 @@ struct Fggs {
 	uc is_args_in_regs;
 };
 
+enum L_Code {
+	LC_LOOP,
+	LC_WHILE,
+	LC_FOR,
+	LC_IF,
+	LC_ELSE,
+};
+
+struct Lbls {
+	uint32_t loops;
+	uint32_t whiles;
+	uint32_t fors;
+	uint32_t ifs;
+	uint32_t elses;
+};
+
 struct Gner {
 	enum Target t;
 	uc debug;
 
+	// uint32_t indent_level; // TODO: indentation
 	uint32_t pos;
 	long stack_counter;
 	struct Fggs *flags;
+	struct Lbls *labels;
 
 	struct PList *is;
 	struct PList *defines; // Defn's

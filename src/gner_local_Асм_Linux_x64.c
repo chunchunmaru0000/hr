@@ -2,6 +2,8 @@
 
 void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
 
+struct BList *take_label(struct Gner *g, enum L_Code label_code);
+
 const char CHANGE_VAR_NAME_OR_DELETE_VAR[] =
 	"изменить имя переменной или удалить ее";
 const char CHANGE_LABEL_NAME_OR_DELETE_LABEL[] =
@@ -22,6 +24,7 @@ const uint32_t SA_JMP_LEN = loa(SA_JMP);
 
 void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	struct Token *tok, *name, *str;
+	struct BList *string;
 	uint32_t i = 0;
 
 	switch (in->code) {
@@ -68,6 +71,25 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		blat_blist(g->text, g->current_function->signature);
 		blat_blist(g->text, name->view);
 		text_add('\n');
+		break;
+	case IP_LOOP:
+		// ### os explanation
+		// ... - local instructions
+
+		string = take_label(g, LC_LOOP);
+		text_add('\t');
+		blat_blist(g->text, string);
+		text_add(':');
+		text_add('\n');
+
+		for (i = 0; i < in->os->size; i++)
+			gen_local_Асм_Linux_64(g, plist_get(in->os, i));
+
+		blat_str_text(SA_JMP);
+		blat_blist(g->text, string);
+		text_add('\n');
+
+		blist_clear_free(string);
 		break;
 	case IP_NONE:
 	default:
@@ -122,4 +144,59 @@ void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	// 	num_add(g->text, stack_was - g->stack_counter);
 	// 	text_add('\n');
 	// }
+}
+
+// # - число
+// _в# - вечно
+// _п# - пока
+// _д# - для
+// _е# - если
+// _и# - иначе
+#define LETTER_LEN 2
+const char *const LETTER_LOOP = "в";
+const char *const LETTER_WHILE = "п";
+const char *const LETTER_FOR = "д";
+const char *const LETTER_IF = "е";
+const char *const LETTER_ELSE = "и";
+
+struct BList *take_label(struct Gner *g, enum L_Code label_code) {
+	struct BList *label = new_blist(8), *num;
+
+	switch (label_code) {
+	case LC_LOOP:
+		num = num_to_str(g->labels->loops);
+		blat(label, (uc *)LETTER_LOOP, LETTER_LEN);
+		g->labels->loops++;
+		break;
+	case LC_WHILE:
+		num = num_to_str(g->labels->whiles);
+		blat(label, (uc *)LETTER_WHILE, LETTER_LEN);
+		g->labels->whiles++;
+		break;
+	case LC_FOR:
+		num = num_to_str(g->labels->fors);
+		blat(label, (uc *)LETTER_FOR, LETTER_LEN);
+		g->labels->fors++;
+		break;
+	case LC_IF:
+		num = num_to_str(g->labels->ifs);
+		blat(label, (uc *)LETTER_IF, LETTER_LEN);
+		g->labels->ifs++;
+		break;
+	case LC_ELSE:
+		num = num_to_str(g->labels->elses);
+		blat(label, (uc *)LETTER_ELSE, LETTER_LEN);
+		g->labels->elses++;
+		break;
+	default:
+		exit(228);
+	}
+
+	blat_blist(label, num);
+	blist_clear_free(num);
+
+	blist_cut(label);
+	convert_blist_to_blist_from_str(label);
+
+	return label;
 }

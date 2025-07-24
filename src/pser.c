@@ -114,6 +114,7 @@ const char *const STR_INCLUDE = "влечь";
 const char *const STR_LET = "пусть";
 const char *const STR_ASM = "_асм";
 const char *const STR_GOTO = "идти";
+const char *const STR_LOOP = "вечно";
 
 const char *const STR_FUN = "фц";
 const char *const STR_ENUM = "счет";

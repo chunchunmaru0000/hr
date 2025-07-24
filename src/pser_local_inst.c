@@ -28,6 +28,14 @@ enum IP_Code pser_local_inst_goto(struct Pser *p, struct PList *os) {
 	return IP_GOTO;
 }
 
+// ### os explanation
+// ... - local instructions
+enum IP_Code pser_local_inst_loop(struct Pser *p, struct PList *os) {
+	consume(p); // consime вечно
+	parse_block_of_local_inst(p, os);
+	return IP_LOOP;
+}
+
 struct Inst *get_local_inst(struct Pser *p) {
 	struct Token *c = pser_cur(p), *n;
 	struct PList *os = new_plist(2);
@@ -53,16 +61,14 @@ struct Inst *get_local_inst(struct Pser *p) {
 
 		else if (n->code == COLO)
 			code = pser_local_inst_label(p, os, c);
+		else if (sc(cv, STR_LOOP))
+			code = pser_local_inst_loop(p, os);
 
 		if (code != IP_NONE)
 			break;
 	default:
 		eet(p->f, c, ERR_WRONG_TOKEN, 0);
 	}
-	// 	IP_LET,
-	//
-	// 	IP_GOTO,
-	//
 	// 	expression,
 	//
 	// 	IP_EQU,
@@ -72,8 +78,6 @@ struct Inst *get_local_inst(struct Pser *p) {
 	// 	IP_DIV_EQU,
 	// 	IP_SHR_EQU,
 	// 	IP_SHL_EQU,
-	//
-	// 	IP_LOOP,
 	//
 	// 	IP_IF_ELIF_ELSE,
 	// 	IP_WHILE_LOOP,
