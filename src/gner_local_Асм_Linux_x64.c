@@ -17,6 +17,9 @@ const uint32_t CHANGE_VAR_NAME_OR_DELETE_LABEL_LEN =
 const uint32_t REDEFINING_OF_LOCAL_VAR_LEN = loa(REDEFINING_OF_LOCAL_VAR);
 const uint32_t REDEFINING_OF_LOCAL_LABEL_LEN = loa(REDEFINING_OF_LOCAL_LABEL);
 
+const char SA_JMP[] = "\tидти ";
+const uint32_t SA_JMP_LEN = loa(SA_JMP);
+
 void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	struct Token *tok, *name, *str;
 	uint32_t i = 0;
@@ -55,6 +58,17 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		text_add(':');
 		text_add('\n');
 		break;
+	case IP_GOTO:
+		// ### os explanation
+		//   _ - label name token
+
+		name = plist_get(in->os, 0);
+
+		blat_str_text(SA_JMP);
+		blat_blist(g->text, g->current_function->signature);
+		blat_blist(g->text, name->view);
+		text_add('\n');
+		break;
 	case IP_NONE:
 	default:
 		eei(in->f, in, "эээ", 0);
@@ -89,12 +103,12 @@ void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 			plist_add(g->local_vars, var);
 
 			text_add('\t');
-			blat_str_text(STR_ASM_EQU);			  // вот
+			blat_str_text(SA_EQU);				  // вот
 			blat_blist(g->text, var->name->view); // name
 			text_add(' ');
 			num_add(g->text, g->stack_counter);
 
-			blat_str_text(STR_ASM_START_COMMENT);
+			blat_str_text(SA_START_COMMENT);
 			num_hex_add(g->text, g->stack_counter);
 
 			text_add('\n');

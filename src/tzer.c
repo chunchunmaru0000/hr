@@ -322,10 +322,17 @@ enum TCode str_token(struct Tzer *t, struct Token *token) {
 	char *str_view = malloc(str_len + 1);
 	str_view[str_len] = 0;
 	strncpy(str_view, t->f->code + start_pos, str_len);
+	token->view = blist_from_str(str_view, str_len);
+
+	// char *str_str_view = malloc(str_len + 1 - 2);
+	// str_str_view[str_len - 2] = 0;
+	// strncpy(str_str_view, t->f->code + start_pos + 1, str_len - 2);
+	// token->str = blist_from_str(str_str_view, str_len - 2); // str_str;
 
 	token->view = blist_from_str(str_view, str_len);
 	token->str = str_str;
 	blist_cut(str_str);
+
 	return STR;
 }
 

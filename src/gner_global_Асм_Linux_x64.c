@@ -4,29 +4,29 @@
 uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg);
 
-const char STR_ASM_SEGMENT[] = "участок чит исп\n";
-const char STR_ASM_LABEL_END[] = ":\n";
+const char SA_SEGMENT[] = "участок чит исп\n";
+const char SA_LABEL_END[] = ":\n";
 
-const uint32_t STR_ASM_SEGMENT_LEN = loa(STR_ASM_SEGMENT);
-const uint32_t STR_ASM_LABEL_END_LEN = loa(STR_ASM_LABEL_END);
+const uint32_t SA_SEGMENT_LEN = loa(SA_SEGMENT);
+const uint32_t SA_LABEL_END_LEN = loa(SA_LABEL_END);
 
-void gen_Асм_Linux_64_prolog(struct Gner *g) { blat_str_prol(STR_ASM_SEGMENT); }
+void gen_Асм_Linux_64_prolog(struct Gner *g) { blat_str_prol(SA_SEGMENT); }
 
-const char STR_ASM_EQU[] = "вот ";
-const char STR_ASM_ENTER_STACK_FRAME[] = "\tтолк рбп\n\tбыть рбп рсп\n";
-const char STR_ASM_MOV_MEM_RBP_OPEN[] = "\tбыть (рбп ";
-const char STR_ASM_START_COMMENT[] = "\t; ";
-const char STR_ASM_SUB_RSP[] = "\tминс рсп ";
-const char STR_ASM_LEAVE[] = "\tвыйти\n";
-const char STR_ASM_RET[] = "\tвозд\n";
+const char SA_EQU[] = "вот ";
+const char SA_ENTER_STACK_FRAME[] = "\tтолк рбп\n\tбыть рбп рсп\n";
+const char SA_MOV_MEM_RBP_OPEN[] = "\tбыть (рбп ";
+const char SA_START_COMMENT[] = "\t; ";
+const char SA_SUB_RSP[] = "\tминс рсп ";
+const char SA_LEAVE[] = "\tвыйти\n";
+const char SA_RET[] = "\tвозд\n";
 
-const uint32_t STR_ASM_EQU_LEN = loa(STR_ASM_EQU);
-const uint32_t STR_ASM_ENTER_STACK_FRAME_LEN = loa(STR_ASM_ENTER_STACK_FRAME);
-const uint32_t STR_ASM_MOV_MEM_RBP_OPEN_LEN = loa(STR_ASM_MOV_MEM_RBP_OPEN);
-const uint32_t STR_ASM_START_COMMENT_LEN = loa(STR_ASM_START_COMMENT);
-const uint32_t STR_ASM_SUB_RSP_LEN = loa(STR_ASM_SUB_RSP);
-const uint32_t STR_ASM_LEAVE_LEN = loa(STR_ASM_LEAVE);
-const uint32_t STR_ASM_RET_LEN = loa(STR_ASM_RET);
+const uint32_t SA_EQU_LEN = loa(SA_EQU);
+const uint32_t SA_ENTER_STACK_FRAME_LEN = loa(SA_ENTER_STACK_FRAME);
+const uint32_t SA_MOV_MEM_RBP_OPEN_LEN = loa(SA_MOV_MEM_RBP_OPEN);
+const uint32_t SA_START_COMMENT_LEN = loa(SA_START_COMMENT);
+const uint32_t SA_SUB_RSP_LEN = loa(SA_SUB_RSP);
+const uint32_t SA_LEAVE_LEN = loa(SA_LEAVE);
+const uint32_t SA_RET_LEN = loa(SA_RET);
 
 const struct Register regs[] = {
 	{"р8", 3, R_R8, QWORD},	  {"р9", 3, R_R9, QWORD},
@@ -89,7 +89,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			for (j = 1; j < in->os->size; j++) {
 				defn = plist_get(in->os, j);
 
-				blat_str_bprol(STR_ASM_EQU); // вот
+				blat_str_bprol(SA_EQU); // вот
 				blat_blist(g->bprol, defn->view);
 				bprol_add(' ');
 				num_add(g->bprol, (long)defn->value);
@@ -128,8 +128,8 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 
 			global_var = plist_get(in->os, 0);
 			blat_blist(g->text, global_var->signature); // fun label
-			blat_str_text(STR_ASM_LABEL_END);			// :
-			blat_str_text(STR_ASM_ENTER_STACK_FRAME);
+			blat_str_text(SA_LABEL_END);				// :
+			blat_str_text(SA_ENTER_STACK_FRAME);
 
 			local_i = put_args_on_the_stack_Асм_Linux_64(g, in);
 			//  function body
@@ -139,8 +139,8 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			// free stack in return statement
 
 			// leaave also does pop rbp so its needed anyway
-			blat_str_text(STR_ASM_LEAVE);
-			blat_str_text(STR_ASM_RET);
+			blat_str_text(SA_LEAVE);
+			blat_str_text(SA_RET);
 			text_add('\n');
 
 			g->current_function = 0;
@@ -156,7 +156,7 @@ void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {
 	struct Token *name;
 
 	for (uint32_t i = 0; i < arg->names->size; i++) {
-		blat_str_bprol(STR_ASM_EQU);
+		blat_str_bprol(SA_EQU);
 
 		blat_blist(g->bprol, strct->view);
 		name = plist_get(arg->names, i);
@@ -165,7 +165,7 @@ void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {
 
 		bprol_add('\t');
 		num_add(g->bprol, arg->offset);
-		blat_str_bprol(STR_ASM_START_COMMENT);
+		blat_str_bprol(SA_START_COMMENT);
 		num_hex_add(g->bprol, arg->offset);
 
 		bprol_add('\n');
@@ -207,16 +207,16 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 			plist_add(g->local_vars, var);
 
 			text_add('\t');
-			blat_str_text(STR_ASM_EQU);			  // вот
+			blat_str_text(SA_EQU);				  // вот
 			blat_blist(g->text, var->name->view); // name
 			text_add(' ');
 			num_add(g->text, g->stack_counter);
-			blat_str_text(STR_ASM_START_COMMENT); // \t;
+			blat_str_text(SA_START_COMMENT); // \t;
 			num_hex_add(g->text, g->stack_counter);
 			text_add('\n');
 		}
 		// быть (рсп - g->tmp_blist) register
-		blat_str_text(STR_ASM_MOV_MEM_RBP_OPEN);
+		blat_str_text(SA_MOV_MEM_RBP_OPEN);
 		blat_blist(g->text, var->name->view); // name
 		text_add(')');
 

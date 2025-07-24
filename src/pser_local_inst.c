@@ -19,6 +19,15 @@ enum IP_Code pser_local_inst_label(struct Pser *p, struct PList *os,
 	return IP_DECLARE_LABEL;
 }
 
+// ### os explanation
+//   _ - label name token
+enum IP_Code pser_local_inst_goto(struct Pser *p, struct PList *os) {
+	struct Token *name = absorb(p);
+	match(p, name, ID);
+	plist_add(os, name);
+	return IP_GOTO;
+}
+
 struct Inst *get_local_inst(struct Pser *p) {
 	struct Token *c = pser_cur(p), *n;
 	struct PList *os = new_plist(2);
@@ -39,6 +48,8 @@ struct Inst *get_local_inst(struct Pser *p) {
 			code = inst_pser_asm(p, os);
 		else if (sc(cv, STR_LET))
 			code = pser_local_inst_let(p, os);
+		else if (sc(cv, STR_GOTO))
+			code = pser_local_inst_goto(p, os);
 
 		else if (n->code == COLO)
 			code = pser_local_inst_label(p, os, c);

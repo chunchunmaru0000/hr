@@ -45,27 +45,30 @@ struct Gner {
 struct Gner *new_gner(struct Pser *, enum Target, uc);
 void gen(struct Gner *);
 
-extern const char STR_ASM_SEGMENT[];
-extern const char STR_ASM_LABEL_END[];
-extern const uint32_t STR_ASM_SEGMENT_LEN;
-extern const uint32_t STR_ASM_LABEL_END_LEN;
+// SA - Str Asm
+extern const char SA_SEGMENT[];
+extern const char SA_LABEL_END[];
+extern const uint32_t SA_SEGMENT_LEN;
+extern const uint32_t SA_LABEL_END_LEN;
 
-extern const char STR_ASM_EQU[];
-extern const char STR_ASM_ENTER_STACK_FRAME[];
-extern const char STR_ASM_MOV_MEM_RBP_OPEN[];
-extern const char STR_ASM_START_COMMENT[];
-extern const char STR_ASM_SUB_RSP[];
-extern const char STR_ASM_LEAVE[];
-extern const char STR_ASM_RET[];
+extern const char SA_EQU[];
+extern const char SA_ENTER_STACK_FRAME[];
+extern const char SA_MOV_MEM_RBP_OPEN[];
+extern const char SA_START_COMMENT[];
+extern const char SA_SUB_RSP[];
+extern const char SA_LEAVE[];
+extern const char SA_RET[];
+extern const char SA_JMP[];
 
-extern const uint32_t STR_ASM_EQU_LEN;
-extern const uint32_t STR_ASM_ENTER_STACK_FRAME_LEN;
-extern const uint32_t STR_ASM_LEAVE_STACK_FRAME_LEN;
-extern const uint32_t STR_ASM_MOV_MEM_RBP_OPEN_LEN;
-extern const uint32_t STR_ASM_START_COMMENT_LEN;
-extern const uint32_t STR_ASM_SUB_RSP_LEN;
-extern const uint32_t STR_ASM_LEAVE_LEN;
-extern const uint32_t STR_ASM_RET_LEN;
+extern const uint32_t SA_EQU_LEN;
+extern const uint32_t SA_ENTER_STACK_FRAME_LEN;
+extern const uint32_t SA_LEAVE_STACK_FRAME_LEN;
+extern const uint32_t SA_MOV_MEM_RBP_OPEN_LEN;
+extern const uint32_t SA_START_COMMENT_LEN;
+extern const uint32_t SA_SUB_RSP_LEN;
+extern const uint32_t SA_LEAVE_LEN;
+extern const uint32_t SA_RET_LEN;
+extern const uint32_t SA_JMP_LEN;
 
 #define blat_str_bprol(str) (blat(g->bprol, (uc *)(str), (str##_LEN - 1)))
 #define blat_str_prol(str) (blat(g->prol, (uc *)(str), (str##_LEN - 1)))

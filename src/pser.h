@@ -29,6 +29,7 @@ extern const char *const ERR_WRONG_TOKEN;
 
 extern const char *const STR_LET;
 extern const char *const STR_ASM;
+extern const char *const STR_GOTO;
 
 struct Pser {
 	struct Fpfc *f;
