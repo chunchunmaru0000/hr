@@ -23,6 +23,7 @@ const struct TypeWord TYPE_WORDS[] = {
 };
 
 const struct TypeWord TYPE_WORD_STRUCT = {"лик", TC_STRUCT, 6};
+const struct TypeWord TYPE_WORD_ENUM = {"счет", TC_ENUM, 8};
 const struct TypeWord TYPE_WORD_PTR = {"ук", TC_PTR, 4};
 const struct TypeWord TYPE_WORD_FUN = {"фц", TC_FUN, 4};
 
@@ -93,7 +94,11 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 	} else if (type->code == TC_STRUCT) {
 		blat(str, (uc *)TYPE_WORD_STRUCT.view, TYPE_WORD_STRUCT.view_len);
 		blist_add(str, '_');
-		blat_blist(str, type->data.struct_name);
+		blat_blist(str, type->data.name);
+	} else if (type->code == TC_ENUM) {
+		blat(str, (uc *)TYPE_WORD_ENUM.view, TYPE_WORD_ENUM.view_len);
+		blist_add(str, '_');
+		blat_blist(str, type->data.name);
 	} else if (type->code == TC_ARR) {
 		blist_add(str, '[');
 
@@ -174,9 +179,8 @@ int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
 
 	if (t1->code == TC_PTR) {
 		res = are_types_equal(t1->data.ptr_target, t2->data.ptr_target);
-	} else if (t1->code == TC_STRUCT) {
-		res = sc((char *)t1->data.struct_name->st,
-				 (char *)t2->data.struct_name->st);
+	} else if (t1->code == TC_STRUCT || t1->code == TC_ENUM) {
+		res = sc((char *)t1->data.name->st, (char *)t2->data.name->st);
 	} else if (t1->code == TC_ARR) {
 		res = are_types_equal(plist_get(t1->data.arr, 0),
 							  plist_get(t2->data.arr, 0)) &&
@@ -210,7 +214,7 @@ void free_type(struct TypeExpr *type) {
 			free_type(plist_get(type->data.args_types, i));
 		plist_free(type->data.args_types);
 	}
-	// else if (type->code == TC_STRUCT)
+	// else if (type->code == TC_STRUCT || type->code == TC_ENUM)
 	//     ; // nothing cuz this blist is part of a token
 
 	free(type);
@@ -241,14 +245,13 @@ struct TypeExpr *type_expr(struct Pser *p) {
 			if (sc((char *)cur->view->st, STR_STRUCT_TW))
 				texpr->code = TC_STRUCT;
 			else if (sc((char *)cur->view->st, STR_ENUM_TW))
-				texpr->code = TC_INT32;
+				texpr->code = TC_ENUM;
 			else
 				goto check_type_words;
 
 			cur = absorb(p);
 			expect(p, cur, ID);
-			texpr->data.struct_name = cur->view;
-			// TODO: maybe do enum name later for type safety
+			texpr->data.name = cur->view;
 
 		} else {
 		check_type_words:

@@ -124,6 +124,7 @@ enum TypeCode {
 	// 32
 	TC_INT32, // also enum
 	TC_UINT32,
+	TC_ENUM,
 	TC_FLOAT,
 	// 64
 	TC_VOID,
@@ -148,7 +149,7 @@ struct TypeWord {
 
 union TypeData {
 	struct TypeExpr *ptr_target;
-	struct BList *struct_name;
+	struct BList *name;
 	struct PList *args_types;
 	struct PList *arr;
 };
