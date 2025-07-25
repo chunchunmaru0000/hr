@@ -225,7 +225,10 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 		arg = plist_get(os, i);
 
 		// it haves here types cuz fun type args are types
-		// its primary for signature
+		// its needed for fun call
+		// TODO fix here, args cant have one offset cuz if they are then they
+		// are one mem and will affect fun call thet will be implemented only be
+		// fun type and by not knowing fun args
 		plist_add(fun_type->data.args_types, arg->type);
 	}
 
