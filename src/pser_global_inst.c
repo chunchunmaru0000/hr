@@ -65,7 +65,8 @@ const char *const SUGGEST_FIX_FUN_SIGNATURES_OVERLAP =
 const char *const SEVERAL_ARGS_CANT_SHARE_MEM =
 	"Несколько аргументов объявленных таким образом не могут иметь синонимы с "
 	"другими типом, так как они принадлежат к разным участкам памяти.";
-const char *const DELETE_ARGS_OR_COMMA = "удалить аргументы или запятую";
+const char *const SUGGEST_DELETE_ARGS_OR_COMMA =
+	"удалить аргументы или запятую";
 const char *const COMMA_ARGS_CAN_BE_ONLY_BY_ONE =
 	"Аргументы для одного участка памяти могут быть только по одному, иначе "
 	"это уже не один участок памяти.";
@@ -73,6 +74,7 @@ const char *const TOO_MUCH_ARGS_FOR_NOW =
 	"Слишком много аргументов фукнции, на данный момент максимальное "
 	"количество аргуентов функции: 7.";
 const char *const SUGGEST_CUT_ARGS_SIZE = "уменьшить количество аргументов";
+const char *const SUGGEST_CHANGE_ARG_TYPE_SIZE = "изменить размер типа";
 
 struct Arg *new_arg() {
 	struct Arg *arg = malloc(sizeof(struct Arg));
@@ -91,7 +93,7 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 	struct Arg *arg = new_arg();
 	struct TypeExpr *type;
 	uint32_t i;
-	int type_size;
+	int type_size, colo_pos;
 	plist_add(args, arg);
 
 	struct Token *c = pser_cur(p);
@@ -112,6 +114,7 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 				c = pser_cur(p);
 			}
 	}
+	colo_pos = p->pos;
 	match(p, c, COLO);
 	uc is_one_memory = args->size == 1;
 	is_one_memories_flag = is_one_memory;
@@ -119,16 +122,18 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 	type = type_expr(p);
 	type_size = size_of_type(type);
 
-	// TODO: somehow get arg type token
 	if (is_one_memory && from && (type_size != size_of_type(from->type)))
-		eet(p->f, c, TYPES_SIZES_NOT_MATCH, 0);
+		eet(p->f, get_pser_token((p), -1), TYPES_SIZES_NOT_MATCH,
+			SUGGEST_CHANGE_ARG_TYPE_SIZE);
 	if (!is_one_memory && from)
-		eet(p->f, c, SEVERAL_ARGS_CANT_SHARE_MEM, DELETE_ARGS_OR_COMMA);
+		eet(p->f, get_pser_token((p), colo_pos - p->pos - 1),
+			SEVERAL_ARGS_CANT_SHARE_MEM, SUGGEST_DELETE_ARGS_OR_COMMA);
 
 	c = pser_cur(p);
 	if (c->code == COMMA) {
 		if (!is_one_memory)
-			eet(p->f, c, SEVERAL_ARGS_CANT_SHARE_MEM, DELETE_ARGS_OR_COMMA);
+			eet(p->f, c, SEVERAL_ARGS_CANT_SHARE_MEM,
+				SUGGEST_DELETE_ARGS_OR_COMMA);
 		consume(p); // consume ,
 
 		// set thing to the single arg
@@ -138,7 +143,8 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 		// get new arg
 		eithers = parse_arg(p, arg, args_offset);
 		if (!is_one_memories_flag && eithers->size != 1)
-			eet(p->f, c, COMMA_ARGS_CAN_BE_ONLY_BY_ONE, DELETE_ARGS_OR_COMMA);
+			eet(p->f, c, COMMA_ARGS_CAN_BE_ONLY_BY_ONE,
+				SUGGEST_DELETE_ARGS_OR_COMMA);
 		// add all and free
 		for (i = 0; i < eithers->size; i++)
 			plist_add(args, plist_get(eithers, i));
