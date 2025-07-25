@@ -233,24 +233,33 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 		eet(p->f, fun_variable->name, TOO_MUCH_ARGS_FOR_NOW,
 			SUGGEST_CUT_ARGS_SIZE);
 
-	type = type_expr(p);
+	// if there is no type then its void type
+	type = pser_cur(p)->code == PAR_L ? get_type_expr(TC_VOID) : type_expr(p);
 	plist_add(fun_type->data.args_types, type);
 
+	plist_set(os, 0, fun_variable);
+	plist_add(os, 0); // args terminator
+
+	// gen signature
+	get_fun_signature_considering_args(os, fun_variable);
+	// check by signatures
 	for (i = 0; i < p->global_vars->size; i++) {
 		tmp_var = plist_get(p->global_vars, i);
 
-		if (sc((char *)tmp_var->name->view->st,
-			   (char *)fun_variable->name->view->st) &&
-			are_types_equal(tmp_var->type, fun_variable->type))
+		// if (sc((char *)tmp_var->name->view->st,
+		// 	   (char *)fun_variable->name->view->st) &&
+		// 	are_types_equal(tmp_var->type, fun_variable->type))
+		if (tmp_var->type->code == TC_FUN &&
+			sc((char *)tmp_var->signature->st,
+			   (char *)fun_variable->signature->st))
 			eet(p->f, fun_variable->name, FUN_SIGNATURES_OVERLAP,
 				SUGGEST_FIX_FUN_SIGNATURES_OVERLAP);
 	}
 
-	get_global_signature(fun_variable);
+	// add after cuz if before then will compare with itself
 	plist_add(p->global_vars, fun_variable);
-	plist_set(os, 0, fun_variable);
-	plist_add(os, 0); // args terminator
 
+	// body
 	parse_block_of_local_inst(p, os);
 
 	return IP_DECLARE_FUNCTION;

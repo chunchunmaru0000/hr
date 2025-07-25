@@ -213,7 +213,8 @@ struct Inst *get_local_inst(struct Pser *p);
 
 struct BList *num_to_str(long num);
 struct BList *num_to_hex_str(long num);
-void get_global_signature(struct GlobVar *);
+void get_fun_signature_considering_args(struct PList *os, struct GlobVar *var);
+void get_global_signature(struct PList *os, struct GlobVar *var);
 int are_types_equal(struct TypeExpr *, struct TypeExpr *);
 
 void eei(struct Fpfc *f, struct Inst *t, const char *const msg,

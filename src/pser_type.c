@@ -7,6 +7,8 @@ const char *const WRONG_ARR_SIZE =
 const char *const FUN_TYPE_END_OF_FILE =
 	"Скобки типа функции не были закрыты и был достигнут конец файла.";
 const char *const NOT_A_TYPE_WORD = "Ожидалось слово типа.";
+const char *const FUN_ZERO_ARGS = "Тип функции не может иметь 0 аргументов.";
+const char *const SUGGEST_ADD_ARGS = "добавить аргументов";
 
 int get_type_code_size(enum TypeCode code) {
 	return code >= TC_VOID	  ? QWORD
@@ -118,7 +120,7 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 
 		blist_add(str, ']');
 	} else if (type->code == TC_FUN) {
-		blat(str, (uc *)TYPE_WORD_FUN.view, TYPE_WORD_FUN.view_len);
+		// blat(str, (uc *)TYPE_WORD_FUN.view, TYPE_WORD_FUN.view_len);
 		blist_add(str, '{');
 		// -1 cuz lasr itteration after it
 		for (i = 0; i < type->data.args_types->size - 1; i++) {
@@ -149,18 +151,60 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 	return str;
 }
 
-void get_global_signature(struct GlobVar *var) {
-	struct BList *signature = new_blist(32), *type_part;
+void get_fun_signature_considering_args(struct PList *os, struct GlobVar *var) {
+	struct BList *signature = new_blist(32), *type_str;
+	struct Arg *arg, *next_arg;
+	uint32_t i;
 
+	// add name
 	blat_blist(signature, var->name->view);
 	blist_add(signature, '_');
+	// start fun type part
+	blist_add(signature, '{');
 
-	type_part = type_to_blist_from_str(var->type);
-	blat_blist(signature, type_part);
-	blist_clear_free(type_part);
+	next_arg = plist_get(os, 1);
+	if (!next_arg) // zero term
+		goto skip_add_args;
 
+	for (i = 1; next_arg;) {
+		arg = next_arg;
+
+		type_str = type_to_blist_from_str(arg->type); // gen type str
+		blat_blist(signature, type_str);			  // add type str to str
+		blist_clear_free(type_str);					  // free type str
+
+		next_arg = plist_get(os, ++i);
+		if (!next_arg) // zero term
+			break;
+
+		if (arg->offset == next_arg->offset)
+			blist_add(signature, ',');
+		else
+			blist_add(signature, '_');
+	}
+	blist_add(signature, '_');
+
+skip_add_args:
+
+	// last arg type from var->type that is return type
+	type_str = type_to_blist_from_str(
+		plist_get(var->type->data.args_types,
+				  var->type->data.args_types->size - 1)); // gen type str
+	blat_blist(signature, type_str);					  // add type str to str
+	blist_clear_free(type_str);							  // free type str
+
+	// end fun type part
+	blist_add(signature, '}');
 	convert_blist_to_blist_from_str(signature);
 	var->signature = signature;
+}
+
+void get_global_signature(struct PList *os, struct GlobVar *var) {
+	if (var->type->code == TC_FUN) {
+		get_fun_signature_considering_args(os, var);
+	} else {
+		// TODO get_global_signature for not fun types
+	}
 }
 
 /*
@@ -306,7 +350,8 @@ struct TypeExpr *type_expr(struct Pser *p) {
 			plist_add(texpr->data.args_types, type_expr(p));
 			expect(p, pser_cur(p), PAR_R); // expect )
 		} else if (cur->code == PAR_R) {
-			// nothing
+			if (texpr->data.args_types->size == 0)
+				eet(p->f, cur, FUN_ZERO_ARGS, SUGGEST_ADD_ARGS);
 		} else
 			eet(p->f, cur, FUN_TYPE_END_OF_FILE, 0);
 	} else
