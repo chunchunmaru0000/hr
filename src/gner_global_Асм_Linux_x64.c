@@ -127,25 +127,27 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			g->flags->is_r12_used = 0;
 			g->flags->is_args_in_regs = 1;
 			// begin stack frame
-			// TODO: function prolog and function text
 			global_var = plist_get(in->os, 0);
-			blat_blist(g->text, global_var->signature); // fun label
-			blat_str_text(SA_LABEL_END);				// :
-			blat_str_text(SA_ENTER_STACK_FRAME);
-			local_i = put_args_on_the_stack_Асм_Linux_64(g, in);
 
+			blat_blist(g->fun_prol, global_var->signature); // fun label
+			blat_str_fun_prol(SA_LABEL_END);				// :
+			blat_str_fun_prol(SA_ENTER_STACK_FRAME);
+
+			local_i = put_args_on_the_stack_Асм_Linux_64(g, in);
 			// function body
 			for (; local_i < in->os->size; local_i++)
 				gen_local_Асм_Linux_64(g, plist_get(in->os, local_i));
 			// free stack in return statement
 
 			// leave also does pop rbp so its needed anyway
-			blat_str_text(SA_LEAVE);
-			blat_str_text(SA_RET);
-			text_add('\n');
+			blat_str_fun_text(SA_LEAVE);
+			blat_str_fun_text(SA_RET);
+			fun_text_add('\n');
 
 			// reset things after
 			g->current_function = 0;
+
+			write_fun(g);
 			break;
 		default:
 			eei(in->f, in, "эээ", 0);
@@ -208,26 +210,27 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 								g->stack_counter);
 			plist_add(g->local_vars, var);
 
-			text_add('\t');
-			blat_str_text(SA_EQU);				  // вот
-			blat_blist(g->text, var->name->view); // name
-			text_add(' ');
-			num_add(g->text, g->stack_counter);
-			blat_str_text(SA_START_COMMENT); // \t;
-			num_hex_add(g->text, g->stack_counter);
-			text_add('\n');
+			fun_prol_add('\t');
+			blat_str_fun_prol(SA_EQU);				  // вот
+			blat_blist(g->fun_prol, var->name->view); // name
+			fun_prol_add(' ');
+			num_add(g->fun_prol, g->stack_counter);
+			blat_str_fun_prol(SA_START_COMMENT); // \t;
+			num_hex_add(g->fun_prol, g->stack_counter);
+			fun_prol_add('\n');
 		}
 		// быть (рсп - g->tmp_blist) register
-		blat_str_text(SA_MOV_MEM_RBP_OPEN);
-		blat_blist(g->text, var->name->view); // name
-		text_add(')');
+		blat_str_fun_prol(SA_MOV_MEM_RBP_OPEN);
+		blat_blist(g->fun_prol, var->name->view); // name
+		fun_prol_add(')');
+		fun_prol_add(' ');
 
-		text_add(' ');
 		// register that is need to put there
 		int size = size_of_local(var);
 		reg = get_regs_of_size(size, i - 2);
-		blat(g->text, (uc *)reg->name, reg->len);
-		text_add('\n');
+
+		blat(g->fun_prol, (uc *)reg->name, reg->len);
+		fun_prol_add('\n');
 
 		arg = plist_get(in->os, i);
 	}

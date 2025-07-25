@@ -1,4 +1,5 @@
 #include "gner.h"
+#include <stdio.h>
 
 void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
 
@@ -33,7 +34,7 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		//   _ - assembly string token
 
 		str = plist_get(in->os, 0);
-		blat_blist(g->text, str->str);
+		blat_blist(g->fun_text, str->str);
 		break;
 	case IP_LET:
 		// ### os explanation
@@ -55,11 +56,11 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		}
 		plist_add(g->local_labels, name);
 
-		text_add('\t');
-		blat_blist(g->text, g->current_function->signature);
-		blat_blist(g->text, name->view);
-		text_add(':');
-		text_add('\n');
+		fun_text_add('\t');
+		blat_blist(g->fun_text, g->current_function->signature);
+		blat_blist(g->fun_text, name->view);
+		fun_text_add(':');
+		fun_text_add('\n');
 		break;
 	case IP_GOTO:
 		// ### os explanation
@@ -67,27 +68,27 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 
 		name = plist_get(in->os, 0);
 
-		blat_str_text(SA_JMP);
-		blat_blist(g->text, g->current_function->signature);
-		blat_blist(g->text, name->view);
-		text_add('\n');
+		blat_str_fun_text(SA_JMP);
+		blat_blist(g->fun_text, g->current_function->signature);
+		blat_blist(g->fun_text, name->view);
+		fun_text_add('\n');
 		break;
 	case IP_LOOP:
 		// ### os explanation
 		// ... - local instructions
 
 		string = take_label(g, LC_LOOP);
-		text_add('\t');
-		blat_blist(g->text, string);
-		text_add(':');
-		text_add('\n');
+		fun_text_add('\t');
+		blat_blist(g->fun_text, string);
+		fun_text_add(':');
+		fun_text_add('\n');
 
 		for (i = 0; i < in->os->size; i++)
 			gen_local_Асм_Linux_64(g, plist_get(in->os, i));
 
-		blat_str_text(SA_JMP);
-		blat_blist(g->text, string);
-		text_add('\n');
+		blat_str_fun_text(SA_JMP);
+		blat_blist(g->fun_text, string);
+		fun_text_add('\n');
 
 		blist_clear_free(string);
 		break;
@@ -124,16 +125,16 @@ void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 
 			plist_add(g->local_vars, var);
 
-			text_add('\t');
-			blat_str_text(SA_EQU);				  // вот
-			blat_blist(g->text, var->name->view); // name
-			text_add(' ');
-			num_add(g->text, g->stack_counter);
+			fun_text_add('\t');
+			blat_str_fun_text(SA_EQU);				  // вот
+			blat_blist(g->fun_text, var->name->view); // name
+			fun_text_add(' ');
+			num_add(g->fun_text, g->stack_counter);
 
-			blat_str_text(SA_START_COMMENT);
-			num_hex_add(g->text, g->stack_counter);
+			blat_str_fun_text(SA_START_COMMENT);
+			num_hex_add(g->fun_text, g->stack_counter);
 
-			text_add('\n');
+			fun_text_add('\n');
 		}
 
 		last_offset = arg->offset;
@@ -189,6 +190,7 @@ struct BList *take_label(struct Gner *g, enum L_Code label_code) {
 		g->labels->elses++;
 		break;
 	default:
+		printf("asdf 228\n");
 		exit(228);
 	}
 

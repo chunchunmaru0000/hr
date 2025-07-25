@@ -50,6 +50,9 @@ struct Gner {
 	struct BList *prol;	 // prolog
 	struct BList *text;	 // main text
 
+	struct BList *fun_prol; // fun prolog
+	struct BList *fun_text; // fun main text
+
 	struct BList *tmp_blist; // just tmp blist
 };
 
@@ -84,9 +87,16 @@ extern const uint32_t SA_JMP_LEN;
 #define blat_str_bprol(str) (blat(g->bprol, (uc *)(str), (str##_LEN - 1)))
 #define blat_str_prol(str) (blat(g->prol, (uc *)(str), (str##_LEN - 1)))
 #define blat_str_text(str) (blat(g->text, (uc *)(str), (str##_LEN - 1)))
+
+#define blat_str_fun_prol(str) (blat(g->fun_prol, (uc *)(str), (str##_LEN - 1)))
+#define blat_str_fun_text(str) (blat(g->fun_text, (uc *)(str), (str##_LEN - 1)))
+
 #define bprol_add(byte) (blist_add(g->bprol, (byte)))
 #define prol_add(byte) (blist_add(g->prol, (byte)))
 #define text_add(byte) (blist_add(g->text, (byte)))
+
+#define fun_prol_add(byte) (blist_add(g->fun_prol, (byte)))
+#define fun_text_add(byte) (blist_add(g->fun_text, (byte)))
 
 #define num_add(list, value)                                                   \
 	do {                                                                       \
@@ -101,6 +111,7 @@ extern const uint32_t SA_JMP_LEN;
 		blist_clear_free(g->tmp_blist);                                        \
 	} while (0);
 
+void write_fun(struct Gner *g);
 void gen_Асм_Linux_64_prolog(struct Gner *);
 void gen_Асм_Linux_64_text(struct Gner *);
 

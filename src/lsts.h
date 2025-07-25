@@ -22,7 +22,8 @@ uint32_t plist_add(struct PList *, void *);
 void *plist_get(struct PList *, uint32_t);
 void *plist_set(struct PList *, uint32_t, void *);
 void plist_free(struct PList *);
-void plist_clear(struct PList *);
+#define plist_clear(l) ((l)->size = 0)
+void plist_re(struct PList *l);
 void plist_clear_items_free(struct PList *);
 
 struct BList {
@@ -41,7 +42,7 @@ uc blist_get(struct BList *, uint32_t);
 uc blist_set(struct BList *, uint32_t, uc);
 void blat(struct BList *, uc *, uint32_t);
 #define blat_blist(l, o) (blat((l), (o)->st, (o)->size))
-void blist_clear(struct BList *);
+#define blist_clear(l) ((l)->size = 0)
 void blist_clear_free(struct BList *);
 void blist_print(struct BList *);
 void blist_add_set(struct BList *, uc, uint32_t *, size_t);
