@@ -4,13 +4,13 @@
 uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg);
 
-const char SA_SEGMENT[] = "участок чит исп\n";
+const char SA_SEGMENT_READ_WRITE[] = "участок чит изм\n\n";
+const char SA_SEGMENT_READ_EXECUTE[] = "участок чит исп\n\n";
 const char SA_LABEL_END[] = ":\n";
 
-const uint32_t SA_SEGMENT_LEN = loa(SA_SEGMENT);
+const uint32_t SA_SEGMENT_READ_WRITE_LEN = loa(SA_SEGMENT_READ_WRITE);
+const uint32_t SA_SEGMENT_READ_EXECUTE_LEN = loa(SA_SEGMENT_READ_EXECUTE);
 const uint32_t SA_LABEL_END_LEN = loa(SA_LABEL_END);
-
-void gen_Асм_Linux_64_prolog(struct Gner *g) { iprint_prol(SA_SEGMENT); }
 
 const char SA_EQU[] = "вот ";
 const char SA_PUSH_RBP[] = "толк рбп\n";
@@ -68,6 +68,8 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 	struct Token *tok, *tok2;
 	struct GlobVar *global_var;
 	struct Defn *defn;
+
+	g->flags->is_data_segment_used = 0;
 
 	for (i = 0; i < g->is->size; i++) {
 		in = plist_get(g->is, i);
@@ -157,24 +159,31 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			// ### os explanation:
 			// ... - GlobVar's
 
+			if (!g->flags->is_data_segment_used) {
+				iprint_prol(SA_SEGMENT_READ_WRITE);
+				g->flags->is_data_segment_used = 1;
+			}
+
 			for (j = 0; j < in->os->size; j++) {
 				global_var = plist_get(in->os, j);
 
-				blat_blist(g->bprol, global_var->signature);
-				blat_str_bprol(SA_LABEL_END); // :
+				blat_blist(g->prol, global_var->signature);
+				blat_str_prol(SA_LABEL_END); // :
 			}
 
 			g->indent_level++;
 			gen_glob_expr_Асм_Linux_64(g, global_var);
 			g->indent_level--;
 
-			bprol_add('\n');
+			prol_add('\n');
 			break;
 		default:
 			eei(in->f, in, "эээ", 0);
 		}
 	}
 end_gen_Асм_text_loop:;
+
+	iprint_prol(SA_SEGMENT_READ_EXECUTE);
 }
 
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {

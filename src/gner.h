@@ -9,6 +9,8 @@ struct Fggs {
 	// arguments only in registers, can be only done if there is no other args
 	// in the function and no stack usage
 	uc is_args_in_regs;
+
+	uc is_data_segment_used;
 };
 
 enum L_Code {
@@ -60,9 +62,12 @@ struct Gner *new_gner(struct Pser *, enum Target, uc);
 void gen(struct Gner *);
 
 // SA - Str Asm
-extern const char SA_SEGMENT[];
+extern const char SA_SEGMENT_READ_WRITE[];
+extern const char SA_SEGMENT_READ_EXECUTE[];
 extern const char SA_LABEL_END[];
-extern const uint32_t SA_SEGMENT_LEN;
+
+extern const uint32_t SA_SEGMENT_READ_WRITE_LEN;
+extern const uint32_t SA_SEGMENT_READ_EXECUTE_LEN;
 extern const uint32_t SA_LABEL_END_LEN;
 
 extern const char SA_EQU[];
@@ -145,7 +150,6 @@ void indent_line(struct Gner *g, struct BList *l);
 	} while (0);
 
 void write_fun(struct Gner *g);
-void gen_Асм_Linux_64_prolog(struct Gner *);
 void gen_Асм_Linux_64_text(struct Gner *);
 
 void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in);

@@ -38,7 +38,6 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 void gen(struct Gner *g) {
 	switch (g->t) {
 	case T_Асм_Linux_64:
-		gen_Асм_Linux_64_prolog(g);
 		gen_Асм_Linux_64_text(g);
 		break;
 	}
