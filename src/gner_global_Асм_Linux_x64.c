@@ -110,6 +110,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 
 			for (j = 1; j < in->os->size; j++)
 				declare_struct_arg(g, tok, plist_get(in->os, j));
+
 			bprol_add('\n');
 			break;
 		case IP_DECLARE_FUNCTION:

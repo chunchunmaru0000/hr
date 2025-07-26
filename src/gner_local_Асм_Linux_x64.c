@@ -106,7 +106,6 @@ void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	struct Arg *arg;
 	struct LocalVar *var;
 	long last_offset = -1;
-	// long stack_was = g->stack_counter;
 
 	for (i = 0; i < in->os->size; i++) {
 		arg = plist_get(in->os, i);

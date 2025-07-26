@@ -12,6 +12,7 @@ enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os) {
 	return IP_ASM;
 }
 
+// TODO: check here for identical names in enum items
 // ### os explanation:
 //   _ - name
 // ... - defns where name is name and value is num
@@ -60,6 +61,9 @@ const char *const FUN_SIGNATURES_OVERLAP =
 	"Сигнатура данной функции повторяет сигнатуру другой уже объявленной "
 	"функции, даже если типы записаны по разному но равны по смыслу(например "
 	"'*ц8' и 'стр'), их сигнатуры будут равны.";
+const char *const GLOBAL_VARS_NAMES_OVERLAP =
+	"Переменная с таким именем уже существует.";
+const char *const SUGGEST_CHANGE_VAR_NAME = "изменить имя переменной";
 const char *const SUGGEST_FIX_FUN_SIGNATURES_OVERLAP =
 	"изменить типы аругментов функции";
 const char *const SEVERAL_ARGS_CANT_SHARE_MEM =
@@ -194,6 +198,8 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 	expect(p, absorb(p), PAR_L);
 	parse_args(p, os);
 
+	// TODO: check here for identical names
+
 	return IP_DECLARE_STRUCT;
 }
 
@@ -225,6 +231,8 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	parse_args(p, os);
 	for (i = 1; i < os->size; i++) {
 		arg = plist_get(os, i);
+
+		// TODO: check here for identical names
 
 		// it haves here types cuz fun type args are types
 		// its needed for fun call
@@ -285,16 +293,19 @@ struct GlobExpr *parse_global_expression(struct Pser *p) {
 enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 	struct PList *args;
 	struct Arg *arg;
-	struct GlobVar *var;
+	struct GlobVar *var, *tmp_var;
 	struct GlobExpr *global_expr;
-	uint32_t i = p->pos;
+	uint32_t i = p->pos, j;
 
 	consume(p); // skip пусть
 	args = parse_arg(p, 0, 0);
 
-	if (args->size != 1)
-		eet(p->f, get_pser_token(p, p->pos - i), SEVERAL_ARGS_CANT_SHARE_MEM,
-			SUGGEST_DELETE_ARGS_OR_COMMA);
+	if (args->size != 1) {
+		arg = plist_get(args, args->size - 1);
+		// i dont beleive that its works but it should
+		eet(p->f, plist_get(arg->names, arg->names->size - 1),
+			SEVERAL_ARGS_CANT_SHARE_MEM, SUGGEST_DELETE_ARGS_OR_COMMA);
+	}
 	arg = plist_get(args, 0);
 
 	// skip '='
@@ -303,13 +314,22 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 
 	for (i = 0; i < arg->names->size; i++) {
 		var = malloc(sizeof(struct GlobVar));
-		plist_add(p->global_vars, var);
 
 		var->name = plist_get(arg->names, i);
 		var->type = arg->type;
 		get_global_signature(os, var);
 		var->value = global_expr;
 
+		for (j = 0; j < p->global_vars->size; j++) {
+			tmp_var = plist_get(p->global_vars, j);
+
+			// do i want to use here the name or the signature i dunno
+			if (sc((char *)tmp_var->signature->st, (char *)var->signature->st))
+				eet(p->f, var->name, GLOBAL_VARS_NAMES_OVERLAP,
+					SUGGEST_CHANGE_VAR_NAME);
+		}
+
+		plist_add(p->global_vars, var);
 		plist_add(os, var);
 	}
 

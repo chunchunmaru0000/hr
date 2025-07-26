@@ -145,7 +145,6 @@ struct Inst *get_global_inst(struct Pser *p) {
 		eet(p->f, cur, ERR_WRONG_TOKEN, 0);
 	}
 	//	TODO
-	//	global IP_LET,
 	//	global expression,
 	//
 	//	IP_DECLARE_FUNCTION body,
