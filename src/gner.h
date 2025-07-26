@@ -31,7 +31,7 @@ struct Gner {
 	enum Target t;
 	uc debug;
 
-	// uint32_t indent_level; // TODO: indentation
+	uint32_t indent_level;
 	uint32_t pos;
 	long stack_counter;
 	struct Fggs *flags;
@@ -66,7 +66,8 @@ extern const uint32_t SA_SEGMENT_LEN;
 extern const uint32_t SA_LABEL_END_LEN;
 
 extern const char SA_EQU[];
-extern const char SA_ENTER_STACK_FRAME[];
+extern const char SA_PUSH_RBP[];
+extern const char SA_MOV_RBP_RSP[];
 extern const char SA_MOV_MEM_RBP_OPEN[];
 extern const char SA_START_COMMENT[];
 extern const char SA_SUB_RSP[];
@@ -75,7 +76,8 @@ extern const char SA_RET[];
 extern const char SA_JMP[];
 
 extern const uint32_t SA_EQU_LEN;
-extern const uint32_t SA_ENTER_STACK_FRAME_LEN;
+extern const uint32_t SA_PUSH_RBP_LEN;
+extern const uint32_t SA_MOV_RBP_RSP_LEN;
 extern const uint32_t SA_LEAVE_STACK_FRAME_LEN;
 extern const uint32_t SA_MOV_MEM_RBP_OPEN_LEN;
 extern const uint32_t SA_START_COMMENT_LEN;
@@ -84,12 +86,43 @@ extern const uint32_t SA_LEAVE_LEN;
 extern const uint32_t SA_RET_LEN;
 extern const uint32_t SA_JMP_LEN;
 
+void indent_line(struct Gner *g, struct BList *l);
+// #############################################################################
 #define blat_str_bprol(str) (blat(g->bprol, (uc *)(str), (str##_LEN - 1)))
+#define iprint_bprol(str)                                                      \
+	do {                                                                       \
+		indent_line(g, g->bprol);                                              \
+		blat_str_bprol(str);                                                   \
+	} while (0)
+// #############################################################################
 #define blat_str_prol(str) (blat(g->prol, (uc *)(str), (str##_LEN - 1)))
+#define iprint_prol(str)                                                       \
+	do {                                                                       \
+		indent_line(g, g->prol);                                               \
+		blat_str_prol(str);                                                    \
+	} while (0)
+// #############################################################################
 #define blat_str_text(str) (blat(g->text, (uc *)(str), (str##_LEN - 1)))
-
+#define iprint_text(str)                                                       \
+	do {                                                                       \
+		indent_line(g, g->text);                                               \
+		blat_str_text(str);                                                    \
+	} while (0)
+// #############################################################################
 #define blat_str_fun_prol(str) (blat(g->fun_prol, (uc *)(str), (str##_LEN - 1)))
+#define iprint_fun_prol(str)                                                   \
+	do {                                                                       \
+		indent_line(g, g->fun_prol);                                           \
+		blat_str_fun_prol(str);                                                \
+	} while (0)
+// #############################################################################
 #define blat_str_fun_text(str) (blat(g->fun_text, (uc *)(str), (str##_LEN - 1)))
+#define iprint_fun_text(str)                                                   \
+	do {                                                                       \
+		indent_line(g, g->fun_text);                                           \
+		blat_str_fun_text(str);                                                \
+	} while (0)
+// #############################################################################
 
 #define bprol_add(byte) (blist_add(g->bprol, (byte)))
 #define prol_add(byte) (blist_add(g->prol, (byte)))

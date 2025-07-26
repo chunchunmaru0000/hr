@@ -20,7 +20,7 @@ const uint32_t CHANGE_VAR_NAME_OR_DELETE_LABEL_LEN =
 const uint32_t REDEFINING_OF_LOCAL_VAR_LEN = loa(REDEFINING_OF_LOCAL_VAR);
 const uint32_t REDEFINING_OF_LOCAL_LABEL_LEN = loa(REDEFINING_OF_LOCAL_LABEL);
 
-const char SA_JMP[] = "\tидти ";
+const char SA_JMP[] = "идти ";
 const uint32_t SA_JMP_LEN = loa(SA_JMP);
 
 void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
@@ -56,7 +56,7 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		}
 		plist_add(g->local_labels, name);
 
-		fun_text_add('\t');
+		indent_line(g, g->fun_text);
 		blat_blist(g->fun_text, g->current_function->signature);
 		blat_blist(g->fun_text, name->view);
 		fun_text_add(':');
@@ -68,7 +68,7 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 
 		name = plist_get(in->os, 0);
 
-		blat_str_fun_text(SA_JMP);
+		iprint_fun_text(SA_JMP);
 		blat_blist(g->fun_text, g->current_function->signature);
 		blat_blist(g->fun_text, name->view);
 		fun_text_add('\n');
@@ -78,18 +78,21 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		// ... - local instructions
 
 		string = take_label(g, LC_LOOP);
-		fun_text_add('\t');
+		indent_line(g, g->fun_text);
 		blat_blist(g->fun_text, string);
 		fun_text_add(':');
 		fun_text_add('\n');
 
+		g->indent_level++;
+
 		for (i = 0; i < in->os->size; i++)
 			gen_local_Асм_Linux_64(g, plist_get(in->os, i));
 
-		blat_str_fun_text(SA_JMP);
+		iprint_fun_text(SA_JMP);
 		blat_blist(g->fun_text, string);
 		fun_text_add('\n');
 
+		g->indent_level--;
 		blist_clear_free(string);
 		break;
 	case IP_NONE:
@@ -125,8 +128,7 @@ void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 
 			plist_add(g->local_vars, var);
 
-			fun_text_add('\t');
-			blat_str_fun_text(SA_EQU);				  // вот
+			iprint_fun_text(SA_EQU);				  // вот
 			blat_blist(g->fun_text, var->name->view); // name
 			fun_text_add(' ');
 			num_add(g->fun_text, g->stack_counter);

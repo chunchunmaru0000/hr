@@ -10,18 +10,20 @@ const char SA_LABEL_END[] = ":\n";
 const uint32_t SA_SEGMENT_LEN = loa(SA_SEGMENT);
 const uint32_t SA_LABEL_END_LEN = loa(SA_LABEL_END);
 
-void gen_Асм_Linux_64_prolog(struct Gner *g) { blat_str_prol(SA_SEGMENT); }
+void gen_Асм_Linux_64_prolog(struct Gner *g) { iprint_prol(SA_SEGMENT); }
 
 const char SA_EQU[] = "вот ";
-const char SA_ENTER_STACK_FRAME[] = "\tтолк рбп\n\tбыть рбп рсп\n";
-const char SA_MOV_MEM_RBP_OPEN[] = "\tбыть (рбп ";
+const char SA_PUSH_RBP[] = "толк рбп\n";
+const char SA_MOV_RBP_RSP[] = "быть рбп рсп\n";
+const char SA_MOV_MEM_RBP_OPEN[] = "быть (рбп ";
 const char SA_START_COMMENT[] = "\t; ";
-const char SA_SUB_RSP[] = "\tминс рсп ";
-const char SA_LEAVE[] = "\tвыйти\n";
-const char SA_RET[] = "\tвозд\n";
+const char SA_SUB_RSP[] = "минс рсп ";
+const char SA_LEAVE[] = "выйти\n";
+const char SA_RET[] = "возд\n";
 
 const uint32_t SA_EQU_LEN = loa(SA_EQU);
-const uint32_t SA_ENTER_STACK_FRAME_LEN = loa(SA_ENTER_STACK_FRAME);
+const uint32_t SA_PUSH_RBP_LEN = loa(SA_PUSH_RBP);
+const uint32_t SA_MOV_RBP_RSP_LEN = loa(SA_MOV_RBP_RSP);
 const uint32_t SA_MOV_MEM_RBP_OPEN_LEN = loa(SA_MOV_MEM_RBP_OPEN);
 const uint32_t SA_START_COMMENT_LEN = loa(SA_START_COMMENT);
 const uint32_t SA_SUB_RSP_LEN = loa(SA_SUB_RSP);
@@ -88,8 +90,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 
 			for (j = 1; j < in->os->size; j++) {
 				defn = plist_get(in->os, j);
-
-				blat_str_bprol(SA_EQU); // вот
+				iprint_bprol(SA_EQU); // вот
 				blat_blist(g->bprol, defn->view);
 				bprol_add(' ');
 				num_add(g->bprol, (long)defn->value);
@@ -131,7 +132,9 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 
 			blat_blist(g->fun_prol, global_var->signature); // fun label
 			blat_str_fun_prol(SA_LABEL_END);				// :
-			blat_str_fun_prol(SA_ENTER_STACK_FRAME);
+			g->indent_level++;
+			iprint_fun_prol(SA_PUSH_RBP);
+			iprint_fun_prol(SA_MOV_RBP_RSP);
 
 			local_i = put_args_on_the_stack_Асм_Linux_64(g, in);
 			// function body
@@ -140,9 +143,10 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			// free stack in return statement
 
 			// leave also does pop rbp so its needed anyway
-			blat_str_fun_text(SA_LEAVE);
-			blat_str_fun_text(SA_RET);
+			iprint_fun_text(SA_LEAVE);
+			iprint_fun_text(SA_RET);
 			fun_text_add('\n');
+			g->indent_level--;
 
 			// reset things after
 			g->current_function = 0;
@@ -160,7 +164,7 @@ void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {
 	struct Token *name;
 
 	for (uint32_t i = 0; i < arg->names->size; i++) {
-		blat_str_bprol(SA_EQU);
+		iprint_bprol(SA_EQU);
 
 		blat_blist(g->bprol, strct->view);
 		name = plist_get(arg->names, i);
@@ -209,8 +213,7 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 								g->stack_counter);
 			plist_add(g->local_vars, var);
 
-			fun_prol_add('\t');
-			blat_str_fun_prol(SA_EQU);				  // вот
+			iprint_fun_prol(SA_EQU);				  // вот
 			blat_blist(g->fun_prol, var->name->view); // name
 			fun_prol_add(' ');
 			num_add(g->fun_prol, g->stack_counter);
@@ -221,7 +224,7 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 
 		if (arg->offset != last_offset) {
 			// быть (рсп - g->tmp_blist) register
-			blat_str_fun_prol(SA_MOV_MEM_RBP_OPEN);
+			iprint_fun_prol(SA_MOV_MEM_RBP_OPEN);
 			blat_blist(g->fun_prol, var->name->view); // name
 			fun_prol_add(')');
 			fun_prol_add(' ');

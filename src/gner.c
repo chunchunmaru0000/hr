@@ -81,3 +81,8 @@ void write_fun(struct Gner *g) {
 	blist_clear(g->fun_prol);
 	blist_clear(g->fun_text);
 }
+
+void indent_line(struct Gner *g, struct BList *l) {
+	for (uint32_t i = g->indent_level; i; i--)
+		blist_add(l, '\t');
+}
