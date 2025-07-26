@@ -195,6 +195,7 @@ skip_add_args:
 
 	// end fun type part
 	blist_add(signature, '}');
+
 	convert_blist_to_blist_from_str(signature);
 	var->signature = signature;
 }
@@ -203,7 +204,8 @@ void get_global_signature(struct PList *os, struct GlobVar *var) {
 	if (var->type->code == TC_FUN) {
 		get_fun_signature_considering_args(os, var);
 	} else {
-		// TODO get_global_signature for not fun types
+		var->signature = type_to_blist_from_str(var->type);
+		convert_blist_to_blist_from_str(var->signature);
 	}
 }
 
