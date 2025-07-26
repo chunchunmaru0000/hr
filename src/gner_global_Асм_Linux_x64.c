@@ -153,6 +153,23 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 
 			write_fun(g);
 			break;
+		case IP_LET:
+			// ### os explanation:
+			// ... - GlobVar's
+
+			for (j = 0; j < in->os->size; j++) {
+				global_var = plist_get(in->os, j);
+
+				blat_blist(g->bprol, global_var->signature);
+				blat_str_bprol(SA_LABEL_END); // :
+			}
+
+			g->indent_level++;
+			gen_glob_expr_Асм_Linux_64(g, global_var);
+			g->indent_level--;
+
+			bprol_add('\n');
+			break;
 		default:
 			eei(in->f, in, "эээ", 0);
 		}
@@ -251,3 +268,5 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 	// }
 	return i;
 }
+
+void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {}

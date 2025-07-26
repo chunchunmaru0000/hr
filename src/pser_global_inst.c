@@ -273,3 +273,45 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 	return IP_DECLARE_FUNCTION;
 }
+
+struct GlobExpr *parse_global_expression(struct Pser *p) {
+	struct GlobExpr *e = malloc(sizeof(struct GlobExpr));
+
+	return e;
+}
+
+// ### os explanation:
+// ... - GlobVar's
+enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
+	struct PList *args;
+	struct Arg *arg;
+	struct GlobVar *var;
+	struct GlobExpr *global_expr;
+	uint32_t i = p->pos;
+
+	consume(p); // skip пусть
+	args = parse_arg(p, 0, 0);
+
+	if (args->size != 1)
+		eet(p->f, get_pser_token(p, p->pos - i), SEVERAL_ARGS_CANT_SHARE_MEM,
+			SUGGEST_DELETE_ARGS_OR_COMMA);
+	arg = plist_get(args, 0);
+
+	// skip '='
+	match(p, pser_cur(p), EQU);
+	global_expr = parse_global_expression(p);
+
+	for (i = 0; i < arg->names->size; i++) {
+		var = malloc(sizeof(struct GlobVar));
+		plist_add(p->global_vars, var);
+
+		var->name = plist_get(arg->names, i);
+		var->type = arg->type;
+		get_global_signature(os, var);
+		var->value = global_expr;
+
+		plist_add(os, var);
+	}
+
+	return IP_LET;
+}

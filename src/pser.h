@@ -10,6 +10,7 @@ extern const char *const EXPECTED__PAR_L;
 extern const char *const EXPECTED__PAR_R;
 extern const char *const EXPECTED__PAR_C_L;
 extern const char *const EXPECTED__PAR_C_R;
+extern const char *const EXPECTED__EQU;
 extern const char *const EXPECTED__COLO;
 extern const char *const EXPECTED__ID;
 extern const char *const EXPECTED__INT;
@@ -20,6 +21,7 @@ extern const char *const SUGGEST__PAR_L;
 extern const char *const SUGGEST__PAR_R;
 extern const char *const SUGGEST__PAR_C_L;
 extern const char *const SUGGEST__PAR_C_R;
+extern const char *const SUGGEST__EQU;
 extern const char *const SUGGEST__COLO;
 extern const char *const SUGGEST__ID;
 extern const char *const SUGGEST__INT;
@@ -177,6 +179,10 @@ struct Arg {
 	long offset;
 };
 
+struct GlobExpr {
+	int a;
+};
+
 struct GlobVar {
 	struct Token *name;
 	struct TypeExpr *type;
@@ -184,6 +190,7 @@ struct GlobVar {
 	// also need to have value? because its compile time value
 	void *value;
 };
+
 
 #define types_sizes_do_match(t1, t2)                                           \
 	(((t1) >= TC_VOID && (t2) >= TC_VOID) ||                                   \
@@ -207,6 +214,7 @@ enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os);
 enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os);
 enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os);
 enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os);
+enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os);
 
 void parse_block_of_local_inst(struct Pser *p, struct PList *os);
 struct Inst *get_local_inst(struct Pser *p);

@@ -149,6 +149,7 @@ void gen_Асм_Linux_64_prolog(struct Gner *);
 void gen_Асм_Linux_64_text(struct Gner *);
 
 void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in);
+void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var);
 
 struct LocalVar {
 	struct Token *name;

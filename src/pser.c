@@ -82,6 +82,7 @@ const char *const EXPECTED__PAR_L = "Ожидалась '(' скобка.";
 const char *const EXPECTED__PAR_R = "Ожидалась ')' скобка.";
 const char *const EXPECTED__PAR_C_L = "Ожидалась '[' скобка.";
 const char *const EXPECTED__PAR_C_R = "Ожидалась ']' скобка.";
+const char *const EXPECTED__EQU = "Ожидался '=' знак равно.";
 const char *const EXPECTED__COLO = "Ожидалось ':'.";
 const char *const EXPECTED__ID = "Ожидалось имя или слово.";
 
@@ -90,6 +91,7 @@ const char *const SUGGEST__PAR_L = "(";
 const char *const SUGGEST__PAR_R = ")";
 const char *const SUGGEST__PAR_C_L = "[";
 const char *const SUGGEST__PAR_C_R = "]";
+const char *const SUGGEST__EQU = "=";
 const char *const SUGGEST__COLO = ":";
 const char *const SUGGEST__ID = "имя";
 const char *const SUGGEST__INT = "целое";
@@ -128,7 +130,9 @@ struct Inst *get_global_inst(struct Pser *p) {
 		if (sc(cv, STR_FUN)) {
 			os->cap_pace = 16;
 			code = inst_pser_dare_fun(p, os);
-		} else if (sc(cv, STR_ASM))
+		} else if (sc(cv, STR_LET))
+			code = inst_pser_global_let(p, os);
+		else if (sc(cv, STR_ASM))
 			code = inst_pser_asm(p, os);
 		else if (sc(cv, STR_ENUM))
 			code = inst_pser_enum(p, os);
@@ -140,16 +144,16 @@ struct Inst *get_global_inst(struct Pser *p) {
 	default:
 		eet(p->f, cur, ERR_WRONG_TOKEN, 0);
 	}
-	// 	IP_DECLARE_FUNCTION body,
+	//	TODO
+	//	global IP_LET,
+	//	global expression,
 	//
-	// 	global IP_LET,
+	//	IP_DECLARE_FUNCTION body,
 	//
-	// 	global expression,
-	//
-	//  IP_DEFINE
-	//  IP_INCLUDE
-	// 	global IP_DECLARE_LABEL, // like seem to be meaningless
-	// 	global IP_GOTO,
+	//	IP_DEFINE
+	//	IP_INCLUDE
+	//	global IP_DECLARE_LABEL, // like seem to be meaningless
+	//	global IP_GOTO,
 
 	return new_inst(p, code, os, cur);
 }
