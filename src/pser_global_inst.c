@@ -204,6 +204,7 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 // ... - local inctrustions
 enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	uint32_t i;
+	long last_offset = -1;
 
 	struct Arg *arg;
 	struct TypeExpr *type;
@@ -216,6 +217,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	plist_add(os, 0); // reserved place for variable
 	fun_variable->name = cur;
 	fun_variable->type = fun_type;
+	fun_variable->value = os;
 
 	cur = absorb(p);
 	expect(p, cur, PAR_L);
@@ -226,10 +228,14 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 		// it haves here types cuz fun type args are types
 		// its needed for fun call
-		// TODO fix here, args cant have one offset cuz if they are then they
-		// are one mem and will affect fun call thet will be implemented only be
+		// REMEMBER:
+		// args cant have one offset cuz if they are then they
+		// are one mem and will affect fun call that will be implemented only be
 		// fun type and by not knowing fun args
-		plist_add(fun_type->data.args_types, arg->type);
+		if (arg->offset != last_offset)
+			plist_add(fun_type->data.args_types, arg->type);
+
+		last_offset = arg->offset;
 	}
 
 	if (fun_type->data.args_types->size > MAX_ARGS_ON_REGISTERS)
