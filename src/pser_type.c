@@ -201,10 +201,19 @@ skip_add_args:
 }
 
 void get_global_signature(struct PList *os, struct GlobVar *var) {
+	struct BList *type_str;
+
 	if (var->type->code == TC_FUN) {
 		get_fun_signature_considering_args(os, var);
 	} else {
-		var->signature = type_to_blist_from_str(var->type);
+		var->signature = new_blist(128);
+		blat_blist(var->signature, var->name->view);
+		blist_add(var->signature, '_');
+
+		type_str = type_to_blist_from_str(var->type);
+		blat_blist(var->signature, type_str);
+		blist_clear_free(type_str);
+
 		convert_blist_to_blist_from_str(var->signature);
 	}
 }
