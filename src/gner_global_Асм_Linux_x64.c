@@ -192,18 +192,17 @@ const struct Register *get_regs_of_size(int size_of_var, int i) {
 	exit(1);
 }
 
-// TODO: do via last_offset like in local so it wont be broken if the code
-// uses either's
 uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
-	// fun in->os are: fun va riable, args..., 0 term, ...
-	uint32_t i, j;
+	// fun in->os are: fun variable, args..., 0 term, instructions...
+	uint32_t i, j, mem_counter = 0;
 	struct Arg *arg = plist_get(in->os, 1);
 	struct LocalVar *var;
 	const struct Register *reg;
+	long last_offset = -1;
 
 	for (i = 2; arg; i++) {
-		// size of arg and eithers are equal by done so in pser
-		g->stack_counter -= get_type_code_size(arg->type->code);
+		if (arg->offset != last_offset)
+			g->stack_counter -= size_of_type(arg->type);
 
 		for (j = 0; j < arg->names->size; j++) {
 			var = new_local_var(plist_get(arg->names, j), arg->type,
@@ -219,19 +218,25 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 			num_hex_add(g->fun_prol, g->stack_counter);
 			fun_prol_add('\n');
 		}
-		// быть (рсп - g->tmp_blist) register
-		blat_str_fun_prol(SA_MOV_MEM_RBP_OPEN);
-		blat_blist(g->fun_prol, var->name->view); // name
-		fun_prol_add(')');
-		fun_prol_add(' ');
 
-		// register that is need to put there
-		int size = size_of_local(var);
-		reg = get_regs_of_size(size, i - 2);
+		if (arg->offset != last_offset) {
+			// быть (рсп - g->tmp_blist) register
+			blat_str_fun_prol(SA_MOV_MEM_RBP_OPEN);
+			blat_blist(g->fun_prol, var->name->view); // name
+			fun_prol_add(')');
+			fun_prol_add(' ');
 
-		blat(g->fun_prol, (uc *)reg->name, reg->len);
-		fun_prol_add('\n');
+			// register that is need to put there
+			int size = size_of_local(var);
+			reg = get_regs_of_size(size, mem_counter);
 
+			blat(g->fun_prol, (uc *)reg->name, reg->len);
+			fun_prol_add('\n');
+
+			mem_counter++;
+		}
+
+		last_offset = arg->offset;
 		arg = plist_get(in->os, i);
 	}
 
