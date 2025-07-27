@@ -176,3 +176,10 @@ void blist_add_set(struct BList *l, uc sz, uint32_t *value, size_t n) {
 		for (; old_size < new_size; old_size += sz)
 			memcpy(l->st + old_size, value, sz);
 }
+
+struct BList *copy_str(struct BList *src) {
+	struct BList *dest = new_blist(32);
+	blat_blist(dest, src);
+	convert_blist_to_blist_from_str(dest);
+	return dest;
+}

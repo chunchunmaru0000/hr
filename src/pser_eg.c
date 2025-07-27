@@ -71,7 +71,6 @@ const char *const FUN_VAR_DOESNT_HAVE_VALUE =
 
 struct GlobExpr *prime_g_expression(struct Pser *p) {
 	struct GlobVar *other_var;
-	struct BList *str;
 	struct Token *c = pser_cur(p);
 
 	struct GlobExpr *e = malloc(sizeof(struct GlobExpr));
@@ -100,13 +99,11 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		copy_token(e->tvar, other_var->value->tvar);
 		e->tvar->p = c->p;
 		// REMEMBER not to free pos and view, only token itself and
-		// maybe str if it was of CT_STR
+		// maybe str and view if it was of CT_STR
 
 		if (other_var->value->code == CT_STR) {
-			str = new_blist(32);
-			blat_blist(str, other_var->value->tvar->str);
-			convert_blist_to_blist_from_str(str);
-			e->tvar->str = str;
+			e->tvar->view = copy_str(other_var->value->tvar->view);
+			e->tvar->str = copy_str(other_var->value->tvar->str);
 		}
 
 		consume(p);
