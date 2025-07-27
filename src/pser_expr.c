@@ -1,5 +1,38 @@
 #include "pser.h"
 
+long a = (long)(&"str");
+
+struct GlobExpr *after_expression(struct Pser *p);
+struct GlobExpr *prime_expression(struct Pser *p);
+struct GlobExpr *unary_expression(struct Pser *p);
+// struct GlobExpr *mulng_expression(struct Pser *p);
+struct GlobExpr *addng_expression(struct Pser *p);
+// struct GlobExpr *booly_expression(struct Pser *p);
+
+#define global_expression(p) (after_expression((p)))
+// "str" "str" "str" "str"
+// num + num - num * num / num
+// {struct values}
+// окак [ч32] 123
+struct GlobExpr *parse_global_expression(struct Pser *p, struct Arg *arg) {
+	struct GlobExpr *e = global_expression(p);
+	// enum Comp compatibility = get_types_compatibility(e->type, arg->type);
+
+	// switch (compatibility) {
+	// case C_COMPATIBLE:
+	// 	break;
+	// case C_SIZE_COMPATIBLE:
+	// 	break;
+	// case C_SIZE_UNCOMPATIBLE:
+	// 	break;
+	// case C_UNCOMPATIBLE:
+	// 	eet(p->f, plist_get(arg->names, 0), "Несовместимые типы", "эээ");
+	// 	break;
+	// }
+
+	return e;
+}
+
 void *expression(struct Pser *p) {
 	// 	switch (t0->code) {
 	// 	case INT:
@@ -42,4 +75,47 @@ void *expression(struct Pser *p) {
 	// 	return o;
 
 	return p;
+}
+
+struct GlobExpr *after_expression(struct Pser *p) {
+	struct GlobExpr *e = addng_expression(p);
+
+	return e;
+}
+struct GlobExpr *prime_expression(struct Pser *p) {
+	struct Token *c = pser_cur(p);
+
+	struct GlobExpr *e = malloc(sizeof(struct GlobExpr));
+	e->type = new_type_expr(TC_VOID);
+	e->ops = new_plist(2);
+
+	switch (c->code) {
+	case INT:
+	case ID:
+	case REAL:
+	case STR:
+	case PAR_L:
+
+	default:;
+	}
+
+	return e;
+}
+struct GlobExpr *unary_expression(struct Pser *p) {
+	struct Token *c = pser_cur(p);
+	struct GlobExpr *e = prime_expression(p);
+
+	switch (c->code) {
+	case AMPER:
+
+	default:;
+	}
+
+	return e;
+}
+
+struct GlobExpr *addng_expression(struct Pser *p) {
+	struct GlobExpr *e = unary_expression(p);
+
+	return e;
 }

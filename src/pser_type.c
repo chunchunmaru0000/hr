@@ -279,7 +279,7 @@ const char *const STR_STR_TW = "стр";
 const char *const STR_STRUCT_TW = "лик";
 const char *const STR_ENUM_TW = "счет";
 
-struct TypeExpr *get_type_expr(enum TypeCode code) {
+struct TypeExpr *new_type_expr(enum TypeCode code) {
 	struct TypeExpr *texpr = malloc(sizeof(struct TypeExpr));
 	texpr->data.ptr_target = 0;
 	texpr->code = code;
@@ -289,12 +289,12 @@ struct TypeExpr *get_type_expr(enum TypeCode code) {
 struct TypeExpr *type_expr(struct Pser *p) {
 	const struct TypeWord *tw;
 	struct Token *cur = pser_cur(p);
-	struct TypeExpr *texpr = get_type_expr(TC_VOID);
+	struct TypeExpr *texpr = new_type_expr(TC_VOID);
 
 	if (cur->code == ID) {
 		if (sc((char *)cur->view->st, STR_STR_TW)) {
 			texpr->code = TC_PTR;
-			texpr->data.ptr_target = get_type_expr(TC_UINT8);
+			texpr->data.ptr_target = new_type_expr(TC_UINT8);
 
 		} else if (1) {
 			if (sc((char *)cur->view->st, STR_STRUCT_TW))

@@ -170,7 +170,7 @@ struct TypeExpr {
 	union TypeData data;
 };
 
-struct TypeExpr *get_type_expr(enum TypeCode);
+struct TypeExpr *new_type_expr(enum TypeCode);
 void free_type(struct TypeExpr *type);
 
 struct Arg {
@@ -179,8 +179,25 @@ struct Arg {
 	long offset;
 };
 
+enum Comp {
+	C_COMPATIBLE,
+	C_SIZE_COMPATIBLE,
+	C_SIZE_UNCOMPATIBLE,
+	C_UNCOMPATIBLE,
+};
+
+enum GE_Code {
+	GE_INT,
+	GE_REAL,
+	GE_STR,
+	GE_STRUCT,
+	GE_BIN,
+};
+
 struct GlobExpr {
-	int a;
+	enum GE_Code code;
+	struct TypeExpr *type;
+	struct PList *ops; // plist of GlobExpr's
 };
 
 struct GlobVar {
@@ -190,7 +207,6 @@ struct GlobVar {
 	// also need to have value? because its compile time value
 	void *value;
 };
-
 
 #define types_sizes_do_match(t1, t2)                                           \
 	(((t1) >= TC_VOID && (t2) >= TC_VOID) ||                                   \
@@ -202,6 +218,7 @@ struct GlobVar {
 	  (t2) < TC_INT16))
 
 void *expression(struct Pser *);
+struct GlobExpr *parse_global_expression(struct Pser *p, struct Arg *arg);
 void parse_args(struct Pser *p, struct PList *os);
 struct TypeExpr *type_expr(struct Pser *);
 struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,

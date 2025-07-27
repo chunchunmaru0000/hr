@@ -198,6 +198,16 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 	expect(p, absorb(p), PAR_L);
 	parse_args(p, os);
 
+	// 	uint32_t i, j;
+	// 	struct Arg *arg;
+	// 	for (i = 1; i < os->size; i++) {
+	// 		arg = plist_get(os, i);
+	//
+	// 		for (j = i; j < arg->names->size; j++) {
+	// 			c = plist_get(arg->names, j);
+	// 		}
+	// 	}
+
 	// TODO: check here for identical names
 
 	return IP_DECLARE_STRUCT;
@@ -215,7 +225,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	struct Arg *arg;
 	struct TypeExpr *type;
 	struct GlobVar *fun_variable = malloc(sizeof(struct GlobVar)), *tmp_var;
-	struct TypeExpr *fun_type = get_type_expr(TC_FUN);
+	struct TypeExpr *fun_type = new_type_expr(TC_FUN);
 	fun_type->data.args_types = new_plist(2);
 
 	struct Token *cur = absorb(p); // skip фц
@@ -251,7 +261,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 			SUGGEST_CUT_ARGS_SIZE);
 
 	// if there is no type then its void type
-	type = pser_cur(p)->code == PAR_L ? get_type_expr(TC_VOID) : type_expr(p);
+	type = pser_cur(p)->code == PAR_L ? new_type_expr(TC_VOID) : type_expr(p);
 	plist_add(fun_type->data.args_types, type);
 
 	plist_set(os, 0, fun_variable);
@@ -282,19 +292,13 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	return IP_DECLARE_FUNCTION;
 }
 
-struct GlobExpr *parse_global_expression(struct Pser *p) {
-	struct GlobExpr *e = malloc(sizeof(struct GlobExpr));
-
-	return e;
-}
-
 // ### os explanation:
 // ... - GlobVar's
 enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 	struct PList *args;
 	struct Arg *arg;
 	struct GlobVar *var, *tmp_var;
-	struct GlobExpr *global_expr;
+	void *global_expr;
 	uint32_t i = p->pos, j;
 
 	consume(p); // skip пусть
@@ -310,7 +314,7 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 
 	// skip '='
 	match(p, pser_cur(p), EQU);
-	global_expr = parse_global_expression(p);
+	global_expr = parse_global_expression(p, arg);
 
 	for (i = 0; i < arg->names->size; i++) {
 		var = malloc(sizeof(struct GlobVar));
