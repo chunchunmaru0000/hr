@@ -12,7 +12,7 @@
 	pser.c \
 		pser_type.c \
 		pser_global_inst.c pser_local_inst.c \
-		pser_expr.c \
+		pser_eg.c pser_el.c \
 	ee.c tzer.c lsts.c
 	chmod +x ср
 	./ср

@@ -191,15 +191,12 @@ enum CT_Code {
 	CT_INT,
 	CT_REAL,
 	CT_STR,
-	CT_GLOBAL_VAR,
 	CT_STRUCT,
-	CT_BIN,
 };
 
 struct GlobExpr {
 	enum CT_Code code;
-	struct TypeExpr *type;
-	struct PList *ops; // plist of GlobExpr's
+	struct Token *tvar; // тварь
 };
 
 struct GlobVar {
@@ -238,8 +235,8 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os);
 void parse_block_of_local_inst(struct Pser *p, struct PList *os);
 struct Inst *get_local_inst(struct Pser *p);
 
-struct BList *num_to_str(long num);
-struct BList *num_to_hex_str(long num);
+struct BList *int_to_str(long num);
+struct BList *int_to_hex_str(long num);
 void get_fun_signature_considering_args(struct PList *os, struct GlobVar *var);
 void get_global_signature(struct PList *os, struct GlobVar *var);
 int are_types_equal(struct TypeExpr *, struct TypeExpr *);

@@ -91,15 +91,15 @@ extern const uint32_t SA_LEAVE_LEN;
 extern const uint32_t SA_RET_LEN;
 extern const uint32_t SA_JMP_LEN;
 
-extern const char SA_LET_INT8[];
-extern const char SA_LET_INT16[];
-extern const char SA_LET_INT32[];
-extern const char SA_LET_INT64[];
+extern const char SA_LET_8[];
+extern const char SA_LET_16[];
+extern const char SA_LET_32[];
+extern const char SA_LET_64[];
 
-extern const uint32_t SA_LET_INT8_LEN;
-extern const uint32_t SA_LET_INT16_LEN;
-extern const uint32_t SA_LET_INT32_LEN;
-extern const uint32_t SA_LET_INT64_LEN;
+extern const uint32_t SA_LET_8_LEN;
+extern const uint32_t SA_LET_16_LEN;
+extern const uint32_t SA_LET_32_LEN;
+extern const uint32_t SA_LET_64_LEN;
 
 void indent_line(struct Gner *g, struct BList *l);
 // #############################################################################
@@ -146,15 +146,15 @@ void indent_line(struct Gner *g, struct BList *l);
 #define fun_prol_add(byte) (blist_add(g->fun_prol, (byte)))
 #define fun_text_add(byte) (blist_add(g->fun_text, (byte)))
 
-#define num_add(list, value)                                                   \
+#define int_add(list, value)                                                   \
 	do {                                                                       \
-		g->tmp_blist = num_to_str((value));                                    \
+		g->tmp_blist = int_to_str((value));                                    \
 		blat_blist((list), g->tmp_blist);                                      \
 		blist_clear_free(g->tmp_blist);                                        \
 	} while (0);
-#define num_hex_add(list, value)                                               \
+#define hex_int_add(list, value)                                               \
 	do {                                                                       \
-		g->tmp_blist = num_to_hex_str((value));                                \
+		g->tmp_blist = int_to_hex_str((value));                                \
 		blat_blist((list), g->tmp_blist);                                      \
 		blist_clear_free(g->tmp_blist);                                        \
 	} while (0);

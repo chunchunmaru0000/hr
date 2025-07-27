@@ -130,10 +130,10 @@ void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 			iprint_fun_text(SA_EQU);				  // вот
 			blat_blist(g->fun_text, var->name->view); // name
 			fun_text_add(' ');
-			num_add(g->fun_text, g->stack_counter);
+			int_add(g->fun_text, g->stack_counter);
 
 			blat_str_fun_text(SA_START_COMMENT);
-			num_hex_add(g->fun_text, g->stack_counter);
+			hex_int_add(g->fun_text, g->stack_counter);
 
 			fun_text_add('\n');
 		}
@@ -166,27 +166,27 @@ struct BList *take_label(struct Gner *g, enum L_Code label_code) {
 
 	switch (label_code) {
 	case LC_LOOP:
-		num = num_to_str(g->labels->loops);
+		num = int_to_str(g->labels->loops);
 		blat(label, (uc *)LETTER_LOOP, LETTER_LEN);
 		g->labels->loops++;
 		break;
 	case LC_WHILE:
-		num = num_to_str(g->labels->whiles);
+		num = int_to_str(g->labels->whiles);
 		blat(label, (uc *)LETTER_WHILE, LETTER_LEN);
 		g->labels->whiles++;
 		break;
 	case LC_FOR:
-		num = num_to_str(g->labels->fors);
+		num = int_to_str(g->labels->fors);
 		blat(label, (uc *)LETTER_FOR, LETTER_LEN);
 		g->labels->fors++;
 		break;
 	case LC_IF:
-		num = num_to_str(g->labels->ifs);
+		num = int_to_str(g->labels->ifs);
 		blat(label, (uc *)LETTER_IF, LETTER_LEN);
 		g->labels->ifs++;
 		break;
 	case LC_ELSE:
-		num = num_to_str(g->labels->elses);
+		num = int_to_str(g->labels->elses);
 		blat(label, (uc *)LETTER_ELSE, LETTER_LEN);
 		g->labels->elses++;
 		break;

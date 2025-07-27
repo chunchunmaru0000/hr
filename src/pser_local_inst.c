@@ -67,7 +67,7 @@ struct Inst *get_local_inst(struct Pser *p) {
 		if (code != IP_NONE)
 			break;
 	default:
-		eet(p->f, c, ERR_WRONG_TOKEN, 0);
+		eet(p->f, c, "ээээ ты че", 0);
 	}
 	// 	expression,
 	//

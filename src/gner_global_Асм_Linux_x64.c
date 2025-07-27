@@ -95,7 +95,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 				iprint_bprol(SA_EQU); // вот
 				blat_blist(g->bprol, defn->view);
 				bprol_add(' ');
-				num_add(g->bprol, (long)defn->value);
+				int_add(g->bprol, (long)defn->value);
 				bprol_add('\n');
 			}
 
@@ -175,8 +175,6 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			g->indent_level++;
 			gen_glob_expr_Асм_Linux_64(g, global_var);
 			g->indent_level--;
-
-			prol_add('\n');
 			break;
 		default:
 			eei(in->f, in, "эээ", 0);
@@ -184,6 +182,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 	}
 end_gen_Асм_text_loop:;
 
+	prol_add('\n');
 	iprint_prol(SA_SEGMENT_READ_EXECUTE);
 }
 
@@ -199,9 +198,9 @@ void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {
 		blat_blist(g->bprol, name->view);
 
 		bprol_add('\t');
-		num_add(g->bprol, arg->offset);
+		int_add(g->bprol, arg->offset);
 		blat_str_bprol(SA_START_COMMENT);
-		num_hex_add(g->bprol, arg->offset);
+		hex_int_add(g->bprol, arg->offset);
 
 		bprol_add('\n');
 	}
@@ -243,9 +242,9 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 			iprint_fun_prol(SA_EQU);				  // вот
 			blat_blist(g->fun_prol, var->name->view); // name
 			fun_prol_add(' ');
-			num_add(g->fun_prol, g->stack_counter);
+			int_add(g->fun_prol, g->stack_counter);
 			blat_str_fun_prol(SA_START_COMMENT); // \t;
-			num_hex_add(g->fun_prol, g->stack_counter);
+			hex_int_add(g->fun_prol, g->stack_counter);
 			fun_prol_add('\n');
 		}
 
@@ -279,45 +278,48 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 	return i;
 }
 
-const char SA_LET_INT8[] = "пусть байт ";
-const char SA_LET_INT16[] = "пусть дбайт ";
-const char SA_LET_INT32[] = "пусть чбайт ";
-const char SA_LET_INT64[] = "пусть вбайт ";
+const char SA_LET_8[] = "пусть байт ";
+const char SA_LET_16[] = "пусть дбайт ";
+const char SA_LET_32[] = "пусть чбайт ";
+const char SA_LET_64[] = "пусть вбайт ";
 
-const uint32_t SA_LET_INT8_LEN = loa(SA_LET_INT8);
-const uint32_t SA_LET_INT16_LEN = loa(SA_LET_INT16);
-const uint32_t SA_LET_INT32_LEN = loa(SA_LET_INT32);
-const uint32_t SA_LET_INT64_LEN = loa(SA_LET_INT64);
+const uint32_t SA_LET_8_LEN = loa(SA_LET_8);
+const uint32_t SA_LET_16_LEN = loa(SA_LET_16);
+const uint32_t SA_LET_32_LEN = loa(SA_LET_32);
+const uint32_t SA_LET_64_LEN = loa(SA_LET_64);
 
 void lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
-	struct GlobExpr *e = var->value;
-	struct Token *num = plist_get(e->ops, 0);
+	struct Token *num = var->value->tvar;
+	enum TypeCode code = var->type->code;
 
-	switch (var->type->code) {
-	case TC_INT8:
-	case TC_UINT8:
-		iprint_prol(SA_LET_INT8);
-		break;
-	case TC_INT16:
-	case TC_UINT16:
-		iprint_prol(SA_LET_INT16);
-		break;
-	case TC_INT32:
-	case TC_UINT32:
-	case TC_ENUM:
-		iprint_prol(SA_LET_INT32);
-		break;
-	case TC_INT64:
-	case TC_UINT64:
-	case TC_VOID:
-	default:
-		iprint_prol(SA_LET_INT64);
-		break;
-	}
+	if (code == TC_INT8 || code == TC_UINT8)
+		iprint_prol(SA_LET_8);
+	else if (code == TC_INT16 || code == TC_UINT16)
+		iprint_prol(SA_LET_16);
+	else if (code == TC_INT32 || code == TC_UINT32 || code == TC_ENUM)
+		iprint_prol(SA_LET_32);
+	else if (code == TC_INT64 || code == TC_UINT64 || code == TC_VOID)
+		iprint_prol(SA_LET_64);
+	else
+		exit(444);
 
-	num_add(g->prol, num->number);
+	int_add(g->prol, num->number);
 	blat_str_prol(SA_START_COMMENT); // \t;
-	num_hex_add(g->prol, num->number);
+	hex_int_add(g->prol, num->number);
+	prol_add('\n');
+}
+
+void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
+	struct Token *num = var->value->tvar;
+	enum TypeCode code = var->type->code;
+
+	if (code == TC_DOUBLE)
+		iprint_prol(SA_LET_64);
+	else
+		iprint_prol(SA_LET_32);
+
+	// real_add(g->prol, num->fpn);
+	prol_add('0');
 	prol_add('\n');
 }
 
@@ -325,4 +327,6 @@ void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 
 	if (var->value->code == CT_INT)
 		lay_down_int_Асм_Linux_64(g, var);
+	else if (var->value->code == CT_REAL)
+		lay_down_real_Асм_Linux_64(g, var);
 }

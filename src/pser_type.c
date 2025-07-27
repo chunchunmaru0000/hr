@@ -29,7 +29,7 @@ const struct TypeWord TYPE_WORD_ENUM = {"счет", TC_ENUM, 8};
 const struct TypeWord TYPE_WORD_PTR = {"ук", TC_PTR, 4};
 const struct TypeWord TYPE_WORD_FUN = {"фц", TC_FUN, 4};
 
-struct BList *num_to_hex_str(long num) {
+struct BList *int_to_hex_str(long num) {
 	char *num_view = malloc(11); // 0x23456789 = 10 chars + 0 term
 	int four_bits, i;
 	num_view[10] = 0;
@@ -44,7 +44,7 @@ struct BList *num_to_hex_str(long num) {
 	return blist_from_str(num_view, 10);
 }
 
-struct BList *num_to_str(long num) {
+struct BList *int_to_str(long num) {
 	char *num_view;
 	long num_clone;
 	int num_len = 0, minus_flag = 0;
@@ -113,7 +113,7 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 		if (arr_len == -1)
 			blist_add(str, '~');
 		else {
-			tmp = num_to_str(arr_len);
+			tmp = int_to_str(arr_len);
 			blat_blist(str, tmp);
 			blist_clear_free(tmp);
 		}
