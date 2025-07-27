@@ -48,6 +48,7 @@ struct Pser *new_pser(char *, uc);
 struct PList *pse(struct Pser *); // instructions
 struct Token *next_pser_get(struct Pser *, long);
 struct Token *get_pser_token(struct Pser *, long);
+#define pser_by(p, ppos) (get_pser_token((p), (ppos) - (p)->pos))
 #define expect(pser, t, c)                                                     \
 	do {                                                                       \
 		if ((t)->code != (c))                                                  \
@@ -179,18 +180,12 @@ struct Arg {
 	long offset;
 };
 
-enum Comp {
-	C_COMPATIBLE,
-	C_SIZE_COMPATIBLE,
-	C_SIZE_UNCOMPATIBLE,
-	C_UNCOMPATIBLE,
-};
-
 // Compilation Time
 enum CT_Code {
 	CT_INT,
 	CT_REAL,
 	CT_STR,
+	CT_ARR,
 	CT_STRUCT,
 };
 

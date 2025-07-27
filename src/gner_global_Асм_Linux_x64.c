@@ -310,16 +310,18 @@ void lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 }
 
 void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
-	struct Token *num = var->value->tvar;
-	enum TypeCode code = var->type->code;
-
-	if (code == TC_DOUBLE)
+	if (var->type->code == TC_DOUBLE)
 		iprint_prol(SA_LET_64);
 	else
 		iprint_prol(SA_LET_32);
 
-	// real_add(g->prol, num->fpn);
+	// real_add(g->prol, var->value->tvar->fpn);
 	prol_add('0');
+	prol_add('\n');
+}
+void lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
+	iprint_prol(SA_LET_8);
+	blat_blist(g->prol, var->value->tvar->view);
 	prol_add('\n');
 }
 
@@ -329,4 +331,6 @@ void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 		lay_down_int_Асм_Linux_64(g, var);
 	else if (var->value->code == CT_REAL)
 		lay_down_real_Асм_Linux_64(g, var);
+	else if (var->value->code == CT_STR)
+		lay_down_str_Асм_Linux_64(g, var);
 }
