@@ -186,16 +186,18 @@ enum Comp {
 	C_UNCOMPATIBLE,
 };
 
-enum GE_Code {
-	GE_INT,
-	GE_REAL,
-	GE_STR,
-	GE_STRUCT,
-	GE_BIN,
+// Compilation Time
+enum CT_Code {
+	CT_INT,
+	CT_REAL,
+	CT_STR,
+	CT_GLOBAL_VAR,
+	CT_STRUCT,
+	CT_BIN,
 };
 
 struct GlobExpr {
-	enum GE_Code code;
+	enum CT_Code code;
 	struct TypeExpr *type;
 	struct PList *ops; // plist of GlobExpr's
 };
@@ -205,7 +207,7 @@ struct GlobVar {
 	struct TypeExpr *type;
 	struct BList *signature;
 	// also need to have value? because its compile time value
-	void *value;
+	struct GlobExpr *value;
 };
 
 #define types_sizes_do_match(t1, t2)                                           \
@@ -218,7 +220,7 @@ struct GlobVar {
 	  (t2) < TC_INT16))
 
 void *expression(struct Pser *);
-struct GlobExpr *parse_global_expression(struct Pser *p, struct Arg *arg);
+struct GlobExpr *parse_global_expression(struct Pser *p, struct TypeExpr *type);
 void parse_args(struct Pser *p, struct PList *os);
 struct TypeExpr *type_expr(struct Pser *);
 struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,

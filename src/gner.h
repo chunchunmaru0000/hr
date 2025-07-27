@@ -91,6 +91,16 @@ extern const uint32_t SA_LEAVE_LEN;
 extern const uint32_t SA_RET_LEN;
 extern const uint32_t SA_JMP_LEN;
 
+extern const char SA_LET_INT8[];
+extern const char SA_LET_INT16[];
+extern const char SA_LET_INT32[];
+extern const char SA_LET_INT64[];
+
+extern const uint32_t SA_LET_INT8_LEN;
+extern const uint32_t SA_LET_INT16_LEN;
+extern const uint32_t SA_LET_INT32_LEN;
+extern const uint32_t SA_LET_INT64_LEN;
+
 void indent_line(struct Gner *g, struct BList *l);
 // #############################################################################
 #define blat_str_bprol(str) (blat(g->bprol, (uc *)(str), (str##_LEN - 1)))

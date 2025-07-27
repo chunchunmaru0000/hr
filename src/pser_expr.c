@@ -2,87 +2,62 @@
 
 long a = (long)(&"str");
 
-struct GlobExpr *after_expression(struct Pser *p);
-struct GlobExpr *prime_expression(struct Pser *p);
-struct GlobExpr *unary_expression(struct Pser *p);
-// struct GlobExpr *mulng_expression(struct Pser *p);
-struct GlobExpr *addng_expression(struct Pser *p);
-// struct GlobExpr *booly_expression(struct Pser *p);
+struct GlobExpr *after_g_expression(struct Pser *p);
+struct GlobExpr *prime_g_expression(struct Pser *p);
+struct GlobExpr *unary_g_expression(struct Pser *p);
+// struct GlobExpr *mulng_g_expression(struct Pser *p);
+struct GlobExpr *addng_g_expression(struct Pser *p);
+// struct GlobExpr *booly_g_expression(struct Pser *p);
+#define global_expression(p) (after_g_expression((p)))
 
-#define global_expression(p) (after_expression((p)))
+#define is_int_type(t)                                                         \
+	((t)->code == TC_INT8 || (t)->code == TC_INT16 || (t)->code == TC_INT32 || \
+	 (t)->code == TC_INT64 || (t)->code == TC_VOID || (t)->code == TC_ENUM ||  \
+	 (t)->code == TC_UINT8 || (t)->code == TC_UINT16 ||                        \
+	 (t)->code == TC_UINT32 || (t)->code == TC_UINT64)
+#define is_real_type(t) ((t)->code == TC_DOUBLE || (t)->code == TC_FLOAT)
 // "str" "str" "str" "str"
 // num + num - num * num / num
 // {struct values}
 // окак [ч32] 123
-struct GlobExpr *parse_global_expression(struct Pser *p, struct Arg *arg) {
+struct GlobExpr *parse_global_expression(struct Pser *p,
+										 struct TypeExpr *type) {
 	struct GlobExpr *e = global_expression(p);
+	struct Token *value;
 	// enum Comp compatibility = get_types_compatibility(e->type, arg->type);
 
-	// switch (compatibility) {
-	// case C_COMPATIBLE:
-	// 	break;
-	// case C_SIZE_COMPATIBLE:
-	// 	break;
-	// case C_SIZE_UNCOMPATIBLE:
-	// 	break;
-	// case C_UNCOMPATIBLE:
-	// 	eet(p->f, plist_get(arg->names, 0), "Несовместимые типы", "эээ");
-	// 	break;
-	// }
+	if (e->code == CT_INT) {
+		if (is_int_type(type))
+			return e;
+		if (is_real_type(type)) {
+			value = plist_get(e->ops, 0);
+			value->fpn = value->number;
+		}
+		eet(p->f, pser_cur(p), "1. TODO parse_global_expression", "TODO");
+	}
+	if (e->code == CT_REAL) {
+		if (is_real_type(type))
+			return e;
+		if (is_int_type(type)) {
+			value = plist_get(e->ops, 0);
+			value->number = value->fpn;
+		}
+		eet(p->f, pser_cur(p), "2. TODO parse_global_expression", "TODO");
+	}
+
+	eet(p->f, pser_cur(p), "3. TODO parse_global_expression", "TODO");
+	return e;
+}
+
+void *expression(struct Pser *p) { return p; }
+
+struct GlobExpr *after_g_expression(struct Pser *p) {
+	struct GlobExpr *e = addng_g_expression(p);
 
 	return e;
 }
 
-void *expression(struct Pser *p) {
-	// 	switch (t0->code) {
-	// 	case INT:
-	// 		set_tc(&t0, cp, t0, OINT, &o->sz, DWORD);
-	// 		break;
-	// 	case REAL:
-	// 		set_tc(&t0, cp, t0, OFPN, &o->sz, QWORD);
-	// 		break;
-	// 	case STR:
-	// 		if (t0->str->size == 1) {
-	// 			t0->number = (uint64_t)t0->str->st[0];
-	// 			o->sz = BYTE;
-	// 		} else if (t0->str->size == 2) {
-	// 			t0->number = *(uint16_t *)(t0->str->st);
-	// 			o->sz = WORD;
-	// 		} else
-	// 			ee_token(p->f, t0, INVALID_STR_LEN);
-	// 		break;
-	// 	case MINUS:
-	// 		t0 = next_get(p, -1);
-	// 		if (t0->code == INT) {
-	// 			t0->number *= -1;
-	// 			code = OINT;
-	// 		} else if (t0->code == REAL) {
-	// 			t0->fpn *= -1;
-	// 			code = OFPN;
-	// 		} else
-	// 			ee_token(p->f, t0, ERR_WRONG_MINUS);
-	// 		o->sz = DWORD;
-	// 		ot = t0;
-	// 		break;
-	// 	case ID:
-	// 		break;
-	// 	case PAR_L:
-	// 		break;
-	// 	default:
-	// 		ee_token(p->f, t0, ERR_WRONG_TOKEN);
-	// 	};
-	//
-	// 	return o;
-
-	return p;
-}
-
-struct GlobExpr *after_expression(struct Pser *p) {
-	struct GlobExpr *e = addng_expression(p);
-
-	return e;
-}
-struct GlobExpr *prime_expression(struct Pser *p) {
+struct GlobExpr *prime_g_expression(struct Pser *p) {
 	struct Token *c = pser_cur(p);
 
 	struct GlobExpr *e = malloc(sizeof(struct GlobExpr));
@@ -91,8 +66,16 @@ struct GlobExpr *prime_expression(struct Pser *p) {
 
 	switch (c->code) {
 	case INT:
-	case ID:
+		e->code = CT_INT;
+		plist_add(e->ops, c);
+		consume(p);
+		break;
 	case REAL:
+		e->code = CT_REAL;
+		plist_add(e->ops, c);
+		consume(p);
+		break;
+	case ID:
 	case STR:
 	case PAR_L:
 
@@ -101,21 +84,43 @@ struct GlobExpr *prime_expression(struct Pser *p) {
 
 	return e;
 }
-struct GlobExpr *unary_expression(struct Pser *p) {
+
+struct GlobExpr *unary_g_expression(struct Pser *p) {
+	struct GlobExpr *e;
 	struct Token *c = pser_cur(p);
-	struct GlobExpr *e = prime_expression(p);
 
-	switch (c->code) {
-	case AMPER:
+	if (c->code == PLUS) {
+		consume(p);
+		e = unary_g_expression(p);
 
-	default:;
+		if (e->code == CT_INT || e->code == CT_REAL)
+			;
+		else
+			eet(p->f, c, "TODO unary_expression", "TODO");
+
+		return e;
+	}
+	if (c->code == MINUS) {
+		consume(p);
+		e = unary_g_expression(p);
+
+		if (e->code == CT_INT) {
+			c = plist_get(e->ops, 0);
+			c->number *= -1;
+		} else if (e->code == CT_REAL) {
+			c = plist_get(e->ops, 0);
+			c->fpn *= -1;
+		} else {
+			eet(p->f, c, "TODO unary_expression", "TODO");
+		}
+		return e;
 	}
 
-	return e;
+	return prime_g_expression(p);
 }
 
-struct GlobExpr *addng_expression(struct Pser *p) {
-	struct GlobExpr *e = unary_expression(p);
+struct GlobExpr *addng_g_expression(struct Pser *p) {
+	struct GlobExpr *e = unary_g_expression(p);
 
 	return e;
 }

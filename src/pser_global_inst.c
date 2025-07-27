@@ -233,7 +233,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	plist_add(os, 0); // reserved place for variable
 	fun_variable->name = cur;
 	fun_variable->type = fun_type;
-	fun_variable->value = os;
+	fun_variable->value = 0; // os;
 
 	cur = absorb(p);
 	expect(p, cur, PAR_L);
@@ -314,7 +314,7 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 
 	// skip '='
 	match(p, pser_cur(p), EQU);
-	global_expr = parse_global_expression(p, arg);
+	global_expr = parse_global_expression(p, arg->type);
 
 	for (i = 0; i < arg->names->size; i++) {
 		var = malloc(sizeof(struct GlobVar));

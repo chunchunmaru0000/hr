@@ -279,4 +279,50 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 	return i;
 }
 
-void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {}
+const char SA_LET_INT8[] = "пусть байт ";
+const char SA_LET_INT16[] = "пусть дбайт ";
+const char SA_LET_INT32[] = "пусть чбайт ";
+const char SA_LET_INT64[] = "пусть вбайт ";
+
+const uint32_t SA_LET_INT8_LEN = loa(SA_LET_INT8);
+const uint32_t SA_LET_INT16_LEN = loa(SA_LET_INT16);
+const uint32_t SA_LET_INT32_LEN = loa(SA_LET_INT32);
+const uint32_t SA_LET_INT64_LEN = loa(SA_LET_INT64);
+
+void lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
+	struct GlobExpr *e = var->value;
+	struct Token *num = plist_get(e->ops, 0);
+
+	switch (var->type->code) {
+	case TC_INT8:
+	case TC_UINT8:
+		iprint_prol(SA_LET_INT8);
+		break;
+	case TC_INT16:
+	case TC_UINT16:
+		iprint_prol(SA_LET_INT16);
+		break;
+	case TC_INT32:
+	case TC_UINT32:
+	case TC_ENUM:
+		iprint_prol(SA_LET_INT32);
+		break;
+	case TC_INT64:
+	case TC_UINT64:
+	case TC_VOID:
+	default:
+		iprint_prol(SA_LET_INT64);
+		break;
+	}
+
+	num_add(g->prol, num->number);
+	blat_str_prol(SA_START_COMMENT); // \t;
+	num_hex_add(g->prol, num->number);
+	prol_add('\n');
+}
+
+void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
+
+	if (var->value->code == CT_INT)
+		lay_down_int_Асм_Linux_64(g, var);
+}
