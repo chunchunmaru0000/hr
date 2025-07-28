@@ -126,6 +126,8 @@ const char *const GLOBAL_VAR_WAS_NOT_FOUND =
 	"Глобальная переменная с таким именем не была найдена.";
 const char *const FUN_VAR_DOESNT_HAVE_VALUE =
 	"Функция как переменная не может иметь значение.";
+const char *const NOT_NUM_VALUE_FOR_THIS_UNARY_OP =
+	"Для данной математической операции ожидалось строковое значение.";
 
 struct GlobExpr *prime_g_expression(struct Pser *p) {
 	struct GlobVar *other_var;
@@ -201,7 +203,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		if (e->code == CT_INT || e->code == CT_REAL)
 			;
 		else
-			eet(p->f, c, "1. TODO unary_expression", "TODO");
+			eet(p->f, c, NOT_NUM_VALUE_FOR_THIS_UNARY_OP, 0);
 
 		return e;
 	}
@@ -214,7 +216,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		} else if (e->code == CT_REAL) {
 			e->tvar->fpn *= -1;
 		} else {
-			eet(p->f, c, "3. TODO unary_expression", "TODO");
+			eet(p->f, c, NOT_NUM_VALUE_FOR_THIS_UNARY_OP, 0);
 		}
 		return e;
 	}

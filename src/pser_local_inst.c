@@ -5,6 +5,7 @@
 enum IP_Code pser_local_inst_let(struct Pser *p, struct PList *os) {
 	expect(p, absorb(p), PAR_L);
 	parse_args(p, os);
+	// TODO check here for identical names and with fun arg tohether?
 
 	return IP_LET;
 }

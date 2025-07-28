@@ -73,6 +73,43 @@ void parse_block_of_local_inst(struct Pser *p, struct PList *os) {
 	match(p, pser_cur(p), PAR_R);
 }
 
+const char *const ARGS_NAMES_OVERLAP =
+	"Аргумент с таким именем уже существует.";
+
+void check_list_of_args_on_name(struct Fpfc *f, struct PList *l,
+								uint32_t from_arg, uint32_t from_name,
+								struct Token *name_to_check) {
+	uint32_t i, j;
+	struct Arg *arg;
+	struct Token *name;
+
+	for (i = from_arg; i < l->size; i++) {
+		arg = plist_get(l, i);
+
+		for (j = i == from_arg ? from_name + 1 : 0; j < arg->names->size; j++) {
+			name = plist_get(arg->names, j);
+
+			if (sc((char *)name_to_check->view->st, (char *)name->view->st))
+				eet(f, name, ARGS_NAMES_OVERLAP, (char *)name->view->st);
+		}
+	}
+}
+void check_list_of_args_on_uniq_names(struct Fpfc *f, struct PList *l,
+									  uint32_t start_index) {
+	uint32_t i, j;
+	struct Arg *arg;
+	struct Token *name;
+
+	for (i = start_index; i < l->size; i++) {
+		arg = plist_get(l, i);
+
+		for (j = 0; j < arg->names->size; j++) {
+			name = plist_get(arg->names, j);
+			check_list_of_args_on_name(f, l, i, j, name);
+		}
+	}
+}
+
 const char *const ERR_WRONG_TOKEN = "Неверное выражение.";
 
 const char *const EXPECTED__STR = "Ожидалась строка.";

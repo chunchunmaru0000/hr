@@ -12,7 +12,9 @@ enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os) {
 	return IP_ASM;
 }
 
-// TODO: check here for identical names in enum items
+const char *const ENUM_ITEM_NAME_OVERLAP =
+	"Значение счета с таким же именем уже существует.";
+
 // ### os explanation:
 //   _ - name
 // ... - defns where name is name and value is num
@@ -22,8 +24,9 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 	plist_add(os, enum_name);
 
 	struct Token *c, *num;
-	struct Defn *defn;
+	struct Defn *defn, *tmp_defn;
 	long counter = 0;
+	uint32_t i;
 
 	c = absorb(p);
 	expect(p, c, PAR_L);
@@ -37,6 +40,14 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 		blat_blist(defn->view, c->view);		 // thing name
 
 		convert_blist_to_blist_from_str(defn->view);
+
+		// check here for identical names in enums items
+		for (i = 0; i < p->enums->size; i++) {
+			tmp_defn = plist_get(p->enums, i);
+
+			if (sc((char *)defn->view->st, (char *)tmp_defn->view->st))
+				eet(p->f, c, ENUM_ITEM_NAME_OVERLAP, 0);
+		}
 
 		num = get_pser_token(p, 1);
 
@@ -207,7 +218,7 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 	// 			c = plist_get(arg->names, j);
 	// 		}
 	// 	}
-	// TODO: check here for identical names
+	check_list_of_args_on_uniq_names(p->f, os, 1);
 
 	return IP_DECLARE_STRUCT;
 }
@@ -218,7 +229,7 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 //   0 - zero terminator
 // ... - local inctrustions
 enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
-	uint32_t i;
+	uint32_t i, j;
 	long last_offset = -1;
 
 	struct Arg *arg;
@@ -241,7 +252,10 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	for (i = 1; i < os->size; i++) {
 		arg = plist_get(os, i);
 
-		// TODO: check here for identical names
+		for (j = 0; j < arg->names->size; j++) {
+			cur = plist_get(arg->names, j);
+			check_list_of_args_on_name(p->f, os, i, j, cur);
+		}
 
 		// it haves here types cuz fun type args are types
 		// its needed for fun call

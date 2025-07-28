@@ -40,8 +40,8 @@ struct Pser {
 	size_t pos;
 	uc debug;
 
-	struct PList *enums;	   // #define's
-	struct PList *structs;	   // Inst's of IP_DECLARE_STRUCT
+	struct PList *enums;   // #define's
+	struct PList *structs; // Inst's of IP_DECLARE_STRUCT
 
 	struct PList *global_vars; // global variables
 };
@@ -188,6 +188,7 @@ enum CT_Code {
 	CT_STR,
 	CT_ARR,
 	CT_STRUCT,
+	CT_GLOBAL_PTR, // pointer to other global value
 };
 
 struct GlobExpr {
@@ -199,7 +200,6 @@ struct GlobVar {
 	struct Token *name;
 	struct TypeExpr *type;
 	struct BList *signature;
-	// also need to have value? because its compile time value
 	struct GlobExpr *value;
 };
 
@@ -236,6 +236,11 @@ struct BList *int_to_hex_str(long num);
 void get_fun_signature_considering_args(struct PList *os, struct GlobVar *var);
 void get_global_signature(struct PList *os, struct GlobVar *var);
 int are_types_equal(struct TypeExpr *, struct TypeExpr *);
+void check_list_of_args_on_uniq_names(struct Fpfc *f, struct PList *l,
+									  uint32_t start_index);
+void check_list_of_args_on_name(struct Fpfc *f, struct PList *l,
+								uint32_t from_arg, uint32_t from_name,
+								struct Token *name_to_check);
 
 void eei(struct Fpfc *f, struct Inst *t, const char *const msg,
 		 const char *const sgst);
