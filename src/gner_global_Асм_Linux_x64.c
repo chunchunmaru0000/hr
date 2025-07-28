@@ -315,8 +315,7 @@ void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 	else
 		iprint_prol(SA_LET_32);
 
-	// TODO: real_add(g->prol, var->value->tvar->fpn);
-	prol_add('0');
+	real_add(g->prol, var->value->tvar->fpn);
 	prol_add('\n');
 }
 void lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {

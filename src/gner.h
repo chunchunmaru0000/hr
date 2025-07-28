@@ -40,7 +40,7 @@ struct Gner {
 	struct Lbls *labels;
 
 	struct PList *is;
-	struct PList *enums; // Defn's
+	struct PList *enums;   // Defn's
 	struct PList *structs; // Inst's of IP_DECLARE_STRUCT
 	struct PList *global_vars;
 	struct PList *local_vars;
@@ -155,6 +155,12 @@ void indent_line(struct Gner *g, struct BList *l);
 #define hex_int_add(list, value)                                               \
 	do {                                                                       \
 		g->tmp_blist = int_to_hex_str((value));                                \
+		blat_blist((list), g->tmp_blist);                                      \
+		blist_clear_free(g->tmp_blist);                                        \
+	} while (0);
+#define real_add(list, value)                                                  \
+	do {                                                                       \
+		g->tmp_blist = real_to_str((value));                                   \
 		blat_blist((list), g->tmp_blist);                                      \
 		blist_clear_free(g->tmp_blist);                                        \
 	} while (0);

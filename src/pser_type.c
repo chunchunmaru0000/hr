@@ -81,6 +81,56 @@ struct BList *int_to_str(long num) {
 	return blist_from_str(num_view, num_clone);
 }
 
+// TODO: fix assembly compiler
+// struct BList *real_to_str(double num) {
+// 	long before_dot = num;
+//
+// 	if (before_dot < 0)
+// 		before_dot *= -1;
+//
+// 	struct BList *num_str = int_to_str(num);
+// 	blist_add(num_str, '.');
+//
+// 	num -= before_dot;
+// 	num *= 10;
+// 	while (num) {
+// 		before_dot = num;
+// 		blist_add(num_str, before_dot + '0');
+//
+// 		num -= before_dot;
+// 		num *= 10;
+// 	}
+//
+// 	return num_str;
+// }
+
+struct BList *real_to_str(double num) {
+	long before_dot = num;
+	uc len = 0;
+
+	if (before_dot < 0)
+		before_dot *= -1;
+
+	struct BList *num_str = int_to_str(num);
+	blist_add(num_str, '.');
+
+	num -= before_dot;
+	num *= 10;
+	while (num) {
+		before_dot = num;
+		blist_add(num_str, before_dot + '0');
+
+		num -= before_dot;
+		num *= 10;
+
+		len++;
+		if (len > 7)
+			break;
+	}
+
+	return num_str;
+}
+
 struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 	struct BList *str = new_blist(9), *tmp;
 	const struct TypeWord *type_word;

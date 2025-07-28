@@ -85,7 +85,7 @@ struct BList *blist_from_str(char *str, uint32_t str_len) {
 	// 	blat(l, (uc *)str, str_len + 1);
 	// 	l->size--;
 
-	l->cap_pace = 0;
+	l->cap_pace = 2;
 	l->size = str_len;
 	l->cap = str_len;
 	l->st = (uc *)str;
@@ -94,7 +94,7 @@ struct BList *blist_from_str(char *str, uint32_t str_len) {
 
 void convert_blist_to_blist_from_str(struct BList *l) {
 	blist_add(l, 0);
-	l->cap_pace = 0;
+	//l->cap_pace = 0;
 	l->size--;
 }
 

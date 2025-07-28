@@ -233,6 +233,7 @@ struct Inst *get_local_inst(struct Pser *p);
 
 struct BList *int_to_str(long num);
 struct BList *int_to_hex_str(long num);
+struct BList *real_to_str(double num);
 void get_fun_signature_considering_args(struct PList *os, struct GlobVar *var);
 void get_global_signature(struct PList *os, struct GlobVar *var);
 int are_types_equal(struct TypeExpr *, struct TypeExpr *);
