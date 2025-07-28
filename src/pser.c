@@ -12,6 +12,7 @@ void ee_token(struct Fpfc *f, struct Token *t, char *msg) { // error exit
 }
 
 // print warning
+// TODO: make pw for types kinda with int with str like for better info
 void pw(struct Fpfc *f, struct Pos *p, const char *const msg) {
 	if (NEED_WARN) {
 		fprintf(stderr, "%s%s:%d:%d%s ПРЕДУПРЕЖДЕНИЕ: %s%s\n", COLOR_WHITE,

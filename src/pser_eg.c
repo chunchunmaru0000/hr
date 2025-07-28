@@ -76,8 +76,8 @@ struct GlobExpr *parse_global_expression(struct Pser *p,
 		// asume array size
 		some_value = (long)plist_get(type->data.arr, 1);
 		if (some_value != -1 && some_value != e->tvar->str->size)
-			// TODO: make it warn but need to implement warns before
-			eet(p->f, equ, ARR_SIZES_DO_NOW_MATCH, 0);
+			// TODO: provide len
+			pw(p->f, equ->p, ARR_SIZES_DO_NOW_MATCH);
 
 		// set size in any way
 		some_value = e->tvar->view->size - 2;
