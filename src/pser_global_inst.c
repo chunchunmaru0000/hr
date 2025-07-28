@@ -254,7 +254,9 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 		for (j = 0; j < arg->names->size; j++) {
 			cur = plist_get(arg->names, j);
-			check_list_of_args_on_name(p->f, os, i, j, cur);
+			check_list_of_vars_on_name(p, cur);
+
+			plist_add(p->local_vars, new_plocal_var(cur, arg->type));
 		}
 
 		// it haves here types cuz fun type args are types
@@ -301,6 +303,8 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 	// body
 	parse_block_of_local_inst(p, os);
+	// free local vars
+	plist_clear_items_free(p->local_vars);
 
 	return IP_DECLARE_FUNCTION;
 }

@@ -35,9 +35,13 @@ struct Pser *new_pser(char *filename, uc debug) {
 	p->pos = 0;
 	p->ts = ts;
 	p->debug = debug;
+
 	p->enums = new_plist(8);
-	p->global_vars = new_plist(16);
 	p->structs = new_plist(8);
+
+	p->global_vars = new_plist(16);
+	p->local_vars = new_plist(16);
+
 	return p;
 }
 
@@ -76,6 +80,18 @@ void parse_block_of_local_inst(struct Pser *p, struct PList *os) {
 const char *const ARGS_NAMES_OVERLAP =
 	"Аргумент с таким именем уже существует.";
 
+void check_list_of_vars_on_name(struct Pser *p, struct Token *name_to_check) {
+	uint32_t i;
+	struct PLocalVar *var;
+
+	for (i = 0; i < p->local_vars->size; i++) {
+		var = plist_get(p->local_vars, i);
+
+		if (sc((char *)name_to_check->view->st, (char *)var->name->view->st))
+			eet(p->f, name_to_check, ARGS_NAMES_OVERLAP,
+				(char *)var->name->view->st);
+	}
+}
 void check_list_of_args_on_name(struct Fpfc *f, struct PList *l,
 								uint32_t from_arg, uint32_t from_name,
 								struct Token *name_to_check) {
@@ -108,6 +124,13 @@ void check_list_of_args_on_uniq_names(struct Fpfc *f, struct PList *l,
 			check_list_of_args_on_name(f, l, i, j, name);
 		}
 	}
+}
+
+struct PLocalVar *new_plocal_var(struct Token *name, struct TypeExpr *type) {
+	struct PLocalVar *var = malloc(sizeof(struct PLocalVar));
+	var->name = name;
+	var->type = type;
+	return var;
 }
 
 const char *const ERR_WRONG_TOKEN = "Неверное выражение.";

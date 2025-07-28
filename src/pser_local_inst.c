@@ -3,9 +3,23 @@
 // ### os explanation
 // ... - Arg's
 enum IP_Code pser_local_inst_let(struct Pser *p, struct PList *os) {
+	struct Token *arg_name;
+	struct Arg *arg;
+	uint32_t i, j;
+
 	expect(p, absorb(p), PAR_L);
 	parse_args(p, os);
-	// TODO check here for identical names and with fun arg tohether?
+
+	for (i = 0; i < os->size; i++) {
+		arg = plist_get(os, i);
+
+		for (j = 0; j < arg->names->size; j++) {
+			arg_name = plist_get(arg->names, j);
+			check_list_of_vars_on_name(p, arg_name);
+
+			plist_add(p->local_vars, new_plocal_var(arg_name, arg->type));
+		}
+	}
 
 	return IP_LET;
 }

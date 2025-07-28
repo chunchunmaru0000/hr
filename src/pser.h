@@ -44,6 +44,7 @@ struct Pser {
 	struct PList *structs; // Inst's of IP_DECLARE_STRUCT
 
 	struct PList *global_vars; // global variables
+	struct PList *local_vars;
 };
 struct Pser *new_pser(char *, uc);
 struct PList *pse(struct Pser *); // instructions
@@ -181,6 +182,12 @@ struct Arg {
 	long offset;
 };
 
+struct PLocalVar {
+	struct Token *name;
+	struct TypeExpr *type;
+};
+struct PLocalVar *new_plocal_var(struct Token *, struct TypeExpr *);
+
 // Compilation Time
 enum CT_Code {
 	CT_INT,
@@ -242,6 +249,7 @@ void check_list_of_args_on_uniq_names(struct Fpfc *f, struct PList *l,
 void check_list_of_args_on_name(struct Fpfc *f, struct PList *l,
 								uint32_t from_arg, uint32_t from_name,
 								struct Token *name_to_check);
+void check_list_of_vars_on_name(struct Pser *p, struct Token *name_to_check);
 
 void eei(struct Fpfc *f, struct Inst *t, const char *const msg,
 		 const char *const sgst);
