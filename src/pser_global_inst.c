@@ -46,7 +46,7 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 		} else
 			defn->value = (void *)counter;
 
-		plist_add(p->ds, defn);
+		plist_add(p->enums, defn);
 		plist_add(os, defn);
 		counter++;
 	}
@@ -207,7 +207,6 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 	// 			c = plist_get(arg->names, j);
 	// 		}
 	// 	}
-
 	// TODO: check here for identical names
 
 	return IP_DECLARE_STRUCT;

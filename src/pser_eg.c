@@ -101,6 +101,18 @@ struct GlobVar *find_global_var(struct Pser *p, struct BList *name) {
 	}
 	return 0;
 }
+struct Defn *find_enum_value(struct Pser *p, struct BList *name) {
+	struct Defn *enum_value;
+	uint32_t i;
+
+	for (i = 0; i < p->enums->size; i++) {
+		enum_value = plist_get(p->enums, i);
+
+		if (sc((char *)enum_value->view->st, (char *)name->st))
+			return enum_value;
+	}
+	return 0;
+}
 
 struct GlobExpr *after_g_expression(struct Pser *p) {
 	struct GlobExpr *e = addng_g_expression(p);
@@ -117,6 +129,7 @@ const char *const FUN_VAR_DOESNT_HAVE_VALUE =
 
 struct GlobExpr *prime_g_expression(struct Pser *p) {
 	struct GlobVar *other_var;
+	struct Defn *enum_value;
 	struct Token *c = pser_cur(p);
 
 	struct GlobExpr *e = malloc(sizeof(struct GlobExpr));
@@ -134,6 +147,15 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		consume(p);
 		break;
 	case ID:
+		enum_value = find_enum_value(p, c->view);
+		if (enum_value) {
+			e->code = CT_INT;
+			copy_token(e->tvar, c);
+			e->tvar->number = (long)enum_value->value;
+			consume(p);
+			break;
+		}
+
 		other_var = find_global_var(p, c->view);
 		e->code = other_var->value->code;
 

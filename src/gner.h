@@ -40,8 +40,8 @@ struct Gner {
 	struct Lbls *labels;
 
 	struct PList *is;
-	struct PList *defines; // Defn's
-	struct PList *structs; // Inst's of IP_DECLARE_STRUC
+	struct PList *enums; // Defn's
+	struct PList *structs; // Inst's of IP_DECLARE_STRUCT
 	struct PList *global_vars;
 	struct PList *local_vars;
 

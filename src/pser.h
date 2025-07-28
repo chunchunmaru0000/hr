@@ -40,9 +40,10 @@ struct Pser {
 	size_t pos;
 	uc debug;
 
-	struct PList *ds;		   // #define's
-	struct PList *global_vars; // global variables
+	struct PList *enums;	   // #define's
 	struct PList *structs;	   // Inst's of IP_DECLARE_STRUCT
+
+	struct PList *global_vars; // global variables
 };
 struct Pser *new_pser(char *, uc);
 struct PList *pse(struct Pser *); // instructions

@@ -10,6 +10,9 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 	g->indent_level = 0;
 	g->pos = 0;
 	g->stack_counter = 0;
+
+	g->enums = p->enums;
+	g->structs = p->structs;
 	g->flags = malloc(sizeof(struct Fggs));
 
 	g->labels = malloc(sizeof(struct Lbls));
