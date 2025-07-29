@@ -28,6 +28,7 @@ const char *const ARR_SIZES_DO_NOW_MATCH =
 	"Рамеры типа переменной массива и самого массива не совпадают.";
 const char *const INCOMPATIBLE_TYPES =
 	"Типы переменной и выражения несовместимы.";
+const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
 
 struct GlobExpr *parse_global_expression(struct Pser *p,
 										 struct TypeExpr *type) {
@@ -85,7 +86,10 @@ struct GlobExpr *parse_global_expression(struct Pser *p,
 		return e;
 	}
 
-	eet(p->f, equ, INCOMPATIBLE_TYPES, 0);
+	if (e->code == CT_GLOBAL)
+		eet(p->f, equ, UNCOMPUTIBLE_DATA, 0);
+
+	eet(p->f, equ, INCOMPATIBLE_TYPES, (char *)e->tvar->view->st);
 	return e;
 }
 
@@ -128,6 +132,8 @@ const char *const FUN_VAR_DOESNT_HAVE_VALUE =
 	"Функция как переменная не может иметь значение.";
 const char *const NOT_NUM_VALUE_FOR_THIS_UNARY_OP =
 	"Для данной математической операции ожидалось строковое значение.";
+const char *const CANT_TAKE_PTR_FROM_NOT_GVAR =
+	"Нельзя получить адрес не глобальной переменной";
 
 struct GlobExpr *prime_g_expression(struct Pser *p) {
 	struct GlobVar *other_var;
@@ -168,6 +174,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		if (other_var->value == 0) { // && other_var->type->code == TC_FUN)
 			e->code = CT_GLOBAL;
 			copy_token(e->tvar, c);
+			e->tvar->str = other_var->signature;
 			// eet(p->f, c, FUN_VAR_DOESNT_HAVE_VALUE, 0);
 			break;
 		}
@@ -228,11 +235,21 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		return e;
 	}
 
+	if (c->code == AMPER) {
+		consume(p);
+		e = unary_g_expression(p);
+
+		if (e->code != CT_GLOBAL)
+			eet(p->f, c, CANT_TAKE_PTR_FROM_NOT_GVAR, 0);
+
+		e->code = CT_GLOBAL_PTR;
+	}
+
 	if (c->code == ID && sc(STR_AS, (char *)c->view->st)) {
 		consume(p); // skip окак
 
 		type = type_expr(p);
-		e = global_expression(p);
+		e = unary_g_expression(p);
 		e->type = type;
 
 		return e;

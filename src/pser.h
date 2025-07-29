@@ -204,8 +204,8 @@ enum CT_Code {
 struct GlobExpr {
 	enum CT_Code code;
 	struct TypeExpr *type; // or 0
-	struct Token *tvar; // тварь
-	struct PList *globs; // list of GlobExpr's or 0
+	struct Token *tvar;	   // тварь
+	struct PList *globs;   // list of GlobExpr's or 0
 };
 
 struct GlobVar {
@@ -256,5 +256,4 @@ void check_list_of_args_on_name(struct Fpfc *f, struct PList *l,
 								struct Token *name_to_check);
 void check_list_of_vars_on_name(struct Pser *p, struct Token *name_to_check);
 
-void eei(struct Fpfc *f, struct Inst *t, const char *const msg,
-		 const char *const sgst);
+void eei(struct Inst *, const char *const msg, const char *const sgst);

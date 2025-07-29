@@ -21,9 +21,8 @@ void pw(struct Fpfc *f, struct Pos *p, const char *const msg) {
 	}
 }
 
-void eei(struct Fpfc *f, struct Inst *in, const char *const msg,
-		 const char *const sgst) {
-	eet(f, in->start_token, msg, sgst);
+void eei(struct Inst *in, const char *const msg, const char *const sgst) {
+	eet(in->f, in->start_token, msg, sgst);
 }
 
 struct Pser *new_pser(char *filename, uc debug) {

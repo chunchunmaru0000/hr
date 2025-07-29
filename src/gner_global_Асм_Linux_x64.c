@@ -177,7 +177,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			g->indent_level--;
 			break;
 		default:
-			eei(in->f, in, "эээ", 0);
+			eei(in, "эээ", 0);
 		}
 	}
 end_gen_Асм_text_loop:;
@@ -308,7 +308,6 @@ void lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 	hex_int_add(g->prol, num->number);
 	prol_add('\n');
 }
-
 void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 	if (var->type->code == TC_DOUBLE)
 		iprint_prol(SA_LET_64);
@@ -323,13 +322,28 @@ void lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 	blat_blist(g->prol, var->value->tvar->view);
 	prol_add('\n');
 }
+void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
+	uc type_size = size_of_type(var->type);
+
+	if (type_size == QWORD)
+		iprint_prol(SA_LET_64);
+	else
+		// i donno like if like dunno
+		iprint_prol(SA_LET_32);
+
+	blat_blist(g->prol, var->value->tvar->str);
+	prol_add('\n');
+}
 
 void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
+	enum CT_Code code = var->value->code;
 
-	if (var->value->code == CT_INT)
+	if (code == CT_INT)
 		lay_down_int_Асм_Linux_64(g, var);
-	else if (var->value->code == CT_REAL)
+	else if (code == CT_REAL)
 		lay_down_real_Асм_Linux_64(g, var);
-	else if (var->value->code == CT_STR)
+	else if (code == CT_STR)
 		lay_down_str_Асм_Linux_64(g, var);
+	else if (code == CT_GLOBAL_PTR)
+		lay_down_gptr_Асм_Linux_64(g, var);
 }

@@ -97,7 +97,7 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		break;
 	case IP_NONE:
 	default:
-		eei(in->f, in, "эээ", 0);
+		eei(in, "эээ", 0);
 	}
 }
 
