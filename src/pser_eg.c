@@ -135,6 +135,8 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 	struct Token *c = pser_cur(p);
 
 	struct GlobExpr *e = malloc(sizeof(struct GlobExpr));
+	e->type = 0;
+	e->globs = 0;
 	e->tvar = malloc(sizeof(struct Token));
 
 	switch (c->code) {
@@ -149,22 +151,27 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		consume(p);
 		break;
 	case ID:
+		consume(p);
+
 		enum_value = find_enum_value(p, c->view);
 		if (enum_value) {
 			e->code = CT_INT;
 			copy_token(e->tvar, c);
 			e->tvar->number = (long)enum_value->value;
-			consume(p);
 			break;
 		}
 
 		other_var = find_global_var(p, c->view);
-		e->code = other_var->value->code;
-
 		if (other_var == 0)
-			eet(p->f, c, GLOBAL_VAR_WAS_NOT_FOUND, 0);
-		if (other_var->value == 0) // && other_var->type->code == TC_FUN)
-			eet(p->f, c, FUN_VAR_DOESNT_HAVE_VALUE, 0);
+			eet(p->f, c, GLOBAL_VAR_WAS_NOT_FOUND, (char *)c->view->st);
+
+		if (other_var->value == 0) { // && other_var->type->code == TC_FUN)
+			e->code = CT_GLOBAL;
+			copy_token(e->tvar, c);
+			// eet(p->f, c, FUN_VAR_DOESNT_HAVE_VALUE, 0);
+			break;
+		}
+		e->code = other_var->value->code;
 
 		copy_token(e->tvar, other_var->value->tvar);
 		e->tvar->p = c->p;
@@ -176,7 +183,6 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 			e->tvar->str = copy_str(other_var->value->tvar->str);
 		} // why would i free it tough, it global so
 
-		consume(p);
 		break;
 	case STR:
 		e->code = CT_STR;
@@ -194,6 +200,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 
 struct GlobExpr *unary_g_expression(struct Pser *p) {
 	struct GlobExpr *e;
+	struct TypeExpr *type;
 	struct Token *c = pser_cur(p);
 
 	if (c->code == PLUS) {
@@ -218,6 +225,16 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		} else {
 			eet(p->f, c, NOT_NUM_VALUE_FOR_THIS_UNARY_OP, 0);
 		}
+		return e;
+	}
+
+	if (c->code == ID && sc(STR_AS, (char *)c->view->st)) {
+		consume(p); // skip окак
+
+		type = type_expr(p);
+		e = global_expression(p);
+		e->type = type;
+
 		return e;
 	}
 

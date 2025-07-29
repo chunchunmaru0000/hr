@@ -171,6 +171,7 @@ const char *const STR_LOOP = "вечно";
 const char *const STR_FUN = "фц";
 const char *const STR_ENUM = "счет";
 const char *const STR_STRUCT = "лик";
+const char *const STR_AS = "окак";
 
 struct Inst *get_global_inst(struct Pser *p) {
 	struct Token *cur = pser_cur(p), *n;

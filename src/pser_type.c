@@ -381,7 +381,9 @@ struct TypeExpr *type_expr(struct Pser *p) {
 		if (cur->code == EXCL) {
 			consume(p); // consume !
 			plist_add(texpr->data.args_types, type_expr(p));
+
 			expect(p, pser_cur(p), PAR_R); // expect )
+
 		} else if (cur->code == PAR_R) {
 			if (texpr->data.args_types->size == 0)
 				eet(p->f, cur, FUN_ZERO_ARGS, SUGGEST_ADD_ARGS);

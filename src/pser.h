@@ -34,6 +34,8 @@ extern const char *const STR_ASM;
 extern const char *const STR_GOTO;
 extern const char *const STR_LOOP;
 
+extern const char *const STR_AS;
+
 struct Pser {
 	struct Fpfc *f;
 	struct PList *ts; // tokens
@@ -195,12 +197,15 @@ enum CT_Code {
 	CT_STR,
 	CT_ARR,
 	CT_STRUCT,
+	CT_GLOBAL, // invalid cuz uncomputable !yet! but needed to get CT_GLOBAL_PTR
 	CT_GLOBAL_PTR, // pointer to other global value
 };
 
 struct GlobExpr {
 	enum CT_Code code;
+	struct TypeExpr *type; // or 0
 	struct Token *tvar; // тварь
+	struct PList *globs; // list of GlobExpr's or 0
 };
 
 struct GlobVar {
