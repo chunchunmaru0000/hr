@@ -7,8 +7,8 @@ struct GlobExpr *prime_g_expression(struct Pser *p);
 struct GlobExpr *unary_g_expression(struct Pser *p);
 // struct GlobExpr *mulng_g_expression(struct Pser *p);
 struct GlobExpr *addng_g_expression(struct Pser *p);
-// struct GlobExpr *booly_g_expression(struct Pser *p);
-#define global_expression(p) (after_g_expression((p)))
+// struct GlobExpr *booln_g_expression(struct Pser *p);
+#define global_expression(p) (addng_g_expression((p)))
 
 #define is_int_type(t)                                                         \
 	((t)->code == TC_INT8 || (t)->code == TC_INT16 || (t)->code == TC_INT32 || \
@@ -119,7 +119,7 @@ struct Defn *find_enum_value(struct Pser *p, struct BList *name) {
 }
 
 struct GlobExpr *after_g_expression(struct Pser *p) {
-	struct GlobExpr *e = addng_g_expression(p);
+	struct GlobExpr *e = prime_g_expression(p);
 
 	return e;
 }
@@ -236,7 +236,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 	if (c->code == AMPER) {
 		consume(p);
-		e = unary_g_expression(p);
+		e = after_g_expression(p);
 
 		if (!e->from)
 			eet(p->f, c, CANT_TAKE_PTR_FROM_NOT_GVAR, 0);
@@ -256,7 +256,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		return e;
 	}
 
-	return prime_g_expression(p);
+	return after_g_expression(p);
 }
 
 struct GlobExpr *addng_g_expression(struct Pser *p) {
