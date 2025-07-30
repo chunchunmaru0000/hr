@@ -175,6 +175,9 @@ struct TypeExpr {
 	union TypeData data;
 };
 
+#define arr_type(t) (plist_get((t)->data.arr, 0))
+#define arr_size(t) (plist_get((t)->data.arr, 1))
+
 struct TypeExpr *new_type_expr(enum TypeCode);
 void free_type(struct TypeExpr *type);
 
@@ -258,3 +261,25 @@ void check_list_of_args_on_name(struct Fpfc *f, struct PList *l,
 void check_list_of_vars_on_name(struct Pser *p, struct Token *name_to_check);
 
 void eei(struct Inst *, const char *const msg, const char *const sgst);
+
+#define is_int_type(t)                                                         \
+	((t)->code == TC_INT8 || (t)->code == TC_INT16 || (t)->code == TC_INT32 || \
+	 (t)->code == TC_INT64 || (t)->code == TC_VOID || (t)->code == TC_ENUM ||  \
+	 (t)->code == TC_UINT8 || (t)->code == TC_UINT16 ||                        \
+	 (t)->code == TC_UINT32 || (t)->code == TC_UINT64 || (t)->code == TC_VOID)
+#define is_real_type(t) ((t)->code == TC_DOUBLE || (t)->code == TC_FLOAT)
+#define is_str_type(t)                                                         \
+	((t)->code == TC_PTR && ((t)->data.ptr_target->code == TC_UINT8 ||         \
+							 (t)->data.ptr_target->code == TC_VOID))
+
+enum CE_Code {
+	CE_NONE,
+	CE_NUM_INCOMPATIBLE_TYPE,
+	CE_STR_INCOMPATIBLE_TYPE,
+	CE_ARR_SIZES_DO_NOW_MATCH,
+	CE_UNCOMPUTIBLE_DATA,
+
+	CE_TODO
+};
+
+enum CE_Code are_types_compatible(struct TypeExpr *type, struct GlobExpr *e);

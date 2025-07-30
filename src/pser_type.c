@@ -126,12 +126,12 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 	} else if (type->code == TC_ARR) {
 		blist_add(str, '[');
 
-		tmp = type_to_blist_from_str(plist_get(type->data.arr, 0));
+		tmp = type_to_blist_from_str(arr_type(type));
 		blat_blist(str, tmp);
 		blist_clear_free(tmp);
 		blist_add(str, '_');
 
-		arr_len = (long)plist_get(type->data.arr, 1);
+		arr_len = (long)arr_size(type);
 		if (arr_len == -1)
 			blist_add(str, '~');
 		else {
@@ -259,9 +259,8 @@ int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
 	} else if (t1->code == TC_STRUCT || t1->code == TC_ENUM) {
 		res = sc((char *)t1->data.name->st, (char *)t2->data.name->st);
 	} else if (t1->code == TC_ARR) {
-		res = are_types_equal(plist_get(t1->data.arr, 0),
-							  plist_get(t2->data.arr, 0)) &&
-			  plist_get(t1->data.arr, 1) == plist_get(t2->data.arr, 1);
+		res = are_types_equal(arr_type(t1), arr_type(t2)) &&
+			  arr_size(t1) == arr_size(t2);
 	} else { // TC_FUN
 		if (t1->data.args_types->size != t2->data.args_types->size)
 			return 0;
@@ -283,7 +282,7 @@ void free_type(struct TypeExpr *type) {
 		free_type(type->data.ptr_target);
 
 	else if (type->code == TC_ARR) {
-		free_type(plist_get(type->data.arr, 0));
+		free_type(arr_type(type));
 		plist_free(type->data.arr);
 
 	} else if (type->code == TC_FUN) {

@@ -10,16 +10,6 @@ struct GlobExpr *addng_g_expression(struct Pser *p);
 // struct GlobExpr *booln_g_expression(struct Pser *p);
 #define global_expression(p) (addng_g_expression((p)))
 
-#define is_int_type(t)                                                         \
-	((t)->code == TC_INT8 || (t)->code == TC_INT16 || (t)->code == TC_INT32 || \
-	 (t)->code == TC_INT64 || (t)->code == TC_VOID || (t)->code == TC_ENUM ||  \
-	 (t)->code == TC_UINT8 || (t)->code == TC_UINT16 ||                        \
-	 (t)->code == TC_UINT32 || (t)->code == TC_UINT64 || (t)->code == TC_VOID)
-#define is_real_type(t) ((t)->code == TC_DOUBLE || (t)->code == TC_FLOAT)
-#define is_str_type(t)                                                         \
-	((t)->code == TC_PTR && ((t)->data.ptr_target->code == TC_UINT8 ||         \
-							 (t)->data.ptr_target->code == TC_VOID))
-
 const char *const NUM_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с числовым типом выражения.";
 const char *const STR_INCOMPATIBLE_TYPE =
@@ -32,64 +22,27 @@ const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражени
 
 struct GlobExpr *parse_global_expression(struct Pser *p,
 										 struct TypeExpr *type) {
-	long some_value;
 	struct Token *equ = get_pser_token(p, -1);
 	struct GlobExpr *e = global_expression(p);
-	struct TypeExpr *tmp_type;
 
-	if (e->code == CT_INT) {
-		if (is_int_type(type))
-			return e;
+	enum CE_Code error = are_types_compatible(type, e);
 
-		if (is_real_type(type) && type->code > TC_UINT16) {
-			e->tvar->fpn = e->tvar->number;
-			e->code = CT_REAL;
-			return e;
-		}
+	switch (error) {
+	case CE_NONE:
+		break;
+	case CE_NUM_INCOMPATIBLE_TYPE:
 		eet(p->f, equ, NUM_INCOMPATIBLE_TYPE, 0);
-	}
-
-	if (e->code == CT_REAL) {
-		if (is_real_type(type))
-			return e;
-
-		if (is_int_type(type)) {
-			e->tvar->number = e->tvar->fpn;
-			e->code = CT_INT;
-			return e;
-		}
-		eet(p->f, equ, NUM_INCOMPATIBLE_TYPE, 0);
-	}
-
-	if (e->code == CT_STR) {
-		if (is_str_type(type))
-			return e;
-
-		// assume array
-		if (type->code != TC_ARR)
-			eet(p->f, equ, STR_INCOMPATIBLE_TYPE, 0);
-
-		// assume uint8 array
-		tmp_type = plist_get(type->data.arr, 0);
-		if (tmp_type->code != TC_UINT8)
-			eet(p->f, equ, STR_INCOMPATIBLE_TYPE, 0);
-
-		// asume array size
-		some_value = (long)plist_get(type->data.arr, 1);
-		if (some_value != -1 && some_value != e->tvar->str->size)
-			// TODO: provide len
-			pw(p->f, equ->p, ARR_SIZES_DO_NOW_MATCH);
-
-		// set size in any way
-		some_value = e->tvar->view->size - 2;
-		plist_set(type->data.arr, 1, (void *)some_value);
-		return e;
-	}
-
-	if (e->code == CT_GLOBAL)
+	case CE_STR_INCOMPATIBLE_TYPE:
+		eet(p->f, equ, STR_INCOMPATIBLE_TYPE, 0);
+	case CE_ARR_SIZES_DO_NOW_MATCH:
+		pw(p->f, equ->p, ARR_SIZES_DO_NOW_MATCH);
+		break;
+	case CE_UNCOMPUTIBLE_DATA:
 		eet(p->f, equ, UNCOMPUTIBLE_DATA, 0);
+	case CE_TODO:
+		eet(p->f, equ, "TODO", 0);
+	}
 
-	// TODO: eet(p->f, equ, INCOMPATIBLE_TYPES, (char *)e->tvar->view->st);
 	return e;
 }
 
