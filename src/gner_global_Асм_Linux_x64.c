@@ -331,7 +331,7 @@ void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 		// i donno like if like dunno
 		iprint_prol(SA_LET_32);
 
-	blat_blist(g->prol, var->value->tvar->str);
+	blat_blist(g->prol, var->value->from->signature);
 	prol_add('\n');
 }
 

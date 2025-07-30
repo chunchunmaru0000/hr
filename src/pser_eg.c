@@ -89,7 +89,7 @@ struct GlobExpr *parse_global_expression(struct Pser *p,
 	if (e->code == CT_GLOBAL)
 		eet(p->f, equ, UNCOMPUTIBLE_DATA, 0);
 
-	eet(p->f, equ, INCOMPATIBLE_TYPES, (char *)e->tvar->view->st);
+	// TODO: eet(p->f, equ, INCOMPATIBLE_TYPES, (char *)e->tvar->view->st);
 	return e;
 }
 
@@ -143,6 +143,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 	struct GlobExpr *e = malloc(sizeof(struct GlobExpr));
 	e->type = 0;
 	e->globs = 0;
+	e->from = 0;
 	e->tvar = malloc(sizeof(struct Token));
 
 	switch (c->code) {
@@ -171,31 +172,29 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		if (other_var == 0)
 			eet(p->f, c, GLOBAL_VAR_WAS_NOT_FOUND, (char *)c->view->st);
 
-		if (other_var->value == 0) { // && other_var->type->code == TC_FUN)
+		e->from = other_var;
+
+		if (other_var->value == 0) {
 			e->code = CT_GLOBAL;
 			copy_token(e->tvar, c);
-			e->tvar->str = other_var->signature;
-			// eet(p->f, c, FUN_VAR_DOESNT_HAVE_VALUE, 0);
 			break;
 		}
-		e->code = other_var->value->code;
 
+		e->code = other_var->value->code;
 		copy_token(e->tvar, other_var->value->tvar);
 		e->tvar->p = c->p;
 
-		// REMEMBER not to free pos and view, only token itself and
-		// maybe str and view if it was of CT_STR
-		if (other_var->value->code == CT_STR) {
+		// REMEMBER: not to free pos and view, only token itself and
+		// maybe view if it was of CT_STR
+		if (other_var->value->code == CT_STR)
 			e->tvar->view = copy_str(other_var->value->tvar->view);
-			e->tvar->str = copy_str(other_var->value->tvar->str);
-		} // why would i free it tough, it global so
+		// why would i free it tough, it global so
 
 		break;
 	case STR:
 		e->code = CT_STR;
 		copy_token(e->tvar, c);
 		e->tvar->view = copy_str(c->view);
-		e->tvar->str = copy_str(c->str);
 		consume(p);
 	case PAR_L:
 
@@ -239,10 +238,12 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		consume(p);
 		e = unary_g_expression(p);
 
-		if (e->code != CT_GLOBAL)
+		if (!e->from)
 			eet(p->f, c, CANT_TAKE_PTR_FROM_NOT_GVAR, 0);
 
 		e->code = CT_GLOBAL_PTR;
+
+		return e;
 	}
 
 	if (c->code == ID && sc(STR_AS, (char *)c->view->st)) {

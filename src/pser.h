@@ -202,6 +202,7 @@ enum CT_Code {
 };
 
 struct GlobExpr {
+	struct GlobVar *from;
 	enum CT_Code code;
 	struct TypeExpr *type; // or 0
 	struct Token *tvar;	   // тварь
