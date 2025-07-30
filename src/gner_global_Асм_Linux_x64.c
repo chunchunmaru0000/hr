@@ -331,7 +331,10 @@ void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 		// i donno like if like dunno
 		iprint_prol(SA_LET_32);
 
+	// TODO: maybe take strings in globs and not add them in one ?
 	blat_blist(g->prol, var->value->from->signature);
+	// zero terminator
+	prol_add('0');
 	prol_add('\n');
 }
 
