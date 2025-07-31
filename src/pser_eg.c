@@ -86,6 +86,8 @@ struct GlobExpr *after_g_expression(struct Pser *p) {
 
 #define copy_token(d, s) (memcpy((d), (s), sizeof(struct Token)))
 
+const char *const UNEXPECTED_TOKEN_IN_GLOB_EXPR =
+	"Непредвиденное слово для глобального выражения.";
 const char *const GLOBAL_VAR_WAS_NOT_FOUND =
 	"Глобальная переменная с таким именем не была найдена.";
 const char *const FUN_VAR_DOESNT_HAVE_VALUE =
@@ -156,10 +158,37 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		copy_token(e->tvar, c);
 		e->tvar->view = copy_str(c->view);
 		consume(p);
-	case PAR_C_L:
-	case PAR_L:
+		break;
+	case PAR_T_L:
+		e->code = CT_STRUCT;
+		e->tvar = c; // HERE TOKEN IS NOT COPIED
+		e->globs = new_plist(2);
 
-	default:;
+		consume(p);
+		while (not_ef_and(PAR_T_R, pser_cur(p)))
+			plist_add(e->globs, global_expression(p));
+		consume(p);
+
+		break;
+	case PAR_C_L:
+		e->code = CT_ARR;
+		e->tvar = c; // HERE TOKEN IS NOT COPIED
+		e->globs = new_plist(2);
+
+		consume(p);
+		while (not_ef_and(PAR_C_R, pser_cur(p)))
+			plist_add(e->globs, global_expression(p));
+		consume(p);
+
+		break;
+	case PAR_L:
+		consume(p);
+		free(e);
+		e = global_expression(p);
+		match(p, pser_cur(p), PAR_R);
+		break;
+	default:
+		eet(p->f, c, UNEXPECTED_TOKEN_IN_GLOB_EXPR, 0);
 	}
 
 	return e;
