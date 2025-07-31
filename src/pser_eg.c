@@ -16,6 +16,10 @@ const char *const STR_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с строковым типом выражения.";
 const char *const ARR_SIZES_DO_NOW_MATCH =
 	"Рамеры типа переменной массива и самого массива не совпадают.";
+const char *const PTR_INCOMPATIBLE_TYPE =
+	"Тип переменной не совместим с указываемым типом выражения.";
+const char *const FUN_INCOMPATIBLE_TYPE =
+	"Тип переменной не совместим с функциональным типом выражения.";
 const char *const INCOMPATIBLE_TYPES =
 	"Типы переменной и выражения несовместимы.";
 const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
@@ -37,6 +41,10 @@ struct GlobExpr *parse_global_expression(struct Pser *p,
 	case CE_ARR_SIZES_DO_NOW_MATCH:
 		pw(p->f, equ->p, ARR_SIZES_DO_NOW_MATCH);
 		break;
+	case CE_PTR_INCOMPATIBLE_TYPE:
+		eet(p->f, equ, PTR_INCOMPATIBLE_TYPE, 0);
+	case CE_FUN_INCOMPATIBLE_TYPE:
+		eet(p->f, equ, FUN_INCOMPATIBLE_TYPE, 0);
 	case CE_UNCOMPUTIBLE_DATA:
 		eet(p->f, equ, UNCOMPUTIBLE_DATA, 0);
 
@@ -137,7 +145,10 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		e->from = other_var;
 
 		if (other_var->value == 0) {
-			e->code = CT_GLOBAL;
+			if (other_var->type->code == TC_FUN)
+				e->code = CT_FUN;
+			else
+				e->code = CT_GLOBAL;
 			copy_token(e->tvar, c);
 			break;
 		}

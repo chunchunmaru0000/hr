@@ -243,10 +243,16 @@ void get_global_signature(struct PList *os, struct GlobVar *var) {
 /*
 this funstion only exists cuz its faster than comparison of
 two function signature strings
+not now, also use in pser_tpes.c shit
 */
 int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
-	if (t1->code != t2->code)
+	if (t1->code != t2->code) {
+		if (is_void_ptr(t1) && is_ptr_type(t2))
+			return 1; // void ptr and any ptr
+		if (is_ptr_type(t1) && is_void_ptr(t2))
+			return 1; // any ptr and void ptr
 		return 0;
+	}
 
 	// here codes are equal so code of t1 is aslo code of t2
 	if (t1->code < TC_PTR)
@@ -255,6 +261,8 @@ int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
 	uint32_t res = 0;
 
 	if (t1->code == TC_PTR) {
+		if (is_void_ptr(t1) || is_void_ptr(t2))
+			return 1; // cuz void ptr are equal to any ptr
 		res = are_types_equal(t1->data.ptr_target, t2->data.ptr_target);
 	} else if (t1->code == TC_STRUCT || t1->code == TC_ENUM) {
 		res = sc((char *)t1->data.name->st, (char *)t2->data.name->st);
@@ -307,6 +315,9 @@ struct TypeExpr *new_type_expr(enum TypeCode code) {
 	return texpr;
 }
 
+// TODO: GlobExpr that are causeed by global_expresion in global ler
+// are not used in local expressions cuz changable and not a CONST
+// but still why would i want a const it there would alread be macros
 struct TypeExpr *type_expr(struct Pser *p) {
 	const struct TypeWord *tw;
 	struct Token *cur = pser_cur(p);

@@ -147,6 +147,11 @@ enum TypeCode {
 
 int get_type_code_size(enum TypeCode);
 #define size_of_type(t) (get_type_code_size((t)->code))
+#define is_void_ptr(t)                                                         \
+	((t)->code == TC_PTR && (t)->data.ptr_target->code == TC_VOID)
+#define is_ptr_type(t)                                                         \
+	((t)->code == TC_PTR || (t)->code == TC_ARR || (t)->code == TC_FUN ||      \
+	 (t)->code == TC_STRUCT)
 
 struct TypeWord {
 	char *view;
@@ -197,11 +202,15 @@ struct PLocalVar *new_plocal_var(struct Token *, struct TypeExpr *);
 enum CT_Code {
 	CT_INT,
 	CT_REAL,
+
 	CT_STR,
+
 	CT_ARR,
+	CT_FUN,
 	CT_STRUCT,
+
 	CT_GLOBAL, // invalid cuz uncomputable !yet! but needed to get CT_GLOBAL_PTR
-	CT_GLOBAL_PTR, // pointer to other global value
+	CT_GLOBAL_PTR, // pointer to other global value, is it exist?
 };
 
 struct GlobExpr {
@@ -277,6 +286,8 @@ enum CE_Code {
 	CE_NUM_INCOMPATIBLE_TYPE,
 	CE_STR_INCOMPATIBLE_TYPE,
 	CE_ARR_SIZES_DO_NOW_MATCH,
+	CE_PTR_INCOMPATIBLE_TYPE,
+	CE_FUN_INCOMPATIBLE_TYPE,
 	CE_UNCOMPUTIBLE_DATA,
 
 	CE_TODO1,
