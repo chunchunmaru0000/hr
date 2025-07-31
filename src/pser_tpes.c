@@ -4,8 +4,12 @@ enum CE_Code are_types_compatible(struct TypeExpr *type, struct GlobExpr *e) {
 	long some_value;
 	struct TypeExpr *tmp_type;
 
-	if (e->type)
-		return CE_TODO;
+	if (e->type) {
+		// compares global types, not returns enum CE_Code, just boolean
+		if (are_types_equal(type, e->type))
+			return CE_NONE;
+		return CE_TODO1;
+	}
 
 	if (e->code == CT_INT) {
 		if (is_int_type(type))
@@ -71,11 +75,17 @@ enum CE_Code are_types_compatible(struct TypeExpr *type, struct GlobExpr *e) {
 			// if array items targets are equal
 			return are_types_compatible(arr_type(type), e->from->value);
 
-		return CE_TODO;
+		return CE_TODO2;
 	}
 
 	if (e->code == CT_GLOBAL)
 		return CE_UNCOMPUTIBLE_DATA;
+
+	if (e->code == CT_ARR)
+		return CE_TODO3;
+
+	if (e->code == CT_STRUCT)
+		return CE_TODO4;
 
 	return CE_NONE;
 }

@@ -31,6 +31,8 @@ enum TCode {
 	PAR_R,	 // )
 	PAR_C_L, // [
 	PAR_C_R, // ]
+	PAR_T_L, // {
+	PAR_T_R, // }
 	EXCL,	 // !
 	EF,		 // end file
 	// LITERALS

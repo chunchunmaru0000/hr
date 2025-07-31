@@ -39,8 +39,15 @@ struct GlobExpr *parse_global_expression(struct Pser *p,
 		break;
 	case CE_UNCOMPUTIBLE_DATA:
 		eet(p->f, equ, UNCOMPUTIBLE_DATA, 0);
-	case CE_TODO:
-		eet(p->f, equ, "TODO", 0);
+
+	case CE_TODO1:
+		eet(p->f, equ, "TODO1", 0);
+	case CE_TODO2:
+		eet(p->f, equ, "TODO2", 0);
+	case CE_TODO3:
+		eet(p->f, equ, "TODO3", 0);
+	case CE_TODO4:
+		eet(p->f, equ, "TODO4", 0);
 	}
 
 	return e;
@@ -149,6 +156,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		copy_token(e->tvar, c);
 		e->tvar->view = copy_str(c->view);
 		consume(p);
+	case PAR_C_L:
 	case PAR_L:
 
 	default:;
@@ -204,6 +212,10 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 		type = type_expr(p);
 		e = unary_g_expression(p);
+
+		if (e->type) {
+			// TODO: if types are conflict
+		}
 		e->type = type;
 
 		return e;

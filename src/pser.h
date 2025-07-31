@@ -279,7 +279,10 @@ enum CE_Code {
 	CE_ARR_SIZES_DO_NOW_MATCH,
 	CE_UNCOMPUTIBLE_DATA,
 
-	CE_TODO
+	CE_TODO1,
+	CE_TODO2,
+	CE_TODO3,
+	CE_TODO4,
 };
 
 enum CE_Code are_types_compatible(struct TypeExpr *type, struct GlobExpr *e);
