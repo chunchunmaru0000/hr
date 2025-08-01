@@ -94,7 +94,7 @@ void print_source_line(const char *source_code, struct Pos *p,
 		while (*help_end) {
 			while (*help_end && *help_end != '\n')
 				help_end++;
-			//printf("\t\t|%d|%s|\n", help_end[0], help);
+			// printf("\t\t|%d|%s|\n", help_end[0], help);
 			if (*help_end) {   // if not str end
 				*help_end = 0; // terminate line
 
@@ -120,6 +120,17 @@ void print_source_line(const char *source_code, struct Pos *p,
 	putchar('\n');
 }
 
+struct ErrorInfo *new_error_info(struct Fpfc *f, struct Token *t,
+								 const char *const msg,
+								 const char *const sgst) {
+	struct ErrorInfo *ei = malloc(sizeof(struct ErrorInfo));
+	ei->f = f;
+	ei->t = t;
+	ei->msg = msg;
+	ei->sgst = sgst;
+	return ei;
+}
+
 void ee(struct Fpfc *f, struct Pos *p, const char *const msg) { // error exit
 	fprintf(stderr, "%s%s:%d:%d %sОШИБКА: %s\n", COLOR_WHITE, f->path, p->line,
 			p->col, COLOR_RED, msg);
@@ -127,8 +138,8 @@ void ee(struct Fpfc *f, struct Pos *p, const char *const msg) { // error exit
 	exit(1);
 }
 
-void eet(struct Fpfc *f, struct Token *t, const char *const msg,
-		 const char *const sgst) {
+void et(struct Fpfc *f, struct Token *t, const char *const msg,
+		const char *const sgst) {
 	char *help;
 	uint32_t token_chars_len, help_len, sgst_len = -1;
 	if (sgst)
@@ -152,6 +163,10 @@ void eet(struct Fpfc *f, struct Token *t, const char *const msg,
 	fprintf(stderr, "%s%s:%d:%d %sОШИБКА: %s\n", COLOR_WHITE, f->path,
 			t->p->line, t->p->col, COLOR_RED, msg);
 	print_source_line(f->code, t->p, COLOR_LIGHT_RED, help);
-	exit(1);
 }
 
+void eet(struct Fpfc *f, struct Token *t, const char *const msg,
+		 const char *const sgst) {
+	et(f, t, msg, sgst);
+	exit(1);
+}

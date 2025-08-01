@@ -42,12 +42,19 @@ struct Pser {
 	size_t pos;
 	uc debug;
 
+	struct PList *errors;
+	struct PList *warns;
+
 	struct PList *enums;   // #define's
 	struct PList *structs; // Inst's of IP_DECLARE_STRUCT
 
 	struct PList *global_vars; // global variables
 	struct PList *local_vars;
 };
+
+#define pser_need_err(p) ((p)->errors->size != 0 || (p)->warns->size != 0)
+void pser_err(struct Pser *p);
+
 struct Pser *new_pser(char *, uc);
 struct PList *pse(struct Pser *); // instructions
 struct Token *next_pser_get(struct Pser *, long);

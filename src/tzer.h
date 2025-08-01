@@ -24,10 +24,22 @@ struct Tzer {
 	size_t pos;
 };
 
+struct ErrorInfo {
+	struct Fpfc *f;
+	struct Token *t;
+	const char *msg;
+	const char *sgst;
+};
+struct ErrorInfo *new_error_info(struct Fpfc *f, struct Token *t,
+								 const char *const msg, const char *const sgst);
+
 struct Tzer *new_tzer(char *);
 struct Token *new_token(struct Tzer *);
 struct PList *tze(struct Tzer *, long);
 void print_source_line(const char *, struct Pos *, const char *const, char *);
 void ee(struct Fpfc *, struct Pos *, const char *const);
+void et(struct Fpfc *f, struct Token *t, const char *const msg,
+		const char *const sgst);
 void eet(struct Fpfc *f, struct Token *t, const char *const msg,
 		 const char *const sgst);
+#define etei(ei) (et((ei)->f, (ei)->t, (ei)->msg, (ei)->sgst))

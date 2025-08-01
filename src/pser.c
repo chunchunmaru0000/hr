@@ -36,6 +36,9 @@ struct Pser *new_pser(char *filename, uc debug) {
 	p->ts = ts;
 	p->debug = debug;
 
+	p->errors = new_plist(2);
+	p->warns = new_plist(2);
+
 	p->enums = new_plist(8);
 	p->structs = new_plist(8);
 
@@ -43,6 +46,20 @@ struct Pser *new_pser(char *filename, uc debug) {
 	p->local_vars = new_plist(16);
 
 	return p;
+}
+
+// TODO: warns too in here but no need to exit if errors->size == 0
+void pser_err(struct Pser *p) {
+	struct ErrorInfo *ei;
+	uint32_t i;
+
+	for (i = 0; i < p->errors->size; i++) {
+		ei = plist_get(p->errors, i);
+		etei(ei);
+	}
+
+	if (p->errors->size)
+		exit(1);
 }
 
 struct Inst *new_inst(struct Pser *p, enum IP_Code code, struct PList *os,

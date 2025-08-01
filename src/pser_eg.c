@@ -64,6 +64,8 @@ const struct CE_CodeStr *find_error_msg(enum CE_Code err_code) {
 }
 
 void search_error_code(struct Pser *p, struct PList *msgs) {
+	struct ErrorInfo *ei;
+
 	const struct CE_CodeStr *cstr;
 	struct Token *err_token;
 	long error;
@@ -77,11 +79,13 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 
 		if ((cstr = find_error_msg(error))) {
 			err_token = plist_get(msgs, i - 1);
-			eet(p->f, err_token, cstr->str, 0);
+			ei = new_error_info(p->f, err_token, cstr->str, 0);
+			plist_add(p->errors, ei);
 		}
 
 		// if ((cstr = find_warn_msg(error)))
 		//  i = take_warn_msg(msgs, i, cstr);
+		// warns_errors_count++;
 	}
 }
 
@@ -92,8 +96,11 @@ struct GlobExpr *parse_global_expression(struct Pser *p,
 	struct PList *msgs = new_plist(2);
 
 	are_types_compatible(msgs, type, e);
-	if (msgs->size != 0)
+	if (msgs->size != 0) {
 		search_error_code(p, msgs);
+		if (pser_need_err(p))
+			pser_err(p);
+	}
 
 	return e;
 }
