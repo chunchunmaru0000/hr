@@ -120,7 +120,7 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 	if (type->code == TC_PTR) {
 		blat(str, (uc *)TYPE_WORD_PTR.view, TYPE_WORD_PTR.view_len);
 		blist_add(str, '_');
-		add_type_str_to_str(str, type->data.ptr_target);
+		add_type_str_to_str(str, ptr_targ(type));
 	} else if (type->code == TC_STRUCT) {
 		blat(str, (uc *)TYPE_WORD_STRUCT.view, TYPE_WORD_STRUCT.view_len);
 		blist_add(str, '_');
@@ -251,7 +251,7 @@ int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
 	if (t1->code == TC_PTR) {
 		if (is_void_ptr(t1) || is_void_ptr(t2))
 			return 1; // cuz void ptr are equal to any ptr
-		res = are_types_equal(t1->data.ptr_target, t2->data.ptr_target);
+		res = are_types_equal(ptr_targ(t1), ptr_targ(t2));
 	} else if (t1->code == TC_STRUCT || t1->code == TC_ENUM) {
 		res = sc((char *)t1->data.name->st, (char *)t2->data.name->st);
 	} else if (t1->code == TC_ARR) {
@@ -275,7 +275,7 @@ void free_type(struct TypeExpr *type) {
 	uint32_t i;
 
 	if (type->code == TC_PTR)
-		free_type(type->data.ptr_target);
+		free_type(ptr_targ(type));
 
 	else if (type->code == TC_ARR) {
 		free_type(arr_type(type));
@@ -303,9 +303,9 @@ struct TypeExpr *new_type_expr(enum TypeCode code) {
 	return texpr;
 }
 
-// TODO: GlobExpr that are causeed by global_expresion in global ler
+// TODO: GlobExpr that are causeed by global_expresion in global let
 // are not used in local expressions cuz changable and not a CONST
-// but still why would i want a const it there would alread be macros
+// but still why would i want a const in there if would already be macros
 struct TypeExpr *type_expr(struct Pser *p) {
 	const struct TypeWord *tw;
 	struct Token *cur = pser_cur(p);

@@ -1,7 +1,7 @@
 #include "pser.h"
 
 enum CE_Code are_types_compatible(struct TypeExpr *type, struct GlobExpr *e) {
-	long some_value;
+	long n;
 	struct TypeExpr *tmp_type;
 	enum CE_Code tmp_code = CE_NONE;
 
@@ -53,15 +53,15 @@ enum CE_Code are_types_compatible(struct TypeExpr *type, struct GlobExpr *e) {
 			return CE_STR_INCOMPATIBLE_TYPE;
 
 		// asume array size
-		some_value = (long)arr_size(type);
-		if (some_value != -1 && some_value != e->tvar->str->size)
+		n = (long)arr_size(type);
+		if (n != -1 && n != e->tvar->str->size)
 			// TODO: provide len
 			tmp_code = CE_ARR_SIZES_DO_NOW_MATCH;
 
 		// set size in any way
-		some_value = e->tvar->view->size - 2;
+		n = e->tvar->view->size - 2;
 		// is arr type size is only for typization?
-		plist_set(type->data.arr, 1, (void *)some_value);
+		plist_set(type->data.arr, 1, (void *)n);
 
 		return tmp_code;
 	}
@@ -93,8 +93,27 @@ enum CE_Code are_types_compatible(struct TypeExpr *type, struct GlobExpr *e) {
 	if (e->code == CT_GLOBAL)
 		return CE_UNCOMPUTIBLE_DATA;
 
-	if (e->code == CT_ARR)
-		return CE_TODO3;
+	if (e->code == CT_ARR) {
+		if (!is_arr_type(type))
+			return CE_ARR_INCOMPATIBLE_TYPE;
+
+		if (type->code == TC_ARR) {
+			for (n = 0; n < e->globs->size; n++) {
+				// TODO: provide n
+				tmp_code = are_types_compatible(arr_type(type),
+												plist_get(e->globs, n));
+				return CE_ARR_ITEM_INCOMPATIBLE_TYPE;
+			}
+		} else {
+			for (n = 0; n < e->globs->size; n++) {
+				// TODO: provide n
+				tmp_code = are_types_compatible(ptr_targ(type),
+												plist_get(e->globs, n));
+				return CE_ARR_ITEM_INCOMPATIBLE_TYPE;
+			}
+		}
+		return CE_NONE;
+	}
 
 	if (e->code == CT_STRUCT)
 		return CE_TODO4;

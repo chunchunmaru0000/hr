@@ -20,9 +20,36 @@ const char *const PTR_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с указываемым типом выражения.";
 const char *const FUN_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с функциональным типом выражения.";
+const char *const ARR_INCOMPATIBLE_TYPE =
+	"Тип переменной не совместим с типом выражения массива.";
+const char *const ARR_ITEM_INCOMPATIBLE_TYPE =
+	"Тип переменной не совместим с типом выражения значения массива.";
 const char *const INCOMPATIBLE_TYPES =
 	"Типы переменной и выражения несовместимы.";
 const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
+
+struct CE_CodeStr {
+	enum CE_Code code;
+	const char *const str;
+};
+
+const struct CE_CodeStr cecstrs_errs[] = {
+	{CE_NUM_INCOMPATIBLE_TYPE, NUM_INCOMPATIBLE_TYPE},
+	{CE_STR_INCOMPATIBLE_TYPE, STR_INCOMPATIBLE_TYPE},
+	{CE_PTR_INCOMPATIBLE_TYPE, PTR_INCOMPATIBLE_TYPE},
+	{CE_ARR_INCOMPATIBLE_TYPE, ARR_INCOMPATIBLE_TYPE},
+	{CE_FUN_INCOMPATIBLE_TYPE, FUN_INCOMPATIBLE_TYPE},
+	{CE_ARR_ITEM_INCOMPATIBLE_TYPE, ARR_ITEM_INCOMPATIBLE_TYPE},
+	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA},
+
+	{CE_TODO1, "TODO1"},
+	{CE_TODO2, "TODO2"},
+	{CE_TODO3, "TODO3"},
+	{CE_TODO4, "TODO4"},
+};
+struct CE_CodeStr cecstrs_warns[] = {
+	{CE_ARR_SIZES_DO_NOW_MATCH, ARR_SIZES_DO_NOW_MATCH},
+};
 
 struct GlobExpr *parse_global_expression(struct Pser *p,
 										 struct TypeExpr *type) {
@@ -31,31 +58,20 @@ struct GlobExpr *parse_global_expression(struct Pser *p,
 
 	enum CE_Code error = are_types_compatible(type, e);
 
-	switch (error) {
-	case CE_NONE:
-		break;
-	case CE_NUM_INCOMPATIBLE_TYPE:
-		eet(p->f, equ, NUM_INCOMPATIBLE_TYPE, 0);
-	case CE_STR_INCOMPATIBLE_TYPE:
-		eet(p->f, equ, STR_INCOMPATIBLE_TYPE, 0);
-	case CE_ARR_SIZES_DO_NOW_MATCH:
-		pw(p->f, equ->p, ARR_SIZES_DO_NOW_MATCH);
-		break;
-	case CE_PTR_INCOMPATIBLE_TYPE:
-		eet(p->f, equ, PTR_INCOMPATIBLE_TYPE, 0);
-	case CE_FUN_INCOMPATIBLE_TYPE:
-		eet(p->f, equ, FUN_INCOMPATIBLE_TYPE, 0);
-	case CE_UNCOMPUTIBLE_DATA:
-		eet(p->f, equ, UNCOMPUTIBLE_DATA, 0);
+	const struct CE_CodeStr *cstr;
+	uint32_t i;
+	for (i = 0; i < loa(cecstrs_errs); i++) {
+		cstr = cecstrs_errs + i;
+		if (error == cstr->code)
+			eet(p->f, equ, cstr->str, 0);
+	}
 
-	case CE_TODO1:
-		eet(p->f, equ, "TODO1", 0);
-	case CE_TODO2:
-		eet(p->f, equ, "TODO2", 0);
-	case CE_TODO3:
-		eet(p->f, equ, "TODO3", 0);
-	case CE_TODO4:
-		eet(p->f, equ, "TODO4", 0);
+	for (i = 0; i < loa(cecstrs_warns); i++) {
+		cstr = cecstrs_errs + i;
+		if (error == cstr->code) {
+			pw(p->f, equ->p, cstr->str);
+			break;
+		}
 	}
 
 	return e;

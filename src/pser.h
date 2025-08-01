@@ -146,12 +146,6 @@ enum TypeCode {
 };
 
 int get_type_code_size(enum TypeCode);
-#define size_of_type(t) (get_type_code_size((t)->code))
-#define is_void_ptr(t)                                                         \
-	((t)->code == TC_PTR && (t)->data.ptr_target->code == TC_VOID)
-#define is_ptr_type(t)                                                         \
-	((t)->code == TC_PTR || (t)->code == TC_ARR || (t)->code == TC_FUN ||      \
-	 (t)->code == TC_STRUCT)
 
 struct TypeWord {
 	char *view;
@@ -182,6 +176,14 @@ struct TypeExpr {
 
 #define arr_type(t) (plist_get((t)->data.arr, 0))
 #define arr_size(t) (plist_get((t)->data.arr, 1))
+#define ptr_targ(t) ((t)->data.ptr_target)
+
+#define size_of_type(t) (get_type_code_size((t)->code))
+#define is_void_ptr(t) ((t)->code == TC_PTR && ptr_targ((t))->code == TC_VOID)
+#define is_ptr_type(t)                                                         \
+	((t)->code == TC_PTR || (t)->code == TC_ARR || (t)->code == TC_FUN ||      \
+	 (t)->code == TC_STRUCT)
+#define is_arr_type(t) ((t)->code == TC_ARR || (t)->code == TC_PTR)
 
 struct TypeExpr *new_type_expr(enum TypeCode);
 void free_type(struct TypeExpr *type);
@@ -288,6 +290,8 @@ enum CE_Code {
 	CE_ARR_SIZES_DO_NOW_MATCH,
 	CE_PTR_INCOMPATIBLE_TYPE,
 	CE_FUN_INCOMPATIBLE_TYPE,
+	CE_ARR_INCOMPATIBLE_TYPE,
+	CE_ARR_ITEM_INCOMPATIBLE_TYPE,
 	CE_UNCOMPUTIBLE_DATA,
 
 	CE_TODO1,
@@ -296,4 +300,5 @@ enum CE_Code {
 	CE_TODO4,
 };
 
-enum CE_Code are_types_compatible(struct TypeExpr *type, struct GlobExpr *e);
+enum CE_Code are_types_compatible(struct PList *msgs, struct TypeExpr *type,
+								  struct GlobExpr *e);

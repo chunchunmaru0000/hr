@@ -350,4 +350,6 @@ void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 		lay_down_str_Асм_Linux_64(g, var);
 	else if (code == CT_GLOBAL_PTR)
 		lay_down_gptr_Асм_Linux_64(g, var);
+	else if (code == CT_ARR)
+		;
 }
