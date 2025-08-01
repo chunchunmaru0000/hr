@@ -9,6 +9,7 @@ enum CE_Code are_types_compatible(struct TypeExpr *type, struct GlobExpr *e) {
 		// compares global types, not returns enum CE_Code, just boolean
 		if (are_types_equal(type, e->type))
 			return CE_NONE;
+
 		return CE_TODO1;
 	}
 
@@ -72,30 +73,20 @@ enum CE_Code are_types_compatible(struct TypeExpr *type, struct GlobExpr *e) {
 		// so in here need to comapre e->from->type
 		// where e->from->type is a pointed to type, not a pointer type
 
-		if (is_ptr_type(type))
-			if (are_types_equal(type->data.ptr_target, e->from->type))
-				return CE_NONE;
-		//
-		// 		if (type->code == TC_PTR) {
-		// 			if (type->data.ptr_target->code == TC_VOID ||
-		// 				e->from->type->code == TC_VOID)
-		// 				// void is compatible with any type
-		// 				return CE_NONE;
-		//
-		// 			// if ptr targets are equal
-		// 			// TODO: check this, i dunno what to use in here
-		// 			// return are_types_compatible(type->data.ptr_target,
-		// 			// e->from->value);
-		// 			if (are_types_equal(type->data.ptr_target, e->from->type))
-		// 				return CE_NONE;
-		// 		}
-		//
-		// 		// see else
-		// 		else if (type->code == TC_ARR) { // TODO: check here too
-		// 			// if array target is equal to ptr target
-		// 			if (are_types_compatible(arr_type(type), e->from->value))
-		// 				return CE_NONE;
-		// 		}
+		if (is_ptr_type(type)) {
+			// wrap around e->from->type
+			tmp_type = new_type_expr(TC_PTR);
+			// tmp_type = &(struct TypeExpr){TC_PTR, 0};
+			tmp_type->data.ptr_target = e->from->type;
+
+			// tmp_code = CE_NONE;
+			if (!are_types_equal(type, tmp_type))
+				tmp_code = CE_PTR_INCOMPATIBLE_TYPE;
+
+			free(tmp_type);
+			return tmp_code;
+		}
+
 		return CE_PTR_INCOMPATIBLE_TYPE;
 	}
 
@@ -111,9 +102,6 @@ enum CE_Code are_types_compatible(struct TypeExpr *type, struct GlobExpr *e) {
 	// here e->from != 0
 	if (e->code == CT_FUN) {
 		// is it also includes is_void_ptr check in are_types_equal
-		// if (is_void_ptr(type))
-		// 	return CE_NONE;
-
 		if (are_types_equal(type, e->from->type))
 			return CE_NONE;
 

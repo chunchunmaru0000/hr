@@ -103,6 +103,14 @@ struct BList *real_to_str(double num) {
 	return num_str;
 }
 
+struct BList *type_to_blist_from_str(struct TypeExpr *type);
+
+void add_type_str_to_str(struct BList *str, struct TypeExpr *type) {
+	struct BList *tmp = type_to_blist_from_str(type);
+	blat_blist(str, tmp);
+	blist_clear_free(tmp);
+}
+
 struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 	struct BList *str = new_blist(9), *tmp;
 	const struct TypeWord *type_word;
@@ -112,9 +120,7 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 	if (type->code == TC_PTR) {
 		blat(str, (uc *)TYPE_WORD_PTR.view, TYPE_WORD_PTR.view_len);
 		blist_add(str, '_');
-		tmp = type_to_blist_from_str(type->data.ptr_target);
-		blat_blist(str, tmp);
-		blist_clear_free(tmp);
+		add_type_str_to_str(str, type->data.ptr_target);
 	} else if (type->code == TC_STRUCT) {
 		blat(str, (uc *)TYPE_WORD_STRUCT.view, TYPE_WORD_STRUCT.view_len);
 		blist_add(str, '_');
@@ -126,9 +132,7 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 	} else if (type->code == TC_ARR) {
 		blist_add(str, '[');
 
-		tmp = type_to_blist_from_str(arr_type(type));
-		blat_blist(str, tmp);
-		blist_clear_free(tmp);
+		add_type_str_to_str(str, arr_type(type));
 		blist_add(str, '_');
 
 		arr_len = (long)arr_size(type);
@@ -146,15 +150,11 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 		blist_add(str, '{');
 		// -1 cuz lasr itteration after it
 		for (i = 0; i < type->data.args_types->size - 1; i++) {
-			tmp = type_to_blist_from_str(plist_get(type->data.args_types, i));
-			blat_blist(str, tmp);
-			blist_clear_free(tmp);
+			add_type_str_to_str(str, plist_get(type->data.args_types, i));
 			blist_add(str, '_');
 		}
 		// this is last itteration, i just dont wanna do if in the loop above
-		tmp = type_to_blist_from_str(plist_get(type->data.args_types, i));
-		blat_blist(str, tmp);
-		blist_clear_free(tmp);
+		add_type_str_to_str(str, plist_get(type->data.args_types, i));
 
 		blist_add(str, '}');
 	} else {
@@ -174,12 +174,13 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 }
 
 void get_fun_signature_considering_args(struct PList *os, struct GlobVar *var) {
-	struct BList *signature = new_blist(32), *type_str;
+	struct BList *signature = new_blist(32);
 	struct Arg *arg, *next_arg;
 	uint32_t i;
 
 	// add name
 	blat_blist(signature, var->name->view);
+	blist_add(signature, '_');
 	blist_add(signature, '_');
 	// start fun type part
 	blist_add(signature, '{');
@@ -191,9 +192,7 @@ void get_fun_signature_considering_args(struct PList *os, struct GlobVar *var) {
 	for (i = 1; next_arg;) {
 		arg = next_arg;
 
-		type_str = type_to_blist_from_str(arg->type); // gen type str
-		blat_blist(signature, type_str);			  // add type str to str
-		blist_clear_free(type_str);					  // free type str
+		add_type_str_to_str(signature, arg->type);
 
 		next_arg = plist_get(os, ++i);
 		if (!next_arg) // zero term
@@ -209,12 +208,9 @@ void get_fun_signature_considering_args(struct PList *os, struct GlobVar *var) {
 skip_add_args:
 
 	// last arg type from var->type that is return type
-	type_str = type_to_blist_from_str(
-		plist_get(var->type->data.args_types,
-				  var->type->data.args_types->size - 1)); // gen type str
-	blat_blist(signature, type_str);					  // add type str to str
-	blist_clear_free(type_str);							  // free type str
-
+	add_type_str_to_str(signature,
+						plist_get(var->type->data.args_types,
+								  var->type->data.args_types->size - 1));
 	// end fun type part
 	blist_add(signature, '}');
 
@@ -222,22 +218,14 @@ skip_add_args:
 	var->signature = signature;
 }
 
-void get_global_signature(struct PList *os, struct GlobVar *var) {
-	struct BList *type_str;
+void get_global_signature(struct GlobVar *var) {
+	var->signature = new_blist(128);
+	blat_blist(var->signature, var->name->view);
+	blist_add(var->signature, '_');
+	blist_add(var->signature, '_');
+	add_type_str_to_str(var->signature, var->type);
 
-	if (var->type->code == TC_FUN) {
-		get_fun_signature_considering_args(os, var);
-	} else {
-		var->signature = new_blist(128);
-		blat_blist(var->signature, var->name->view);
-		blist_add(var->signature, '_');
-
-		type_str = type_to_blist_from_str(var->type);
-		blat_blist(var->signature, type_str);
-		blist_clear_free(type_str);
-
-		convert_blist_to_blist_from_str(var->signature);
-	}
+	convert_blist_to_blist_from_str(var->signature);
 }
 
 /*

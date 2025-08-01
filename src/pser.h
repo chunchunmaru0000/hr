@@ -260,7 +260,7 @@ struct BList *int_to_str(long num);
 struct BList *int_to_hex_str(long num);
 struct BList *real_to_str(double num);
 void get_fun_signature_considering_args(struct PList *os, struct GlobVar *var);
-void get_global_signature(struct PList *os, struct GlobVar *var);
+void get_global_signature(struct GlobVar *var);
 int are_types_equal(struct TypeExpr *, struct TypeExpr *);
 void check_list_of_args_on_uniq_names(struct Fpfc *f, struct PList *l,
 									  uint32_t start_index);

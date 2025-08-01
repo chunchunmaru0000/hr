@@ -1,0 +1,10 @@
+let a, b, c, d byte "hello world"
+so plist of names in let statement of the assembly
+
+^ xor, better chose another thing
+~ bit not, inverts all bits, ~1 = -2
+
+do ',' fun arg types like the ones that are possible in function signature but
+function variable signature
+
+атом ( ... )
