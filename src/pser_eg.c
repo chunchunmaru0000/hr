@@ -47,32 +47,53 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_TODO3, "TODO3"},
 	{CE_TODO4, "TODO4"},
 };
-struct CE_CodeStr cecstrs_warns[] = {
+const struct CE_CodeStr cecstrs_warns[] = {
 	{CE_ARR_SIZES_DO_NOW_MATCH, ARR_SIZES_DO_NOW_MATCH},
 };
 
-struct GlobExpr *parse_global_expression(struct Pser *p,
-										 struct TypeExpr *type) {
-	struct Token *equ = get_pser_token(p, -1);
-	struct GlobExpr *e = global_expression(p);
-
-	enum CE_Code error = are_types_compatible(type, e);
-
+const struct CE_CodeStr *find_error_msg(enum CE_Code err_code) {
 	const struct CE_CodeStr *cstr;
 	uint32_t i;
+
 	for (i = 0; i < loa(cecstrs_errs); i++) {
 		cstr = cecstrs_errs + i;
-		if (error == cstr->code)
-			eet(p->f, equ, cstr->str, 0);
+		if (err_code == cstr->code)
+			return cstr;
 	}
+	return 0;
+}
 
-	for (i = 0; i < loa(cecstrs_warns); i++) {
-		cstr = cecstrs_errs + i;
-		if (error == cstr->code) {
-			pw(p->f, equ->p, cstr->str);
-			break;
+void search_error_code(struct Pser *p, struct PList *msgs) {
+	const struct CE_CodeStr *cstr;
+	struct Token *err_token;
+	long error;
+	int i;
+
+	for (i = msgs->size - 1; i >= 0; i--) {
+		error = (long)plist_get(msgs, i);
+
+		if (error == CE_NONE)
+			continue;
+
+		if ((cstr = find_error_msg(error))) {
+			err_token = plist_get(msgs, i - 1);
+			eet(p->f, err_token, cstr->str, 0);
 		}
+
+		// if ((cstr = find_warn_msg(error)))
+		//  i = take_warn_msg(msgs, i, cstr);
 	}
+}
+
+struct GlobExpr *parse_global_expression(struct Pser *p,
+										 struct TypeExpr *type) {
+	// struct Token *equ = get_pser_token(p, -1);
+	struct GlobExpr *e = global_expression(p);
+	struct PList *msgs = new_plist(2);
+
+	are_types_compatible(msgs, type, e);
+	if (msgs->size != 0)
+		search_error_code(p, msgs);
 
 	return e;
 }

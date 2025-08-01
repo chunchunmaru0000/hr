@@ -300,5 +300,5 @@ enum CE_Code {
 	CE_TODO4,
 };
 
-enum CE_Code are_types_compatible(struct PList *msgs, struct TypeExpr *type,
-								  struct GlobExpr *e);
+void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
+						  struct GlobExpr *e);
