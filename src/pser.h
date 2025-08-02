@@ -257,6 +257,7 @@ struct GlobVar {
 	 ((t1) >= TC_INT8 && (t2) >= TC_INT8 && (t1) < TC_INT16 &&                 \
 	  (t2) < TC_INT16))
 
+void search_error_code(struct Pser *p, struct PList *msgs);
 void *expression(struct Pser *);
 struct GlobExpr *parse_global_expression(struct Pser *p, struct TypeExpr *type);
 void parse_args(struct Pser *p, struct PList *os);

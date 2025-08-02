@@ -1,5 +1,108 @@
 #include "pser.h"
 
+const char *const NUM_INCOMPATIBLE_TYPE =
+	"Тип переменной не совместим с числовым типом выражения.";
+const char *const STR_INCOMPATIBLE_TYPE =
+	"Тип переменной не совместим с строковым типом выражения.";
+const char *const ARR_SIZES_DO_NOW_MATCH =
+	"Рамеры типа переменной массива и самого массива не совпадают.";
+const char *const PTR_INCOMPATIBLE_TYPE =
+	"Тип переменной не совместим с указываемым типом выражения.";
+const char *const FUN_INCOMPATIBLE_TYPE =
+	"Тип переменной не совместим с функциональным типом выражения.";
+const char *const ARR_INCOMPATIBLE_TYPE =
+	"Тип переменной не совместим с типом выражения массива.";
+const char *const ARR_ITEM_INCOMPATIBLE_TYPE =
+	"Тип переменной не совместим с типом выражения значения массива.";
+const char *const INCOMPATIBLE_TYPES =
+	"Типы переменной и выражения несовместимы.";
+const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
+const char *const ARR_LEN_WAS = "длина была ";
+
+struct CE_CodeStr {
+	enum CE_Code code;
+	const char *const str;
+	const char *const sgst;
+};
+
+const struct CE_CodeStr cecstrs_errs[] = {
+	{CE_NUM_INCOMPATIBLE_TYPE, NUM_INCOMPATIBLE_TYPE, 0},
+	{CE_STR_INCOMPATIBLE_TYPE, STR_INCOMPATIBLE_TYPE, 0},
+	{CE_PTR_INCOMPATIBLE_TYPE, PTR_INCOMPATIBLE_TYPE, 0},
+	{CE_ARR_INCOMPATIBLE_TYPE, ARR_INCOMPATIBLE_TYPE, 0},
+	{CE_FUN_INCOMPATIBLE_TYPE, FUN_INCOMPATIBLE_TYPE, 0},
+	{CE_ARR_ITEM_INCOMPATIBLE_TYPE, ARR_ITEM_INCOMPATIBLE_TYPE, 0},
+	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA, 0},
+
+	{CE_TODO1, "TODO1", 0},
+	{CE_TODO2, "TODO2", 0},
+	{CE_TODO3, "TODO3", 0},
+	{CE_TODO4, "TODO4", 0},
+};
+const struct CE_CodeStr cecstrs_warns[] = {
+	{CE_ARR_SIZES_DO_NOW_MATCH, ARR_SIZES_DO_NOW_MATCH, ARR_LEN_WAS},
+};
+
+const struct CE_CodeStr *find_error_msg(enum CE_Code err_code) {
+	const struct CE_CodeStr *cstr;
+	uint32_t i;
+
+	for (i = 0; i < loa(cecstrs_errs); i++) {
+		cstr = cecstrs_errs + i;
+		if (err_code == cstr->code)
+			return cstr;
+	}
+	return 0;
+}
+const struct CE_CodeStr *find_warn_msg(enum CE_Code err_code) {
+	const struct CE_CodeStr *cstr;
+	uint32_t i;
+
+	for (i = 0; i < loa(cecstrs_warns); i++) {
+		cstr = cecstrs_warns + i;
+		if (err_code == cstr->code)
+			return cstr;
+	}
+	return 0;
+}
+
+void search_error_code(struct Pser *p, struct PList *msgs) {
+	struct ErrorInfo *ei;
+
+	const struct CE_CodeStr *cstr;
+	struct Token *err_token;
+	long error;
+	int i;
+
+	for (i = msgs->size - 1; i >= 0; i--) {
+		error = (long)plist_get(msgs, i);
+
+		if (error == CE_NONE) {
+			i--;
+			continue;
+		}
+
+		if ((cstr = find_error_msg(error))) {
+			err_token = plist_get(msgs, --i);
+			ei = new_error_info(p->f, err_token, cstr->str, cstr->sgst);
+			plist_add(p->errors, ei);
+			continue;
+		}
+
+		if ((cstr = find_warn_msg(error))) {
+			err_token = plist_get(msgs, --i);
+			ei = new_error_info(p->f, err_token, cstr->str, cstr->sgst);
+
+			ei->extra = (void *)plist_get(msgs, --i);
+			if (cstr->code == CE_ARR_SIZES_DO_NOW_MATCH)
+				ei->extra_type = ET_INT;
+
+			plist_add(p->warns, ei);
+			continue;
+		}
+	}
+}
+
 void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 						  struct GlobExpr *e) {
 	long n;
@@ -117,7 +220,6 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		return;
 	}
 
-	// TODO: check if type->code is STR and arr is [UINT8]
 	if (e->code == CT_ARR) {
 		if (!is_arr_type(type)) {
 			plist_add(msgs, e->tvar);
