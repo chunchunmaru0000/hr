@@ -109,6 +109,7 @@ void pser_err(struct Pser *p) {
 		pwei_with_extra(ei);
 		free(ei);
 	}
+	plist_clear(p->warns);
 
 	if (p->errors->size)
 		exit(1);
