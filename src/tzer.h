@@ -16,7 +16,9 @@ extern const char *const COLOR_LIGHT_PURPLE;
 extern const char *const COLOR_GAY;
 extern const char *const COLOR_WHITE;
 extern const char *const COLOR_RESET;
+extern const char UNDERLINE_CHAR;
 #define color_print(c, msg) (printf("%s%s%s", (c), (msg), COLOR_RESET))
+uint32_t get_utf8_chars_to_pos(const char *str, int col);
 
 struct Tzer {
 	struct Fpfc *f;
@@ -24,11 +26,19 @@ struct Tzer {
 	size_t pos;
 };
 
+enum ExtraType {
+	ET_NONE,
+	ET_INT,
+};
+
 struct ErrorInfo {
 	struct Fpfc *f;
 	struct Token *t;
 	const char *msg;
 	const char *sgst;
+
+	void *extra;
+	enum ExtraType extra_type;
 };
 struct ErrorInfo *new_error_info(struct Fpfc *f, struct Token *t,
 								 const char *const msg, const char *const sgst);

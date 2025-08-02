@@ -2,7 +2,8 @@
 #include <stdint.h>
 
 extern uc NEED_WARN;
-void pw(struct Fpfc *f, struct Pos *p, const char *const msg);
+void pw(struct Fpfc *f, struct Token *t, const char *const msg,
+		const char *const sgst);
 #define MAX_ARGS_ON_REGISTERS 7
 
 extern const char *const EXPECTED__STR;

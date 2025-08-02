@@ -68,15 +68,16 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 
 		// asume array size
 		n = (long)arr_size(type);
-		if (n != -1 && n != e->tvar->str->size)
-			// TODO: provide len
+		if (n != -1 && n != e->tvar->str->size) {
+			n = e->tvar->str->size;
+			plist_add(msgs, (void *)n);
 			tmp_code = CE_ARR_SIZES_DO_NOW_MATCH;
-
+		}
 		// set size in any way
 		n = e->tvar->view->size - 2;
-		// is arr type size is only for typization?
 		plist_set(type->data.arr, 1, (void *)n);
 
+		plist_add(msgs, e->tvar);
 		plist_add(msgs, (void *)tmp_code);
 		return;
 	}
@@ -116,6 +117,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		return;
 	}
 
+	// TODO: check if type->code is STR and arr is [UINT8]
 	if (e->code == CT_ARR) {
 		if (!is_arr_type(type)) {
 			plist_add(msgs, e->tvar);
@@ -125,13 +127,23 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 
 		if (type->code == TC_ARR) {
 			for (n = 0; n < e->globs->size; n++) {
-				// TODO: provide n
 				are_types_compatible(msgs, arr_type(type),
 									 plist_get(e->globs, n));
 			}
+
+			n = (long)arr_size(type);
+			if (n != -1 && n != e->globs->size) {
+				n = e->globs->size;
+				plist_add(msgs, (void *)n);
+				plist_add(msgs, e->tvar);
+				plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
+			}
+
+			// set size in any way
+			n = e->globs->size;
+			plist_set(type->data.arr, 1, (void *)n);
 		} else {
 			for (n = 0; n < e->globs->size; n++) {
-				// TODO: provide n
 				are_types_compatible(msgs, ptr_targ(type),
 									 plist_get(e->globs, n));
 			}

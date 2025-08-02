@@ -13,11 +13,57 @@ void ee_token(struct Fpfc *f, struct Token *t, char *msg) { // error exit
 
 // print warning
 // TODO: make pw for types kinda with int with str like for better info
-void pw(struct Fpfc *f, struct Pos *p, const char *const msg) {
-	if (NEED_WARN) {
-		fprintf(stderr, "%s%s:%d:%d%s ПРЕДУПРЕЖДЕНИЕ: %s%s\n", COLOR_WHITE,
-				f->path, p->line, p->col, COLOR_LIGHT_PURPLE, msg, COLOR_RESET);
-		print_source_line(f->code, p, COLOR_LIGHT_PURPLE, 0);
+void pw(struct Fpfc *f, struct Token *t, const char *const msg,
+		const char *const sgst) {
+	if (!NEED_WARN)
+		return;
+
+	char *help;
+	uint32_t token_chars_len, help_len, sgst_len = -1;
+	if (sgst)
+		sgst_len = strlen(sgst);
+
+	token_chars_len =
+		get_utf8_chars_to_pos((const char *)t->view->st, t->view->size);
+
+	help_len = token_chars_len + 1 + sgst_len;
+	help = malloc(help_len + 1);
+
+	help[help_len] = 0; // terminate
+	for (uint32_t i = 0; i < token_chars_len; i++)
+		help[i] = UNDERLINE_CHAR; // fill with underline
+
+	if (sgst) {
+		help[token_chars_len] = '\n'; // split by \n
+		memcpy(help + token_chars_len + 1, sgst, sgst_len);
+	}
+
+	fprintf(stderr, "%s%s:%d:%d%s ПРЕДУПРЕЖДЕНИЕ: %s%s\n", COLOR_WHITE, f->path,
+			t->p->line, t->p->col, COLOR_LIGHT_PURPLE, msg, COLOR_RESET);
+	print_source_line(f->code, t->p, COLOR_LIGHT_PURPLE, help);
+}
+
+void pwei_with_extra(struct ErrorInfo *info) {
+	struct BList *sgst_list, *tmp_list;
+	long sgst_len;
+
+	if (info->extra_type == ET_NONE)
+		pw(info->f, info->t, info->msg, info->sgst);
+	else {
+		sgst_len = strlen(info->sgst);
+		sgst_list = new_blist(strlen(info->sgst));
+		blat(sgst_list, (uc *)info->sgst, sgst_len);
+
+		if (info->extra_type == ET_INT) {
+			tmp_list = int_to_str((long)info->extra);
+			blat_blist(sgst_list, tmp_list);
+			blist_add(sgst_list, '\0');
+
+			blist_clear_free(tmp_list);
+		}
+
+		pw(info->f, info->t, info->msg, (char *)sgst_list->st);
+		blist_clear_free(sgst_list);
 	}
 }
 
@@ -51,11 +97,17 @@ struct Pser *new_pser(char *filename, uc debug) {
 // TODO: warns too in here but no need to exit if errors->size == 0
 void pser_err(struct Pser *p) {
 	struct ErrorInfo *ei;
-	uint32_t i;
+	int i;
 
-	for (i = 0; i < p->errors->size; i++) {
+	for (i = p->errors->size - 1; i >= 0; i--) {
 		ei = plist_get(p->errors, i);
 		etei(ei);
+	}
+
+	for (i = p->warns->size - 1; i >= 0; i--) {
+		ei = plist_get(p->warns, i);
+		pwei_with_extra(ei);
+		free(ei);
 	}
 
 	if (p->errors->size)
