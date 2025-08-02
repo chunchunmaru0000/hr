@@ -12,7 +12,6 @@ void ee_token(struct Fpfc *f, struct Token *t, char *msg) { // error exit
 }
 
 // print warning
-// TODO: make pw for types kinda with int with str like for better info
 void pw(struct Fpfc *f, struct Token *t, const char *const msg,
 		const char *const sgst) {
 	if (!NEED_WARN)
@@ -94,7 +93,6 @@ struct Pser *new_pser(char *filename, uc debug) {
 	return p;
 }
 
-// TODO: warns too in here but no need to exit if errors->size == 0
 void pser_err(struct Pser *p) {
 	struct ErrorInfo *ei;
 	int i;

@@ -1,6 +1,7 @@
 #include "pser.h"
 
-long a = (long)(&"str");
+// TODO:
+long a = (long)("str");
 
 struct GlobExpr *after_g_expression(struct Pser *p);
 struct GlobExpr *prime_g_expression(struct Pser *p);
@@ -202,7 +203,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 	if (c->code == AMPER) {
 		consume(p);
 		e = after_g_expression(p);
-
+		// TODO: AMPER on str and arr
 		if (!e->from)
 			eet(p->f, c, CANT_TAKE_PTR_FROM_NOT_GVAR, 0);
 
@@ -230,6 +231,6 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 struct GlobExpr *addng_g_expression(struct Pser *p) {
 	struct GlobExpr *e = unary_g_expression(p);
-
+	// TODO: maybe take strings in globs and not add them in one ?
 	return e;
 }

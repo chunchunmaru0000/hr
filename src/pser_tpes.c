@@ -1,5 +1,22 @@
 #include "pser.h"
 
+enum CE_Code {
+	CE_NONE,
+	CE_NUM_INCOMPATIBLE_TYPE,
+	CE_STR_INCOMPATIBLE_TYPE,
+	CE_ARR_SIZES_DO_NOW_MATCH,
+	CE_PTR_INCOMPATIBLE_TYPE,
+	CE_FUN_INCOMPATIBLE_TYPE,
+	CE_ARR_INCOMPATIBLE_TYPE,
+	CE_ARR_ITEM_INCOMPATIBLE_TYPE,
+	CE_UNCOMPUTIBLE_DATA,
+
+	CE_TODO1,
+	CE_TODO2,
+	CE_TODO3,
+	CE_TODO4,
+};
+
 const char *const NUM_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с числовым типом выражения.";
 const char *const STR_INCOMPATIBLE_TYPE =
@@ -110,6 +127,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	enum CE_Code tmp_code = CE_NONE;
 
 	if (e->type) {
+		// TODO:
 		// compares global types, not returns enum CE_Code, just boolean
 		if (!are_types_equal(type, e->type)) {
 			plist_add(msgs, e->tvar);

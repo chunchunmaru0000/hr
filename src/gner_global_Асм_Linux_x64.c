@@ -319,7 +319,6 @@ void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 }
 void lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 	iprint_prol(SA_LET_8);
-	// TODO: maybe take strings in globs and not add them in one ?
 	blat_blist(g->prol, var->value->tvar->view);
 	// zero terminator
 	prol_add(' ');

@@ -340,9 +340,6 @@ struct TypeExpr *new_type_expr(enum TypeCode code) {
 	return texpr;
 }
 
-// TODO: GlobExpr that are causeed by global_expresion in global let
-// are not used in local expressions cuz changable and not a CONST
-// but still why would i want a const in there if would already be macros
 struct TypeExpr *type_expr(struct Pser *p) {
 	const struct TypeWord *tw;
 	struct Token *cur = pser_cur(p);

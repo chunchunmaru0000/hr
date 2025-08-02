@@ -360,7 +360,6 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 		var->name = plist_get(arg->names, i);
 		var->type = arg->type;
 		var->gvar_size = arg->arg_size;
-		// TODO: can i share signarute between all them?
 		get_global_signature(var);
 		var->value = global_expr;
 

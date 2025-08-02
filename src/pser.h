@@ -302,22 +302,5 @@ void eei(struct Inst *, const char *const msg, const char *const sgst);
 	((t)->code == TC_PTR && ((t)->data.ptr_target->code == TC_UINT8 ||         \
 							 (t)->data.ptr_target->code == TC_VOID))
 
-enum CE_Code {
-	CE_NONE,
-	CE_NUM_INCOMPATIBLE_TYPE,
-	CE_STR_INCOMPATIBLE_TYPE,
-	CE_ARR_SIZES_DO_NOW_MATCH,
-	CE_PTR_INCOMPATIBLE_TYPE,
-	CE_FUN_INCOMPATIBLE_TYPE,
-	CE_ARR_INCOMPATIBLE_TYPE,
-	CE_ARR_ITEM_INCOMPATIBLE_TYPE,
-	CE_UNCOMPUTIBLE_DATA,
-
-	CE_TODO1,
-	CE_TODO2,
-	CE_TODO3,
-	CE_TODO4,
-};
-
 void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 						  struct GlobExpr *e);
