@@ -34,6 +34,7 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 
 	g->tmp_blist = 0;
 
+	// TODO: free pser properly
 	free(p);
 	return g;
 }

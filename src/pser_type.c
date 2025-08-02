@@ -8,13 +8,39 @@ const char *const FUN_TYPE_END_OF_FILE =
 	"Скобки типа функции не были закрыты и был достигнут конец файла.";
 const char *const NOT_A_TYPE_WORD = "Ожидалось слово типа.";
 const char *const FUN_ZERO_ARGS = "Тип функции не может иметь 0 аргументов.";
+const char *const AMPER_WORKS_ONLY_ON_STRUCTS =
+	"Знак '&' применим только к типу указателя на структуру, например: '&лик "
+	"Чето'.";
 const char *const SUGGEST_ADD_ARGS = "добавить аргументов";
 
-int get_type_code_size(enum TypeCode code) {
-	return code >= TC_VOID	  ? QWORD
-		   : code >= TC_INT32 ? DWORD
-		   : code >= TC_INT16 ? WORD
-							  : BYTE;
+int size_of_struct(struct Pser *p, struct BList *name) {
+	uint32_t i, res = 0;
+	struct Inst *declare_struct;
+	struct Token *name_token;
+
+	for (i = 0; i < p->structs->size; i++) {
+		declare_struct = plist_get(p->structs, i);
+		name_token = plist_get(declare_struct->os, 0);
+
+		if (sc((char *)name->st, (char *)name_token->view->st)) {
+			res = 1;
+			break;
+		}
+	}
+
+	if (!res)
+		eet();
+}
+
+int size_of_type(struct Pser *p, struct TypeExpr *type) {
+	enum TypeCode c = type->code;
+	return c == TC_STRUCT ? size_of_struct(p, type->data.name)
+		   : c == TC_ARR
+			   ? (long)arr_size(type) * size_of_type(p, arr_type(type))
+		   : c >= TC_VOID  ? QWORD
+		   : c >= TC_INT32 ? DWORD
+		   : c >= TC_INT16 ? WORD
+						   : BYTE;
 }
 
 const struct TypeWord TYPE_WORDS[] = {
@@ -300,6 +326,7 @@ struct TypeExpr *new_type_expr(enum TypeCode code) {
 	struct TypeExpr *texpr = malloc(sizeof(struct TypeExpr));
 	texpr->data.ptr_target = 0;
 	texpr->code = code;
+	texpr->size = 0;
 	return texpr;
 }
 
@@ -317,16 +344,23 @@ struct TypeExpr *type_expr(struct Pser *p) {
 			texpr->data.ptr_target = new_type_expr(TC_UINT8);
 
 		} else if (1) {
-			if (sc((char *)cur->view->st, STR_STRUCT_TW))
-				texpr->code = TC_STRUCT;
-			else if (sc((char *)cur->view->st, STR_ENUM_TW))
-				texpr->code = TC_ENUM;
-			else
-				goto check_type_words;
+			if (sc((char *)cur->view->st, STR_STRUCT_TW)) {
+				texpr->code = TC_PTR;
+				texpr->data.ptr_target = new_type_expr(TC_STRUCT);
 
-			cur = absorb(p);
-			expect(p, cur, ID);
-			texpr->data.name = cur->view;
+				cur = absorb(p);
+				expect(p, cur, ID);
+
+				texpr->data.ptr_target->data.name = cur->view;
+			} else if (sc((char *)cur->view->st, STR_ENUM_TW)) {
+				texpr->code = TC_ENUM;
+
+				cur = absorb(p);
+				expect(p, cur, ID);
+
+				texpr->data.name = cur->view;
+			} else
+				goto check_type_words;
 
 		} else {
 		check_type_words:
@@ -346,6 +380,17 @@ struct TypeExpr *type_expr(struct Pser *p) {
 		texpr->data.ptr_target = type_expr(p);
 		return texpr; // no need to consume
 
+	} else if (cur->code == AMPER) {
+		struct TypeExpr *strct = type_expr(p);
+
+		if (strct->code != TC_PTR || strct->data.ptr_target->code != TC_STRUCT)
+			eet(p->f, cur, AMPER_WORKS_ONLY_ON_STRUCTS, 0);
+
+		free(texpr);
+		texpr = strct->data.ptr_target;
+		free(strct);
+
+		return texpr; // no need to consume
 	} else if (cur->code == PAR_C_L) {
 		texpr->code = TC_ARR;
 		consume(p);

@@ -97,6 +97,8 @@
 **ч32						int **
 лик _						struct _ *
 лик Чето					struct Some *
+&лик _						struct _
+&лик Чето					struct Some
 счет						enum
 счет Чето					enum Some
 [ч32]						int[]

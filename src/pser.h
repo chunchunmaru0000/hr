@@ -148,12 +148,11 @@ enum TypeCode {
 	TC_UINT64,
 
 	TC_PTR, // also str str if TC_UINT8 ptr
-	TC_ARR,
 	TC_FUN,
+
+	TC_ARR,
 	TC_STRUCT,
 };
-
-int get_type_code_size(enum TypeCode);
 
 struct TypeWord {
 	char *view;
@@ -168,6 +167,10 @@ union TypeData {
 	struct PList *arr;
 };
 
+// it seems that type expr and type size and should be part of one structure yet
+// when creating a new Arg with a type and having only pointer to the Лик this
+// Лик can be not yet declared and you dont need its size also, so you need
+// size of a type only when you need it, not in type parsing time
 struct TypeExpr {
 	// type code
 	enum TypeCode code;
@@ -186,7 +189,6 @@ struct TypeExpr {
 #define arr_size(t) (plist_get((t)->data.arr, 1))
 #define ptr_targ(t) ((t)->data.ptr_target)
 
-#define size_of_type(t) (get_type_code_size((t)->code))
 #define is_void_ptr(t) ((t)->code == TC_PTR && ptr_targ((t))->code == TC_VOID)
 #define is_ptr_type(t)                                                         \
 	((t)->code == TC_PTR || (t)->code == TC_ARR || (t)->code == TC_FUN ||      \
@@ -195,17 +197,23 @@ struct TypeExpr {
 
 struct TypeExpr *new_type_expr(enum TypeCode);
 void free_type(struct TypeExpr *type);
+int size_of_type(struct Pser *p, struct TypeExpr *type);
 
 struct Arg {
 	struct PList *names; // PList of Tokens
-	struct TypeExpr *type;
 	long offset;
+
+	struct TypeExpr *type;
+	int arg_size;
 };
 
 struct PLocalVar {
-	struct Token *name;
+	struct Token *name; // name is equ of offset in asm so dont need off in here
+
 	struct TypeExpr *type;
+	int var_size;
 };
+
 struct PLocalVar *new_plocal_var(struct Token *, struct TypeExpr *);
 
 // Compilation Time
@@ -233,9 +241,11 @@ struct GlobExpr {
 
 struct GlobVar {
 	struct Token *name;
-	struct TypeExpr *type;
 	struct BList *signature;
 	struct GlobExpr *value;
+
+	struct TypeExpr *type;
+	int gvar_size;
 };
 
 #define types_sizes_do_match(t1, t2)                                           \

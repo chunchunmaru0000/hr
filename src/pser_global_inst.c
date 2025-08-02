@@ -96,6 +96,7 @@ struct Arg *new_arg() {
 	arg->names = new_plist(1);
 	arg->type = 0;
 	arg->offset = 0;
+	arg->arg_size = 0;
 	return arg;
 }
 
@@ -135,9 +136,9 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 	is_one_memories_flag = is_one_memory;
 
 	type = type_expr(p);
-	type_size = size_of_type(type);
+	type_size = size_of_type(p, type);
 
-	if (is_one_memory && from && (type_size != size_of_type(from->type)))
+	if (is_one_memory && from && (type_size != size_of_type(p, from->type)))
 		eet(p->f, get_pser_token((p), -1), TYPES_SIZES_NOT_MATCH,
 			SUGGEST_CHANGE_ARG_TYPE_SIZE);
 	if (!is_one_memory && from)
@@ -190,7 +191,7 @@ void parse_args(struct Pser *p, struct PList *os) {
 			arg = plist_get(args, i);
 			plist_add(os, arg);
 		}
-		args_offset = arg->offset + size_of_type(arg->type);
+		args_offset = arg->offset + size_of_type(p, arg->type);
 
 		plist_free(args);
 		c = pser_cur(p);

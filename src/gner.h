@@ -177,7 +177,5 @@ struct LocalVar {
 	long stack_pointer;
 };
 
-#define size_of_local(var) (size_of_type((var)->type))
-
 struct LocalVar *new_local_var(struct Token *, struct TypeExpr *, long);
 void free_and_clear_local_vars(struct Gner *g);
