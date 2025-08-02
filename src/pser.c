@@ -196,10 +196,11 @@ void check_list_of_args_on_uniq_names(struct Fpfc *f, struct PList *l,
 	}
 }
 
-struct PLocalVar *new_plocal_var(struct Token *name, struct TypeExpr *type) {
+struct PLocalVar *new_plocal_var(struct Token *name, struct Arg *arg) {
 	struct PLocalVar *var = malloc(sizeof(struct PLocalVar));
 	var->name = name;
-	var->type = type;
+	var->type = arg->type;
+	var->var_size = arg->arg_size;
 	return var;
 }
 

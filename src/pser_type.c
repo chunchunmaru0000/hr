@@ -11,10 +11,13 @@ const char *const FUN_ZERO_ARGS = "Тип функции не может име�
 const char *const AMPER_WORKS_ONLY_ON_STRUCTS =
 	"Знак '&' применим только к типу указателя на структуру, например: '&лик "
 	"Чето'.";
+const char *const STRUCT_NAME_WASNT_FOUND =
+	"Имя лика не было найдено в уже объявленных.";
 const char *const SUGGEST_ADD_ARGS = "добавить аргументов";
 
 int size_of_struct(struct Pser *p, struct BList *name) {
-	uint32_t i, res = 0;
+	uint32_t i;
+	long size;
 	struct Inst *declare_struct;
 	struct Token *name_token;
 
@@ -22,21 +25,29 @@ int size_of_struct(struct Pser *p, struct BList *name) {
 		declare_struct = plist_get(p->structs, i);
 		name_token = plist_get(declare_struct->os, 0);
 
-		if (sc((char *)name->st, (char *)name_token->view->st)) {
-			res = 1;
-			break;
-		}
+		if (sc((char *)name->st, (char *)name_token->view->st))
+			goto struct_name_found;
 	}
+	eet(p->f, pser_cur(p), STRUCT_NAME_WASNT_FOUND, (char *)name->st);
 
-	if (!res)
-		eet();
+struct_name_found:
+
+	size = (long)plist_get(declare_struct->os, 1);
+	return size;
 }
 
 int size_of_type(struct Pser *p, struct TypeExpr *type) {
 	enum TypeCode c = type->code;
-	return c == TC_STRUCT ? size_of_struct(p, type->data.name)
-		   : c == TC_ARR
-			   ? (long)arr_size(type) * size_of_type(p, arr_type(type))
+	long arr_size;
+
+	if (c == TC_ARR) {
+		arr_size = (long)arr_size(type);
+		if (arr_size < 0)
+			arr_size = 1;
+		return arr_size * size_of_type(p, arr_type(type));
+	}
+
+	return c == TC_STRUCT  ? size_of_struct(p, type->data.name)
 		   : c >= TC_VOID  ? QWORD
 		   : c >= TC_INT32 ? DWORD
 		   : c >= TC_INT16 ? WORD
@@ -326,7 +337,6 @@ struct TypeExpr *new_type_expr(enum TypeCode code) {
 	struct TypeExpr *texpr = malloc(sizeof(struct TypeExpr));
 	texpr->data.ptr_target = 0;
 	texpr->code = code;
-	texpr->size = 0;
 	return texpr;
 }
 
@@ -381,6 +391,7 @@ struct TypeExpr *type_expr(struct Pser *p) {
 		return texpr; // no need to consume
 
 	} else if (cur->code == AMPER) {
+		consume(p); // consume &
 		struct TypeExpr *strct = type_expr(p);
 
 		if (strct->code != TC_PTR || strct->data.ptr_target->code != TC_STRUCT)

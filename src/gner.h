@@ -173,9 +173,11 @@ void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var);
 
 struct LocalVar {
 	struct Token *name;
-	struct TypeExpr *type;
 	long stack_pointer;
+
+	struct TypeExpr *type;
+	int lvar_size;
 };
 
-struct LocalVar *new_local_var(struct Token *, struct TypeExpr *, long);
+struct LocalVar *new_local_var(struct Token *, struct Arg *, long);
 void free_and_clear_local_vars(struct Gner *g);

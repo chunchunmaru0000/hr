@@ -110,11 +110,11 @@ void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	for (i = 0; i < in->os->size; i++) {
 		arg = plist_get(in->os, i);
 		if (arg->offset != last_offset)
-			g->stack_counter -= size_of_type(arg->type);
+			g->stack_counter -= arg->arg_size;
 
 		for (j = 0; j < arg->names->size; j++) {
-			var = new_local_var(plist_get(arg->names, j), arg->type,
-								g->stack_counter);
+			var =
+				new_local_var(plist_get(arg->names, j), arg, g->stack_counter);
 
 			for (vars = 0; vars < g->local_vars->size; vars++) {
 				if (sc((char *)((struct LocalVar *)plist_get(g->local_vars,

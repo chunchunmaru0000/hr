@@ -47,12 +47,13 @@ void gen(struct Gner *g) {
 	}
 }
 
-struct LocalVar *new_local_var(struct Token *name, struct TypeExpr *type,
+struct LocalVar *new_local_var(struct Token *name, struct Arg *arg,
 							   long stack_pointer) {
 	struct LocalVar *var = malloc(sizeof(struct LocalVar));
 	var->name = name;
-	var->type = type;
 	var->stack_pointer = stack_pointer;
+	var->type = arg->type;
+	var->lvar_size = arg->arg_size;
 	return var;
 }
 

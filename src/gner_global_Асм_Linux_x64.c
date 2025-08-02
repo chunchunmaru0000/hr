@@ -104,11 +104,12 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 		case IP_DECLARE_STRUCT:
 			// ### os explanation:
 			//   _ - name
+			//   _ - size
 			// ... - fields that are Arg's
 
 			tok = plist_get(in->os, 0);
 
-			for (j = 1; j < in->os->size; j++)
+			for (j = 2; j < in->os->size; j++)
 				declare_struct_arg(g, tok, plist_get(in->os, j));
 
 			bprol_add('\n');
@@ -232,11 +233,11 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 
 	for (i = 2; arg; i++) {
 		if (arg->offset != last_offset)
-			g->stack_counter -= size_of_type(arg->type);
+			g->stack_counter -= arg->arg_size;
 
 		for (j = 0; j < arg->names->size; j++) {
-			var = new_local_var(plist_get(arg->names, j), arg->type,
-								g->stack_counter);
+			var =
+				new_local_var(plist_get(arg->names, j), arg, g->stack_counter);
 			plist_add(g->local_vars, var);
 
 			iprint_fun_prol(SA_EQU);				  // вот
@@ -256,8 +257,7 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 			fun_prol_add(' ');
 
 			// register that is need to put there
-			int size = size_of_local(var);
-			reg = get_regs_of_size(size, mem_counter);
+			reg = get_regs_of_size(var->lvar_size, mem_counter);
 
 			blat(g->fun_prol, (uc *)reg->name, reg->len);
 			fun_prol_add('\n');
@@ -327,7 +327,7 @@ void lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 	prol_add('\n');
 }
 void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
-	uc type_size = size_of_type(var->type);
+	uc type_size = var->gvar_size;
 
 	if (type_size == QWORD)
 		iprint_prol(SA_LET_64);

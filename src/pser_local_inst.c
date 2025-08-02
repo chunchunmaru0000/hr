@@ -17,7 +17,7 @@ enum IP_Code pser_local_inst_let(struct Pser *p, struct PList *os) {
 			arg_name = plist_get(arg->names, j);
 			check_list_of_vars_on_name(p, arg_name);
 
-			plist_add(p->local_vars, new_plocal_var(arg_name, arg->type));
+			plist_add(p->local_vars, new_plocal_var(arg_name, arg));
 		}
 	}
 

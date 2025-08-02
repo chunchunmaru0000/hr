@@ -90,6 +90,11 @@ const char *const TOO_MUCH_ARGS_FOR_NOW =
 	"количество аргуентов функции: 7.";
 const char *const SUGGEST_CUT_ARGS_SIZE = "уменьшить количество аргументов";
 const char *const SUGGEST_CHANGE_ARG_TYPE_SIZE = "изменить размер типа";
+const char *const ARR_AS_A_FUN_ARG_IS_PROHIBITED =
+	"Массивы запрещены для передачи в аргументы функции напрямую.";
+const char *const STRUCT_AS_A_FUN_ARG_IS_PROHIBITED =
+	"Лики запрещены для передачи в аргументы функции напрямую.";
+const char *const SUGGEST_CHANGE_TYPE_TO_A_PTR = "изменить тип на указатель";
 
 struct Arg *new_arg() {
 	struct Arg *arg = malloc(sizeof(struct Arg));
@@ -155,6 +160,7 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 		// set thing to the single arg
 		arg->offset = args_offset;
 		arg->type = type;
+		arg->arg_size = type_size;
 
 		// get new arg
 		eithers = parse_arg(p, arg, args_offset);
@@ -171,6 +177,7 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 			arg->offset = args_offset + i * type_size;
 			// here multiple args can have one type that is shared memory
 			arg->type = type;
+			arg->arg_size = type_size;
 		}
 	}
 
@@ -191,7 +198,7 @@ void parse_args(struct Pser *p, struct PList *os) {
 			arg = plist_get(args, i);
 			plist_add(os, arg);
 		}
-		args_offset = arg->offset + size_of_type(p, arg->type);
+		args_offset = arg->offset + arg->arg_size;
 
 		plist_free(args);
 		c = pser_cur(p);
@@ -201,25 +208,31 @@ void parse_args(struct Pser *p, struct PList *os) {
 
 // ### os explanation:
 //   _ - name
+//   _ - size
 // ... - fields that are Arg's
 enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
+	long i, last_offset = -1, size = 0;
+	struct Arg *arg;
+
 	struct Token *c = absorb(p); // skip лик
 	expect(p, c, ID);
 	plist_add(os, c); // struct name
+	plist_add(os, 0); // reserved for size
 
 	expect(p, absorb(p), PAR_L);
 	parse_args(p, os);
 
-	// 	uint32_t i, j;
-	// 	struct Arg *arg;
-	// 	for (i = 1; i < os->size; i++) {
-	// 		arg = plist_get(os, i);
-	//
-	// 		for (j = i; j < arg->names->size; j++) {
-	// 			c = plist_get(arg->names, j);
-	// 		}
-	// 	}
-	check_list_of_args_on_uniq_names(p->f, os, 1);
+	check_list_of_args_on_uniq_names(p->f, os, 2);
+
+	for (i = 2; i < os->size; i++) {
+		arg = plist_get(os, i);
+
+		if (arg->offset != last_offset)
+			size += arg->arg_size;
+
+		last_offset = arg->offset;
+	}
+	plist_set(os, 1, (void *)size); // set size
 
 	return IP_DECLARE_STRUCT;
 }
@@ -257,8 +270,15 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 			cur = plist_get(arg->names, j);
 			check_list_of_vars_on_name(p, cur);
 
-			plist_add(p->local_vars, new_plocal_var(cur, arg->type));
+			plist_add(p->local_vars, new_plocal_var(cur, arg));
 		}
+
+		if (arg->type->code == TC_ARR)
+			eet(p->f, cur, ARR_AS_A_FUN_ARG_IS_PROHIBITED,
+				SUGGEST_CHANGE_TYPE_TO_A_PTR);
+		if (arg->type->code == TC_STRUCT)
+			eet(p->f, cur, STRUCT_AS_A_FUN_ARG_IS_PROHIBITED,
+				SUGGEST_CHANGE_TYPE_TO_A_PTR);
 
 		// it haves here types cuz fun type args are types
 		// its needed for fun call
@@ -339,6 +359,7 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 
 		var->name = plist_get(arg->names, i);
 		var->type = arg->type;
+		var->gvar_size = arg->arg_size;
 		// TODO: can i share signarute between all them?
 		get_global_signature(var);
 		var->value = global_expr;

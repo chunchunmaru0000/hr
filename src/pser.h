@@ -214,7 +214,7 @@ struct PLocalVar {
 	int var_size;
 };
 
-struct PLocalVar *new_plocal_var(struct Token *, struct TypeExpr *);
+struct PLocalVar *new_plocal_var(struct Token *, struct Arg *);
 
 // Compilation Time
 enum CT_Code {
