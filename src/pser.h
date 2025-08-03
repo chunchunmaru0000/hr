@@ -190,9 +190,7 @@ struct TypeExpr {
 #define ptr_targ(t) ((t)->data.ptr_target)
 
 #define is_void_ptr(t) ((t)->code == TC_PTR && ptr_targ((t))->code == TC_VOID)
-#define is_ptr_type(t)                                                         \
-	((t)->code == TC_PTR || (t)->code == TC_ARR || (t)->code == TC_FUN)
-#define is_arr_type(t) ((t)->code == TC_ARR || (t)->code == TC_PTR)
+#define is_ptr_type(t) ((t)->code == TC_PTR || (t)->code == TC_FUN)
 
 struct TypeExpr *new_type_expr(enum TypeCode);
 void free_type(struct TypeExpr *type);
@@ -297,9 +295,6 @@ void eei(struct Inst *, const char *const msg, const char *const sgst);
 	 (t)->code == TC_UINT8 || (t)->code == TC_UINT16 ||                        \
 	 (t)->code == TC_UINT32 || (t)->code == TC_UINT64 || (t)->code == TC_VOID)
 #define is_real_type(t) ((t)->code == TC_DOUBLE || (t)->code == TC_FLOAT)
-#define is_str_type(t)                                                         \
-	((t)->code == TC_PTR && ((t)->data.ptr_target->code == TC_UINT8 ||         \
-							 (t)->data.ptr_target->code == TC_VOID))
 
 void check_global_type_compatibility(struct Pser *p, struct TypeExpr *type,
 									 struct GlobExpr *e);

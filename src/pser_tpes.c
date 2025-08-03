@@ -10,6 +10,7 @@ enum CE_Code {
 	CE_ARR_INCOMPATIBLE_TYPE,
 	CE_AS_INCOMPATIBLE_TYPE,
 	CE_ARR_ITEM_INCOMPATIBLE_TYPE,
+	CE_STR_IS_NOT_A_PTR,
 	CE_UNCOMPUTIBLE_DATA,
 
 	CE_TODO1,
@@ -37,6 +38,7 @@ const char *const INCOMPATIBLE_TYPES =
 	"Типы переменной и выражения несовместимы.";
 const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
 const char *const ARR_LEN_WAS = "ожидался массив длиной ";
+const char *const STR_IS_NOT_A_PTR = "Строка - не указатель, строка - массив, массив - не указатель, чтобы получить указатель из строки нужно взять ее адрес, например:\n\tпусть с: стр = &\"строка\"";
 
 struct CE_CodeStr {
 	enum CE_Code code;
@@ -52,6 +54,7 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_FUN_INCOMPATIBLE_TYPE, FUN_INCOMPATIBLE_TYPE, 0},
 	{CE_AS_INCOMPATIBLE_TYPE, AS_INCOMPATIBLE_TYPE, 0},
 	{CE_ARR_ITEM_INCOMPATIBLE_TYPE, ARR_ITEM_INCOMPATIBLE_TYPE, 0},
+	{CE_STR_IS_NOT_A_PTR, STR_IS_NOT_A_PTR, 0},
 	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA, 0},
 
 	{CE_TODO1, "TODO1", 0},
@@ -170,10 +173,11 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	}
 
 	if (e->code == CT_STR) {
-		// TC_VOID is considered in here
-		if (is_str_type(type))
+		if (type->code == TC_PTR) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_STR_IS_NOT_A_PTR);
 			return;
-
+		}
 		// assume array
 		if (type->code != TC_ARR) {
 			plist_add(msgs, e->tvar);
@@ -240,7 +244,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	}
 
 	if (e->code == CT_ARR) {
-		if (!is_arr_type(type)) {
+		if (type->code != TC_ARR) {
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_ARR_INCOMPATIBLE_TYPE);
 			return;
