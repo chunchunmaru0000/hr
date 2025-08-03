@@ -280,16 +280,16 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		}
 
 		// wrap around e->from->type
-		tmp_type = new_type_expr(TC_PTR);
-		// tmp_type = &(struct TypeExpr){TC_PTR, 0};
-		tmp_type->data.ptr_target = e->from->type;
+		// tmp_type = new_type_expr(TC_PTR);
+		// tmp_type->data.ptr_target = e->from->type;
+		tmp_type = &(struct TypeExpr){TC_PTR, {.ptr_target = e->from->type}};
 
 		if (!are_types_equal(type, tmp_type)) {
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
 		}
 
-		free(tmp_type);
+		// free(tmp_type);
 		return;
 	}
 
@@ -300,15 +300,18 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			return;
 		}
 
-		tmp_type = new_type_expr(TC_PTR);
-		tmp_type->data.ptr_target = new_type_expr(TC_UINT8);
+		// tmp_type = new_type_expr(TC_PTR);
+		// tmp_type->data.ptr_target = new_type_expr(TC_UINT8);
+		tmp_type = &(struct TypeExpr){
+			TC_PTR,
+			{.ptr_target = &(struct TypeExpr){TC_UINT8, {.ptr_target = 0}}}};
 
 		if (!are_types_equal(type, tmp_type)) {
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
 		}
 
-		free(tmp_type);
+		// free_type(tmp_type);
 		return;
 	}
 
