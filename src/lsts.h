@@ -25,6 +25,7 @@ void plist_free(struct PList *);
 #define plist_clear(l) ((l)->size = 0)
 void plist_re(struct PList *l);
 void plist_clear_items_free(struct PList *);
+void plist_free_items_free(struct PList *);
 
 struct BList {
 	uc *st; // start

@@ -32,6 +32,13 @@ void plist_clear_items_free(struct PList *l) {
 	plist_clear(l);
 }
 
+void plist_free_items_free(struct PList *l) {
+	for (uint32_t i = 0; i < l->size; i++)
+		free(plist_get(l, i));
+	plist_free(l);
+}
+
+
 // void plist_cut_items_free(struct PList *l, long cut_to) {
 // 	long i, j;
 // 	void *value;

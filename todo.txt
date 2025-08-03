@@ -1,3 +1,7 @@
+args to compiler
+
+check how it behaves if empty file
+
 let a, b, c, d byte "hello world"
 so plist of names in let statement of the assembly
 

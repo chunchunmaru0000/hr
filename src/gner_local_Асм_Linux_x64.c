@@ -154,12 +154,13 @@ void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 // _д# - для
 // _е# - если
 // _и# - иначе
-#define LETTER_LEN 2
-const char *const LETTER_LOOP = "в";
-const char *const LETTER_WHILE = "п";
-const char *const LETTER_FOR = "д";
-const char *const LETTER_IF = "е";
-const char *const LETTER_ELSE = "и";
+#define LETTER_LEN 3
+const char *const LETTER_LOOP = "_в";
+const char *const LETTER_WHILE = "_п";
+const char *const LETTER_FOR = "_д";
+const char *const LETTER_IF = "_е";
+const char *const LETTER_ELSE = "_и";
+const char *const LETTER_PTR = "_у";
 
 struct BList *take_label(struct Gner *g, enum L_Code label_code) {
 	struct BList *label = new_blist(8), *num;
@@ -190,6 +191,10 @@ struct BList *take_label(struct Gner *g, enum L_Code label_code) {
 		blat(label, (uc *)LETTER_ELSE, LETTER_LEN);
 		g->labels->elses++;
 		break;
+	case LC_PTR:
+		num = int_to_str(g->labels->ptrs);
+		blat(label, (uc *)LETTER_PTR, LETTER_LEN);
+		g->labels->elses++;
 	default:
 		printf("asdf 228\n");
 		exit(228);

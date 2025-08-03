@@ -8,11 +8,11 @@ enum CE_Code {
 	CE_PTR_INCOMPATIBLE_TYPE,
 	CE_FUN_INCOMPATIBLE_TYPE,
 	CE_ARR_INCOMPATIBLE_TYPE,
+	CE_AS_INCOMPATIBLE_TYPE,
 	CE_ARR_ITEM_INCOMPATIBLE_TYPE,
 	CE_UNCOMPUTIBLE_DATA,
 
 	CE_TODO1,
-	CE_TODO2,
 	CE_TODO3,
 	CE_TODO4,
 };
@@ -31,6 +31,8 @@ const char *const ARR_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с типом выражения массива.";
 const char *const ARR_ITEM_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с типом выражения значения массива.";
+const char *const AS_INCOMPATIBLE_TYPE =
+	"Тип переменной не совместим с приведенным типом выражения.";
 const char *const INCOMPATIBLE_TYPES =
 	"Типы переменной и выражения несовместимы.";
 const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
@@ -48,11 +50,11 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_PTR_INCOMPATIBLE_TYPE, PTR_INCOMPATIBLE_TYPE, 0},
 	{CE_ARR_INCOMPATIBLE_TYPE, ARR_INCOMPATIBLE_TYPE, 0},
 	{CE_FUN_INCOMPATIBLE_TYPE, FUN_INCOMPATIBLE_TYPE, 0},
+	{CE_AS_INCOMPATIBLE_TYPE, AS_INCOMPATIBLE_TYPE, 0},
 	{CE_ARR_ITEM_INCOMPATIBLE_TYPE, ARR_ITEM_INCOMPATIBLE_TYPE, 0},
 	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA, 0},
 
 	{CE_TODO1, "TODO1", 0},
-	{CE_TODO2, "TODO2", 0},
 	{CE_TODO3, "TODO3", 0},
 	{CE_TODO4, "TODO4", 0},
 };
@@ -127,11 +129,10 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	enum CE_Code tmp_code = CE_NONE;
 
 	if (e->type) {
-		// TODO:
 		// compares global types, not returns enum CE_Code, just boolean
 		if (!are_types_equal(type, e->type)) {
 			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_TODO1);
+			plist_add(msgs, (void *)AS_INCOMPATIBLE_TYPE);
 		}
 
 		return;
@@ -290,4 +291,18 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 
 	plist_add(msgs, e->tvar);
 	plist_add(msgs, (void *)CE_TODO4);
+}
+
+void check_global_type_compatibility(struct Pser *p, struct TypeExpr *type,
+									 struct GlobExpr *e) {
+	struct PList *msgs = new_plist(2);
+
+	are_types_compatible(msgs, type, e);
+	if (msgs->size != 0) {
+		search_error_code(p, msgs);
+		if (pser_need_err(p))
+			pser_err(p);
+	}
+
+	plist_free(msgs);
 }

@@ -278,6 +278,7 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 	return i;
 }
 
+void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var);
 const char SA_LET_8[] = "пусть байт ";
 const char SA_LET_16[] = "пусть дбайт ";
 const char SA_LET_32[] = "пусть чбайт ";
@@ -337,6 +338,18 @@ void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 	blat_blist(g->prol, var->value->from->signature);
 	prol_add('\n');
 }
+// void lay_down_arr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
+// 	uint32_t i;
+// 	struct GlobExpr *ge;
+// 	struct GlobVar *gvar = malloc(sizeof(struct GlobVar));
+// 	gvar->type = var->type;
+//
+// 	for (i = 0; i < var->value->globs->size; i++) {
+// 		ge = plist_get(var->value->globs, i);
+//
+// 		gen_glob_expr_Асм_Linux_64(g, );
+// 	}
+// }
 
 void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 	enum CT_Code code = var->value->code;
@@ -350,5 +363,5 @@ void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 	else if (code == CT_GLOBAL_PTR)
 		lay_down_gptr_Асм_Linux_64(g, var);
 	else if (code == CT_ARR)
-		;
+		; // lay_down_arr_Асм_Linux_64(g, var);
 }

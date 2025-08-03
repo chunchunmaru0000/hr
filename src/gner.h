@@ -19,6 +19,7 @@ enum L_Code {
 	LC_FOR,
 	LC_IF,
 	LC_ELSE,
+	LC_PTR,
 };
 
 struct Lbls {
@@ -27,6 +28,7 @@ struct Lbls {
 	uint32_t fors;
 	uint32_t ifs;
 	uint32_t elses;
+	uint32_t ptrs;
 };
 
 struct Gner {

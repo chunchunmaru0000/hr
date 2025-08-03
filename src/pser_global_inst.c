@@ -309,9 +309,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	for (i = 0; i < p->global_vars->size; i++) {
 		tmp_var = plist_get(p->global_vars, i);
 
-		// if (sc((char *)tmp_var->name->view->st,
-		// 	   (char *)fun_variable->name->view->st) &&
-		// 	are_types_equal(tmp_var->type, fun_variable->type))
+		// cant use it here are_types_equal(tmp_var->type, fun_variable->type))
 		if (tmp_var->type->code == TC_FUN &&
 			sc((char *)tmp_var->signature->st,
 			   (char *)fun_variable->signature->st))

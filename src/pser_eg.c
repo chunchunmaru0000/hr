@@ -14,14 +14,8 @@ struct GlobExpr *addng_g_expression(struct Pser *p);
 struct GlobExpr *parse_global_expression(struct Pser *p,
 										 struct TypeExpr *type) {
 	struct GlobExpr *e = global_expression(p);
-	struct PList *msgs = new_plist(2);
 
-	are_types_compatible(msgs, type, e);
-	if (msgs->size != 0) {
-		search_error_code(p, msgs);
-		if (pser_need_err(p))
-			pser_err(p);
-	}
+	check_global_type_compatibility(p, type, e);
 
 	return e;
 }
@@ -218,9 +212,10 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		type = type_expr(p);
 		e = unary_g_expression(p);
 
-		if (e->type) {
-			// TODO: if types are conflict
-		}
+		check_global_type_compatibility(p, type, e);
+
+		if (e->type)
+			free_type(e->type);
 		e->type = type;
 
 		return e;
