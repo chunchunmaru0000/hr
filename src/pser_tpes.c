@@ -273,31 +273,42 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		// so in here need to comapre e->from->type
 		// where e->from->type is a pointed to type, not a pointer type
 
-		if (is_ptr_type(type)) {
-			// wrap around e->from->type
-			tmp_type = new_type_expr(TC_PTR);
-			// tmp_type = &(struct TypeExpr){TC_PTR, 0};
-			tmp_type->data.ptr_target = e->from->type;
-
-			if (!are_types_equal(type, tmp_type)) {
-				free(tmp_type);
-				plist_add(msgs, e->tvar);
-				plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
-				return;
-			}
-
-			free(tmp_type);
+		if (!is_ptr_type(type)) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
 			return;
 		}
 
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
+		// wrap around e->from->type
+		tmp_type = new_type_expr(TC_PTR);
+		// tmp_type = &(struct TypeExpr){TC_PTR, 0};
+		tmp_type->data.ptr_target = e->from->type;
+
+		if (!are_types_equal(type, tmp_type)) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
+		}
+
+		free(tmp_type);
 		return;
 	}
 
 	if (e->code == CT_STR_PTR) {
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_TODO3);
+		if (!is_ptr_type(type)) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
+			return;
+		}
+
+		tmp_type = new_type_expr(TC_PTR);
+		tmp_type->data.ptr_target = new_type_expr(TC_UINT8);
+
+		if (!are_types_equal(type, tmp_type)) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
+		}
+
+		free(tmp_type);
 		return;
 	}
 

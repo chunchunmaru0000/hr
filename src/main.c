@@ -15,6 +15,7 @@ int main() {
 	FILE *f = fopen(outname, "wb");
 	fwrite(g->bprol->st, 1, g->bprol->size, f);
 	fwrite(g->prol->st, 1, g->prol->size, f);
+	fwrite(g->aprol->st, 1, g->aprol->size, f);
 	fwrite(g->text->st, 1, g->text->size, f);
 	fclose(f);
 

@@ -3,8 +3,6 @@
 
 void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
 
-struct BList *take_label(struct Gner *g, enum L_Code label_code);
-
 const char CHANGE_VAR_NAME_OR_DELETE_VAR[] =
 	"изменить имя переменной или удалить ее";
 const char CHANGE_LABEL_NAME_OR_DELETE_LABEL[] =
@@ -194,7 +192,8 @@ struct BList *take_label(struct Gner *g, enum L_Code label_code) {
 	case LC_PTR:
 		num = int_to_str(g->labels->ptrs);
 		blat(label, (uc *)LETTER_PTR, LETTER_LEN);
-		g->labels->elses++;
+		g->labels->ptrs++;
+		break;
 	default:
 		printf("asdf 228\n");
 		exit(228);

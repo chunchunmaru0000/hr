@@ -243,6 +243,7 @@ struct GlobVar {
 	struct Token *name;
 	struct BList *signature;
 	struct GlobExpr *value;
+	struct BList *value_ptr;
 
 	struct TypeExpr *type;
 	int gvar_size;

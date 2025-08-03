@@ -24,6 +24,7 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 
 	g->bprol = new_blist(128);
 	g->prol = new_blist(128);
+	g->aprol = new_blist(128);
 	g->text = new_blist(128);
 	g->fun_prol = new_blist(128);
 	g->fun_text = new_blist(128);

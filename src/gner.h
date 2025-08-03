@@ -50,9 +50,16 @@ struct Gner {
 	struct GlobVar *current_function;
 	struct PList *local_labels; // plist of tokens with labels names
 
-	struct BList *bprol; // before prolog
-	struct BList *prol;	 // prolog
-	struct BList *text;	 // main text
+	// before prolog for defns of an assembly
+	// like enums values and structs offsets
+	struct BList *bprol;
+	// prolog main data section
+	struct BList *prol;
+	// after prolog for datas that are store values by pointers
+	// and also begin segment of text
+	struct BList *aprol;
+	// main text for all functions text and assemly
+	struct BList *text;
 
 	struct BList *fun_prol; // fun prolog
 	struct BList *fun_text; // fun main text
@@ -81,6 +88,7 @@ extern const char SA_SUB_RSP[];
 extern const char SA_LEAVE[];
 extern const char SA_RET[];
 extern const char SA_JMP[];
+extern const char SA_ZERO_TERMINATOR[];
 
 extern const uint32_t SA_EQU_LEN;
 extern const uint32_t SA_PUSH_RBP_LEN;
@@ -92,6 +100,7 @@ extern const uint32_t SA_SUB_RSP_LEN;
 extern const uint32_t SA_LEAVE_LEN;
 extern const uint32_t SA_RET_LEN;
 extern const uint32_t SA_JMP_LEN;
+extern const uint32_t SA_ZERO_TERMINATOR_LEN;
 
 extern const char SA_LET_8[];
 extern const char SA_LET_16[];
@@ -119,6 +128,13 @@ void indent_line(struct Gner *g, struct BList *l);
 		blat_str_prol(str);                                                    \
 	} while (0)
 // #############################################################################
+#define blat_str_aprol(str) (blat(g->aprol, (uc *)(str), (str##_LEN - 1)))
+#define iprint_aprol(str)                                                      \
+	do {                                                                       \
+		indent_line(g, g->aprol);                                              \
+		blat_str_aprol(str);                                                   \
+	} while (0)
+// #############################################################################
 #define blat_str_text(str) (blat(g->text, (uc *)(str), (str##_LEN - 1)))
 #define iprint_text(str)                                                       \
 	do {                                                                       \
@@ -143,6 +159,7 @@ void indent_line(struct Gner *g, struct BList *l);
 
 #define bprol_add(byte) (blist_add(g->bprol, (byte)))
 #define prol_add(byte) (blist_add(g->prol, (byte)))
+#define aprol_add(byte) (blist_add(g->aprol, (byte)))
 #define text_add(byte) (blist_add(g->text, (byte)))
 
 #define fun_prol_add(byte) (blist_add(g->fun_prol, (byte)))
@@ -183,3 +200,4 @@ struct LocalVar {
 
 struct LocalVar *new_local_var(struct Token *, struct Arg *, long);
 void free_and_clear_local_vars(struct Gner *g);
+struct BList *take_label(struct Gner *g, enum L_Code label_code);

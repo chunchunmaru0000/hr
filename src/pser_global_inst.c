@@ -305,6 +305,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 	// gen signature
 	get_fun_signature_considering_args(os, fun_variable);
+	fun_variable->value_ptr = fun_variable->signature; // dunno why not
 	// check by signatures
 	for (i = 0; i < p->global_vars->size; i++) {
 		tmp_var = plist_get(p->global_vars, i);
@@ -360,6 +361,7 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 		var->gvar_size = arg->arg_size;
 		get_global_signature(var);
 		var->value = global_expr;
+		var->value_ptr = 0;
 
 		for (j = 0; j < p->global_vars->size; j++) {
 			tmp_var = plist_get(p->global_vars, j);

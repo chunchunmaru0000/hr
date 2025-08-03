@@ -20,6 +20,7 @@ const char SA_START_COMMENT[] = "\t; ";
 const char SA_SUB_RSP[] = "минс рсп ";
 const char SA_LEAVE[] = "выйти\n";
 const char SA_RET[] = "возд\n";
+const char SA_ZERO_TERMINATOR[] = " 0\n";
 
 const uint32_t SA_EQU_LEN = loa(SA_EQU);
 const uint32_t SA_PUSH_RBP_LEN = loa(SA_PUSH_RBP);
@@ -29,6 +30,7 @@ const uint32_t SA_START_COMMENT_LEN = loa(SA_START_COMMENT);
 const uint32_t SA_SUB_RSP_LEN = loa(SA_SUB_RSP);
 const uint32_t SA_LEAVE_LEN = loa(SA_LEAVE);
 const uint32_t SA_RET_LEN = loa(SA_RET);
+const uint32_t SA_ZERO_TERMINATOR_LEN = loa(SA_ZERO_TERMINATOR);
 
 const struct Register regs[] = {
 	{"р8", 3, R_R8, QWORD},	  {"р9", 3, R_R9, QWORD},
@@ -183,8 +185,8 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 	}
 end_gen_Асм_text_loop:;
 
-	prol_add('\n');
-	iprint_prol(SA_SEGMENT_READ_EXECUTE);
+	aprol_add('\n');
+	iprint_aprol(SA_SEGMENT_READ_EXECUTE);
 }
 
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {
@@ -320,10 +322,8 @@ void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 void lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	iprint_prol(SA_LET_8);
 	blat_blist(g->prol, e->tvar->view);
-	// zero terminator
-	prol_add(' ');
-	prol_add('0');
-	prol_add('\n');
+	// TODO: t oget it why does \t before '\0'
+	iprint_prol(SA_ZERO_TERMINATOR);
 }
 void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	iprint_prol(SA_LET_64);
@@ -340,6 +340,41 @@ void lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) 
 		gen_glob_expr_Асм_Linux_64(g, ge);
 	}
 }
+void lay_down_str_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+	iprint_prol(SA_LET_64);
+
+	if (!e->from) {
+	add_value_ptr_to_this_e_var:
+
+		struct BList *ptr = take_label(g, LC_PTR);
+
+		struct GlobVar *this_e_var;
+		struct Inst *in = plist_get(g->is, g->pos);
+		for (uint32_t j = 0; j < in->os->size; j++) {
+			this_e_var = plist_get(in->os, j);
+			this_e_var->value_ptr = ptr;
+		}
+
+		blat_blist(g->prol, ptr);
+		prol_add('\n');
+
+		blat_blist(g->aprol, ptr);
+		blat_str_aprol(SA_LABEL_END); // :
+		iprint_aprol(SA_LET_8);
+		blat_blist(g->aprol, e->tvar->view);
+		iprint_aprol(SA_ZERO_TERMINATOR);
+
+	} else if (e->from) {
+		if (e->from->value_ptr) {
+			blat_blist(g->prol, e->from->value_ptr);
+			prol_add('\n');
+		} else {
+			// not sure about this but
+			// even if its possible it seems to be the case
+			goto add_value_ptr_to_this_e_var;
+		}
+	}
+}
 
 void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	enum CT_Code code = e->code;
@@ -352,6 +387,10 @@ void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 		lay_down_str_Асм_Linux_64(g, e);
 	else if (code == CT_GLOBAL_PTR)
 		lay_down_gptr_Асм_Linux_64(g, e);
+	else if (code == CT_STR_PTR)
+		lay_down_str_ptr_Асм_Linux_64(g, e);
+	// TODO: else if (code == CT_ARR_PTR)
+	// TODO: else if (code == CT_STRUCT_PTR)
 	else if (code == CT_ARR || code == CT_GLOBAL)
 		lay_down_arr_or_struct_Асм_Linux_64(g, e);
 }
