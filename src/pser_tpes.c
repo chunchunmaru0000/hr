@@ -38,7 +38,10 @@ const char *const INCOMPATIBLE_TYPES =
 	"Типы переменной и выражения несовместимы.";
 const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
 const char *const ARR_LEN_WAS = "ожидался массив длиной ";
-const char *const STR_IS_NOT_A_PTR = "Строка - не указатель, строка - массив, массив - не указатель, чтобы получить указатель из строки нужно взять ее адрес, например:\n\tпусть с: стр = &\"строка\"";
+const char *const STR_IS_NOT_A_PTR =
+	"Строка - не указатель, строка - массив, массив - не указатель, чтобы "
+	"получить указатель из строки нужно взять ее адрес, например:\n\tпусть с: "
+	"стр = &\"строка\"";
 
 struct CE_CodeStr {
 	enum CE_Code code;
@@ -142,6 +145,12 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		return;
 	}
 
+	if (e->code == CT_GLOBAL) {
+		plist_add(msgs, e->tvar);
+		plist_add(msgs, (void *)CE_UNCOMPUTIBLE_DATA);
+		return;
+	}
+
 	if (e->code == CT_INT) {
 		if (is_int_type(type))
 			return;
@@ -208,41 +217,6 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		return;
 	}
 
-	// here e->from != 0
-	if (e->code == CT_GLOBAL_PTR) {
-		// pointer can be taken only from an Identificator
-		// so why do i even consider to compare its value type
-		// so in here need to comapre e->from->type
-		// where e->from->type is a pointed to type, not a pointer type
-
-		if (is_ptr_type(type)) {
-			// wrap around e->from->type
-			tmp_type = new_type_expr(TC_PTR);
-			// tmp_type = &(struct TypeExpr){TC_PTR, 0};
-			tmp_type->data.ptr_target = e->from->type;
-
-			if (!are_types_equal(type, tmp_type)) {
-				free(tmp_type);
-				plist_add(msgs, e->tvar);
-				plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
-				return;
-			}
-
-			free(tmp_type);
-			return;
-		}
-
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
-		return;
-	}
-
-	if (e->code == CT_GLOBAL) {
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_UNCOMPUTIBLE_DATA);
-		return;
-	}
-
 	if (e->code == CT_ARR) {
 		if (type->code != TC_ARR) {
 			plist_add(msgs, e->tvar);
@@ -287,6 +261,53 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	}
 
 	if (e->code == CT_STRUCT) {
+		plist_add(msgs, e->tvar);
+		plist_add(msgs, (void *)CE_TODO1);
+		return;
+	}
+
+	// here e->from != 0
+	if (e->code == CT_GLOBAL_PTR) {
+		// pointer can be taken only from an Identificator
+		// so why do i even consider to compare its value type
+		// so in here need to comapre e->from->type
+		// where e->from->type is a pointed to type, not a pointer type
+
+		if (is_ptr_type(type)) {
+			// wrap around e->from->type
+			tmp_type = new_type_expr(TC_PTR);
+			// tmp_type = &(struct TypeExpr){TC_PTR, 0};
+			tmp_type->data.ptr_target = e->from->type;
+
+			if (!are_types_equal(type, tmp_type)) {
+				free(tmp_type);
+				plist_add(msgs, e->tvar);
+				plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
+				return;
+			}
+
+			free(tmp_type);
+			return;
+		}
+
+		plist_add(msgs, e->tvar);
+		plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
+		return;
+	}
+
+	if (e->code == CT_STR_PTR) {
+		plist_add(msgs, e->tvar);
+		plist_add(msgs, (void *)CE_TODO3);
+		return;
+	}
+
+	if (e->code == CT_ARR_PTR) {
+		plist_add(msgs, e->tvar);
+		plist_add(msgs, (void *)CE_TODO3);
+		return;
+	}
+
+	if (e->code == CT_STRUCT_PTR) {
 		plist_add(msgs, e->tvar);
 		plist_add(msgs, (void *)CE_TODO3);
 		return;

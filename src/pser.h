@@ -217,12 +217,15 @@ struct PLocalVar *new_plocal_var(struct Token *, struct Arg *);
 enum CT_Code {
 	CT_INT,
 	CT_REAL,
+	CT_FUN,
 
 	CT_STR,
-
 	CT_ARR,
-	CT_FUN,
 	CT_STRUCT,
+
+	CT_STR_PTR,
+	CT_ARR_PTR,
+	CT_STRUCT_PTR,
 
 	CT_GLOBAL, // invalid cuz uncomputable !yet! but needed to get CT_GLOBAL_PTR
 	CT_GLOBAL_PTR, // pointer to other global value, is it exist?

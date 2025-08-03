@@ -201,11 +201,15 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 	if (c->code == AMPER) {
 		consume(p);
 		e = after_g_expression(p);
-		// TODO: AMPER on str and arr
-		if (!e->from)
-			eet(p->f, c, CANT_TAKE_PTR_FROM_NOT_GVAR, 0);
 
-		e->code = CT_GLOBAL_PTR;
+		if (e->code == CT_STR)
+			e->code = CT_STR_PTR;
+		else if (e->code == CT_ARR)
+			e->code = CT_ARR_PTR;
+		else if (e->from)
+			e->code = CT_GLOBAL_PTR;
+		else
+			eet(p->f, c, CANT_TAKE_PTR_FROM_NOT_GVAR, 0);
 
 		return e;
 	}
