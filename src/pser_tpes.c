@@ -36,7 +36,7 @@ const char *const AS_INCOMPATIBLE_TYPE =
 const char *const INCOMPATIBLE_TYPES =
 	"Типы переменной и выражения несовместимы.";
 const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
-const char *const ARR_LEN_WAS = "длина была ";
+const char *const ARR_LEN_WAS = "ожидался массив длиной ";
 
 struct CE_CodeStr {
 	enum CE_Code code;
@@ -126,6 +126,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 						  struct GlobExpr *e) {
 	long n;
 	struct TypeExpr *tmp_type;
+	struct GlobExpr *glob;
 	enum CE_Code tmp_code = CE_NONE;
 
 	if (e->type) {
@@ -190,13 +191,12 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 
 		// asume array size
 		n = (long)arr_size(type);
-		if (n != -1 && n != e->tvar->str->size) {
-			n = e->tvar->str->size;
+		if (n != -1 && n != e->tvar->str->size + 1) {
 			plist_add(msgs, (void *)n);
 			tmp_code = CE_ARR_SIZES_DO_NOW_MATCH;
 		}
 		// set size in any way
-		n = e->tvar->view->size - 2;
+		n = e->tvar->str->size + 1; // + 1 cuz '\0'
 		plist_set(type->data.arr, 1, (void *)n);
 
 		plist_add(msgs, e->tvar);
@@ -247,19 +247,29 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		}
 
 		if (type->code == TC_ARR) {
+			tmp_type = arr_type(type);
+
 			for (n = 0; n < e->globs->size; n++) {
-				are_types_compatible(msgs, arr_type(type),
-									 plist_get(e->globs, n));
+				glob = plist_get(e->globs, n);
+				are_types_compatible(msgs, tmp_type, glob);
+
+				// TODO: here is for example [окак тип [...] [...] [...]]
+				// it will segfault i beleive cuz all first arr types are same
+				// as окак type потому что сначала происходит то что внутри
+				// массивов а потом сами массивы изза рекурсии
+				if (glob->type)
+					free_type(glob->type);
+				glob->type = tmp_type;
 			}
 
 			n = (long)arr_size(type);
 			if (n != -1 && n != e->globs->size) {
-				n = e->globs->size;
 				plist_add(msgs, (void *)n);
 				plist_add(msgs, e->tvar);
 				plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
 			}
 
+			// TODO: here need to do if size was already once changed then err
 			// set size in any way
 			n = e->globs->size;
 			plist_set(type->data.arr, 1, (void *)n);

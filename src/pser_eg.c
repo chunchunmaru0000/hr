@@ -1,7 +1,6 @@
 #include "pser.h"
 
-// TODO:
-long a = (long)("str");
+// TODO: long a = (long)("str");
 
 struct GlobExpr *after_g_expression(struct Pser *p);
 struct GlobExpr *prime_g_expression(struct Pser *p);
@@ -16,6 +15,8 @@ struct GlobExpr *parse_global_expression(struct Pser *p,
 	struct GlobExpr *e = global_expression(p);
 
 	check_global_type_compatibility(p, type, e);
+	if (!e->type)
+		e->type = type;
 
 	return e;
 }
@@ -118,8 +119,10 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 
 		// REMEMBER: not to free pos and view, only token itself and
 		// maybe view if it was of CT_STR
-		if (other_var->value->code == CT_STR)
+		if (other_var->value->code == CT_STR) {
 			e->tvar->view = copy_str(other_var->value->tvar->view);
+			e->tvar->str = copy_str(other_var->value->tvar->str);
+		}
 		// why would i free it tough, it global so
 
 		break;
@@ -127,6 +130,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		e->code = CT_STR;
 		copy_token(e->tvar, c);
 		e->tvar->view = copy_str(c->view);
+		e->tvar->str = copy_str(c->str);
 		consume(p);
 		break;
 	case PAR_T_L:

@@ -174,7 +174,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			}
 
 			g->indent_level++;
-			gen_glob_expr_Асм_Linux_64(g, global_var);
+			gen_glob_expr_Асм_Linux_64(g, global_var->value);
 			g->indent_level--;
 			break;
 		default:
@@ -278,7 +278,6 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 	return i;
 }
 
-void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var);
 const char SA_LET_8[] = "пусть байт ";
 const char SA_LET_16[] = "пусть дбайт ";
 const char SA_LET_32[] = "пусть чбайт ";
@@ -289,9 +288,9 @@ const uint32_t SA_LET_16_LEN = loa(SA_LET_16);
 const uint32_t SA_LET_32_LEN = loa(SA_LET_32);
 const uint32_t SA_LET_64_LEN = loa(SA_LET_64);
 
-void lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
-	struct Token *num = var->value->tvar;
-	enum TypeCode code = var->type->code;
+void lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+	struct Token *num = e->tvar;
+	enum TypeCode code = e->type->code;
 
 	if (code == TC_INT8 || code == TC_UINT8)
 		iprint_prol(SA_LET_8);
@@ -309,59 +308,50 @@ void lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
 	hex_int_add(g->prol, num->number);
 	prol_add('\n');
 }
-void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
-	if (var->type->code == TC_DOUBLE)
+void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+	if (e->type->code == TC_DOUBLE)
 		iprint_prol(SA_LET_64);
 	else
 		iprint_prol(SA_LET_32);
 
-	real_add(g->prol, var->value->tvar->fpn);
+	real_add(g->prol, e->tvar->fpn);
 	prol_add('\n');
 }
-void lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
+void lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	iprint_prol(SA_LET_8);
-	blat_blist(g->prol, var->value->tvar->view);
+	blat_blist(g->prol, e->tvar->view);
 	// zero terminator
 	prol_add(' ');
 	prol_add('0');
 	prol_add('\n');
 }
-void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
-	uc type_size = var->gvar_size;
-
-	if (type_size == QWORD)
-		iprint_prol(SA_LET_64);
-	else
-		// i donno like if like dunno
-		iprint_prol(SA_LET_32);
-
-	blat_blist(g->prol, var->value->from->signature);
+void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+	iprint_prol(SA_LET_64);
+	blat_blist(g->prol, e->from->signature);
 	prol_add('\n');
 }
-// void lay_down_arr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
-// 	uint32_t i;
-// 	struct GlobExpr *ge;
-// 	struct GlobVar *gvar = malloc(sizeof(struct GlobVar));
-// 	gvar->type = var->type;
-//
-// 	for (i = 0; i < var->value->globs->size; i++) {
-// 		ge = plist_get(var->value->globs, i);
-//
-// 		gen_glob_expr_Асм_Linux_64(g, );
-// 	}
-// }
+void lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+	uint32_t i;
+	struct GlobExpr *ge;
 
-void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobVar *var) {
-	enum CT_Code code = var->value->code;
+	for (i = 0; i < e->globs->size; i++) {
+		ge = plist_get(e->globs, i);
+
+		gen_glob_expr_Асм_Linux_64(g, ge);
+	}
+}
+
+void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+	enum CT_Code code = e->code;
 
 	if (code == CT_INT)
-		lay_down_int_Асм_Linux_64(g, var);
+		lay_down_int_Асм_Linux_64(g, e);
 	else if (code == CT_REAL)
-		lay_down_real_Асм_Linux_64(g, var);
+		lay_down_real_Асм_Linux_64(g, e);
 	else if (code == CT_STR)
-		lay_down_str_Асм_Linux_64(g, var);
+		lay_down_str_Асм_Linux_64(g, e);
 	else if (code == CT_GLOBAL_PTR)
-		lay_down_gptr_Асм_Linux_64(g, var);
-	else if (code == CT_ARR)
-		; // lay_down_arr_Асм_Linux_64(g, var);
+		lay_down_gptr_Асм_Linux_64(g, e);
+	else if (code == CT_ARR || code == CT_GLOBAL)
+		lay_down_arr_or_struct_Асм_Linux_64(g, e);
 }
