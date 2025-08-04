@@ -243,7 +243,7 @@ struct GlobVar {
 	struct Token *name;
 	struct BList *signature;
 	struct GlobExpr *value;
-	struct BList *value_ptr;
+	struct BList *value_label;
 
 	struct TypeExpr *type;
 	int gvar_size;
@@ -258,6 +258,8 @@ struct GlobVar {
 	 ((t1) >= TC_INT8 && (t2) >= TC_INT8 && (t1) < TC_INT16 &&                 \
 	  (t2) < TC_INT16))
 
+#define copy_token(d, s) (memcpy((d), (s), sizeof(struct Token)))
+struct PList *copy_globs(struct PList *globs);
 void search_error_code(struct Pser *p, struct PList *msgs);
 void *expression(struct Pser *);
 struct GlobExpr *parse_global_expression(struct Pser *p, struct TypeExpr *type);

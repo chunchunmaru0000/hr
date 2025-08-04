@@ -202,6 +202,34 @@ struct PLocalVar *new_plocal_var(struct Token *name, struct Arg *arg) {
 	return var;
 }
 
+// struct GlobExpr *copy_glob(struct GlobExpr *e) {
+// 	struct GlobExpr *copy = malloc(sizeof(struct GlobExpr));
+//
+// 	copy->from = e->from;
+// 	copy->code = e->code;
+// 	copy->type = e->type; // noy sure but
+// 	copy->globs = e->globs ? copy_globs(e->globs) : 0;
+//
+// 	copy->tvar = malloc(sizeof(struct Token));
+// 	copy_token(copy->tvar, e->tvar);
+// 	if (e->code == CT_STR || e->code == CT_STR_PTR) {
+// 		copy->tvar->view = copy_str(e->tvar->view);
+// 		copy->tvar->str = copy_str(e->tvar->str);
+// 	}
+//
+// 	return copy;
+// }
+//
+// struct PList *copy_globs(struct PList *globs) {
+// 	uint32_t i;
+// 	struct PList *gs = new_plist(globs->size);
+//
+// 	for (i = 0; i < globs->size; i++)
+// 		plist_set(gs, i, copy_glob(plist_get(globs, i)));
+//
+// 	return gs;
+// }
+
 const char *const ERR_WRONG_TOKEN = "Неверное выражение.";
 
 const char *const EXPECTED__STR = "Ожидалась строка.";

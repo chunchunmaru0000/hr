@@ -352,7 +352,7 @@ void lay_down_str_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 		struct Inst *in = plist_get(g->is, g->pos);
 		for (uint32_t j = 0; j < in->os->size; j++) {
 			this_e_var = plist_get(in->os, j);
-			this_e_var->value_ptr = ptr;
+			this_e_var->value_label = ptr;
 		}
 
 		blat_blist(g->prol, ptr);
@@ -365,8 +365,8 @@ void lay_down_str_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 		iprint_aprol(SA_ZERO_TERMINATOR);
 
 	} else if (e->from) {
-		if (e->from->value_ptr) {
-			blat_blist(g->prol, e->from->value_ptr);
+		if (e->from->value_label) {
+			blat_blist(g->prol, e->from->value_label);
 			prol_add('\n');
 		} else {
 			// not sure about this but

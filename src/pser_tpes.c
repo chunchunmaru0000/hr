@@ -10,6 +10,7 @@ enum CE_Code {
 	CE_ARR_INCOMPATIBLE_TYPE,
 	CE_AS_INCOMPATIBLE_TYPE,
 	CE_ARR_ITEM_INCOMPATIBLE_TYPE,
+	CE_ARR_FROM_OTHER_GLOBAL_ARR,
 	CE_STR_IS_NOT_A_PTR,
 	CE_UNCOMPUTIBLE_DATA,
 
@@ -32,6 +33,8 @@ const char *const ARR_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с типом выражения массива.";
 const char *const ARR_ITEM_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с типом выражения значения массива.";
+const char *const ARR_FROM_OTHER_GLOBAL_ARR =
+	"Нелязя назначать массив от другого массива через его имя, только если через указатель.";
 const char *const AS_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с приведенным типом выражения.";
 const char *const INCOMPATIBLE_TYPES =
@@ -57,6 +60,7 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_FUN_INCOMPATIBLE_TYPE, FUN_INCOMPATIBLE_TYPE, 0},
 	{CE_AS_INCOMPATIBLE_TYPE, AS_INCOMPATIBLE_TYPE, 0},
 	{CE_ARR_ITEM_INCOMPATIBLE_TYPE, ARR_ITEM_INCOMPATIBLE_TYPE, 0},
+	{CE_ARR_FROM_OTHER_GLOBAL_ARR, ARR_FROM_OTHER_GLOBAL_ARR, 0},
 	{CE_STR_IS_NOT_A_PTR, STR_IS_NOT_A_PTR, 0},
 	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA, 0},
 
@@ -218,6 +222,11 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	}
 
 	if (e->code == CT_ARR) {
+		if (e->from) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_ARR_FROM_OTHER_GLOBAL_ARR);
+			return;
+		}
 		if (type->code != TC_ARR) {
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_ARR_INCOMPATIBLE_TYPE);

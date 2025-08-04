@@ -52,8 +52,6 @@ struct GlobExpr *after_g_expression(struct Pser *p) {
 	return e;
 }
 
-#define copy_token(d, s) (memcpy((d), (s), sizeof(struct Token)))
-
 const char *const UNEXPECTED_TOKEN_IN_GLOB_EXPR =
 	"Непредвиденное слово для глобального выражения.";
 const char *const GLOBAL_VAR_WAS_NOT_FOUND =
@@ -105,6 +103,8 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		e->from = other_var;
 
 		if (other_var->value == 0) {
+		make_primary_id_global:
+
 			if (other_var->type->code == TC_FUN)
 				e->code = CT_FUN;
 			else
@@ -112,6 +112,8 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 			copy_token(e->tvar, c);
 			break;
 		}
+		// if (other_var->value->code == CT_ARR)
+		// 	goto make_primary_id_global;
 
 		e->code = other_var->value->code;
 		copy_token(e->tvar, other_var->value->tvar);
@@ -119,11 +121,16 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 
 		// REMEMBER: not to free pos and view, only token itself and
 		// maybe view if it was of CT_STR
-		if (other_var->value->code == CT_STR) {
+		if (other_var->value->code == CT_STR ||
+			other_var->value->code == CT_STR_PTR) {
+			// why would i free it tough, it global so
 			e->tvar->view = copy_str(other_var->value->tvar->view);
 			e->tvar->str = copy_str(other_var->value->tvar->str);
-		}
-		// why would i free it tough, it global so
+		} // else if (other_var->value->code == CT_ARR) {
+		  //  need to copy them cuz values can change while checking types
+		  //  compatibility, like real and int values
+		  // e->globs = copy_globs(other_var->value->globs);
+		//} its error case when compare types
 
 		break;
 	case STR:
@@ -205,7 +212,8 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		if (e->code == CT_STR)
 			e->code = CT_STR_PTR;
 		else if (e->code == CT_ARR)
-			e->code = CT_ARR_PTR;
+			// TODO: fix in herer or not here i dunno for now, need to commit and go
+			e->code = e->from ? CT_GLOBAL_PTR : CT_ARR_PTR;
 		else if (e->from)
 			e->code = CT_GLOBAL_PTR;
 		else
