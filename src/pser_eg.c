@@ -60,8 +60,9 @@ const char *const FUN_VAR_DOESNT_HAVE_VALUE =
 	"Функция как переменная не может иметь значение.";
 const char *const NOT_NUM_VALUE_FOR_THIS_UNARY_OP =
 	"Для данной математической операции ожидалось строковое значение.";
-const char *const CANT_TAKE_PTR_FROM_NOT_GVAR =
-	"Нельзя получить адрес не глобальной переменной";
+const char *const CANT_TAKE_PTR_FROM_THIS =
+	"В глобальном выражении адрес можно получить только из: глобальной "
+	"переменной, строки, массива и структуры.";
 
 struct GlobExpr *prime_g_expression(struct Pser *p) {
 	struct GlobVar *other_var;
@@ -103,17 +104,18 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		e->from = other_var;
 
 		if (other_var->value == 0) {
-		make_primary_id_global:
-
 			if (other_var->type->code == TC_FUN)
 				e->code = CT_FUN;
-			else
+			else {
+			e_be_global_and_copy_token_and_break:
 				e->code = CT_GLOBAL;
+			}
 			copy_token(e->tvar, c);
 			break;
 		}
-		// if (other_var->value->code == CT_ARR)
-		// 	goto make_primary_id_global;
+		if (other_var->value->code == CT_ARR ||
+			other_var->value->code == CT_STRUCT)
+			goto e_be_global_and_copy_token_and_break;
 
 		e->code = other_var->value->code;
 		copy_token(e->tvar, other_var->value->tvar);
@@ -142,7 +144,8 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		break;
 	case PAR_T_L:
 		e->code = CT_STRUCT;
-		e->tvar = c; // HERE TOKEN IS NOT COPIED
+		free(e->tvar); // it was malloced above
+		e->tvar = c;   // HERE TOKEN IS NOT COPIED
 		e->globs = new_plist(2);
 
 		consume(p);
@@ -211,13 +214,10 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 		if (e->code == CT_STR)
 			e->code = CT_STR_PTR;
-		else if (e->code == CT_ARR)
-			// TODO: fix in herer or not here i dunno for now, need to commit and go
-			e->code = e->from ? CT_GLOBAL_PTR : CT_ARR_PTR;
 		else if (e->from)
 			e->code = CT_GLOBAL_PTR;
 		else
-			eet(p->f, c, CANT_TAKE_PTR_FROM_NOT_GVAR, 0);
+			eet(p->f, c, CANT_TAKE_PTR_FROM_THIS, 0);
 
 		return e;
 	}

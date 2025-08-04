@@ -34,7 +34,8 @@ const char *const ARR_INCOMPATIBLE_TYPE =
 const char *const ARR_ITEM_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с типом выражения значения массива.";
 const char *const ARR_FROM_OTHER_GLOBAL_ARR =
-	"Нелязя назначать массив от другого массива через его имя, только если через указатель.";
+	"Нелязя назначать массив от другого массива через его имя, только если "
+	"через указатель.";
 const char *const AS_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с приведенным типом выражения.";
 const char *const INCOMPATIBLE_TYPES =
@@ -293,6 +294,8 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		// tmp_type->data.ptr_target = e->from->type;
 		tmp_type = &(struct TypeExpr){TC_PTR, {.ptr_target = e->from->type}};
 
+		// TODO: if types sizes arent equal, need to i dunno flag if it matters
+		// or kinda thing, its easer then have it return an enum
 		if (!are_types_equal(type, tmp_type)) {
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
