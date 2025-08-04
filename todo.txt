@@ -14,3 +14,5 @@ function variable signature
 атом ( ... )
 
 source code comments in assembly, need to get the last token of an instruction also
+
+*ч32 == *[ч32]

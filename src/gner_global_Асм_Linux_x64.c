@@ -353,8 +353,8 @@ void lay_down_str_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	add_value_ptr_to_this_e_var:
 
 		struct BList *ptr = take_label(g, LC_PTR);
-
 		struct GlobVar *this_e_var;
+
 		for (uint32_t j = 0; j < g->current_inst->os->size; j++) {
 			this_e_var = plist_get(g->current_inst->os, j);
 			this_e_var->value_label = ptr;
@@ -365,6 +365,7 @@ void lay_down_str_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 
 		blat_blist(g->aprol, ptr);
 		blat_str_aprol(SA_LABEL_END); // :
+
 		iprint_aprol(SA_LET_8);
 		blat_blist(g->aprol, e->tvar->view);
 		iprint_aprol(SA_ZERO_TERMINATOR);
@@ -394,7 +395,8 @@ void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 		lay_down_gptr_Асм_Linux_64(g, e);
 	else if (code == CT_STR_PTR)
 		lay_down_str_ptr_Асм_Linux_64(g, e);
-	// TODO: else if (code == CT_ARR_PTR)
+	else if (code == CT_ARR_PTR)
+		; //	lay_down_arr_ptr_Асм_Linux_64(g, e);
 	// TODO: else if (code == CT_STRUCT_PTR)
 	else if (code == CT_ARR || code == CT_GLOBAL)
 		lay_down_arr_or_struct_Асм_Linux_64(g, e);

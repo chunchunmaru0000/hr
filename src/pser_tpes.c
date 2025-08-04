@@ -12,6 +12,7 @@ enum CE_Code {
 	CE_ARR_ITEM_INCOMPATIBLE_TYPE,
 	CE_ARR_FROM_OTHER_GLOBAL_ARR,
 	CE_STR_IS_NOT_A_PTR,
+	CE_ARR_IS_NOT_A_PTR,
 	CE_UNCOMPUTIBLE_DATA,
 
 	CE_TODO1,
@@ -46,6 +47,10 @@ const char *const STR_IS_NOT_A_PTR =
 	"Строка - не указатель, строка - массив, массив - не указатель, чтобы "
 	"получить указатель из строки нужно взять ее адрес, например:\n\tпусть с: "
 	"стр = &\"строка\"";
+const char *const ARR_IS_NOT_A_PTR =
+	"Массив - не указатель, массив - несколько значений одного типа, чтобы "
+	"получить указатель из массива, надо взять его адрес, например:\n\tпусть "
+	"м: *ч64 = &[1 2 3]";
 
 struct CE_CodeStr {
 	enum CE_Code code;
@@ -63,6 +68,7 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_ARR_ITEM_INCOMPATIBLE_TYPE, ARR_ITEM_INCOMPATIBLE_TYPE, 0},
 	{CE_ARR_FROM_OTHER_GLOBAL_ARR, ARR_FROM_OTHER_GLOBAL_ARR, 0},
 	{CE_STR_IS_NOT_A_PTR, STR_IS_NOT_A_PTR, 0},
+	{CE_ARR_IS_NOT_A_PTR, ARR_IS_NOT_A_PTR, 0},
 	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA, 0},
 
 	{CE_TODO1, "TODO1", 0},
@@ -228,6 +234,11 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			plist_add(msgs, (void *)CE_ARR_FROM_OTHER_GLOBAL_ARR);
 			return;
 		}
+		if (is_ptr_type(type)) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_ARR_IS_NOT_A_PTR);
+			return;
+		}
 		if (type->code != TC_ARR) {
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_ARR_INCOMPATIBLE_TYPE);
@@ -328,8 +339,18 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	}
 
 	if (e->code == CT_ARR_PTR) {
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_TODO3);
+		if (!is_ptr_type(type)) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
+			return;
+		}
+
+		// if there is not value to define a type then its anyway valid type
+		if (e->globs->size == 0)
+			return;
+
+		glob = plist_get(e->globs, 0);
+		are_types_compatible(msgs, ptr_targ(type), glob);
 		return;
 	}
 

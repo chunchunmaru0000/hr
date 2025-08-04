@@ -185,9 +185,9 @@ struct TypeExpr {
 	union TypeData data;
 };
 
-#define arr_type(t) (plist_get((t)->data.arr, 0))
+#define arr_type(t) (((struct TypeExpr *)plist_get((t)->data.arr, 0)))
 #define arr_size(t) (plist_get((t)->data.arr, 1))
-#define ptr_targ(t) ((t)->data.ptr_target)
+#define ptr_targ(t) (((struct TypeExpr *)(t)->data.ptr_target))
 
 #define is_void_ptr(t) ((t)->code == TC_PTR && ptr_targ((t))->code == TC_VOID)
 #define is_ptr_type(t) ((t)->code == TC_PTR || (t)->code == TC_FUN)

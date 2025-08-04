@@ -214,6 +214,8 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 		if (e->code == CT_STR)
 			e->code = CT_STR_PTR;
+		else if (e->code == CT_ARR)
+			e->code = CT_ARR_PTR;
 		else if (e->from)
 			e->code = CT_GLOBAL_PTR;
 		else
