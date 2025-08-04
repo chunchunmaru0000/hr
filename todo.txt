@@ -12,3 +12,5 @@ do ',' fun arg types like the ones that are possible in function signature but
 function variable signature
 
 атом ( ... )
+
+source code comments in assembly, need to get the last token of an instruction also

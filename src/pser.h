@@ -243,6 +243,10 @@ struct GlobVar {
 	struct Token *name;
 	struct BList *signature;
 	struct GlobExpr *value;
+	// it cant be equal to name cuz its label not to value of the variabel but
+	// to the value of the value of variable and if value of variable is just a
+	// value not ptr then its important, also it cant be used as value in local
+	// expression cuz ots not const value and acan be changeable
 	struct BList *value_label;
 
 	struct TypeExpr *type;

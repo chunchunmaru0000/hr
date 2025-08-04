@@ -75,6 +75,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 
 	for (i = 0; i < g->is->size; i++) {
 		in = plist_get(g->is, i);
+		g->current_inst = in;
 		g->pos = i;
 
 		switch (in->code) {
@@ -322,7 +323,7 @@ void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 void lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	iprint_prol(SA_LET_8);
 	blat_blist(g->prol, e->tvar->view);
-	// TODO: t oget it why does \t before '\0'
+	// TODO: to get it why does \t before '\0'
 	iprint_prol(SA_ZERO_TERMINATOR);
 }
 void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
@@ -332,12 +333,17 @@ void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 }
 void lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	uint32_t i;
-	struct GlobExpr *ge;
+	struct GlobVar *this_e_var;
 
-	for (i = 0; i < e->globs->size; i++) {
-		ge = plist_get(e->globs, i);
+	for (i = 0; i < e->globs->size; i++)
+		gen_glob_expr_Асм_Linux_64(g, plist_get(e->globs, i));
 
-		gen_glob_expr_Асм_Linux_64(g, ge);
+	// clear current vars value_label if it was set during compilation
+	for (uint32_t j = 0; j < g->current_inst->os->size; j++) {
+		this_e_var = plist_get(g->current_inst->os, j);
+
+		if (this_e_var->value_label)
+			blist_clear_free(this_e_var->value_label);
 	}
 }
 void lay_down_str_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
@@ -349,9 +355,8 @@ void lay_down_str_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 		struct BList *ptr = take_label(g, LC_PTR);
 
 		struct GlobVar *this_e_var;
-		struct Inst *in = plist_get(g->is, g->pos);
-		for (uint32_t j = 0; j < in->os->size; j++) {
-			this_e_var = plist_get(in->os, j);
+		for (uint32_t j = 0; j < g->current_inst->os->size; j++) {
+			this_e_var = plist_get(g->current_inst->os, j);
 			this_e_var->value_label = ptr;
 		}
 

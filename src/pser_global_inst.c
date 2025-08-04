@@ -305,7 +305,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 	// gen signature
 	get_fun_signature_considering_args(os, fun_variable);
-	fun_variable->value_label = fun_variable->signature; // dunno why not
+	fun_variable->value_label = 0;
 	// check by signatures
 	for (i = 0; i < p->global_vars->size; i++) {
 		tmp_var = plist_get(p->global_vars, i);

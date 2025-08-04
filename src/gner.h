@@ -35,8 +35,10 @@ struct Gner {
 	enum Target t;
 	uc debug;
 
-	uint32_t indent_level;
 	uint32_t pos;
+	struct Inst *current_inst;
+
+	uint32_t indent_level;
 	long stack_counter;
 	struct Fggs *flags;
 	struct Lbls *labels;
