@@ -291,6 +291,21 @@ const uint32_t SA_LET_16_LEN = loa(SA_LET_16);
 const uint32_t SA_LET_32_LEN = loa(SA_LET_32);
 const uint32_t SA_LET_64_LEN = loa(SA_LET_64);
 
+void clear_current_inst_value_labels_to(struct Gner *g, struct BList *label) {
+	struct GlobVar *this_e_var;
+	uint32_t i;
+
+	// clear current vars value_label if it was set during compilation
+	for (i = 0; i < g->current_inst->os->size; i++) {
+		this_e_var = plist_get(g->current_inst->os, i);
+
+		if (this_e_var->value_label) {
+			blist_clear_free(this_e_var->value_label);
+			this_e_var->value_label = label;
+		}
+	}
+}
+
 void lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	enum TypeCode code = e->type->code;
 
@@ -331,24 +346,15 @@ void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 }
 void lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	uint32_t i;
-	struct GlobVar *this_e_var;
 
 	for (i = 0; i < e->globs->size; i++)
 		gen_glob_expr_Асм_Linux_64(g, plist_get(e->globs, i));
 
-	// clear current vars value_label if it was set during compilation
-	for (uint32_t j = 0; j < g->current_inst->os->size; j++) {
-		this_e_var = plist_get(g->current_inst->os, j);
-
-		if (this_e_var->value_label) {
-			blist_clear_free(this_e_var->value_label);
-			this_e_var->value_label = 0;
-		}
-	}
+	clear_current_inst_value_labels_to(g, 0);
 }
 // TODO: HOW?
 void lay_down_arr_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
-	struct BList *ptr = take_label(g, LC_PTR);
+	struct BList *ptr = take_label(g, LC_PTR), *label;
 
 	iprint_prol(SA_LET_64);
 	blat_blist(g->prol, ptr);
@@ -358,19 +364,36 @@ void lay_down_arr_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	blat_str_prol(SA_LABEL_END); // :
 
 	uint32_t i;
-	struct GlobVar *this_e_var;
+	struct GlobExpr *glob;
+	struct PList *labels = new_plist(2);
 
-	for (i = 0; i < e->globs->size; i++)
-		gen_glob_expr_Асм_Linux_64(g, plist_get(e->globs, i));
+	for (i = 0; i < e->globs->size; i++) {
+		glob = plist_get(e->globs, i);
 
-	// clear current vars value_label if it was set during compilation
-	for (i = 0; i < g->current_inst->os->size; i++) {
-		this_e_var = plist_get(g->current_inst->os, i);
+		if (glob->code == CT_ARR_PTR) {
+			label = take_label(g, LC_PTR);
 
-		if (this_e_var->value_label)
-			blist_clear_free(this_e_var->value_label);
-		this_e_var->value_label = ptr;
+			plist_add(labels, label);
+			plist_add(labels, glob);
+		} else {
+			gen_glob_expr_Асм_Linux_64(g, glob);
+		}
 	}
+
+	g->labels->ptrs -= labels->size / 2;
+
+	for (i = 0; i < labels->size; i += 2) {
+		label = plist_get(labels, i);
+		glob = plist_get(labels, i + 1);
+
+		blat_blist(g->prol, label);
+		blat_str_prol(SA_LABEL_END); // :
+
+		gen_glob_expr_Асм_Linux_64(g, glob);
+	}
+
+	clear_current_inst_value_labels_to(g, ptr);
+	// TODO: free labels list
 }
 void lay_down_str_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	iprint_prol(SA_LET_64);
