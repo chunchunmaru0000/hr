@@ -245,39 +245,33 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			return;
 		}
 
-		if (type->code == TC_ARR) {
-			tmp_type = arr_type(type);
+		tmp_type = arr_type(type);
 
-			for (n = 0; n < e->globs->size; n++) {
-				glob = plist_get(e->globs, n);
-				are_types_compatible(msgs, tmp_type, glob);
+		for (n = 0; n < e->globs->size; n++) {
+			glob = plist_get(e->globs, n);
+			are_types_compatible(msgs, tmp_type, glob);
 
-				// TODO: here is for example [окак тип [...] [...] [...]]
-				// it will segfault i beleive cuz all first arr types are same
-				// as окак type потому что сначала происходит то что внутри
-				// массивов а потом сами массивы изза рекурсии
-				if (glob->type)
-					free_type(glob->type);
-				glob->type = tmp_type;
-			}
-
-			n = (long)arr_size(type);
-			if (n != -1 && n != e->globs->size) {
-				plist_add(msgs, (void *)n);
-				plist_add(msgs, e->tvar);
-				plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
-			}
-
-			// TODO: here need to do if size was already once changed then err
-			// set size in any way
-			n = e->globs->size;
-			plist_set(type->data.arr, 1, (void *)n);
-		} else {
-			for (n = 0; n < e->globs->size; n++) {
-				are_types_compatible(msgs, ptr_targ(type),
-									 plist_get(e->globs, n));
-			}
+			// TODO: here is for example [окак тип [...] [...] [...]]
+			// it will segfault i beleive cuz all first arr types are same
+			// as окак type потому что сначала происходит то что внутри
+			// массивов а потом сами массивы изза рекурсии
+			if (glob->type)
+				free_type(glob->type);
+			glob->type = tmp_type;
 		}
+
+		n = (long)arr_size(type);
+		if (n != -1 && n != e->globs->size) {
+			plist_add(msgs, (void *)n);
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
+		}
+
+		// TODO: here need to do if size was already once changed then err
+		// set size in any way
+		n = e->globs->size;
+		plist_set(type->data.arr, 1, (void *)n);
+
 		return;
 	}
 
@@ -345,12 +339,17 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			return;
 		}
 
-		// if there is not value to define a type then its anyway valid type
-		if (e->globs->size == 0)
-			return;
+		tmp_type = ptr_targ(type);
 
-		glob = plist_get(e->globs, 0);
-		are_types_compatible(msgs, ptr_targ(type), glob);
+		for (n = 0; n < e->globs->size; n++) {
+			glob = plist_get(e->globs, n);
+			are_types_compatible(msgs, tmp_type, glob);
+
+			// TODO: here too segafult possible
+			if (glob->type)
+				free_type(glob->type);
+			glob->type = tmp_type;
+		}
 		return;
 	}
 

@@ -292,7 +292,6 @@ const uint32_t SA_LET_32_LEN = loa(SA_LET_32);
 const uint32_t SA_LET_64_LEN = loa(SA_LET_64);
 
 void lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
-	struct Token *num = e->tvar;
 	enum TypeCode code = e->type->code;
 
 	if (code == TC_INT8 || code == TC_UINT8)
@@ -304,11 +303,11 @@ void lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	else if (code == TC_INT64 || code == TC_UINT64 || code == TC_VOID)
 		iprint_prol(SA_LET_64);
 	else
-		exit(444);
+		exit(223);
 
-	int_add(g->prol, num->number);
+	int_add(g->prol, e->tvar->number);
 	blat_str_prol(SA_START_COMMENT); // \t;
-	hex_int_add(g->prol, num->number);
+	hex_int_add(g->prol, e->tvar->number);
 	prol_add('\n');
 }
 void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
@@ -323,8 +322,7 @@ void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 void lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	iprint_prol(SA_LET_8);
 	blat_blist(g->prol, e->tvar->view);
-	// TODO: to get it why does \t before '\0'
-	iprint_prol(SA_ZERO_TERMINATOR);
+	iprint_prol(SA_ZERO_TERMINATOR); // TODO: to get it why does \t before '\0'
 }
 void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	iprint_prol(SA_LET_64);
@@ -342,8 +340,36 @@ void lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) 
 	for (uint32_t j = 0; j < g->current_inst->os->size; j++) {
 		this_e_var = plist_get(g->current_inst->os, j);
 
+		if (this_e_var->value_label) {
+			blist_clear_free(this_e_var->value_label);
+			this_e_var->value_label = 0;
+		}
+	}
+}
+// TODO: HOW?
+void lay_down_arr_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+	struct BList *ptr = take_label(g, LC_PTR);
+
+	iprint_prol(SA_LET_64);
+	blat_blist(g->prol, ptr);
+	prol_add('\n');
+
+	blat_blist(g->prol, ptr);
+	blat_str_prol(SA_LABEL_END); // :
+
+	uint32_t i;
+	struct GlobVar *this_e_var;
+
+	for (i = 0; i < e->globs->size; i++)
+		gen_glob_expr_Асм_Linux_64(g, plist_get(e->globs, i));
+
+	// clear current vars value_label if it was set during compilation
+	for (i = 0; i < g->current_inst->os->size; i++) {
+		this_e_var = plist_get(g->current_inst->os, i);
+
 		if (this_e_var->value_label)
 			blist_clear_free(this_e_var->value_label);
+		this_e_var->value_label = ptr;
 	}
 }
 void lay_down_str_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
@@ -396,7 +422,7 @@ void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	else if (code == CT_STR_PTR)
 		lay_down_str_ptr_Асм_Linux_64(g, e);
 	else if (code == CT_ARR_PTR)
-		; //	lay_down_arr_ptr_Асм_Linux_64(g, e);
+		lay_down_arr_ptr_Асм_Linux_64(g, e);
 	// TODO: else if (code == CT_STRUCT_PTR)
 	else if (code == CT_ARR || code == CT_GLOBAL)
 		lay_down_arr_or_struct_Асм_Linux_64(g, e);
