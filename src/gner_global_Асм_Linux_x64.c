@@ -179,8 +179,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			g->indent_level++;
 
 			g->tmp_blist = gen_glob_expr_Асм_Linux_64(g, global_var->value);
-			blat_blist(g->prol, g->tmp_blist);
-			blist_clear_free(g->tmp_blist);
+			copy_to_fst_and_clear_snd(g->prol, g->tmp_blist);
 
 			g->indent_level--;
 			break;
@@ -305,7 +304,8 @@ struct BList *clear_current_inst_value_labels_to(struct Gner *g,
 		this_e_var = plist_get(g->current_inst->os, i);
 
 		if (this_e_var->value_label) {
-			blist_clear_free(this_e_var->value_label);
+			// TODO: it can free one meme several times
+			// blist_clear_free(this_e_var->value_label);
 			this_e_var->value_label = label;
 		}
 	}
@@ -364,66 +364,88 @@ struct BList *lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) 
 
 	return generated;
 }
+
+uc need_to_gen_ptr = 1;
+
 struct BList *lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g,
 												  struct GlobExpr *e) {
+
 	struct BList *generated = new_blist(64), *tmp_gen;
-	uint32_t i;
-
-	for (i = 0; i < e->globs->size; i++) {
-		tmp_gen = gen_glob_expr_Асм_Linux_64(g, plist_get(e->globs, i));
-		copy_to_fst_and_clear_snd(generated, tmp_gen);
-	}
-
-	clear_current_inst_value_labels_to(g, 0);
-	return generated;
-}
-// TODO: HOW?
-struct BList *lay_down_arr_ptr_Асм_Linux_64(struct Gner *g,
-											struct GlobExpr *e) {
-	struct BList *ptr = take_label(g, LC_PTR), *label;
-
-	iprint_prol(SA_LET_64);
-	blat_blist(g->prol, ptr);
-	prol_add('\n');
-
-	blat_blist(g->prol, ptr);
-	blat_str_prol(SA_LABEL_END); // :
-
-	uint32_t i;
-	struct GlobExpr *glob;
 	struct PList *labels = new_plist(2);
+	struct GlobExpr *glob;
+	uint32_t i;
 
 	for (i = 0; i < e->globs->size; i++) {
 		glob = plist_get(e->globs, i);
 
 		if (glob->code == CT_ARR_PTR) {
-			label = take_label(g, LC_PTR);
+			need_to_gen_ptr = 0;
 
-			plist_add(labels, label);
-			plist_add(labels, glob);
+			// add generared code and save it to labels
+			tmp_gen = gen_glob_expr_Асм_Linux_64(g, glob);
+			plist_add(labels, tmp_gen);
+			// lay label
+			tmp_gen = take_label(g, LC_PTR);
+			iprint_gen(SA_LET_64);
+			blat_blist(generated, tmp_gen);
+			gen_add('\n');
+
+			need_to_gen_ptr = 1;
 		} else {
-			gen_glob_expr_Асм_Linux_64(g, glob);
+			// just gen
+			tmp_gen = gen_glob_expr_Асм_Linux_64(g, glob);
+			copy_to_fst_and_clear_snd(generated, tmp_gen);
 		}
 	}
 
-	g->labels->ptrs -= labels->size / 2;
+	for (i = 0; i < labels->size / 2; i += 2) {
+		// decalre label
+		tmp_gen = plist_get(labels, i + 1); // label
+		copy_to_fst_and_clear_snd(generated, tmp_gen);
+		blat_str_gen(SA_LABEL_END); // :
 
-	for (i = 0; i < labels->size; i += 2) {
-		label = plist_get(labels, i);
-		glob = plist_get(labels, i + 1);
-
-		blat_blist(g->prol, label);
-		blat_str_prol(SA_LABEL_END); // :
-
-		gen_glob_expr_Асм_Linux_64(g, glob);
+		// generate label value
+		tmp_gen = plist_get(labels, i); // code
+		copy_to_fst_and_clear_snd(generated, tmp_gen);
 	}
 
-	clear_current_inst_value_labels_to(g, ptr);
-	// TODO: free labels list
+	plist_free(labels);
+	clear_current_inst_value_labels_to(g, 0);
+	return generated;
+}
+struct BList *lay_down_arr_ptr_Асм_Linux_64(struct Gner *g,
+											struct GlobExpr *e) {
+
+	struct BList *generated = new_blist(64), *ptr, *tmp_gen;
+	uc was_need_to_gen_ptr = need_to_gen_ptr;
+
+	if (was_need_to_gen_ptr) {
+		ptr = take_label(g, LC_PTR);
+		// declare label
+		iprint_gen(SA_LET_64);
+		blat_blist(generated, ptr);
+		gen_add('\n');
+
+		// lay label
+		blat_blist(generated, ptr);
+		blat_str_gen(SA_LABEL_END); // :
+	}
+
+	tmp_gen = lay_down_arr_or_struct_Асм_Linux_64(g, e);
+	copy_to_fst_and_clear_snd(generated, tmp_gen);
+
+	if (was_need_to_gen_ptr) {
+		clear_current_inst_value_labels_to(g, ptr);
+		// blist_clear_free(ptr); no need
+	}
+
+	need_to_gen_ptr = was_need_to_gen_ptr;
+	return generated;
 }
 struct BList *lay_down_str_ptr_Асм_Linux_64(struct Gner *g,
 											struct GlobExpr *e) {
-	iprint_prol(SA_LET_64);
+	struct BList *generated = new_blist(64);
+	iprint_gen(SA_LET_64);
 
 	if (!e->from) {
 	add_value_ptr_to_this_e_var:
@@ -436,8 +458,8 @@ struct BList *lay_down_str_ptr_Асм_Linux_64(struct Gner *g,
 			this_e_var->value_label = ptr;
 		}
 
-		blat_blist(g->prol, ptr);
-		prol_add('\n');
+		blat_blist(generated, ptr);
+		gen_add('\n');
 
 		blat_blist(g->aprol, ptr);
 		blat_str_aprol(SA_LABEL_END); // :
@@ -448,14 +470,16 @@ struct BList *lay_down_str_ptr_Асм_Linux_64(struct Gner *g,
 
 	} else if (e->from) {
 		if (e->from->value_label) {
-			blat_blist(g->prol, e->from->value_label);
-			prol_add('\n');
+			blat_blist(generated, e->from->value_label);
+			gen_add('\n');
 		} else {
 			// not sure about this but
 			// even if its possible it seems to be the case
 			goto add_value_ptr_to_this_e_var;
 		}
 	}
+
+	return generated;
 }
 
 struct BList *gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
