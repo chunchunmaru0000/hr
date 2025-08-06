@@ -116,6 +116,13 @@ extern const uint32_t SA_LET_64_LEN;
 
 void indent_line(struct Gner *g, struct BList *l);
 // #############################################################################
+#define blat_str_gen(str) (blat(generated, (uc *)(str), (str##_LEN - 1)))
+#define iprint_gen(str)                                                      \
+	do {                                                                       \
+		indent_line(g, generated);                                              \
+		blat_str_gen(str);                                                   \
+	} while (0)
+// #############################################################################
 #define blat_str_bprol(str) (blat(g->bprol, (uc *)(str), (str##_LEN - 1)))
 #define iprint_bprol(str)                                                      \
 	do {                                                                       \
@@ -163,6 +170,7 @@ void indent_line(struct Gner *g, struct BList *l);
 #define prol_add(byte) (blist_add(g->prol, (byte)))
 #define aprol_add(byte) (blist_add(g->aprol, (byte)))
 #define text_add(byte) (blist_add(g->text, (byte)))
+#define gen_add(byte) (blist_add(generated, (byte)))
 
 #define fun_prol_add(byte) (blist_add(g->fun_prol, (byte)))
 #define fun_text_add(byte) (blist_add(g->fun_text, (byte)))

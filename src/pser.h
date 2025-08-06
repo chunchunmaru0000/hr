@@ -1,6 +1,12 @@
 #include "tzer.h"
 #include <stdint.h>
 
+#define copy_to_fst_and_clear_snd(fst, snd)                                    \
+	do {                                                                       \
+		blat_blist((fst), (snd));                                              \
+		blist_clear_free((snd));                                               \
+	} while (0)
+
 extern uc NEED_WARN;
 void pw(struct Fpfc *f, struct Token *t, const char *const msg,
 		const char *const sgst);

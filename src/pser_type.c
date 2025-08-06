@@ -144,8 +144,7 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type);
 
 void add_type_str_to_str(struct BList *str, struct TypeExpr *type) {
 	struct BList *tmp = type_to_blist_from_str(type);
-	blat_blist(str, tmp);
-	blist_clear_free(tmp);
+	copy_to_fst_and_clear_snd(str, tmp);
 }
 
 struct BList *type_to_blist_from_str(struct TypeExpr *type) {
@@ -177,8 +176,7 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 			blist_add(str, '~');
 		else {
 			tmp = int_to_str(arr_len);
-			blat_blist(str, tmp);
-			blist_clear_free(tmp);
+			copy_to_fst_and_clear_snd(str, tmp);
 		}
 
 		blist_add(str, ']');

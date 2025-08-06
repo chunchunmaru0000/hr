@@ -312,51 +312,70 @@ struct BList *clear_current_inst_value_labels_to(struct Gner *g,
 }
 
 struct BList *lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+	struct BList *generated = new_blist(32);
 	enum TypeCode code = e->type->code;
 
 	if (code == TC_INT8 || code == TC_UINT8)
-		iprint_prol(SA_LET_8);
+		iprint_gen(SA_LET_8);
 	else if (code == TC_INT16 || code == TC_UINT16)
-		iprint_prol(SA_LET_16);
+		iprint_gen(SA_LET_16);
 	else if (code == TC_INT32 || code == TC_UINT32 || code == TC_ENUM)
-		iprint_prol(SA_LET_32);
+		iprint_gen(SA_LET_32);
 	else if (code == TC_INT64 || code == TC_UINT64 || code == TC_VOID)
-		iprint_prol(SA_LET_64);
+		iprint_gen(SA_LET_64);
 	else
 		exit(223);
 
-	int_add(g->prol, e->tvar->number);
-	blat_str_prol(SA_START_COMMENT); // \t;
-	hex_int_add(g->prol, e->tvar->number);
-	prol_add('\n');
+	int_add(generated, e->tvar->number);
+	blat_str_gen(SA_START_COMMENT); // \t;
+	hex_int_add(generated, e->tvar->number);
+	gen_add('\n');
+
+	return generated;
 }
 struct BList *lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
-	if (e->type->code == TC_DOUBLE)
-		iprint_prol(SA_LET_64);
-	else
-		iprint_prol(SA_LET_32);
+	struct BList *generated = new_blist(32);
 
-	real_add(g->prol, e->tvar->fpn);
-	prol_add('\n');
+	if (e->type->code == TC_DOUBLE)
+		iprint_gen(SA_LET_64);
+	else
+		iprint_gen(SA_LET_32);
+
+	real_add(generated, e->tvar->fpn);
+	gen_add('\n');
+
+	return generated;
 }
 struct BList *lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
-	iprint_prol(SA_LET_8);
-	blat_blist(g->prol, e->tvar->view);
-	iprint_prol(SA_ZERO_TERMINATOR); // TODO: to get it why does \t before '\0'
+	struct BList *generated = new_blist(32);
+
+	iprint_gen(SA_LET_8);
+	blat_blist(generated, e->tvar->view);
+	iprint_gen(SA_ZERO_TERMINATOR); // TODO: to get it why does \t before '\0'
+
+	return generated;
 }
 struct BList *lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
-	iprint_prol(SA_LET_64);
-	blat_blist(g->prol, e->from->signature);
-	prol_add('\n');
+	struct BList *generated = new_blist(32);
+
+	iprint_gen(SA_LET_64);
+	blat_blist(generated, e->from->signature);
+	gen_add('\n');
+
+	return generated;
 }
 struct BList *lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g,
 												  struct GlobExpr *e) {
+	struct BList *generated = new_blist(64), *tmp_gen;
 	uint32_t i;
 
-	for (i = 0; i < e->globs->size; i++)
-		gen_glob_expr_Асм_Linux_64(g, plist_get(e->globs, i));
+	for (i = 0; i < e->globs->size; i++) {
+		tmp_gen = gen_glob_expr_Асм_Linux_64(g, plist_get(e->globs, i));
+		copy_to_fst_and_clear_snd(generated, tmp_gen);
+	}
 
 	clear_current_inst_value_labels_to(g, 0);
+	return generated;
 }
 // TODO: HOW?
 struct BList *lay_down_arr_ptr_Асм_Linux_64(struct Gner *g,
@@ -440,23 +459,24 @@ struct BList *lay_down_str_ptr_Асм_Linux_64(struct Gner *g,
 }
 
 struct BList *gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+	struct BList *generated;
 	enum CT_Code code = e->code;
 
 	if (code == CT_INT)
-		lay_down_int_Асм_Linux_64(g, e);
+		generated = lay_down_int_Асм_Linux_64(g, e);
 	else if (code == CT_REAL)
-		lay_down_real_Асм_Linux_64(g, e);
+		generated = lay_down_real_Асм_Linux_64(g, e);
 	else if (code == CT_STR)
-		lay_down_str_Асм_Linux_64(g, e);
+		generated = lay_down_str_Асм_Linux_64(g, e);
 	else if (code == CT_GLOBAL_PTR)
-		lay_down_gptr_Асм_Linux_64(g, e);
+		generated = lay_down_gptr_Асм_Linux_64(g, e);
 	else if (code == CT_STR_PTR)
-		lay_down_str_ptr_Асм_Linux_64(g, e);
+		generated = lay_down_str_ptr_Асм_Linux_64(g, e);
 	else if (code == CT_ARR_PTR)
-		lay_down_arr_ptr_Асм_Linux_64(g, e);
+		generated = lay_down_arr_ptr_Асм_Linux_64(g, e);
 	// TODO: else if (code == CT_STRUCT_PTR)
 	else if (code == CT_ARR || code == CT_GLOBAL)
-		lay_down_arr_or_struct_Асм_Linux_64(g, e);
+		generated = lay_down_arr_or_struct_Асм_Linux_64(g, e);
 
-	
+	return generated;
 }
