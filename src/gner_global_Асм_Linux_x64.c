@@ -177,7 +177,11 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			}
 
 			g->indent_level++;
-			gen_glob_expr_Асм_Linux_64(g, global_var->value);
+
+			g->tmp_blist = gen_glob_expr_Асм_Linux_64(g, global_var->value);
+			blat_blist(g->prol, g->tmp_blist);
+			blist_clear_free(g->tmp_blist);
+
 			g->indent_level--;
 			break;
 		default:
@@ -291,7 +295,8 @@ const uint32_t SA_LET_16_LEN = loa(SA_LET_16);
 const uint32_t SA_LET_32_LEN = loa(SA_LET_32);
 const uint32_t SA_LET_64_LEN = loa(SA_LET_64);
 
-void clear_current_inst_value_labels_to(struct Gner *g, struct BList *label) {
+struct BList *clear_current_inst_value_labels_to(struct Gner *g,
+												 struct BList *label) {
 	struct GlobVar *this_e_var;
 	uint32_t i;
 
@@ -306,7 +311,7 @@ void clear_current_inst_value_labels_to(struct Gner *g, struct BList *label) {
 	}
 }
 
-void lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+struct BList *lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	enum TypeCode code = e->type->code;
 
 	if (code == TC_INT8 || code == TC_UINT8)
@@ -325,7 +330,7 @@ void lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	hex_int_add(g->prol, e->tvar->number);
 	prol_add('\n');
 }
-void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+struct BList *lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	if (e->type->code == TC_DOUBLE)
 		iprint_prol(SA_LET_64);
 	else
@@ -334,17 +339,18 @@ void lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	real_add(g->prol, e->tvar->fpn);
 	prol_add('\n');
 }
-void lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+struct BList *lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	iprint_prol(SA_LET_8);
 	blat_blist(g->prol, e->tvar->view);
 	iprint_prol(SA_ZERO_TERMINATOR); // TODO: to get it why does \t before '\0'
 }
-void lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+struct BList *lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	iprint_prol(SA_LET_64);
 	blat_blist(g->prol, e->from->signature);
 	prol_add('\n');
 }
-void lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+struct BList *lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g,
+												  struct GlobExpr *e) {
 	uint32_t i;
 
 	for (i = 0; i < e->globs->size; i++)
@@ -353,7 +359,8 @@ void lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) 
 	clear_current_inst_value_labels_to(g, 0);
 }
 // TODO: HOW?
-void lay_down_arr_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+struct BList *lay_down_arr_ptr_Асм_Linux_64(struct Gner *g,
+											struct GlobExpr *e) {
 	struct BList *ptr = take_label(g, LC_PTR), *label;
 
 	iprint_prol(SA_LET_64);
@@ -395,7 +402,8 @@ void lay_down_arr_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	clear_current_inst_value_labels_to(g, ptr);
 	// TODO: free labels list
 }
-void lay_down_str_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+struct BList *lay_down_str_ptr_Асм_Linux_64(struct Gner *g,
+											struct GlobExpr *e) {
 	iprint_prol(SA_LET_64);
 
 	if (!e->from) {
@@ -431,7 +439,7 @@ void lay_down_str_ptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	}
 }
 
-void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
+struct BList *gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	enum CT_Code code = e->code;
 
 	if (code == CT_INT)
@@ -449,4 +457,6 @@ void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	// TODO: else if (code == CT_STRUCT_PTR)
 	else if (code == CT_ARR || code == CT_GLOBAL)
 		lay_down_arr_or_struct_Асм_Linux_64(g, e);
+
+	
 }

@@ -190,7 +190,7 @@ void write_fun(struct Gner *g);
 void gen_Асм_Linux_64_text(struct Gner *);
 
 void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in);
-void gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e);
+struct BList *gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e);
 
 struct LocalVar {
 	struct Token *name;
