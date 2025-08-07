@@ -297,6 +297,7 @@ const uint32_t SA_LET_64_LEN = loa(SA_LET_64);
 struct BList *clear_current_inst_value_labels_to(struct Gner *g,
 												 struct BList *label) {
 	struct GlobVar *this_e_var;
+	struct BList *freed = 0;
 	uint32_t i;
 
 	// clear current vars value_label if it was set during compilation
@@ -304,8 +305,11 @@ struct BList *clear_current_inst_value_labels_to(struct Gner *g,
 		this_e_var = plist_get(g->current_inst->os, i);
 
 		if (this_e_var->value_label) {
-			// TODO: it can free one meme several times
-			// blist_clear_free(this_e_var->value_label);
+
+			if (this_e_var->value_label && freed != this_e_var->value_label) {
+				freed = this_e_var->value_label;
+				blist_clear_free(this_e_var->value_label);
+			}
 			this_e_var->value_label = label;
 		}
 	}
@@ -386,6 +390,8 @@ struct BList *lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g,
 			plist_add(labels, tmp_gen);
 			// lay label
 			tmp_gen = take_label(g, LC_PTR);
+			plist_add(labels, tmp_gen);
+
 			iprint_gen(SA_LET_64);
 			blat_blist(generated, tmp_gen);
 			gen_add('\n');
@@ -398,7 +404,7 @@ struct BList *lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g,
 		}
 	}
 
-	for (i = 0; i < labels->size / 2; i += 2) {
+	for (i = 0; i < labels->size; i += 2) {
 		// decalre label
 		tmp_gen = plist_get(labels, i + 1); // label
 		copy_to_fst_and_clear_snd(generated, tmp_gen);
