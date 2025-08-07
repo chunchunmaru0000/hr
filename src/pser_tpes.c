@@ -150,9 +150,13 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		// compares global types, not returns enum CE_Code, just boolean
 		if (!are_types_equal(type, e->type)) {
 			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)AS_INCOMPATIBLE_TYPE);
+			plist_add(msgs, (void *)CE_AS_INCOMPATIBLE_TYPE);
+			return;
 		}
 
+		if (type->code == TC_ARR && e->type->code != TC_ARR) {
+			// TODO check if arr and its value
+		}
 		return;
 	}
 
@@ -160,6 +164,27 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		plist_add(msgs, e->tvar);
 		plist_add(msgs, (void *)CE_UNCOMPUTIBLE_DATA);
 		return;
+	}
+
+	// and e here is not CT_GLOBAL
+	if (type->code == TC_ARR && e->code != CT_ARR && !is_compile_time_ptr(e)) {
+		n = msgs->size;
+
+		are_types_compatible(msgs, arr_type(type), e);
+
+		// TODO: it better after cuz if warn will also err
+		if (n == msgs->size) {
+			// need to do arr size = 1
+			n = (long)arr_size(type);
+			if (n != -1 && n != 1) {
+				plist_add(msgs, (void *)n);
+				plist_add(msgs, e->tvar);
+				plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
+			}
+
+			plist_set(type->data.arr, 1, (void *)1); // size of 1
+			return;
+		}
 	}
 
 	if (e->code == CT_INT) {
@@ -239,6 +264,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			plist_add(msgs, (void *)CE_ARR_IS_NOT_A_PTR);
 			return;
 		}
+		// TODO: check if e->code is compatible with arr_type(type)
 		if (type->code != TC_ARR) {
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_ARR_INCOMPATIBLE_TYPE);

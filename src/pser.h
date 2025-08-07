@@ -236,6 +236,9 @@ enum CT_Code {
 	CT_GLOBAL, // invalid cuz uncomputable !yet! but needed to get CT_GLOBAL_PTR
 	CT_GLOBAL_PTR, // pointer to other global value, is it exist?
 };
+#define is_compile_time_ptr(e)                                                 \
+	((e)->code == CT_STR_PTR || (e)->code == CT_ARR_PTR ||                     \
+	 (e)->code == CT_STRUCT_PTR || (e)->code == CT_GLOBAL_PTR)
 
 struct GlobExpr {
 	struct GlobVar *from;
