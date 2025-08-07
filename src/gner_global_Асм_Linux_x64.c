@@ -385,13 +385,19 @@ struct BList *lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g,
 		if (glob->code == CT_ARR_PTR) {
 			need_to_gen_ptr = 0;
 
-			// add generared code and save it to labels
+			g->indent_level += 2;
+
+			// save generared code to labels
 			tmp_gen = gen_glob_expr_Асм_Linux_64(g, glob);
 			plist_add(labels, tmp_gen);
-			// lay label
+
+			g->indent_level -= 2;
+
+			// save label
 			tmp_gen = take_label(g, LC_PTR);
 			plist_add(labels, tmp_gen);
 
+			// lay label
 			iprint_gen(SA_LET_64);
 			blat_blist(generated, tmp_gen);
 			gen_add('\n');
@@ -404,16 +410,21 @@ struct BList *lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g,
 		}
 	}
 
+	g->indent_level += 1;
+
 	for (i = 0; i < labels->size; i += 2) {
+		indent_line(g, generated);
 		// decalre label
 		tmp_gen = plist_get(labels, i + 1); // label
 		copy_to_fst_and_clear_snd(generated, tmp_gen);
 		blat_str_gen(SA_LABEL_END); // :
 
-		// generate label value
+		// lay generared code
 		tmp_gen = plist_get(labels, i); // code
 		copy_to_fst_and_clear_snd(generated, tmp_gen);
 	}
+
+	g->indent_level -= 1;
 
 	plist_free(labels);
 	clear_current_inst_value_labels_to(g, 0);
