@@ -274,6 +274,12 @@ int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
 			return 1; // void ptr and any ptr
 		if (is_ptr_type(t1) && is_void_ptr(t2))
 			return 1; // any ptr and void ptr
+		if (t1->code == TC_ARR)
+			if (are_types_equal(arr_type(t1), t2))
+				return 1;
+		if (t2->code == TC_ARR)
+			if (are_types_equal(arr_type(t2), t1))
+				return 1;
 		return 0;
 	}
 
