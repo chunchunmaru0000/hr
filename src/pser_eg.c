@@ -63,6 +63,9 @@ const char *const NOT_NUM_VALUE_FOR_THIS_UNARY_OP =
 const char *const CANT_TAKE_PTR_FROM_THIS =
 	"В глобальном выражении адрес можно получить только из: глобальной "
 	"переменной, строки, массива и структуры.";
+const char *const CANT_DEREFERENCE_THIS =
+	"Разыменовывать значениние можно только если: это строка для получения "
+	"массива, это указатель на лик для получения значения лика.";
 
 struct GlobExpr *prime_g_expression(struct Pser *p) {
 	struct GlobVar *other_var;
@@ -136,7 +139,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 
 		break;
 	case STR:
-		e->code = CT_STR;
+		e->code = CT_STR_PTR;
 		copy_token(e->tvar, c);
 		e->tvar->view = copy_str(c->view);
 		e->tvar->str = copy_str(c->str);
@@ -207,6 +210,20 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		} else {
 			eet(p->f, c, NOT_NUM_VALUE_FOR_THIS_UNARY_OP, 0);
 		}
+		return e;
+	}
+
+	if (c->code == MUL) {
+		consume(p);
+		e = after_g_expression(p);
+
+		if (e->code == CT_STR_PTR)
+			e->code = CT_STR;
+		else if (e->code == CT_ARR_PTR)
+			e->code = CT_ARR;
+		else
+			eet(p->f, c, CANT_DEREFERENCE_THIS, 0);
+
 		return e;
 	}
 

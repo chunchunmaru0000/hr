@@ -139,6 +139,9 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 	}
 }
 
+// TODO: if e->globs->size is less then arr_size(type) then just warn else err
+// cur arr size if defined then it its size for it and it wont change later cuz
+// cant do it and need to fill it with zeros
 void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 						  struct GlobExpr *e) {
 	long n;
@@ -166,26 +169,26 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		return;
 	}
 
-	// and e here is not CT_GLOBAL
-	if (type->code == TC_ARR && e->code != CT_ARR && !is_compile_time_ptr(e)) {
-		n = msgs->size;
-
-		are_types_compatible(msgs, arr_type(type), e);
-
-		// TODO: it better after cuz if warn will also err
-		if (n == msgs->size) {
-			// need to do arr size = 1
-			n = (long)arr_size(type);
-			if (n != -1 && n != 1) {
-				plist_add(msgs, (void *)n);
-				plist_add(msgs, e->tvar);
-				plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
-			}
-
-			plist_set(type->data.arr, 1, (void *)1); // size of 1
-			return;
-		}
-	}
+// 	// and e here is not CT_GLOBAL
+// 	if (type->code == TC_ARR && e->code != CT_ARR && !is_compile_time_ptr(e)) {
+// 		n = msgs->size;
+// 
+// 		are_types_compatible(msgs, arr_type(type), e);
+// 
+// 		// TODO: it better after cuz if warn will also err
+// 		if (n == msgs->size) {
+// 			// need to do arr size = 1
+// 			n = (long)arr_size(type);
+// 			if (n != -1 && n != 1) {
+// 				plist_add(msgs, (void *)n);
+// 				plist_add(msgs, e->tvar);
+// 				plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
+// 			}
+// 
+// 			plist_set(type->data.arr, 1, (void *)1); // size of 1
+// 			return;
+// 		}
+// 	}
 
 	if (e->code == CT_INT) {
 		if (is_int_type(type))
@@ -321,8 +324,6 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		}
 
 		// wrap around e->from->type
-		// tmp_type = new_type_expr(TC_PTR);
-		// tmp_type->data.ptr_target = e->from->type;
 		tmp_type = &(struct TypeExpr){TC_PTR, {.ptr_target = e->from->type}};
 
 		// TODO: if types sizes arent equal, need to i dunno flag if it matters
@@ -331,8 +332,6 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
 		}
-
-		// free(tmp_type);
 		return;
 	}
 
@@ -343,8 +342,6 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			return;
 		}
 
-		// tmp_type = new_type_expr(TC_PTR);
-		// tmp_type->data.ptr_target = new_type_expr(TC_UINT8);
 		tmp_type = &(struct TypeExpr){
 			TC_PTR,
 			{.ptr_target = &(struct TypeExpr){TC_UINT8, {.ptr_target = 0}}}};
@@ -353,8 +350,6 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
 		}
-
-		// free_type(tmp_type);
 		return;
 	}
 
