@@ -8,9 +8,11 @@ enum CE_Code {
 	CE_PTR_INCOMPATIBLE_TYPE,
 	CE_FUN_INCOMPATIBLE_TYPE,
 	CE_ARR_INCOMPATIBLE_TYPE,
+	CE_STRUCT_INCOMPATIBLE_TYPE,
 	CE_AS_INCOMPATIBLE_TYPE,
 	CE_ARR_ITEM_INCOMPATIBLE_TYPE,
 	CE_ARR_FROM_OTHER_GLOBAL_ARR,
+	CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT,
 	CE_STR_IS_NOT_A_PTR,
 	CE_ARR_IS_NOT_A_PTR,
 	CE_UNCOMPUTIBLE_DATA,
@@ -32,10 +34,15 @@ const char *const FUN_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с функциональным типом выражения.";
 const char *const ARR_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с типом выражения массива.";
+const char *const STRUCT_INCOMPATIBLE_TYPE =
+	"Тип переменной не совместим с типом выражения лика.";
 const char *const ARR_ITEM_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с типом выражения значения массива.";
 const char *const ARR_FROM_OTHER_GLOBAL_ARR =
 	"Нелязя назначать массив от другого массива через его имя, только если "
+	"через указатель.";
+const char *const STRUCT_FROM_OTHER_GLOBAL_STRUCT =
+	"Нелязя назначать лик от другого лик через его имя, только если "
 	"через указатель.";
 const char *const AS_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с приведенным типом выражения.";
@@ -63,10 +70,12 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_STR_INCOMPATIBLE_TYPE, STR_INCOMPATIBLE_TYPE, 0},
 	{CE_PTR_INCOMPATIBLE_TYPE, PTR_INCOMPATIBLE_TYPE, 0},
 	{CE_ARR_INCOMPATIBLE_TYPE, ARR_INCOMPATIBLE_TYPE, 0},
+	{CE_STRUCT_INCOMPATIBLE_TYPE, STRUCT_INCOMPATIBLE_TYPE, 0},
 	{CE_FUN_INCOMPATIBLE_TYPE, FUN_INCOMPATIBLE_TYPE, 0},
 	{CE_AS_INCOMPATIBLE_TYPE, AS_INCOMPATIBLE_TYPE, 0},
 	{CE_ARR_ITEM_INCOMPATIBLE_TYPE, ARR_ITEM_INCOMPATIBLE_TYPE, 0},
 	{CE_ARR_FROM_OTHER_GLOBAL_ARR, ARR_FROM_OTHER_GLOBAL_ARR, 0},
+	{CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT, STRUCT_FROM_OTHER_GLOBAL_STRUCT, 0},
 	{CE_STR_IS_NOT_A_PTR, STR_IS_NOT_A_PTR, 0},
 	{CE_ARR_IS_NOT_A_PTR, ARR_IS_NOT_A_PTR, 0},
 	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA, 0},
@@ -169,26 +178,26 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		return;
 	}
 
-// 	// and e here is not CT_GLOBAL
-// 	if (type->code == TC_ARR && e->code != CT_ARR && !is_compile_time_ptr(e)) {
-// 		n = msgs->size;
-// 
-// 		are_types_compatible(msgs, arr_type(type), e);
-// 
-// 		// TODO: it better after cuz if warn will also err
-// 		if (n == msgs->size) {
-// 			// need to do arr size = 1
-// 			n = (long)arr_size(type);
-// 			if (n != -1 && n != 1) {
-// 				plist_add(msgs, (void *)n);
-// 				plist_add(msgs, e->tvar);
-// 				plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
-// 			}
-// 
-// 			plist_set(type->data.arr, 1, (void *)1); // size of 1
-// 			return;
-// 		}
-// 	}
+	// 	// and e here is not CT_GLOBAL
+	// 	if (type->code == TC_ARR && e->code != CT_ARR &&
+	// !is_compile_time_ptr(e)) { 		n = msgs->size;
+	//
+	// 		are_types_compatible(msgs, arr_type(type), e);
+	//
+	// 		// TODO: it better after cuz if warn will also err
+	// 		if (n == msgs->size) {
+	// 			// need to do arr size = 1
+	// 			n = (long)arr_size(type);
+	// 			if (n != -1 && n != 1) {
+	// 				plist_add(msgs, (void *)n);
+	// 				plist_add(msgs, e->tvar);
+	// 				plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
+	// 			}
+	//
+	// 			plist_set(type->data.arr, 1, (void *)1); // size of 1
+	// 			return;
+	// 		}
+	// 	}
 
 	if (e->code == CT_INT) {
 		if (is_int_type(type))
@@ -305,8 +314,38 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	}
 
 	if (e->code == CT_STRUCT) {
+		if (e->from) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT);
+			return;
+		}
+		if (type->code != TC_STRUCT) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_STRUCT_INCOMPATIBLE_TYPE);
+			return;
+		}
 		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_TODO1);
+		plist_add(msgs, (void *)CE_STRUCT_INCOMPATIBLE_TYPE);
+		return;
+
+		struct PList *lik_os = find_lik(e->tvar->view)->os;
+
+		for (n = 0; n < e->globs->size; n++) {
+			glob = plist_get(e->globs, n);
+			are_types_compatible(msgs, tmp_type, glob);
+
+			if (glob->type)
+				free_type(glob->type);
+			glob->type = tmp_type;
+		}
+
+		n = (long)arr_size(type);
+		if (n != -1 && n != e->globs->size) {
+			plist_add(msgs, (void *)n);
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
+		}
+
 		return;
 	}
 

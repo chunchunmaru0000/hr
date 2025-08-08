@@ -52,12 +52,12 @@ struct Pser {
 	struct PList *errors;
 	struct PList *warns;
 
-	struct PList *enums;   // #define's
-	struct PList *structs; // Inst's of IP_DECLARE_STRUCT
+	struct PList *enums; // #define's
 
 	struct PList *global_vars; // global variables
 	struct PList *local_vars;
 };
+extern struct PList *parsed_structs; // Inst's of IP_DECLARE_STRUCT
 
 #define pser_need_err(p) ((p)->errors->size != 0 || (p)->warns->size != 0)
 void pser_err(struct Pser *p);
@@ -66,6 +66,7 @@ struct Pser *new_pser(char *, uc);
 struct PList *pse(struct Pser *); // instructions
 struct Token *next_pser_get(struct Pser *, long);
 struct Token *get_pser_token(struct Pser *, long);
+struct Inst *find_lik(struct BList *name);
 #define pser_by(p, ppos) (get_pser_token((p), (ppos) - (p)->pos))
 #define expect(pser, t, c)                                                     \
 	do {                                                                       \

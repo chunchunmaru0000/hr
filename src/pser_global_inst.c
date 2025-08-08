@@ -95,7 +95,8 @@ const char *const ARR_AS_A_FUN_ARG_IS_PROHIBITED =
 const char *const STRUCT_AS_A_FUN_ARG_IS_PROHIBITED =
 	"Лики запрещены для передачи в аргументы функции напрямую.";
 const char *const SUGGEST_CHANGE_TYPE_TO_A_PTR = "изменить тип на указатель";
-const char *const GLOBAL_STRUCTS_NAMES_OVERLAP = "Лик с таким именем уже существует.";
+const char *const GLOBAL_STRUCTS_NAMES_OVERLAP =
+	"Лик с таким именем уже существует.";
 const char *const SUGGEST_RENAME_STRUCT = "переименовать лик";
 
 struct Arg *new_arg() {
@@ -222,8 +223,8 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 	plist_add(os, name); // struct name
 	plist_add(os, 0);	 // reserved for size
 
-	for (i = 0; i < p->structs->size; i++) {
-		in = plist_get(p->structs, i);
+	for (i = 0; i < parsed_structs->size; i++) {
+		in = plist_get(parsed_structs, i);
 		c = plist_get(in->os, 0); // struct name token
 
 		if (sc((char *)name->view->st, (char *)c->view->st))

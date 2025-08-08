@@ -85,13 +85,16 @@ struct Pser *new_pser(char *filename, uc debug) {
 	p->warns = new_plist(2);
 
 	p->enums = new_plist(8);
-	p->structs = new_plist(8);
+
+	if (parsed_structs == 0)
+		parsed_structs = new_plist(8);
 
 	p->global_vars = new_plist(16);
 	p->local_vars = new_plist(16);
 
 	return p;
 }
+struct PList *parsed_structs = 0;
 
 void pser_err(struct Pser *p) {
 	struct ErrorInfo *ei;
@@ -230,6 +233,22 @@ struct PLocalVar *new_plocal_var(struct Token *name, struct Arg *arg) {
 // 	return gs;
 // }
 
+struct Inst *find_lik(struct BList *name) {
+	struct Inst *in;
+	struct Token *s_name;
+	uint32_t i;
+
+	for (i = 0; i < parsed_structs->size; i++) {
+		in = plist_get(parsed_structs, i);
+		s_name = plist_get(in->os, 0);
+
+		if (sc((char *)name->st, (char *)s_name->view->st))
+			return in;
+	}
+
+	return 0;
+}
+
 const char *const ERR_WRONG_TOKEN = "Неверное выражение.";
 
 const char *const EXPECTED__STR = "Ожидалась строка.";
@@ -340,7 +359,7 @@ struct PList *pse(struct Pser *p) {
 			include_in_is(p, is, i);
 		else if (i->code != IP_NONE) {
 			if (i->code == IP_DECLARE_STRUCT)
-				plist_add(p->structs, i);
+				plist_add(parsed_structs, i);
 			plist_add(is, i);
 		}
 		i = get_global_inst(p);

@@ -45,7 +45,6 @@ struct Gner {
 
 	struct PList *is;
 	struct PList *enums;   // Defn's
-	struct PList *structs; // Inst's of IP_DECLARE_STRUCT
 	struct PList *global_vars;
 	struct PList *local_vars;
 

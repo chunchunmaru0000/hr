@@ -21,8 +21,8 @@ int size_of_struct(struct Pser *p, struct BList *name) {
 	struct Inst *declare_struct;
 	struct Token *name_token;
 
-	for (i = 0; i < p->structs->size; i++) {
-		declare_struct = plist_get(p->structs, i);
+	for (i = 0; i < parsed_structs->size; i++) {
+		declare_struct = plist_get(parsed_structs, i);
 		name_token = plist_get(declare_struct->os, 0);
 
 		if (sc((char *)name->st, (char *)name_token->view->st))
