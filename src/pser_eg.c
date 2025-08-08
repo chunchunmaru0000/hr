@@ -219,8 +219,12 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 		if (e->code == CT_STR_PTR)
 			e->code = CT_STR;
+		else if (e->code == CT_STRUCT_PTR)
+			e->code = CT_STRUCT;
 		else if (e->code == CT_ARR_PTR)
 			e->code = CT_ARR;
+		else if (e->code == CT_GLOBAL_PTR)
+			e->code = CT_GLOBAL;
 		else
 			eet(p->f, c, CANT_DEREFERENCE_THIS, 0);
 
@@ -233,6 +237,8 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 		if (e->code == CT_STR)
 			e->code = CT_STR_PTR;
+		else if (e->code == CT_STRUCT)
+			e->code = CT_STRUCT_PTR;
 		else if (e->code == CT_ARR)
 			e->code = CT_ARR_PTR;
 		else if (e->from)
