@@ -74,7 +74,7 @@ const char *const FUN_SIGNATURES_OVERLAP =
 	"'*ц8' и 'стр'), их сигнатуры будут равны.";
 const char *const GLOBAL_VARS_NAMES_OVERLAP =
 	"Переменная с таким именем уже существует.";
-const char *const SUGGEST_CHANGE_VAR_NAME = "изменить имя переменной";
+const char *const SUGGEST_RENAME_VAR = "изменить имя переменной";
 const char *const SUGGEST_FIX_FUN_SIGNATURES_OVERLAP =
 	"изменить типы аругментов функции";
 const char *const SEVERAL_ARGS_CANT_SHARE_MEM =
@@ -95,6 +95,8 @@ const char *const ARR_AS_A_FUN_ARG_IS_PROHIBITED =
 const char *const STRUCT_AS_A_FUN_ARG_IS_PROHIBITED =
 	"Лики запрещены для передачи в аргументы функции напрямую.";
 const char *const SUGGEST_CHANGE_TYPE_TO_A_PTR = "изменить тип на указатель";
+const char *const GLOBAL_STRUCTS_NAMES_OVERLAP = "Лик с таким именем уже существует.";
+const char *const SUGGEST_RENAME_STRUCT = "переименовать лик";
 
 struct Arg *new_arg() {
 	struct Arg *arg = malloc(sizeof(struct Arg));
@@ -214,10 +216,20 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 	long i, last_offset = -1, size = 0;
 	struct Arg *arg;
 
-	struct Token *c = absorb(p); // skip лик
-	expect(p, c, ID);
-	plist_add(os, c); // struct name
-	plist_add(os, 0); // reserved for size
+	struct Inst *in;
+	struct Token *c, *name = absorb(p); // skip лик
+	expect(p, name, ID);
+	plist_add(os, name); // struct name
+	plist_add(os, 0);	 // reserved for size
+
+	for (i = 0; i < p->structs->size; i++) {
+		in = plist_get(p->structs, i);
+		c = plist_get(in->os, 0); // struct name token
+
+		if (sc((char *)name->view->st, (char *)c->view->st))
+			eet(p->f, name, GLOBAL_STRUCTS_NAMES_OVERLAP,
+				SUGGEST_RENAME_STRUCT);
+	}
 
 	expect(p, absorb(p), PAR_L);
 	parse_args(p, os);
@@ -369,7 +381,7 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 			// do i want to use here the name or the signature i dunno
 			if (sc((char *)tmp_var->signature->st, (char *)var->signature->st))
 				eet(p->f, var->name, GLOBAL_VARS_NAMES_OVERLAP,
-					SUGGEST_CHANGE_VAR_NAME);
+					SUGGEST_RENAME_VAR);
 		}
 
 		plist_add(p->global_vars, var);

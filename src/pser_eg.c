@@ -156,7 +156,8 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		break;
 	case PAR_C_L:
 		e->code = CT_ARR;
-		e->tvar = c; // HERE TOKEN IS NOT COPIED
+		free(e->tvar); // it was malloced above
+		e->tvar = c;   // HERE TOKEN IS NOT COPIED
 		e->globs = new_plist(2);
 
 		consume(p);
@@ -167,7 +168,8 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		break;
 	case PAR_L:
 		consume(p);
-		free(e);
+		free(e->tvar); // it was malloced above
+		free(e);	   // it was malloced above
 		e = global_expression(p);
 		match(p, pser_cur(p), PAR_R);
 		break;
