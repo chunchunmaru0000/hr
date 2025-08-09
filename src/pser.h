@@ -242,6 +242,10 @@ enum CT_Code {
 
 	CT_GLOBAL, // invalid cuz uncomputable !yet! but needed to get CT_GLOBAL_PTR
 	CT_GLOBAL_PTR, // pointer to other global value, is it exist?
+
+	// to fill lost values in array or struct, haves only code and type
+	// its need a type to gen zero bytes by type size
+	CT_ZERO,
 };
 #define is_compile_time_ptr(e)                                                 \
 	((e)->code == CT_STR_PTR || (e)->code == CT_ARR_PTR ||                     \
@@ -279,6 +283,8 @@ struct GlobVar {
 	  (t2) < TC_INT16))
 
 #define copy_token(d, s) (memcpy((d), (s), sizeof(struct Token)))
+struct Arg *get_arg_by_mem_index(struct PList *lik_os, uint32_t mem_index);
+struct Arg *get_arg_of_next_offset(struct PList *lik_os, long last_offset);
 struct PList *copy_globs(struct PList *globs);
 void search_error_code(struct Pser *p, struct PList *msgs);
 void *expression(struct Pser *);

@@ -161,6 +161,38 @@ struct Inst *find_lik(struct BList *name) {
 	return 0;
 }
 
+struct Arg *get_arg_of_next_offset(struct PList *lik_os, long last_offset) {
+	struct Arg *arg;
+	uint32_t i;
+
+	for (i = DCLR_STRUCT_ARGS; i < lik_os->size; i++) {
+		arg = plist_get(lik_os, i);
+
+		if (arg->offset > last_offset)
+			return arg;
+	}
+	exit(226);
+}
+
+struct Arg *get_arg_by_mem_index(struct PList *lik_os, uint32_t mem_index) {
+	struct Arg *arg;
+	long last_offset = -1;
+	uint32_t i;
+
+	for (i = DCLR_STRUCT_ARGS; i < lik_os->size; i++) {
+		arg = plist_get(lik_os, i);
+
+		if (last_offset != arg->offset) {
+			if (mem_index == 0)
+				return arg;
+			mem_index--;
+		}
+
+		last_offset = arg->offset;
+	}
+	exit(225);
+}
+
 const char *const ERR_WRONG_TOKEN = "Неверное выражение.";
 
 const char *const EXPECTED__STR = "Ожидалась строка.";

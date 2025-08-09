@@ -107,11 +107,13 @@ extern const char SA_LET_8[];
 extern const char SA_LET_16[];
 extern const char SA_LET_32[];
 extern const char SA_LET_64[];
+extern const char SA_REZERV_ZERO[];
 
 extern const uint32_t SA_LET_8_LEN;
 extern const uint32_t SA_LET_16_LEN;
 extern const uint32_t SA_LET_32_LEN;
 extern const uint32_t SA_LET_64_LEN;
+extern const uint32_t SA_REZERV_ZERO_LEN;
 
 void indent_line(struct Gner *g, struct BList *l);
 // #############################################################################

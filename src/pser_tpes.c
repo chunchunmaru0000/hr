@@ -168,6 +168,23 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 	}
 }
 
+struct GlobExpr *new_zero_type(struct Arg *arg, struct Token *tvar) {
+	struct GlobExpr *e = malloc(sizeof(struct GlobExpr));
+
+	e->code = CT_ZERO;
+	e->from = 0;
+	e->type = arg->type;
+
+	// not used for defining value, just in case here
+	e->tvar = malloc(sizeof(struct Token));
+	e->tvar->view = tvar->view;
+	e->tvar->number = arg->arg_size;
+
+	e->globs = 0;
+
+	return e;
+}
+
 // TODO: if e->globs->size is less then arr_size(type) then just warn else err
 // cur arr size if defined then it its size for it and it wont change later cuz
 // cant do it and need to fill it with zeros
@@ -346,8 +363,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		}
 
 		struct PList *lik_os = find_lik(e->tvar->view)->os;
-		n = (long)plist_get(lik_os, DCLR_STRUCT_MEMS);
-#define lik_mems n
+		long lik_mems = (long)plist_get(lik_os, DCLR_STRUCT_MEMS);
 
 		if (e->globs->size > lik_mems) {
 			plist_add(msgs, (void *)lik_mems);
@@ -360,25 +376,28 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT);
 
-			// TODO: fill it with zeroes
+			struct Arg *arg;
+			// get first arg
+			arg = get_arg_by_mem_index(lik_os, e->globs->size);
+			plist_add(e->globs, new_zero_type(arg, e->tvar));
+			// get all other args
+			for (; e->globs->size < lik_mems;) {
+				arg = get_arg_of_next_offset(lik_os, arg->offset);
+				plist_add(e->globs, new_zero_type(arg, e->tvar));
+			}
 		}
 
 		for (n = 0; n < e->globs->size; n++) {
 			glob = plist_get(e->globs, n);
-			are_types_compatible(msgs, tmp_type, glob);
 
+			if (glob->code == CT_ZERO)
+				continue;
+
+			are_types_compatible(msgs, tmp_type, glob);
 			if (glob->type)
 				free_type(glob->type);
 			glob->type = tmp_type;
 		}
-
-		n = (long)arr_size(type);
-		if (n != -1 && n != e->globs->size) {
-			plist_add(msgs, (void *)n);
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
-		}
-
 		return;
 	}
 

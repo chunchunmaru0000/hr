@@ -289,11 +289,13 @@ const char SA_LET_8[] = "пусть байт ";
 const char SA_LET_16[] = "пусть дбайт ";
 const char SA_LET_32[] = "пусть чбайт ";
 const char SA_LET_64[] = "пусть вбайт ";
+const char SA_REZERV_ZERO[] = "запас 0 ";
 
 const uint32_t SA_LET_8_LEN = loa(SA_LET_8);
 const uint32_t SA_LET_16_LEN = loa(SA_LET_16);
 const uint32_t SA_LET_32_LEN = loa(SA_LET_32);
 const uint32_t SA_LET_64_LEN = loa(SA_LET_64);
+const uint32_t SA_REZERV_ZERO_LEN = loa(SA_REZERV_ZERO);
 
 struct BList *clear_current_inst_value_labels_to(struct Gner *g,
 												 struct BList *label) {
@@ -500,6 +502,20 @@ struct BList *lay_down_str_ptr_Асм_Linux_64(struct Gner *g,
 	return generated;
 }
 
+struct BList *lay_down_zero(struct Gner *g, struct GlobExpr *e) {
+	struct BList *generated = new_blist(64);
+
+	// e->tvar->number of CT_ZERO is arg_size
+	struct BList *times = int_to_str(e->tvar->number);
+
+	iprint_gen(SA_LET_8);
+	iprint_gen(SA_REZERV_ZERO);
+	copy_to_fst_and_clear_snd(generated, times);
+	gen_add('\n');
+
+	return generated;
+}
+
 struct BList *gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	struct BList *generated;
 	enum CT_Code code = e->code;
@@ -517,8 +533,10 @@ struct BList *gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) 
 	else if (code == CT_ARR_PTR)
 		generated = lay_down_arr_ptr_Асм_Linux_64(g, e);
 	// TODO: else if (code == CT_STRUCT_PTR)
-	else if (code == CT_ARR || code == CT_GLOBAL)
+	else if (code == CT_ARR || code == CT_STRUCT)
 		generated = lay_down_arr_or_struct_Асм_Linux_64(g, e);
+	else if (code == CT_ZERO)
+		generated = lay_down_zero(g, e);
 
 	return generated;
 }
