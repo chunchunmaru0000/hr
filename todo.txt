@@ -1,5 +1,7 @@
 args to compiler
 
+UNREPEATABLE flag for an enum
+
 check how it behaves if empty file
 
 let a, b, c, d byte "hello world"
@@ -16,3 +18,5 @@ function variable signature
 source code comments in assembly, need to get the last token of an instruction also
 
 *ч32 == *[ч32], so arr type is equal to just the type, array only haves size
+
+when i will have defns as a dictionary then i can do maybe #undef

@@ -14,6 +14,7 @@ enum CE_Code {
 	CE_ARR_FROM_OTHER_GLOBAL_ARR,
 	CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT,
 	CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT,
+	CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT,
 	CE_STR_IS_NOT_A_PTR,
 	CE_ARR_IS_NOT_A_PTR,
 	CE_UNCOMPUTIBLE_DATA,
@@ -51,6 +52,9 @@ const char *const INCOMPATIBLE_TYPES =
 	"Типы переменной и выражения несовместимы.";
 const char *const TOO_MUCH_FIELDS_FOR_THIS_STRUCT =
 	"Слишком много аргументов указано для данной структуры.";
+const char *const TOO_LESS_FIELDS_FOR_THIS_STRUCT =
+	"Слишком мало аргументов указано для данной структуры, остальная ее часть "
+	"будет заполнена нулями.";
 const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
 const char *const EXPECTED_ARR_OF_LEN = "ожидался массив длиной: ";
 const char *const EXPECTED_STRUCT_OF_LEN = "ожидалось аргументов: ";
@@ -92,6 +96,8 @@ const struct CE_CodeStr cecstrs_errs[] = {
 };
 const struct CE_CodeStr cecstrs_warns[] = {
 	{CE_ARR_SIZES_DO_NOW_MATCH, ARR_SIZES_DO_NOW_MATCH, EXPECTED_ARR_OF_LEN},
+	{CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT, TOO_LESS_FIELDS_FOR_THIS_STRUCT,
+	 EXPECTED_STRUCT_OF_LEN},
 };
 
 const struct CE_CodeStr *find_error_msg(enum CE_Code err_code) {
@@ -152,6 +158,8 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 
 			ei->extra = (void *)plist_get(msgs, --i);
 			if (cstr->code == CE_ARR_SIZES_DO_NOW_MATCH)
+				ei->extra_type = ET_INT;
+			else if (cstr->code == CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT)
 				ei->extra_type = ET_INT;
 
 			plist_add(p->warns, ei);
@@ -339,14 +347,20 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 
 		struct PList *lik_os = find_lik(e->tvar->view)->os;
 		n = (long)plist_get(lik_os, DCLR_STRUCT_MEMS);
+#define lik_mems n
 
-		if (e->globs->size > n) {
-			plist_add(msgs, (void *)n);
+		if (e->globs->size > lik_mems) {
+			plist_add(msgs, (void *)lik_mems);
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT);
 			return;
 		}
-		if (lik_os->size - 2 > e->globs->size) {
+		if (lik_mems > e->globs->size) {
+			plist_add(msgs, (void *)lik_mems);
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT);
+
+			// TODO: fill it with zeroes
 		}
 
 		for (n = 0; n < e->globs->size; n++) {
