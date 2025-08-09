@@ -15,6 +15,7 @@ enum CE_Code {
 	CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT,
 	CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT,
 	CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT,
+	CE_STRUCT_WASNT_FOUND,
 	CE_STR_IS_NOT_A_PTR,
 	CE_ARR_IS_NOT_A_PTR,
 	CE_UNCOMPUTIBLE_DATA,
@@ -48,6 +49,7 @@ const char *const STRUCT_FROM_OTHER_GLOBAL_STRUCT =
 	"через указатель.";
 const char *const AS_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с приведенным типом выражения.";
+const char *const STRUCT_WASNT_FOUND = "Лик с таким именем не был найден.";
 const char *const INCOMPATIBLE_TYPES =
 	"Типы переменной и выражения несовместимы.";
 const char *const TOO_MUCH_FIELDS_FOR_THIS_STRUCT =
@@ -86,6 +88,7 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT, STRUCT_FROM_OTHER_GLOBAL_STRUCT, 0},
 	{CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT, TOO_MUCH_FIELDS_FOR_THIS_STRUCT,
 	 EXPECTED_STRUCT_OF_LEN},
+	{CE_STRUCT_WASNT_FOUND, STRUCT_WASNT_FOUND, 0},
 	{CE_STR_IS_NOT_A_PTR, STR_IS_NOT_A_PTR, 0},
 	{CE_ARR_IS_NOT_A_PTR, ARR_IS_NOT_A_PTR, 0},
 	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA, 0},
@@ -362,7 +365,12 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			return;
 		}
 
-		struct PList *lik_os = find_lik(e->tvar->view)->os;
+		struct PList *lik_os = find_lik_os(type->data.name);
+		if (lik_os == 0) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_STRUCT_WASNT_FOUND);
+			return;
+		}
 		long lik_mems = (long)plist_get(lik_os, DCLR_STRUCT_MEMS);
 
 		if (e->globs->size > lik_mems) {

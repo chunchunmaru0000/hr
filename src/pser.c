@@ -145,7 +145,7 @@ struct PLocalVar *new_plocal_var(struct Token *name, struct Arg *arg) {
 // 	return gs;
 // }
 
-struct Inst *find_lik(struct BList *name) {
+struct PList *find_lik_os(struct BList *name) {
 	struct Inst *in;
 	struct Token *s_name;
 	uint32_t i;
@@ -155,7 +155,7 @@ struct Inst *find_lik(struct BList *name) {
 		s_name = plist_get(in->os, DCLR_STRUCT_NAME);
 
 		if (sc((char *)name->st, (char *)s_name->view->st))
-			return in;
+			return in->os;
 	}
 
 	return 0;

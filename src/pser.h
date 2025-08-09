@@ -72,7 +72,7 @@ struct Pser *new_pser(char *, uc);
 struct PList *pse(struct Pser *); // instructions
 struct Token *next_pser_get(struct Pser *, long);
 struct Token *get_pser_token(struct Pser *, long);
-struct Inst *find_lik(struct BList *name);
+struct PList *find_lik_os(struct BList *name);
 #define pser_by(p, ppos) (get_pser_token((p), (ppos) - (p)->pos))
 #define expect(pser, t, c)                                                     \
 	do {                                                                       \
