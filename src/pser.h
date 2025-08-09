@@ -12,6 +12,12 @@ void pw(struct Fpfc *f, struct Token *t, const char *const msg,
 		const char *const sgst);
 #define MAX_ARGS_ON_REGISTERS 7
 
+// IP_DECLARE_STRUCT
+#define DCLR_STRUCT_NAME 0
+#define DCLR_STRUCT_SIZE 1
+#define DCLR_STRUCT_MEMS 2
+#define DCLR_STRUCT_ARGS 3
+
 extern const char *const EXPECTED__STR;
 extern const char *const EXPECTED__PAR_L;
 extern const char *const EXPECTED__PAR_R;

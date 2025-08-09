@@ -13,6 +13,7 @@ enum CE_Code {
 	CE_ARR_ITEM_INCOMPATIBLE_TYPE,
 	CE_ARR_FROM_OTHER_GLOBAL_ARR,
 	CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT,
+	CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT,
 	CE_STR_IS_NOT_A_PTR,
 	CE_ARR_IS_NOT_A_PTR,
 	CE_UNCOMPUTIBLE_DATA,
@@ -48,8 +49,11 @@ const char *const AS_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с приведенным типом выражения.";
 const char *const INCOMPATIBLE_TYPES =
 	"Типы переменной и выражения несовместимы.";
+const char *const TOO_MUCH_FIELDS_FOR_THIS_STRUCT =
+	"Слишком много аргументов указано для данной структуры.";
 const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
-const char *const ARR_LEN_WAS = "ожидался массив длиной ";
+const char *const EXPECTED_ARR_OF_LEN = "ожидался массив длиной: ";
+const char *const EXPECTED_STRUCT_OF_LEN = "ожидалось аргументов: ";
 const char *const STR_IS_NOT_A_PTR =
 	"Строка - не указатель, строка - массив, массив - не указатель, чтобы "
 	"получить указатель из строки нужно взять ее адрес, например:\n\tпусть с: "
@@ -76,6 +80,8 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_ARR_ITEM_INCOMPATIBLE_TYPE, ARR_ITEM_INCOMPATIBLE_TYPE, 0},
 	{CE_ARR_FROM_OTHER_GLOBAL_ARR, ARR_FROM_OTHER_GLOBAL_ARR, 0},
 	{CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT, STRUCT_FROM_OTHER_GLOBAL_STRUCT, 0},
+	{CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT, TOO_MUCH_FIELDS_FOR_THIS_STRUCT,
+	 EXPECTED_STRUCT_OF_LEN},
 	{CE_STR_IS_NOT_A_PTR, STR_IS_NOT_A_PTR, 0},
 	{CE_ARR_IS_NOT_A_PTR, ARR_IS_NOT_A_PTR, 0},
 	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA, 0},
@@ -85,7 +91,7 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_TODO4, "TODO4", 0},
 };
 const struct CE_CodeStr cecstrs_warns[] = {
-	{CE_ARR_SIZES_DO_NOW_MATCH, ARR_SIZES_DO_NOW_MATCH, ARR_LEN_WAS},
+	{CE_ARR_SIZES_DO_NOW_MATCH, ARR_SIZES_DO_NOW_MATCH, EXPECTED_ARR_OF_LEN},
 };
 
 const struct CE_CodeStr *find_error_msg(enum CE_Code err_code) {
@@ -130,6 +136,12 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 		if ((cstr = find_error_msg(error))) {
 			err_token = plist_get(msgs, --i);
 			ei = new_error_info(p->f, err_token, cstr->str, cstr->sgst);
+
+			if (cstr->code == CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT) {
+				ei->extra = (void *)plist_get(msgs, --i);
+				ei->extra_type = ET_INT;
+			}
+
 			plist_add(p->errors, ei);
 			continue;
 		}
@@ -324,11 +336,20 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			plist_add(msgs, (void *)CE_STRUCT_INCOMPATIBLE_TYPE);
 			return;
 		}
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_STRUCT_INCOMPATIBLE_TYPE);
-		return;
 
 		struct PList *lik_os = find_lik(e->tvar->view)->os;
+		uint32_t args_count = 0, last_arggs;
+		for (n = 0; n < lik_os->size; n++) {
+		}
+
+		if (e->globs->size > lik_os->size - 2) {
+			plist_add(msgs, 0);
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT);
+			return;
+		}
+		if (lik_os->size - 2 > e->globs->size) {
+		}
 
 		for (n = 0; n < e->globs->size; n++) {
 			glob = plist_get(e->globs, n);

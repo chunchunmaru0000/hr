@@ -240,7 +240,7 @@ struct Inst *find_lik(struct BList *name) {
 
 	for (i = 0; i < parsed_structs->size; i++) {
 		in = plist_get(parsed_structs, i);
-		s_name = plist_get(in->os, 0);
+		s_name = plist_get(in->os, DCLR_STRUCT_NAME);
 
 		if (sc((char *)name->st, (char *)s_name->view->st))
 			return in;

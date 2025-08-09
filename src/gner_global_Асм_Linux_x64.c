@@ -108,11 +108,12 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			// ### os explanation:
 			//   _ - name
 			//   _ - size
+			//   _ - mems size, mems are not args
 			// ... - fields that are Arg's
 
 			tok = plist_get(in->os, 0);
 
-			for (j = 2; j < in->os->size; j++)
+			for (j = DCLR_STRUCT_ARGS; j < in->os->size; j++)
 				declare_struct_arg(g, tok, plist_get(in->os, j));
 
 			bprol_add('\n');

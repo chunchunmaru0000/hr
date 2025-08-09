@@ -23,7 +23,7 @@ int size_of_struct(struct Pser *p, struct BList *name) {
 
 	for (i = 0; i < parsed_structs->size; i++) {
 		declare_struct = plist_get(parsed_structs, i);
-		name_token = plist_get(declare_struct->os, 0);
+		name_token = plist_get(declare_struct->os, DCLR_STRUCT_NAME);
 
 		if (sc((char *)name->st, (char *)name_token->view->st))
 			goto struct_name_found;
@@ -32,7 +32,7 @@ int size_of_struct(struct Pser *p, struct BList *name) {
 
 struct_name_found:
 
-	size = (long)plist_get(declare_struct->os, 1);
+	size = (long)plist_get(declare_struct->os, DCLR_STRUCT_SIZE);
 	return size;
 }
 

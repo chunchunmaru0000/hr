@@ -212,9 +212,10 @@ void parse_args(struct Pser *p, struct PList *os) {
 // ### os explanation:
 //   _ - name
 //   _ - size
+//   _ - mems size, usefull cuz u may need to know it, mems are not args
 // ... - fields that are Arg's
 enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
-	long i, last_offset = -1, size = 0;
+	long i, last_offset = -1, size = 0, mems_count = 0;
 	struct Arg *arg;
 
 	struct Inst *in;
@@ -222,6 +223,7 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 	expect(p, name, ID);
 	plist_add(os, name); // struct name
 	plist_add(os, 0);	 // reserved for size
+	plist_add(os, 0);	 // reserved for mems_count
 
 	for (i = 0; i < parsed_structs->size; i++) {
 		in = plist_get(parsed_structs, i);
@@ -235,17 +237,21 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 	expect(p, absorb(p), PAR_L);
 	parse_args(p, os);
 
-	check_list_of_args_on_uniq_names(p->f, os, 2);
+	check_list_of_args_on_uniq_names(p->f, os, DCLR_STRUCT_ARGS);
 
-	for (i = 2; i < os->size; i++) {
+	for (i = DCLR_STRUCT_ARGS; i < os->size; i++) {
 		arg = plist_get(os, i);
 
-		if (arg->offset != last_offset)
+		if (arg->offset != last_offset) {
 			size += arg->arg_size;
+			mems_count++;
+		}
 
 		last_offset = arg->offset;
 	}
-	plist_set(os, 1, (void *)size); // set size
+
+	plist_set(os, DCLR_STRUCT_SIZE, (void *)size);		 // set size
+	plist_set(os, DCLR_STRUCT_MEMS, (void *)mems_count); // set mems_count
 
 	return IP_DECLARE_STRUCT;
 }
