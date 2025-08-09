@@ -185,7 +185,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 			g->indent_level--;
 			break;
 		default:
-			eei(in, "эээ", 0);
+			eei(in, "ээЭэ", 0);
 		}
 	}
 end_gen_Асм_text_loop:;

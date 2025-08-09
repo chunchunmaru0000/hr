@@ -338,12 +338,10 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		}
 
 		struct PList *lik_os = find_lik(e->tvar->view)->os;
-		uint32_t args_count = 0, last_arggs;
-		for (n = 0; n < lik_os->size; n++) {
-		}
+		n = (long)plist_get(lik_os, DCLR_STRUCT_MEMS);
 
-		if (e->globs->size > lik_os->size - 2) {
-			plist_add(msgs, 0);
+		if (e->globs->size > n) {
+			plist_add(msgs, (void *)n);
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT);
 			return;

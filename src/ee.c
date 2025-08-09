@@ -128,6 +128,8 @@ struct ErrorInfo *new_error_info(struct Fpfc *f, struct Token *t,
 	ei->t = t;
 	ei->msg = msg;
 	ei->sgst = sgst;
+	ei->extra = 0;
+	ei->extra_type = ET_NONE;
 	return ei;
 }
 
