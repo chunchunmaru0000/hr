@@ -366,12 +366,16 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		}
 
 		struct PList *lik_os = find_lik_os(type->data.name);
+		// this check can be deleted cuz when parse a type then it already
+		// checks for existence of the struct
 		if (lik_os == 0) {
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_STRUCT_WASNT_FOUND);
 			return;
 		}
-		long lik_mems = (long)plist_get(lik_os, DCLR_STRUCT_MEMS);
+
+		n = (long)plist_get(lik_os, DCLR_STRUCT_MEMS);
+/*	 */ #define lik_mems n
 
 		if (e->globs->size > lik_mems) {
 			plist_add(msgs, (void *)lik_mems);
@@ -379,12 +383,13 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			plist_add(msgs, (void *)CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT);
 			return;
 		}
+
+		struct Arg *arg;
 		if (lik_mems > e->globs->size) {
 			plist_add(msgs, (void *)lik_mems);
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT);
 
-			struct Arg *arg;
 			// get first arg
 			arg = get_arg_by_mem_index(lik_os, e->globs->size);
 			plist_add(e->globs, new_zero_type(arg, e->tvar));
@@ -395,16 +400,23 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			}
 		}
 
+		if (e->globs->size == 0) // zero args in struct in any case
+			return;
+
 		for (n = 0; n < e->globs->size; n++) {
 			glob = plist_get(e->globs, n);
+			arg = get_arg_by_mem_index(lik_os, n);
 
 			if (glob->code == CT_ZERO)
 				continue;
 
-			are_types_compatible(msgs, tmp_type, glob);
+			// for now its first in mem arg type, later if there will be
+			// TODO: CT_NAMED_STRUCT_FIELD then it will be another logic
+			are_types_compatible(msgs, arg->type, glob);
+
 			if (glob->type)
 				free_type(glob->type);
-			glob->type = tmp_type;
+			glob->type = arg->type;
 		}
 		return;
 	}
