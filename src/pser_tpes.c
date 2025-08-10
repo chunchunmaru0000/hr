@@ -24,9 +24,7 @@ enum CE_Code {
 	CE_ARR_IS_NOT_A_PTR,
 	CE_UNCOMPUTIBLE_DATA,
 
-	CE_TODO1,
-	CE_TODO3,
-	CE_TODO4,
+	CE_todo,
 };
 
 const char *const NUM_INCOMPATIBLE_TYPE =
@@ -82,6 +80,8 @@ const char *const CANT_DEFINE_STRUCT_TYPE =
 	"Тип недостаточно явный для определения типа лика.";
 const char *const MAYBE_NOT_USE_VOID_PTR =
 	"может не использовать указатель на тлен";
+const char *const todo_str =
+	"need to do in pser_tpes.c aat the end of the are_types_compatible";
 
 struct CE_CodeStr {
 	enum CE_Code code;
@@ -112,9 +112,7 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_CANT_DEFINE_STRUCT_TYPE, CANT_DEFINE_STRUCT_TYPE,
 	 MAYBE_NOT_USE_VOID_PTR},
 
-	{CE_TODO1, "TODO1", 0},
-	{CE_TODO3, "TODO3", 0},
-	{CE_TODO4, "TODO4", 0},
+	{CE_todo, todo_str, 0},
 };
 const struct CE_CodeStr cecstrs_warns[] = {
 	{CE_ARR_SIZES_DO_NOW_MATCH, ARR_SIZES_DO_NOW_MATCH, EXPECTED_ARR_OF_LEN},
@@ -213,9 +211,6 @@ struct GlobExpr *new_zero_type(struct TypeExpr *type, int size,
 	return e;
 }
 
-// TODO: if e->globs->size is less then arr_size(type) then just warn else err
-// cur arr size if defined then it its size for it and it wont change later cuz
-// cant do it and need to fill it with zeros
 void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 						  struct GlobExpr *e) {
 	long n;
@@ -566,7 +561,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	}
 
 	plist_add(msgs, e->tvar);
-	plist_add(msgs, (void *)CE_TODO4);
+	plist_add(msgs, (void *)CE_todo);
 }
 
 void check_global_type_compatibility(struct Pser *p, struct TypeExpr *type,
