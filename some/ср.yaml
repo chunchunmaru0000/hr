@@ -1,0 +1,39 @@
+filetype: ср
+extension: .ср
+
+detect:
+    filename: "\\.(ср?)$"
+
+rules:
+    - indent-char: "[\\\\]"
+
+    - statement: "(^|[\\s.,!?:;\"'])(_асм|фц|вечно|пусть|вот|влечь|пока|для|цикл|на)([\\s.,!?:;\"']|$)"
+    - preproc: "(^|[\\s.,!?:;\"'])(окак)([\\s.,!?:;\"']|$)"
+
+    - identifier: "(^|[\\s.,!?:;\"'])(лик|счет|стр)([\\s.,!?:;\"']|$)"
+    - identifier: "(^|[\\s.,!?:;\"'\\(\\)\\[\\]{}<>+\\-*/=&%|])(ч8|ч16|ч32|ч64|ц8|ц16|ц32|ц64|в32|в64|тлен)($|[\\s.,!?:;\"'\\(\\)\\[\\]{}<>+\\-*/=&%|])"
+
+    - constant.number: "\\b(х|Х|0х|0Х|h|A|0x)+[0-9]+(|h|A)+\\b"
+    - constant.number: "\\b0x[0-9 a-f A-F (а-ж)+ А-Ж]+\\b"
+    - constant.number: "\\b0х[0-9 a-f A-F а-ж А-Ж]+\\b"
+    - constant.number: "\\b0Х[0-9 a-f A-F а-ж А-Ж]+\\b"
+    - constant.number: "(^|[^А-Яа-яЁё])\\b[0-9]+\\b"
+
+    - constant.string:
+        start: "\""
+        end: "\""
+        skip: "\\\\."
+        rules:
+            - constant.specialChar: "\\\\([\"'abfnrtv\\\\]|[0-3]?[0-7]{1,2}|x[0-9A-Fa-f]{1,2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})"
+
+    - comment:
+        start: ";;"
+        end: ";;"
+        rules:
+            - todo: "(потом|ПОТОМ):?"
+
+    - comment:
+        start: ";"
+        end: "$"
+        rules:
+            - todo: "(потом|ПОТОМ):?"
