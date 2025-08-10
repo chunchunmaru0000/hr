@@ -259,6 +259,7 @@ struct GlobExpr {
 	struct Token *tvar;	   // тварь
 	struct PList *globs;   // list of GlobExpr's or 0
 };
+void free_glob_expr(struct GlobExpr *e);
 
 struct GlobVar {
 	struct Token *name;
@@ -331,3 +332,6 @@ void eei(struct Inst *, const char *const msg, const char *const sgst);
 
 void check_global_type_compatibility(struct Pser *p, struct TypeExpr *type,
 									 struct GlobExpr *e);
+
+struct GlobExpr *global_addng(struct Pser *p, struct GlobExpr *l,
+							  struct GlobExpr *r, struct Token *op);

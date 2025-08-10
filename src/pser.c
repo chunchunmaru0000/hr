@@ -193,6 +193,36 @@ struct Arg *get_arg_by_mem_index(struct PList *lik_os, uint32_t mem_index) {
 	exit(225);
 }
 
+void free_glob_expr(struct GlobExpr *e) {
+	enum CT_Code c = e->code;
+	uint32_t i;
+
+	if (c == CT_INT || c == CT_REAL || c == CT_ZERO || c == CT_FUN ||
+		c == CT_GLOBAL || c == CT_GLOBAL_PTR) {
+	just_free_token_and_e:
+		free(e->tvar);
+		free(e);
+	} else if (c == CT_ARR || c == CT_ARR_PTR || c == CT_STRUCT ||
+			   c == CT_STRUCT_PTR) {
+		if (e->from)
+			goto just_free_token_and_e;
+
+		if (!e->globs)
+			exit(222);
+
+		for (i = 0; i < e->globs->size; i++)
+			free_glob_expr(plist_get(e->globs, i));
+		plist_free(e->globs);
+		// HERE TOKEN IS NOT COPIED
+		free(e);
+	} else if (c == CT_STR || c == CT_STR_PTR) {
+		blist_clear_free(e->tvar->view);
+		blist_clear_free(e->tvar->str);
+		goto just_free_token_and_e;
+	} else
+		exit(221);
+}
+
 const char *const ERR_WRONG_TOKEN = "Неверное выражение.";
 
 const char *const EXPECTED__STR = "Ожидалась строка.";

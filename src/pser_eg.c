@@ -128,7 +128,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		// maybe view if it was of CT_STR
 		if (other_var->value->code == CT_STR ||
 			other_var->value->code == CT_STR_PTR) {
-			// why would i free it tough, it global so
+
 			e->tvar->view = copy_str(other_var->value->tvar->view);
 			e->tvar->str = copy_str(other_var->value->tvar->str);
 		} // else if (other_var->value->code == CT_ARR) {
@@ -206,7 +206,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		if (e->code == CT_INT) {
 			e->tvar->number *= -1;
 		} else if (e->code == CT_REAL) {
-			e->tvar->fpn *= -1;
+			e->tvar->real *= -1;
 		} else {
 			eet(p->f, c, NOT_NUM_VALUE_FOR_THIS_UNARY_OP, 0);
 		}
@@ -269,6 +269,19 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 struct GlobExpr *addng_g_expression(struct Pser *p) {
 	struct GlobExpr *e = unary_g_expression(p);
-	// TODO: maybe take strings in globs and not add them in one ?
+	struct Token *c;
+
+	loop {
+		c = pser_cur(p);
+
+		if (c->code == PLUS || c->code == MINUS)
+			;
+		else
+			break;
+
+		consume(p);
+		e = global_addng(p, e, unary_g_expression(p), c);
+	}
+
 	return e;
 }

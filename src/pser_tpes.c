@@ -264,7 +264,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			return;
 
 		if (is_real_type(type)) {
-			e->tvar->fpn = e->tvar->number;
+			e->tvar->real = e->tvar->number;
 			e->code = CT_REAL;
 			return;
 		}
@@ -279,7 +279,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			return;
 
 		if (is_int_type(type)) {
-			e->tvar->number = e->tvar->fpn;
+			e->tvar->number = e->tvar->real;
 			e->code = CT_INT;
 			return;
 		}

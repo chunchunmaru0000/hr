@@ -348,7 +348,7 @@ struct BList *lay_down_real_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) 
 	else
 		iprint_gen(SA_LET_32);
 
-	real_add(generated, e->tvar->fpn);
+	real_add(generated, e->tvar->real);
 	gen_add('\n');
 
 	return generated;

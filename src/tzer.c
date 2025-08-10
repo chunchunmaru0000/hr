@@ -126,7 +126,7 @@ enum TCode num_token(struct Tzer *t, struct Token *token) {
 			c = next(t);
 			mnt_len_10_pow *= 10.0;
 		}
-		token->fpn = (value + mnt / mnt_len_10_pow) * minus_flag;
+		token->real = (value + mnt / mnt_len_10_pow) * minus_flag;
 	} else if (base == 2) {
 		while (c == '_' || c == '0' || c == '1') {
 			if (c != '_') {

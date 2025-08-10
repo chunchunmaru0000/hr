@@ -70,6 +70,6 @@ struct Token {
 	struct Pos *p;
 	// literals reserved that may not always be used
 	long number;
-	double fpn; // Floating Point Number
+	double real; // Floating Point Number
 	struct BList *str;
 };
