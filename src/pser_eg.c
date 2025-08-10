@@ -274,13 +274,11 @@ struct GlobExpr *addng_g_expression(struct Pser *p) {
 	loop {
 		c = pser_cur(p);
 
-		if (c->code == PLUS || c->code == MINUS)
-			;
-		else
+		if (c->code == PLUS || c->code == MINUS) {
+			consume(p);
+			e = global_addng(p, e, unary_g_expression(p), c);
+		} else
 			break;
-
-		consume(p);
-		e = global_addng(p, e, unary_g_expression(p), c);
 	}
 
 	return e;

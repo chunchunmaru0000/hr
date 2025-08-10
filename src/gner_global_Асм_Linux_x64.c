@@ -97,7 +97,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 				defn = plist_get(in->os, j);
 				iprint_bprol(SA_EQU); // вот
 				blat_blist(g->bprol, defn->view);
-				bprol_add(' ');
+				bprol_add('\t');
 				int_add(g->bprol, (long)defn->value);
 				bprol_add('\n');
 			}
@@ -358,7 +358,7 @@ struct BList *lay_down_str_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 
 	iprint_gen(SA_LET_8);
 	blat_blist(generated, e->tvar->view);
-	iprint_gen(SA_ZERO_TERMINATOR); // TODO: to get it why does \t before '\0'
+	print_gen(SA_ZERO_TERMINATOR);
 
 	return generated;
 }
@@ -483,9 +483,10 @@ struct BList *lay_down_str_ptr_Асм_Linux_64(struct Gner *g,
 		blat_blist(g->aprol, ptr);
 		blat_str_aprol(SA_LABEL_END); // :
 
-		iprint_aprol(SA_LET_8);
+		aprol_add('\t');
+		print_aprol(SA_LET_8);
 		blat_blist(g->aprol, e->tvar->view);
-		iprint_aprol(SA_ZERO_TERMINATOR);
+		print_aprol(SA_ZERO_TERMINATOR);
 
 	} else if (e->from) {
 		if (e->from->value_label) {
@@ -508,7 +509,7 @@ struct BList *lay_down_zero(struct Gner *g, struct GlobExpr *e) {
 	struct BList *times = int_to_str(e->tvar->number);
 
 	iprint_gen(SA_LET_8);
-	iprint_gen(SA_REZERV_ZERO);
+	print_gen(SA_REZERV_ZERO);
 	copy_to_fst_and_clear_snd(generated, times);
 	gen_add('\n');
 
