@@ -385,7 +385,8 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 		for (j = 0; j < p->global_vars->size; j++) {
 			tmp_var = plist_get(p->global_vars, j);
 
-			// do i want to use here the name or the signature i dunno
+			// do i want to use here the name or the signature i dunno TODO: not
+			// always woks as i wished
 			if (sc((char *)tmp_var->signature->st, (char *)var->signature->st))
 				eet(p->f, var->name, GLOBAL_VARS_NAMES_OVERLAP,
 					SUGGEST_RENAME_VAR);

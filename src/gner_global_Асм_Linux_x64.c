@@ -374,8 +374,7 @@ struct BList *lay_down_gptr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) 
 
 uc need_to_gen_ptr = 1;
 
-struct BList *lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g,
-												  struct GlobExpr *e) {
+struct BList *lay_down_obj_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 
 	struct BList *generated = new_blist(64), *tmp_gen;
 	struct PList *labels = new_plist(2);
@@ -385,7 +384,7 @@ struct BList *lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g,
 	for (i = 0; i < e->globs->size; i++) {
 		glob = plist_get(e->globs, i);
 
-		if (glob->code == CT_ARR_PTR) {
+		if (glob->code == CT_ARR_PTR || glob->code == CT_STRUCT_PTR) {
 			need_to_gen_ptr = 0;
 
 			g->indent_level += 2;
@@ -433,7 +432,7 @@ struct BList *lay_down_arr_or_struct_Асм_Linux_64(struct Gner *g,
 	clear_current_inst_value_labels_to(g, 0);
 	return generated;
 }
-struct BList *lay_down_arr_ptr_Асм_Linux_64(struct Gner *g,
+struct BList *lay_down_obj_ptr_Асм_Linux_64(struct Gner *g,
 											struct GlobExpr *e) {
 
 	struct BList *generated = new_blist(64), *ptr, *tmp_gen;
@@ -451,7 +450,7 @@ struct BList *lay_down_arr_ptr_Асм_Linux_64(struct Gner *g,
 		blat_str_gen(SA_LABEL_END); // :
 	}
 
-	tmp_gen = lay_down_arr_or_struct_Асм_Linux_64(g, e);
+	tmp_gen = lay_down_obj_Асм_Linux_64(g, e);
 	copy_to_fst_and_clear_snd(generated, tmp_gen);
 
 	if (was_need_to_gen_ptr) {
@@ -530,11 +529,10 @@ struct BList *gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) 
 		generated = lay_down_gptr_Асм_Linux_64(g, e);
 	else if (code == CT_STR_PTR)
 		generated = lay_down_str_ptr_Асм_Linux_64(g, e);
-	else if (code == CT_ARR_PTR)
-		generated = lay_down_arr_ptr_Асм_Linux_64(g, e);
-	// TODO: else if (code == CT_STRUCT_PTR)
+	else if (code == CT_ARR_PTR || code == CT_STRUCT_PTR)
+		generated = lay_down_obj_ptr_Асм_Linux_64(g, e);
 	else if (code == CT_ARR || code == CT_STRUCT)
-		generated = lay_down_arr_or_struct_Асм_Linux_64(g, e);
+		generated = lay_down_obj_Асм_Linux_64(g, e);
 	else if (code == CT_ZERO)
 		generated = lay_down_zero(g, e);
 

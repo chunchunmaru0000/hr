@@ -17,6 +17,8 @@ enum CE_Code {
 	CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT,
 	CE_TOO_MUCH_ITEMS_FOR_THIS_ARR,
 	CE_TOO_LESS_ITEMS_FOR_THIS_ARR,
+	CE_CANT_DEFINE_ARR_TYPE,
+	CE_CANT_DEFINE_STRUCT_TYPE,
 	CE_STRUCT_WASNT_FOUND,
 	CE_STR_IS_NOT_A_PTR,
 	CE_ARR_IS_NOT_A_PTR,
@@ -74,6 +76,12 @@ const char *const ARR_IS_NOT_A_PTR =
 	"Массив - не указатель, массив - несколько значений одного типа, чтобы "
 	"получить указатель из массива, надо взять его адрес, например:\n\tпусть "
 	"м: *ч64 = &[1 2 3]";
+const char *const CANT_DEFINE_ARR_TYPE =
+	"Тип недостаточно явный для определения типа массива.";
+const char *const CANT_DEFINE_STRUCT_TYPE =
+	"Тип недостаточно явный для определения типа лика.";
+const char *const MAYBE_NOT_USE_VOID_PTR =
+	"может не использовать указатель на тлен";
 
 struct CE_CodeStr {
 	enum CE_Code code;
@@ -100,6 +108,9 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_STR_IS_NOT_A_PTR, STR_IS_NOT_A_PTR, 0},
 	{CE_ARR_IS_NOT_A_PTR, ARR_IS_NOT_A_PTR, 0},
 	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA, 0},
+	{CE_CANT_DEFINE_ARR_TYPE, CANT_DEFINE_ARR_TYPE, MAYBE_NOT_USE_VOID_PTR},
+	{CE_CANT_DEFINE_STRUCT_TYPE, CANT_DEFINE_STRUCT_TYPE,
+	 MAYBE_NOT_USE_VOID_PTR},
 
 	{CE_TODO1, "TODO1", 0},
 	{CE_TODO3, "TODO3", 0},
@@ -391,6 +402,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			plist_add(msgs, (void *)CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT);
 			return;
 		}
+	check_type_on_struct_fields:
 		if (type->code != TC_STRUCT) {
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_STRUCT_INCOMPATIBLE_TYPE);
@@ -506,6 +518,11 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
 			return;
 		}
+		if (is_void_ptr(type)) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_CANT_DEFINE_ARR_TYPE);
+			return;
+		}
 
 		tmp_type = ptr_targ(type);
 
@@ -522,9 +539,19 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	}
 
 	if (e->code == CT_STRUCT_PTR) {
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_TODO3);
-		return;
+		if (!is_ptr_type(type)) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
+			return;
+		}
+		if (is_void_ptr(type)) {
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_CANT_DEFINE_STRUCT_TYPE);
+			return;
+		}
+
+		type = ptr_targ(type);
+		goto check_type_on_struct_fields;
 	}
 
 	// here e->from != 0
