@@ -15,6 +15,45 @@ const char *const STRUCT_NAME_WASNT_FOUND =
 	"Имя лика не было найдено в уже объявленных.";
 const char *const SUGGEST_ADD_ARGS = "добавить аргументов";
 
+int unsafe_size_of_struct(struct BList *name) {
+	uint32_t i;
+	long size;
+	struct Inst *declare_struct;
+	struct Token *name_token;
+
+	for (i = 0; i < parsed_structs->size; i++) {
+		declare_struct = plist_get(parsed_structs, i);
+		name_token = plist_get(declare_struct->os, DCLR_STRUCT_NAME);
+
+		if (sc((char *)name->st, (char *)name_token->view->st))
+			goto struct_name_found;
+	}
+	exit(224);
+
+struct_name_found:
+
+	size = (long)plist_get(declare_struct->os, DCLR_STRUCT_SIZE);
+	return size;
+}
+
+int unsafe_size_of_type(struct TypeExpr *type) {
+	enum TypeCode c = type->code;
+	long arr_length;
+
+	if (c == TC_ARR) {
+		arr_length = (long)arr_len(type);
+		if (arr_length < 0)
+			arr_length = 1;
+		return arr_length * unsafe_size_of_type(arr_type(type));
+	}
+
+	return c == TC_STRUCT  ? unsafe_size_of_struct(type->data.name)
+		   : c >= TC_VOID  ? QWORD
+		   : c >= TC_INT32 ? DWORD
+		   : c >= TC_INT16 ? WORD
+						   : BYTE;
+}
+
 int size_of_struct(struct Pser *p, struct BList *name) {
 	uint32_t i;
 	long size;
@@ -38,13 +77,13 @@ struct_name_found:
 
 int size_of_type(struct Pser *p, struct TypeExpr *type) {
 	enum TypeCode c = type->code;
-	long arr_size;
+	long arr_length;
 
 	if (c == TC_ARR) {
-		arr_size = (long)arr_size(type);
-		if (arr_size < 0)
-			arr_size = 1;
-		return arr_size * size_of_type(p, arr_type(type));
+		arr_length = (long)arr_len(type);
+		if (arr_length < 0)
+			arr_length = 1;
+		return arr_length * size_of_type(p, arr_type(type));
 	}
 
 	return c == TC_STRUCT  ? size_of_struct(p, type->data.name)
@@ -151,7 +190,7 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 	struct BList *str = new_blist(9), *tmp;
 	const struct TypeWord *type_word;
 	uint32_t i;
-	long arr_len;
+	long arr_length;
 
 	if (type->code == TC_PTR) {
 		blat(str, (uc *)TYPE_WORD_PTR.view, TYPE_WORD_PTR.view_len);
@@ -171,11 +210,11 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 		add_type_str_to_str(str, arr_type(type));
 		blist_add(str, '_');
 
-		arr_len = (long)arr_size(type);
-		if (arr_len == -1)
+		arr_length = (long)arr_len(type);
+		if (arr_length == -1)
 			blist_add(str, '~');
 		else {
-			tmp = int_to_str(arr_len);
+			tmp = int_to_str(arr_length);
 			copy_to_fst_and_clear_snd(str, tmp);
 		}
 
@@ -296,7 +335,7 @@ int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
 		res = sc((char *)t1->data.name->st, (char *)t2->data.name->st);
 	} else if (t1->code == TC_ARR) {
 		res = are_types_equal(arr_type(t1), arr_type(t2)) &&
-			  arr_size(t1) == arr_size(t2);
+			  arr_len(t1) == arr_len(t2);
 	} else { // TC_FUN
 		if (t1->data.args_types->size != t2->data.args_types->size)
 			return 0;

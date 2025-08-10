@@ -15,6 +15,8 @@ enum CE_Code {
 	CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT,
 	CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT,
 	CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT,
+	CE_TOO_MUCH_ITEMS_FOR_THIS_ARR,
+	CE_TOO_LESS_ITEMS_FOR_THIS_ARR,
 	CE_STRUCT_WASNT_FOUND,
 	CE_STR_IS_NOT_A_PTR,
 	CE_ARR_IS_NOT_A_PTR,
@@ -57,6 +59,10 @@ const char *const TOO_MUCH_FIELDS_FOR_THIS_STRUCT =
 const char *const TOO_LESS_FIELDS_FOR_THIS_STRUCT =
 	"Слишком мало аргументов указано для данной структуры, остальная ее часть "
 	"будет заполнена нулями.";
+const char *const TOO_MUCH_ITEMS_FOR_THIS_ARR =
+	"Слишком много элементов для массива данного типа.";
+const char *const TOO_LESS_ITEMS_FOR_THIS_ARR =
+	"Слишком мало элементов для массива данного типа.";
 const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
 const char *const EXPECTED_ARR_OF_LEN = "ожидался массив длиной: ";
 const char *const EXPECTED_STRUCT_OF_LEN = "ожидалось аргументов: ";
@@ -89,6 +95,8 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT, TOO_MUCH_FIELDS_FOR_THIS_STRUCT,
 	 EXPECTED_STRUCT_OF_LEN},
 	{CE_STRUCT_WASNT_FOUND, STRUCT_WASNT_FOUND, 0},
+	{CE_TOO_MUCH_ITEMS_FOR_THIS_ARR, TOO_MUCH_ITEMS_FOR_THIS_ARR,
+	 EXPECTED_ARR_OF_LEN},
 	{CE_STR_IS_NOT_A_PTR, STR_IS_NOT_A_PTR, 0},
 	{CE_ARR_IS_NOT_A_PTR, ARR_IS_NOT_A_PTR, 0},
 	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA, 0},
@@ -101,6 +109,8 @@ const struct CE_CodeStr cecstrs_warns[] = {
 	{CE_ARR_SIZES_DO_NOW_MATCH, ARR_SIZES_DO_NOW_MATCH, EXPECTED_ARR_OF_LEN},
 	{CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT, TOO_LESS_FIELDS_FOR_THIS_STRUCT,
 	 EXPECTED_STRUCT_OF_LEN},
+	{CE_TOO_LESS_ITEMS_FOR_THIS_ARR, TOO_LESS_ITEMS_FOR_THIS_ARR,
+	 EXPECTED_ARR_OF_LEN},
 };
 
 const struct CE_CodeStr *find_error_msg(enum CE_Code err_code) {
@@ -146,7 +156,9 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 			err_token = plist_get(msgs, --i);
 			ei = new_error_info(p->f, err_token, cstr->str, cstr->sgst);
 
-			if (cstr->code == CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT) {
+			if (cstr->code == CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT ||
+				cstr->code == CE_TOO_MUCH_ITEMS_FOR_THIS_ARR) {
+
 				ei->extra = (void *)plist_get(msgs, --i);
 				ei->extra_type = ET_INT;
 			}
@@ -160,9 +172,10 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 			ei = new_error_info(p->f, err_token, cstr->str, cstr->sgst);
 
 			ei->extra = (void *)plist_get(msgs, --i);
-			if (cstr->code == CE_ARR_SIZES_DO_NOW_MATCH)
-				ei->extra_type = ET_INT;
-			else if (cstr->code == CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT)
+			if (cstr->code == CE_ARR_SIZES_DO_NOW_MATCH ||
+				cstr->code == CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT ||
+				cstr->code == CE_TOO_LESS_ITEMS_FOR_THIS_ARR)
+
 				ei->extra_type = ET_INT;
 
 			plist_add(p->warns, ei);
@@ -171,17 +184,18 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 	}
 }
 
-struct GlobExpr *new_zero_type(struct Arg *arg, struct Token *tvar) {
+struct GlobExpr *new_zero_type(struct TypeExpr *type, int size,
+							   struct Token *tvar) {
 	struct GlobExpr *e = malloc(sizeof(struct GlobExpr));
 
 	e->code = CT_ZERO;
 	e->from = 0;
-	e->type = arg->type;
+	e->type = type;
 
 	// not used for defining value, just in case here
 	e->tvar = malloc(sizeof(struct Token));
 	e->tvar->view = tvar->view;
-	e->tvar->number = arg->arg_size;
+	e->tvar->number = size;
 
 	e->globs = 0;
 
@@ -290,8 +304,9 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			return;
 		}
 
+		// TODO err if sizes not match
 		// asume array size
-		n = (long)arr_size(type);
+		n = (long)arr_len(type);
 		if (n != -1 && n != e->tvar->str->size + 1) {
 			plist_add(msgs, (void *)n);
 			tmp_code = CE_ARR_SIZES_DO_NOW_MATCH;
@@ -324,9 +339,39 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		}
 
 		tmp_type = arr_type(type);
+		n = (long)arr_len(type);
+/*	 */ #define arr_items n
+
+		if (arr_items == -1) { // need to adjust it by size of e->globs->size
+			arr_items = e->globs->size;
+			plist_set(type->data.arr, 1, (void *)arr_items);
+			goto check_items_of_the_arr_on_types;
+		}
+		if (e->globs->size > arr_items) {
+			plist_add(msgs, (void *)arr_items);
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_TOO_MUCH_ITEMS_FOR_THIS_ARR);
+			return;
+		}
+		if (arr_items > e->globs->size) {
+			plist_add(msgs, (void *)arr_items);
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_TOO_LESS_ITEMS_FOR_THIS_ARR);
+
+			int item_size = unsafe_size_of_type(tmp_type);
+
+			for (; e->globs->size < arr_items;)
+				plist_add(e->globs,
+						  new_zero_type(tmp_type, item_size, e->tvar));
+		}
+	check_items_of_the_arr_on_types:
 
 		for (n = 0; n < e->globs->size; n++) {
 			glob = plist_get(e->globs, n);
+
+			if (glob->code == CT_ZERO)
+				continue;
+
 			are_types_compatible(msgs, tmp_type, glob);
 
 			// TODO: here is for example [окак тип [...] [...] [...]]
@@ -337,19 +382,6 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 				free_type(glob->type);
 			glob->type = tmp_type;
 		}
-
-		n = (long)arr_size(type);
-		if (n != -1 && n != e->globs->size) {
-			plist_add(msgs, (void *)n);
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
-		}
-
-		// TODO: here need to do if size was already once changed then err
-		// set size in any way
-		n = e->globs->size;
-		plist_set(type->data.arr, 1, (void *)n);
-
 		return;
 	}
 
@@ -392,11 +424,13 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 
 			// get first arg
 			arg = get_arg_by_mem_index(lik_os, e->globs->size);
-			plist_add(e->globs, new_zero_type(arg, e->tvar));
+			plist_add(e->globs,
+					  new_zero_type(arg->type, arg->arg_size, e->tvar));
 			// get all other args
 			for (; e->globs->size < lik_mems;) {
 				arg = get_arg_of_next_offset(lik_os, arg->offset);
-				plist_add(e->globs, new_zero_type(arg, e->tvar));
+				plist_add(e->globs,
+						  new_zero_type(arg->type, arg->arg_size, e->tvar));
 			}
 		}
 
@@ -408,6 +442,8 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			arg = get_arg_by_mem_index(lik_os, n);
 
 			if (glob->code == CT_ZERO)
+				// it cintinues here so it wont free its type at the end of the
+				// loop or change it
 				continue;
 
 			// for now its first in mem arg type, later if there will be

@@ -199,7 +199,7 @@ struct TypeExpr {
 };
 
 #define arr_type(t) (((struct TypeExpr *)plist_get((t)->data.arr, 0)))
-#define arr_size(t) (plist_get((t)->data.arr, 1))
+#define arr_len(t) (plist_get((t)->data.arr, 1))
 #define ptr_targ(t) (((struct TypeExpr *)(t)->data.ptr_target))
 
 #define is_void_ptr(t) ((t)->code == TC_PTR && ptr_targ((t))->code == TC_VOID)
@@ -208,6 +208,7 @@ struct TypeExpr {
 struct TypeExpr *new_type_expr(enum TypeCode);
 void free_type(struct TypeExpr *type);
 int size_of_type(struct Pser *p, struct TypeExpr *type);
+int unsafe_size_of_type(struct TypeExpr *type);
 
 struct Arg {
 	struct PList *names; // PList of Tokens
