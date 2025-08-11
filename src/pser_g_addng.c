@@ -23,8 +23,10 @@ struct GlobExpr *glob_add_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 struct GlobExpr *glob_add_two_strs(struct GlobExpr *l, struct GlobExpr *r) {
 	l->tvar->view->size--;					  // remove last " of l
 	r->tvar->view->st++;					  // remove first " of r
+	r->tvar->view->size--;
 	blat_blist(l->tvar->view, r->tvar->view); // copy
 	r->tvar->view->st--;					  // restore first " in r
+	r->tvar->view->size++;
 	convert_blist_to_blist_from_str(l->tvar->view);
 
 	blat_blist(l->tvar->str, r->tvar->str);
