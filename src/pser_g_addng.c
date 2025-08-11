@@ -64,7 +64,7 @@ struct GlobExpr *glob_add_int_and_str(struct GlobExpr *l, struct GlobExpr *r) {
 }
 
 struct GlobExpr *glob_add_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
-	struct BList *num = int_to_str(l->tvar->number);
+	struct BList *num = int_to_str(r->tvar->number);
 
 	blat_blist(l->tvar->str, num);
 	convert_blist_to_blist_from_str(l->tvar->str);
@@ -80,11 +80,44 @@ struct GlobExpr *glob_add_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 }
 
 struct GlobExpr *glob_add_real_and_str(struct GlobExpr *l, struct GlobExpr *r) {
+	struct BList *num = real_to_str(l->tvar->real);
+	struct BList *str = new_blist(num->size + r->tvar->str->size + 1);
+
+	blat_blist(str, num);
+	blat_blist(str, r->tvar->str);
+	l->tvar->str = str;
+	convert_blist_to_blist_from_str(l->tvar->str);
+
+	str = new_blist(num->size + r->tvar->view->size + 1);
+	blist_add(str, '\"'); // add "
+	blat_blist(str, num); // add num
+	r->tvar->view->st++;
+	r->tvar->view->size--;
+	blat_blist(str, r->tvar->view); // add view with "
+	r->tvar->view->st--;
+	r->tvar->view->size++;
+	l->tvar->view = str;
+	convert_blist_to_blist_from_str(l->tvar->view);
+
+	l->code = r->code; // str code
+
+	blist_clear_free(num);
 	free_glob_expr(r);
 	return l;
 }
 
 struct GlobExpr *glob_add_str_and_real(struct GlobExpr *l, struct GlobExpr *r) {
+	struct BList *num = real_to_str(r->tvar->real);
+
+	blat_blist(l->tvar->str, num);
+	convert_blist_to_blist_from_str(l->tvar->str);
+
+	l->tvar->view->size--; // remove last "
+	blat_blist(l->tvar->view, num);
+	blist_add(l->tvar->view, '"');
+	convert_blist_to_blist_from_str(l->tvar->view);
+
+	blist_clear_free(num);
 	free_glob_expr(r);
 	return l;
 }
