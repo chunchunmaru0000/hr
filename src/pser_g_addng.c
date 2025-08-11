@@ -21,8 +21,8 @@ struct GlobExpr *glob_add_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 }
 // str
 struct GlobExpr *glob_add_two_strs(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->view->size--;					  // remove last " of l
-	r->tvar->view->st++;					  // remove first " of r
+	l->tvar->view->size--; // remove last " of l
+	r->tvar->view->st++;   // remove first " of r
 	r->tvar->view->size--;
 	blat_blist(l->tvar->view, r->tvar->view); // copy
 	r->tvar->view->st--;					  // restore first " in r
@@ -37,6 +37,27 @@ struct GlobExpr *glob_add_two_strs(struct GlobExpr *l, struct GlobExpr *r) {
 }
 
 struct GlobExpr *glob_add_int_and_str(struct GlobExpr *l, struct GlobExpr *r) {
+	struct BList *num = int_to_str(l->tvar->number);
+	struct BList *str = new_blist(num->size + r->tvar->str->size + 1);
+
+	blat_blist(str, num);
+	blat_blist(str, r->tvar->str);
+	l->tvar->str = str;
+	convert_blist_to_blist_from_str(l->tvar->str);
+
+	str = new_blist(num->size + r->tvar->view->size + 1);
+	blist_add(str, '\"'); // add "
+	blat_blist(str, num); // add num
+	r->tvar->view->st++;
+	r->tvar->view->size--;
+	blat_blist(str, r->tvar->view); // add view with "
+	r->tvar->view->st--;
+	r->tvar->view->size++;
+	l->tvar->view = str;
+	convert_blist_to_blist_from_str(l->tvar->view);
+
+	l->code = r->code; // str code
+
 	free_glob_expr(r);
 	return l;
 }
