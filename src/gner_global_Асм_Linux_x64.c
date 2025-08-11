@@ -334,7 +334,7 @@ struct BList *lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 		exit(223);
 
 	int_add(generated, e->tvar->number);
-	blat_str_gen(SA_START_COMMENT); // \t;
+	print_gen(SA_START_COMMENT); // \t;
 	hex_int_add(generated, e->tvar->number);
 	gen_add('\n');
 
@@ -419,7 +419,7 @@ struct BList *lay_down_obj_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 		// decalre label
 		tmp_gen = plist_get(labels, i + 1); // label
 		copy_to_fst_and_clear_snd(generated, tmp_gen);
-		blat_str_gen(SA_LABEL_END); // :
+		print_gen(SA_LABEL_END); // :
 
 		// lay generared code
 		tmp_gen = plist_get(labels, i); // code
@@ -447,7 +447,7 @@ struct BList *lay_down_obj_ptr_Асм_Linux_64(struct Gner *g,
 
 		// lay label
 		blat_blist(generated, ptr);
-		blat_str_gen(SA_LABEL_END); // :
+		print_gen(SA_LABEL_END); // :
 	}
 
 	tmp_gen = lay_down_obj_Асм_Linux_64(g, e);
@@ -481,7 +481,7 @@ struct BList *lay_down_str_ptr_Асм_Linux_64(struct Gner *g,
 		gen_add('\n');
 
 		blat_blist(g->aprol, ptr);
-		blat_str_aprol(SA_LABEL_END); // :
+		print_aprol(SA_LABEL_END); // :
 
 		aprol_add('\t');
 		print_aprol(SA_LET_8);
