@@ -92,7 +92,7 @@ struct BList *blist_from_str(char *str, uint32_t str_len) {
 	// 	blat(l, (uc *)str, str_len + 1);
 	// 	l->size--;
 
-	l->cap_pace = 2;
+	l->cap_pace = 8;
 	l->size = str_len;
 	l->cap = str_len;
 	l->st = (uc *)str;
