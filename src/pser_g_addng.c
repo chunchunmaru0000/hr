@@ -58,11 +58,23 @@ struct GlobExpr *glob_add_int_and_str(struct GlobExpr *l, struct GlobExpr *r) {
 
 	l->code = r->code; // str code
 
+	blist_clear_free(num);
 	free_glob_expr(r);
 	return l;
 }
 
 struct GlobExpr *glob_add_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
+	struct BList *num = int_to_str(l->tvar->number);
+
+	blat_blist(l->tvar->str, num);
+	convert_blist_to_blist_from_str(l->tvar->str);
+
+	l->tvar->view->size--; // remove last "
+	blat_blist(l->tvar->view, num);
+	blist_add(l->tvar->view, '"');
+	convert_blist_to_blist_from_str(l->tvar->view);
+
+	blist_clear_free(num);
 	free_glob_expr(r);
 	return l;
 }
