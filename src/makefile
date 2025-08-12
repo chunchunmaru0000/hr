@@ -18,7 +18,7 @@ cat: ср
 		pser_type.c \
 		pser_global_inst.c pser_local_inst.c \
 		pser_eg.c pser_el.c pser_tpes.c \
-		pser_g_addng.c \
+		pser_g_bin.c \
 	tzer.c ee.c lsts.c
 	chmod +x ср
 	./ср

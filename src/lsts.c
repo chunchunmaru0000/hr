@@ -190,3 +190,9 @@ struct BList *copy_str(struct BList *src) {
 	convert_blist_to_blist_from_str(dest);
 	return dest;
 }
+
+struct BList *copy_blist(struct BList *l) {
+	struct BList *copy = new_blist(l->cap_pace);
+	blat_blist(copy, l);
+	return copy;
+}

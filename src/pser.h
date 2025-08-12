@@ -333,5 +333,5 @@ void eei(struct Inst *, const char *const msg, const char *const sgst);
 void check_global_type_compatibility(struct Pser *p, struct TypeExpr *type,
 									 struct GlobExpr *e);
 
-struct GlobExpr *global_addng(struct Pser *p, struct GlobExpr *l,
+struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 							  struct GlobExpr *r, struct Token *op);
