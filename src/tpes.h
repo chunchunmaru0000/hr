@@ -69,7 +69,7 @@ struct Token {
 	enum TCode code;
 	struct Pos *p;
 	// literals reserved that may not always be used
-	long number;
+	long num;
 	double real; // Floating Point Number
 	struct BList *str;
 };

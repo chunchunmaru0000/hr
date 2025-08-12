@@ -52,7 +52,7 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 		num = get_pser_token(p, 1);
 
 		if (num->code == INT) {
-			defn->value = (void *)num->number;
+			defn->value = (void *)num->num;
 			consume(p); // consume ID
 		} else
 			defn->value = (void *)counter;

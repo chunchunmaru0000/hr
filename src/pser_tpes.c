@@ -204,7 +204,7 @@ struct GlobExpr *new_zero_type(struct TypeExpr *type, int size,
 	// not used for defining value, just in case here
 	e->tvar = malloc(sizeof(struct Token));
 	e->tvar->view = tvar->view;
-	e->tvar->number = size;
+	e->tvar->num = size;
 
 	e->globs = 0;
 
@@ -264,7 +264,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			return;
 
 		if (is_real_type(type)) {
-			e->tvar->real = e->tvar->number;
+			e->tvar->real = e->tvar->num;
 			e->code = CT_REAL;
 			return;
 		}
@@ -279,7 +279,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			return;
 
 		if (is_int_type(type)) {
-			e->tvar->number = e->tvar->real;
+			e->tvar->num = e->tvar->real;
 			e->code = CT_INT;
 			return;
 		}

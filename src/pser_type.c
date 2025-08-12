@@ -452,9 +452,9 @@ struct TypeExpr *type_expr(struct Pser *p) {
 		if (cur->code == PAR_C_R)
 			plist_add(texpr->data.arr, (void *)-1);
 		else if (cur->code == INT) {
-			if (cur->number < -1)
+			if (cur->num < -1)
 				eet(p->f, cur, WRONG_ARR_SIZE, 0);
-			plist_add(texpr->data.arr, (void *)cur->number);
+			plist_add(texpr->data.arr, (void *)cur->num);
 			consume(p); // consume arr size
 			cur = pser_cur(p);
 		} else

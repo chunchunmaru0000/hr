@@ -333,9 +333,9 @@ struct BList *lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 	else
 		exit(223);
 
-	int_add(generated, e->tvar->number);
+	int_add(generated, e->tvar->num);
 	print_gen(SA_START_COMMENT); // \t;
-	hex_int_add(generated, e->tvar->number);
+	hex_int_add(generated, e->tvar->num);
 	gen_add('\n');
 
 	return generated;
@@ -505,8 +505,8 @@ struct BList *lay_down_str_ptr_Асм_Linux_64(struct Gner *g,
 struct BList *lay_down_zero(struct Gner *g, struct GlobExpr *e) {
 	struct BList *generated = new_blist(64);
 
-	// e->tvar->number of CT_ZERO is arg_size
-	struct BList *times = int_to_str(e->tvar->number);
+	// e->tvar->num of CT_ZERO is arg_size
+	struct BList *times = int_to_str(e->tvar->num);
 
 	iprint_gen(SA_LET_8);
 	print_gen(SA_REZERV_ZERO);

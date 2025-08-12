@@ -96,7 +96,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		if (enum_value) {
 			e->code = CT_INT;
 			copy_token(e->tvar, c);
-			e->tvar->number = (long)enum_value->value;
+			e->tvar->num = (long)enum_value->value;
 			break;
 		}
 
@@ -204,7 +204,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		e = unary_g_expression(p);
 
 		if (e->code == CT_INT) {
-			e->tvar->number *= -1;
+			e->tvar->num *= -1;
 		} else if (e->code == CT_REAL) {
 			e->tvar->real *= -1;
 		} else {

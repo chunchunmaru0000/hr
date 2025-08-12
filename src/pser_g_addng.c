@@ -5,18 +5,20 @@
 // ###########################################################################################
 // int and real
 struct GlobExpr *glob_add_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->number += r->tvar->number;
-	free_glob_expr(r);
+	l->tvar->num += r->tvar->num;
 	return l;
 }
 struct GlobExpr *glob_add_two_reals(struct GlobExpr *l, struct GlobExpr *r) {
 	l->tvar->real += r->tvar->real;
-	free_glob_expr(r);
 	return l;
 }
 struct GlobExpr *glob_add_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real += r->tvar->number;
-	free_glob_expr(r);
+	l->tvar->real += r->tvar->num;
+	return l;
+}
+struct GlobExpr *glob_add_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->real = l->tvar->num + l->tvar->real;
+	l->code = r->code;
 	return l;
 }
 // str
@@ -31,13 +33,11 @@ struct GlobExpr *glob_add_two_strs(struct GlobExpr *l, struct GlobExpr *r) {
 
 	blat_blist(l->tvar->str, r->tvar->str);
 	convert_blist_to_blist_from_str(l->tvar->str);
-
-	free_glob_expr(r);
 	return l;
 }
 
 struct GlobExpr *glob_add_int_and_str(struct GlobExpr *l, struct GlobExpr *r) {
-	struct BList *num = int_to_str(l->tvar->number);
+	struct BList *num = int_to_str(l->tvar->num);
 	struct BList *str = new_blist(num->size + r->tvar->str->size + 1);
 
 	blat_blist(str, num);
@@ -59,12 +59,11 @@ struct GlobExpr *glob_add_int_and_str(struct GlobExpr *l, struct GlobExpr *r) {
 	l->code = r->code; // str code
 
 	blist_clear_free(num);
-	free_glob_expr(r);
 	return l;
 }
 
 struct GlobExpr *glob_add_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
-	struct BList *num = int_to_str(r->tvar->number);
+	struct BList *num = int_to_str(r->tvar->num);
 
 	blat_blist(l->tvar->str, num);
 	convert_blist_to_blist_from_str(l->tvar->str);
@@ -75,7 +74,6 @@ struct GlobExpr *glob_add_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 	convert_blist_to_blist_from_str(l->tvar->view);
 
 	blist_clear_free(num);
-	free_glob_expr(r);
 	return l;
 }
 
@@ -102,7 +100,6 @@ struct GlobExpr *glob_add_real_and_str(struct GlobExpr *l, struct GlobExpr *r) {
 	l->code = r->code; // str code
 
 	blist_clear_free(num);
-	free_glob_expr(r);
 	return l;
 }
 
@@ -118,30 +115,25 @@ struct GlobExpr *glob_add_str_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 	convert_blist_to_blist_from_str(l->tvar->view);
 
 	blist_clear_free(num);
-	free_glob_expr(r);
 	return l;
 }
 // ###########################################################################################
 // 											-
 // ###########################################################################################
 struct GlobExpr *glob_sub_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->number -= r->tvar->number;
-	free_glob_expr(r);
+	l->tvar->num -= r->tvar->num;
 	return l;
 }
 struct GlobExpr *glob_sub_two_reals(struct GlobExpr *l, struct GlobExpr *r) {
 	l->tvar->real -= r->tvar->real;
-	free_glob_expr(r);
 	return l;
 }
 struct GlobExpr *glob_sub_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real -= r->tvar->number;
-	free_glob_expr(r);
+	l->tvar->real -= r->tvar->num;
 	return l;
 }
 struct GlobExpr *glob_sub_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->number -= r->tvar->real;
-	free_glob_expr(r);
+	l->tvar->num -= r->tvar->real;
 	return l;
 }
 // ###########################################################################################
@@ -165,7 +157,7 @@ struct GlobExpr *global_addng(struct Pser *p, struct GlobExpr *l,
 		else if (is_ct_real(l) && is_ct_int(r))
 			l = glob_add_real_and_int(l, r);
 		else if (is_ct_int(l) && is_ct_real(r))
-			l = glob_add_real_and_int(r, l);
+			l = glob_add_int_and_real(l, r);
 		// str
 		else if (is_ct_str(l) && is_ct_str(r))
 			l = glob_add_two_strs(l, r);
@@ -192,5 +184,7 @@ struct GlobExpr *global_addng(struct Pser *p, struct GlobExpr *l,
 		else
 			exit(219);
 	}
+
+	free_glob_expr(r);
 	return l;
 }
