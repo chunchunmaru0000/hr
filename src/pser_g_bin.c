@@ -156,6 +156,28 @@ struct GlobExpr *glob_mul_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 	l->code = r->code;
 	return l;
 }
+struct GlobExpr *glob_mul_str_and_int(l, r)(struct GlobExpr *l, struct GlobExpr *r) {
+	long i = r->tvar->num;
+
+	if (i == 0){
+		blist_clear_free(l->tvar->view);
+		blist_clear_free(l->tvar->str);
+		l->tvar->view = new_blist(2);
+		convert_blist_to_blist_from_str(l->tvar->view);
+		blist_add(l->tvar->view, '"');
+		blist_add(l->tvar->view, '"');
+		l->tvar->str = new_blist(2); // TODO: may it be shorter when just blist_from_str ?
+		convert_blist_to_blist_from_str(l->tvar->str);
+		goto ret;
+	}
+	// TODO: need copy_blist
+	for (; i >= 0; i--){
+		
+	}
+
+ret:
+	return l;
+}
 // ###########################################################################################
 // 											/
 // ###########################################################################################
@@ -235,7 +257,11 @@ struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 			l = glob_mul_real_and_int(l, r);
 		else if (is_ct_int(l) && is_ct_real(r))
 			l = glob_mul_int_and_real(l, r);
-		else
+		else if (is_ct_str(l) && is_ct_int(r){
+			if (r->tvar->num < 0)
+				exit(214);	
+			l = glob_mul_str_and_int(l, r);
+		} else
 			exit(218);
 	} else if (op->code == DIV) {
 		if (is_ct_int(r) && is_int_zero(r))
