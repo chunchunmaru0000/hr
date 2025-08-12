@@ -159,22 +159,22 @@ struct GlobExpr *glob_mul_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 struct GlobExpr *glob_mul_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 	long i = r->tvar->num;
 
-	if (i == 0){
+	if (i == 0) {
 		blist_clear_free(l->tvar->view);
 		blist_clear_free(l->tvar->str);
-		
+
 		l->tvar->view = new_blist(3);
 		blist_add(l->tvar->view, '"');
 		blist_add(l->tvar->view, '"');
 		convert_blist_to_blist_from_str(l->tvar->view);
-		
-		l->tvar->str = new_blist(2); // TODO: may it be shorter when just blist_from_str ?
+
+		l->tvar->str = new_blist(2);
 		convert_blist_to_blist_from_str(l->tvar->str);
 		goto ret;
 	}
 	if (i == 1)
 		goto ret;
-	
+
 	l->tvar->view->st++;
 	l->tvar->view->size -= 2; // remove all ""
 	struct BList *view_once = copy_blist(l->tvar->str);
@@ -182,10 +182,11 @@ struct GlobExpr *glob_mul_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 	l->tvar->view->size += 1; // restore first "
 	struct BList *str_once = copy_blist(l->tvar->str);
 
-	for (; i > 0; i--){
+	for (; i > 0; i--) {
 		blat_blist(l->tvar->view, view_once);
 		blat_blist(l->tvar->str, str_once);
 	}
+	blist_add(l->tvar->view, '"');
 	convert_blist_to_blist_from_str(l->tvar->view);
 	convert_blist_to_blist_from_str(l->tvar->str);
 
@@ -197,8 +198,8 @@ ret:
 // ###########################################################################################
 // 											/
 // ###########################################################################################
-#define is_int_zero(e) ( (e)->tvar->num == 0 )
-#define is_real_zero(e) ( (e)->tvar->real == 0.0 )
+#define is_int_zero(e) ((e)->tvar->num == 0)
+#define is_real_zero(e) ((e)->tvar->real == 0.0)
 
 struct GlobExpr *glob_div_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
 	l->tvar->num /= r->tvar->num;
@@ -228,7 +229,7 @@ struct GlobExpr *glob_div_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 #define is_ct_struct(e) (((e)->code == CT_STRUCT || (e)->code == CT_STRUCT_PTR))
 
 struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
-							  struct GlobExpr *r, struct Token *op) {
+							struct GlobExpr *r, struct Token *op) {
 	if (op->code == PLUS) {
 		// int and real
 		if (is_ct_int(l) && is_ct_int(r))
@@ -273,18 +274,18 @@ struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 			l = glob_mul_real_and_int(l, r);
 		else if (is_ct_int(l) && is_ct_real(r))
 			l = glob_mul_int_and_real(l, r);
-		else if (is_ct_str(l) && is_ct_int(r){
+		else if (is_ct_str(l) && is_ct_int(r)) {
 			if (r->tvar->num < 0)
-				exit(214);	
+				exit(214);
 			l = glob_mul_str_and_int(l, r);
 		} else
 			exit(218);
 	} else if (op->code == DIV) {
 		if (is_ct_int(r) && is_int_zero(r))
 			exit(216);
-		if (is_ct_real(r) && is_rael_zero(r))
+		if (is_ct_real(r) && is_real_zero(r))
 			exit(215);
-		
+
 		if (is_ct_int(l) && is_ct_int(r))
 			l = glob_div_two_ints(l, r);
 		else if (is_ct_real(l) && is_ct_real(r))
