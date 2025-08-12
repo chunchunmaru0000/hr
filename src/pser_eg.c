@@ -5,10 +5,10 @@
 struct GlobExpr *after_g_expression(struct Pser *p);
 struct GlobExpr *prime_g_expression(struct Pser *p);
 struct GlobExpr *unary_g_expression(struct Pser *p);
-// struct GlobExpr *mulng_g_expression(struct Pser *p);
 struct GlobExpr *addng_g_expression(struct Pser *p);
+struct GlobExpr *mulng_g_expression(struct Pser *p);
 // struct GlobExpr *booln_g_expression(struct Pser *p);
-#define global_expression(p) (addng_g_expression((p)))
+#define global_expression(p) (mulng_g_expression((p)))
 
 struct GlobExpr *parse_global_expression(struct Pser *p,
 										 struct TypeExpr *type) {
@@ -276,7 +276,24 @@ struct GlobExpr *addng_g_expression(struct Pser *p) {
 
 		if (c->code == PLUS || c->code == MINUS) {
 			consume(p);
-			e = global_addng(p, e, unary_g_expression(p), c);
+			e = global_bin(p, e, unary_g_expression(p), c);
+		} else
+			break;
+	}
+
+	return e;
+}
+
+struct GlobExpr *mulng_g_expression(struct Pser *p){
+	struct GlobExpr *e = addng_g_expression(p);
+	struct Token *c;
+
+	loop {
+		c = pser_cur(p);
+
+		if (c->code == MUL || c->code == DIV) {
+			consume(p);
+			e = global_bin(p, e, addng_g_expression(p), c);
 		} else
 			break;
 	}

@@ -146,7 +146,7 @@ struct GlobExpr *glob_sub_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 #define is_ct_arr(e) (((e)->code == CT_ARR || (e)->code == CT_ARR_PTR))
 #define is_ct_struct(e) (((e)->code == CT_STRUCT || (e)->code == CT_STRUCT_PTR))
 
-struct GlobExpr *global_addng(struct Pser *p, struct GlobExpr *l,
+struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 							  struct GlobExpr *r, struct Token *op) {
 	if (op->code == PLUS) {
 		// int and real
@@ -172,7 +172,7 @@ struct GlobExpr *global_addng(struct Pser *p, struct GlobExpr *l,
 		//
 		else
 			exit(220); // just for now later do it not as a черт
-	} else {		   // MINUS
+	} else if (op->code == MINUS) {
 		if (l->code == CT_INT && r->code == CT_INT)
 			l = glob_sub_two_ints(l, r);
 		else if (l->code == CT_REAL && r->code == CT_REAL)
@@ -183,6 +183,16 @@ struct GlobExpr *global_addng(struct Pser *p, struct GlobExpr *l,
 			l = glob_sub_int_and_real(l, r);
 		else
 			exit(219);
+	} else if (op->code == MUL) {
+		if (l->code == CT_INT && r->code == CT_INT)
+			l = glob_mul_two_ints(l, r);
+		else
+			exit(218);
+	} else if (op->code == DIV) {
+		if (l->code == CT_INT && r->code == CT_INT)
+			l = glob_div_two_ints(l, r);
+		else
+			exit(217);
 	}
 
 	free_glob_expr(r);
