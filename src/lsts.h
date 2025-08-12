@@ -48,3 +48,4 @@ void blist_clear_free(struct BList *);
 void blist_print(struct BList *);
 void blist_add_set(struct BList *, uc, uint32_t *, size_t);
 struct BList *copy_str(struct BList *src);
+struct BList *copy_blist(struct BList *l);

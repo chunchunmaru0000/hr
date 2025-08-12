@@ -156,25 +156,41 @@ struct GlobExpr *glob_mul_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 	l->code = r->code;
 	return l;
 }
-struct GlobExpr *glob_mul_str_and_int(l, r)(struct GlobExpr *l, struct GlobExpr *r) {
+struct GlobExpr *glob_mul_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 	long i = r->tvar->num;
 
 	if (i == 0){
 		blist_clear_free(l->tvar->view);
 		blist_clear_free(l->tvar->str);
-		l->tvar->view = new_blist(2);
+		
+		l->tvar->view = new_blist(3);
+		blist_add(l->tvar->view, '"');
+		blist_add(l->tvar->view, '"');
 		convert_blist_to_blist_from_str(l->tvar->view);
-		blist_add(l->tvar->view, '"');
-		blist_add(l->tvar->view, '"');
+		
 		l->tvar->str = new_blist(2); // TODO: may it be shorter when just blist_from_str ?
 		convert_blist_to_blist_from_str(l->tvar->str);
 		goto ret;
 	}
-	// TODO: need copy_blist
-	for (; i >= 0; i--){
-		
-	}
+	if (i == 1)
+		goto ret;
+	
+	l->tvar->view->st++;
+	l->tvar->view->size -= 2; // remove all ""
+	struct BList *view_once = copy_blist(l->tvar->str);
+	l->tvar->view->st--;
+	l->tvar->view->size += 1; // restore first "
+	struct BList *str_once = copy_blist(l->tvar->str);
 
+	for (; i > 0; i--){
+		blat_blist(l->tvar->view, view_once);
+		blat_blist(l->tvar->str, str_once);
+	}
+	convert_blist_to_blist_from_str(l->tvar->view);
+	convert_blist_to_blist_from_str(l->tvar->str);
+
+	blist_clear_free(view_once);
+	blist_clear_free(str_once);
 ret:
 	return l;
 }
