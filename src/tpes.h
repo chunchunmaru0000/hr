@@ -40,28 +40,34 @@ enum TCode {
 	REAL, // float literal
 	STR,  // string literal with ""
 	// MATH OPS
-	INC,		  // ++
-	DEC,		  // --
-	EQU,		  // =
-	PLUS,		  // +
-	MINUS,		  // -
-	MUL,		  // *
-	AMPER,		  // &
-	DIV,		  // /
-	EQUE,		  // ==
+	INC, // ++
+	DEC, // --
+	EQU, // =
+	PLUS,  // +
+	MINUS, // -
+	MUL,   // *
+	DIV,   // /
+
+	AMPER,	 // &
+	BIT_OR,	 // |
+	BIT_XOR, // ^
+	BIT_NOT, // ~
+	EQUE,	 // ==
+	MORE,	 // >
+	LESS,	 // <
+	SHL,	 // <<
+	SHR,	 // >>
+	MOREE,	 // >=
+	LESSE,	 // <=
+	// TODO: cond ? true : false
+
 	PLUSE,		  // +=
 	MINUSE,		  // -=
 	MULE,		  // *=
 	DIVE,		  // /=
 	THIN_ARROW_R, // ->
-	SHL,		  // <<
-	SHR,		  // >>
 	SHLE,		  // <<=
 	SHRE,		  // >>=
-	MORE,		  // >
-	LESS,		  // <
-	MOREE,		  // >=
-	LESSE,		  // <=
 };
 
 struct Token {
