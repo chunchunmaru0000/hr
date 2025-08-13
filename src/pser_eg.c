@@ -70,7 +70,8 @@ const char *const CANT_TAKE_PTR_FROM_THIS =
 const char *const CANT_DEREFERENCE_THIS =
 	"Разыменовывать значениние можно только если: это строка для получения "
 	"массива или это указатель на лик для получения значения лика.";
-const char *const BIT_NOT_WORKS_ONLY_WITH_INT = "Побитовое не работает только с целыми числами.";
+const char *const BIT_NOT_WORKS_ONLY_WITH_INT =
+	"Побитовое не работает только с целыми числами.";
 
 struct GlobExpr *prime_g_expression(struct Pser *p) {
 	struct GlobVar *other_var;
@@ -318,26 +319,25 @@ struct GlobExpr *addng_g_expression(struct Pser *p) {
 	return e;
 }
 
-struct GlobExpr *b_and_g_expression(struct Pse *p) {
-	struct GlboExpr *e = addng_g_expression(p);
+struct GlobExpr *b_and_g_expression(struct Pser *p) {
+	struct GlobExpr *e = addng_g_expression(p);
 	struct Token *c;
 
 	loop {
 		c = pser_cur(p);
 
-		if (c->code == BIT_AND) {
+		if (c->code == AMPER) {
 			consume(p);
 			e = global_bin(p, e, addng_g_expression(p), c);
 		} else
 			break;
-		}
 	}
-	
+
 	return e;
 }
 
-struct GlobExpr *b_xor_g_expression(struct Pse *p) {
-	struct GlboExpr *e = b_and_g_expression(p);
+struct GlobExpr *b_xor_g_expression(struct Pser *p) {
+	struct GlobExpr *e = b_and_g_expression(p);
 	struct Token *c;
 
 	loop {
@@ -348,14 +348,13 @@ struct GlobExpr *b_xor_g_expression(struct Pse *p) {
 			e = global_bin(p, e, b_and_g_expression(p), c);
 		} else
 			break;
-		}
 	}
-	
+
 	return e;
 }
 
-struct GlobExpr *b_or__g_expression(struct Pse *p) {
-	struct GlboExpr *e = b_xor_g_expression(p);
+struct GlobExpr *b_or__g_expression(struct Pser *p) {
+	struct GlobExpr *e = b_xor_g_expression(p);
 	struct Token *c;
 
 	loop {
@@ -366,14 +365,13 @@ struct GlobExpr *b_or__g_expression(struct Pse *p) {
 			e = global_bin(p, e, b_xor_g_expression(p), c);
 		} else
 			break;
-		}
 	}
-	
+
 	return e;
 }
 
-struct GlobExpr *l_and_g_expression(struct Pse *p) {
-	struct GlboExpr *e = b_or__g_expression(p);
+struct GlobExpr *l_and_g_expression(struct Pser *p) {
+	struct GlobExpr *e = b_or__g_expression(p);
 	struct Token *c;
 
 	loop {
@@ -384,14 +382,13 @@ struct GlobExpr *l_and_g_expression(struct Pse *p) {
 			e = global_bin(p, e, b_or__g_expression(p), c);
 		} else
 			break;
-		}
 	}
-	
+
 	return e;
 }
 
-struct GlobExpr *l_or__g_expression(struct Pse *p) {
-	struct GlboExpr *e = l_and_g_expression(p);
+struct GlobExpr *l_or__g_expression(struct Pser *p) {
+	struct GlobExpr *e = l_and_g_expression(p);
 	struct Token *c;
 
 	loop {
@@ -402,8 +399,7 @@ struct GlobExpr *l_or__g_expression(struct Pse *p) {
 			e = global_bin(p, e, l_and_g_expression(p), c);
 		} else
 			break;
-		}
 	}
-	
+
 	return e;
 }

@@ -40,9 +40,9 @@ enum TCode {
 	REAL, // float literal
 	STR,  // string literal with ""
 	// MATH OPS
-	INC, // ++
-	DEC, // --
-	EQU, // =
+	INC,   // ++
+	DEC,   // --
+	EQU,   // =
 	PLUS,  // +
 	MINUS, // -
 	MUL,   // *
@@ -55,13 +55,13 @@ enum TCode {
 	AND,	 // &&
 	OR,		 // ||
 
-	EQUE,	 // ==
-	MORE,	 // >
-	LESS,	 // <
-	SHL,	 // <<
-	SHR,	 // >>
-	MOREE,	 // >=
-	LESSE,	 // <=
+	EQUE,  // ==
+	MORE,  // >
+	LESS,  // <
+	SHL,   // <<
+	SHR,   // >>
+	MOREE, // >=
+	LESSE, // <=
 	// TODO: cond ? true : false
 
 	PLUSE,		  // +=
