@@ -48,10 +48,13 @@ enum TCode {
 	MUL,   // *
 	DIV,   // /
 
-	AMPER,	 // &
-	BIT_OR,	 // |
-	BIT_XOR, // ^
 	BIT_NOT, // ~
+	AMPER,	 // &
+	BIT_XOR, // ^
+	BIT_OR,	 // |
+	AND,	 // &&
+	OR,		 // ||
+
 	EQUE,	 // ==
 	MORE,	 // >
 	LESS,	 // <

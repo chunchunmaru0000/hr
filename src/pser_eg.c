@@ -7,8 +7,12 @@ struct GlobExpr *prime_g_expression(struct Pser *p);
 struct GlobExpr *unary_g_expression(struct Pser *p);
 struct GlobExpr *mulng_g_expression(struct Pser *p);
 struct GlobExpr *addng_g_expression(struct Pser *p);
-// struct GlobExpr *booln_g_expression(struct Pser *p);
-#define global_expression(p) (addng_g_expression((p)))
+struct GlobExpr *b_and_g_expression(struct Pser *p);
+struct GlobExpr *b_xor_g_expression(struct Pser *p);
+struct GlobExpr *b_or__g_expression(struct Pser *p);
+struct GlobExpr *l_and_g_expression(struct Pser *p);
+struct GlobExpr *l_or__g_expression(struct Pser *p);
+#define global_expression(p) (l_or__g_expression((p)))
 
 struct GlobExpr *parse_global_expression(struct Pser *p,
 										 struct TypeExpr *type) {
@@ -184,6 +188,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 	return e;
 }
 
+// TODO: sizeof is unary thing
 struct GlobExpr *unary_g_expression(struct Pser *p) {
 	struct GlobExpr *e;
 	struct TypeExpr *type;
@@ -310,5 +315,95 @@ struct GlobExpr *addng_g_expression(struct Pser *p) {
 			break;
 	}
 
+	return e;
+}
+
+struct GlobExpr *b_and_g_expression(struct Pse *p) {
+	struct GlboExpr *e = addng_g_expression(p);
+	struct Token *c;
+
+	loop {
+		c = pser_cur(p);
+
+		if (c->code == BIT_AND) {
+			consume(p);
+			e = global_bin(p, e, addng_g_expression(p), c);
+		} else
+			break;
+		}
+	}
+	
+	return e;
+}
+
+struct GlobExpr *b_xor_g_expression(struct Pse *p) {
+	struct GlboExpr *e = b_and_g_expression(p);
+	struct Token *c;
+
+	loop {
+		c = pser_cur(p);
+
+		if (c->code == BIT_XOR) {
+			consume(p);
+			e = global_bin(p, e, b_and_g_expression(p), c);
+		} else
+			break;
+		}
+	}
+	
+	return e;
+}
+
+struct GlobExpr *b_or__g_expression(struct Pse *p) {
+	struct GlboExpr *e = b_xor_g_expression(p);
+	struct Token *c;
+
+	loop {
+		c = pser_cur(p);
+
+		if (c->code == BIT_OR) {
+			consume(p);
+			e = global_bin(p, e, b_xor_g_expression(p), c);
+		} else
+			break;
+		}
+	}
+	
+	return e;
+}
+
+struct GlobExpr *l_and_g_expression(struct Pse *p) {
+	struct GlboExpr *e = b_or__g_expression(p);
+	struct Token *c;
+
+	loop {
+		c = pser_cur(p);
+
+		if (c->code == AND) {
+			consume(p);
+			e = global_bin(p, e, b_or__g_expression(p), c);
+		} else
+			break;
+		}
+	}
+	
+	return e;
+}
+
+struct GlobExpr *l_or__g_expression(struct Pse *p) {
+	struct GlboExpr *e = l_and_g_expression(p);
+	struct Token *c;
+
+	loop {
+		c = pser_cur(p);
+
+		if (c->code == OR) {
+			consume(p);
+			e = global_bin(p, e, l_and_g_expression(p), c);
+		} else
+			break;
+		}
+	}
+	
 	return e;
 }
