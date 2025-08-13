@@ -66,6 +66,7 @@ const char *const CANT_TAKE_PTR_FROM_THIS =
 const char *const CANT_DEREFERENCE_THIS =
 	"Разыменовывать значениние можно только если: это строка для получения "
 	"массива или это указатель на лик для получения значения лика.";
+const char *const BIT_NOT_WORKS_ONLY_WITH_INT = "Побитовое не работает только с целыми числами.";
 
 struct GlobExpr *prime_g_expression(struct Pser *p) {
 	struct GlobVar *other_var;
@@ -210,6 +211,17 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		} else {
 			eet(p->f, c, NOT_NUM_VALUE_FOR_THIS_UNARY_OP, 0);
 		}
+		return e;
+	}
+	if (c->code == BIT_NOT) {
+		consume(p);
+		e = unary_g_expression(p);
+
+		if (e->code != CT_INT)
+			eet(p->f, c, BIT_NOT_WORKS_ONLY_WITH_INT, 0);
+
+		e->tvar->num = ~e->tvar->num;
+
 		return e;
 	}
 

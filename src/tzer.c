@@ -323,6 +323,9 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 	case '(':
 		view = naa(t, "(", 1, cp, PAR_L);
 		break;
+	case '~':
+		view = naa(t, "~", 1, cp, BIT_NOT);
+		break;
 	case ')':
 		view = naa(t, ")", 1, cp, PAR_R);
 		break;
