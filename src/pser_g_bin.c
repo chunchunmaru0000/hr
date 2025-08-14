@@ -1,5 +1,12 @@
 #include "pser.h"
 
+const char *const UNKNOWN_OPERATION = "Неизвестная операция.";
+const char *const INVALID_OPERANDS_TYPES_FOR_THIS_OP =
+	"Неверные типы поерандов для данной операции.";
+const char *const CANT_MUL_STR_ON_VALUE_LESS_THAN_ZERO =
+	"Строки можно умножать только на целые числа, что больше минус единицы.";
+const char *const DIV_ON_ZERO = "Деление на ноль запрещено.";
+
 // ###########################################################################################
 // 											+
 // ###########################################################################################
@@ -198,8 +205,8 @@ ret:
 // ###########################################################################################
 // 											/
 // ###########################################################################################
-#define is_int_zero(e) ((e)->tvar->num == 0)
-#define is_real_zero(e) ((e)->tvar->real == 0.0)
+#define is_int_zero(e) ((is_ct_int((e)) && (e)->tvar->num == 0))
+#define is_real_zero(e) ((is_ct_real((e)) && (e)->tvar->real == 0.0))
 
 struct GlobExpr *glob_div_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
 	l->tvar->num /= r->tvar->num;
@@ -214,8 +221,85 @@ struct GlobExpr *glob_div_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 	return l;
 }
 struct GlobExpr *glob_div_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real = l->tvar->num / l->tvar->real;
+	l->tvar->real = l->tvar->num / r->tvar->real;
 	l->code = r->code;
+	return l;
+}
+// ###########################################################################################
+// 											&
+// ###########################################################################################
+struct GlobExpr *glob_bit_and_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num &= r->tvar->num;
+	return l;
+}
+// ###########################################################################################
+// 											^
+// ###########################################################################################
+struct GlobExpr *glob_bit_xor_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num ^= r->tvar->num;
+	return l;
+}
+// ###########################################################################################
+// 											|
+// ###########################################################################################
+struct GlobExpr *glob_bit_or_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num |= r->tvar->num;
+	return l;
+}
+// ###########################################################################################
+// 											&&
+// ###########################################################################################
+struct GlobExpr *glob_and_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num = l->tvar->num && r->tvar->num;
+	return l;
+}
+struct GlobExpr *glob_and_two_reals(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num = l->tvar->num && r->tvar->num;
+	l->code = CT_INT;
+	return l;
+}
+struct GlobExpr *glob_and_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num = l->tvar->real && r->tvar->num;
+	l->code = CT_INT;
+	return l;
+}
+struct GlobExpr *glob_and_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num = l->tvar->num && r->tvar->real;
+	return l;
+}
+// ###########################################################################################
+// 											||
+// ###########################################################################################
+struct GlobExpr *glob_or_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num = l->tvar->num || r->tvar->num;
+	return l;
+}
+struct GlobExpr *glob_or_two_reals(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num = l->tvar->num || r->tvar->num;
+	l->code = CT_INT;
+	return l;
+}
+struct GlobExpr *glob_or_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num = l->tvar->real || r->tvar->num;
+	l->code = CT_INT;
+	return l;
+}
+struct GlobExpr *glob_or_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num = l->tvar->num || r->tvar->real;
+	return l;
+}
+// ###########################################################################################
+// 											<<
+// ###########################################################################################
+struct GlobExpr *glob_shl_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num <<= r->tvar->num;
+	return l;
+}
+// ###########################################################################################
+// 											>>
+// ###########################################################################################
+struct GlobExpr *glob_shr_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num >>= r->tvar->num;
 	return l;
 }
 // ###########################################################################################
@@ -228,75 +312,171 @@ struct GlobExpr *glob_div_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 #define is_ct_arr(e) (((e)->code == CT_ARR || (e)->code == CT_ARR_PTR))
 #define is_ct_struct(e) (((e)->code == CT_STRUCT || (e)->code == CT_STRUCT_PTR))
 
+// ###########################################################################################
+#define only_ints(op_e, word)                                                  \
+	if (op->code == (op_e)) {                                                  \
+		if (is_ct_int(l) && is_ct_int(r))                                      \
+			l = glob_##word##_two_ints(l, r);                                  \
+		else                                                                   \
+			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);              \
+	}                                                                          \
+// ###########################################################################################
+#define check_num_types(word)                                                  \
+	if (is_ct_int(l) && is_ct_int(r))                                          \
+		l = glob_##word##_two_ints(l, r);                                      \
+	else if (is_ct_real(l) && is_ct_real(r))                                   \
+		l = glob_##word##_two_reals(l, r);                                     \
+	else if (is_ct_real(l) && is_ct_int(r))                                    \
+		l = glob_##word##_real_and_int(l, r);                                  \
+	else if (is_ct_int(l) && is_ct_real(r))                                    \
+		l = glob_##word##_int_and_real(l, r);
+
+// ###########################################################################################
+
 struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 							struct GlobExpr *r, struct Token *op) {
+	#include <stdio.h>
+	printf("%s\n", op->view->st);
+
 	if (op->code == PLUS) {
 		// int and real
-		if (is_ct_int(l) && is_ct_int(r))
-			l = glob_add_two_ints(l, r);
-		else if (is_ct_real(l) && is_ct_real(r))
-			l = glob_add_two_reals(l, r);
-		else if (is_ct_real(l) && is_ct_int(r))
-			l = glob_add_real_and_int(l, r);
-		else if (is_ct_int(l) && is_ct_real(r))
-			l = glob_add_int_and_real(l, r);
-		// str
-		else if (is_ct_str(l) && is_ct_str(r))
-			l = glob_add_two_strs(l, r);
-		else if (is_ct_int(l) && is_ct_str(r))
-			l = glob_add_int_and_str(l, r);
-		else if (is_ct_str(l) && is_ct_int(r))
-			l = glob_add_str_and_int(l, r);
-		else if (is_ct_real(l) && is_ct_str(r))
-			l = glob_add_real_and_str(l, r);
-		else if (is_ct_str(l) && is_ct_real(r))
-			l = glob_add_str_and_real(l, r);
-		//
-		else
-			exit(220); // just for now later do it not as a черт
-	} else if (op->code == MINUS) {
-		if (is_ct_int(l) && is_ct_int(r))
-			l = glob_sub_two_ints(l, r);
-		else if (is_ct_real(l) && is_ct_real(r))
-			l = glob_sub_two_reals(l, r);
-		else if (is_ct_real(l) && is_ct_int(r))
-			l = glob_sub_real_and_int(l, r);
-		else if (is_ct_int(l) && is_ct_real(r))
-			l = glob_sub_int_and_real(l, r);
-		else
-			exit(219);
-	} else if (op->code == MUL) {
-		if (is_ct_int(l) && is_ct_int(r))
-			l = glob_mul_two_ints(l, r);
-		else if (is_ct_real(l) && is_ct_real(r))
-			l = glob_mul_two_reals(l, r);
-		else if (is_ct_real(l) && is_ct_int(r))
-			l = glob_mul_real_and_int(l, r);
-		else if (is_ct_int(l) && is_ct_real(r))
-			l = glob_mul_int_and_real(l, r);
-		else if (is_ct_str(l) && is_ct_int(r)) {
-			if (r->tvar->num < 0)
-				exit(214);
-			l = glob_mul_str_and_int(l, r);
-		} else
-			exit(218);
-	} else if (op->code == DIV) {
-		if (is_ct_int(r) && is_int_zero(r))
-			exit(216);
-		if (is_ct_real(r) && is_real_zero(r))
-			exit(215);
+		check_num_types(add)
+			//		if (is_ct_int(l) && is_ct_int(r))
+			//			l = glob_add_two_ints(l, r);
+			//		else if (is_ct_real(l) && is_ct_real(r))
+			//			l = glob_add_two_reals(l, r);
+			//		else if (is_ct_real(l) && is_ct_int(r))
+			//			l = glob_add_real_and_int(l, r);
+			//		else if (is_ct_int(l) && is_ct_real(r))
+			//			l = glob_add_int_and_real(l, r);
+			// str
+			else if (is_ct_str(l) && is_ct_str(r)) l = glob_add_two_strs(l, r);
+		else if (is_ct_int(l) && is_ct_str(r)) l = glob_add_int_and_str(l, r);
+		else if (is_ct_str(l) && is_ct_int(r)) l = glob_add_str_and_int(l, r);
+		else if (is_ct_real(l) && is_ct_str(r)) l = glob_add_real_and_str(l, r);
+		else if (is_ct_str(l) && is_ct_real(r)) l = glob_add_str_and_real(l, r);
+		else eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
 
-		if (is_ct_int(l) && is_ct_int(r))
-			l = glob_div_two_ints(l, r);
-		else if (is_ct_real(l) && is_ct_real(r))
-			l = glob_div_two_reals(l, r);
-		else if (is_ct_real(l) && is_ct_int(r))
-			l = glob_div_real_and_int(l, r);
-		else if (is_ct_int(l) && is_ct_real(r))
-			l = glob_div_int_and_real(l, r);
-		else
-			exit(217);
+	} else if (op->code == MINUS) {
+		check_num_types(sub)
+			//		if (is_ct_int(l) && is_ct_int(r))
+			//			l = glob_sub_two_ints(l, r);
+			//		else if (is_ct_real(l) && is_ct_real(r))
+			//			l = glob_sub_two_reals(l, r);
+			//		else if (is_ct_real(l) && is_ct_int(r))
+			//			l = glob_sub_real_and_int(l, r);
+			//		else if (is_ct_int(l) && is_ct_real(r))
+			//			l = glob_sub_int_and_real(l, r);
+			else eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+
+	} else if (op->code == MUL) {
+		check_num_types(mul)
+			//		if (is_ct_int(l) && is_ct_int(r))
+			//			l = glob_mul_two_ints(l, r);
+			//		else if (is_ct_real(l) && is_ct_real(r))
+			//			l = glob_mul_two_reals(l, r);
+			//		else if (is_ct_real(l) && is_ct_int(r))
+			//			l = glob_mul_real_and_int(l, r);
+			//		else if (is_ct_int(l) && is_ct_real(r))
+			//			l = glob_mul_int_and_real(l, r);
+			else if (is_ct_str(l) && is_ct_int(r)) {
+			if (r->tvar->num < 0)
+				eet(p->f, op, CANT_MUL_STR_ON_VALUE_LESS_THAN_ZERO, 0);
+
+			l = glob_mul_str_and_int(l, r);
+		}
+		else eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+
+	} else if (op->code == DIV) {
+		if (is_int_zero(r) || is_real_zero(r))
+			eet(p->f, op, DIV_ON_ZERO, 0);
+
+		check_num_types(div)
+			//		if (is_ct_int(l) && is_ct_int(r))
+			//			l = glob_div_two_ints(l, r);
+			//		else if (is_ct_real(l) && is_ct_real(r))
+			//			l = glob_div_two_reals(l, r);
+			//		else if (is_ct_real(l) && is_ct_int(r))
+			//			l = glob_div_real_and_int(l, r);
+			//		else if (is_ct_int(l) && is_ct_real(r))
+			//			l = glob_div_int_and_real(l, r);
+			else eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+
+	} else
+		only_ints(AMPER, bit_and)
+			//	if (op->code == AMPER) {
+			//		if (is_ct_int(l) && is_ct_int(r))
+			//			l = glob_bit_and_two_ints(l, r);
+			//		else
+			//			eet(p, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+			//	}
+			else only_ints(BIT_XOR, bit_xor)
+			//	if (op->code == BIT_XOR) {
+			//		if (is_ct_int(l) && is_ct_int(r))
+			//			l = glob_bit_xor_two_ints(l, r);
+			//		else
+			//			eet(p, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+			//	}
+			else only_ints(BIT_OR, bit_or)
+			//	 if (op->code == BIT_OR) {
+			//		if (is_ct_int(l) && is_ct_int(r))
+			//			l = glob_bit_or_two_ints(l, r);
+			//		else
+			//			eet(p, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+			//	}
+			else if (op->code == AND) {
+			check_num_types(and)
+				//		if (is_ct_int(l) && is_ct_int(r))
+				//			l = glob_and_two_ints(l, r);
+				//		else if (is_ct_real(l) && is_ct_real(r))
+				//			l = glob_and_two_reals(l, r);
+				//		else if (is_ct_real(l) && is_ct_int(r))
+				//			l = glob_and_real_and_int(l, r);
+				//		else if (is_ct_int(l) && is_ct_real(r))
+				//			l = glob_and_int_and_real(l, r);
+				else eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+		}
+	else if (op->code == OR) {
+		check_num_types(or)
+			//		if (is_ct_int(l) && is_ct_int(r))
+			//			l = glob_or_two_ints(l, r);
+			//		else if (is_ct_real(l) && is_ct_real(r))
+			//			l = glob_or_two_reals(l, r);
+			//		else if (is_ct_real(l) && is_ct_int(r))
+			//			l = glob_or_real_and_int(l, r);
+			//		else if (is_ct_int(l) && is_ct_real(r))
+			//			l = glob_or_int_and_real(l, r);
+			else eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
 	}
+	else only_ints(SHL, shl)
+		//	 if (op->code == SHL) {
+		//		if (is_ct_int(l) && is_ct_int(r))
+		//			l = glob_shl_two_ints(l, r);
+		//		else
+		//			eet(p, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+		//	}
+		else only_ints(SHR, shr)
+		//	if (op->code == SHR) {
+		//		if (is_ct_int(l) && is_ct_int(r))
+		//			l = glob_shr_two_ints(l, r);
+		//		else
+		//			eet(p, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+		//	}
+		else if (op->code == LESS) {
+		if (is_ct_int(l) && is_ct_int(r))
+			l->tvar->num = l->tvar->num < r->tvar->num;
+		else if (is_ct_int(l) && is_ct_real(r))
+			l->tvar->num = l->tvar->num < r->tvar->real;
+		else if (is_ct_real(l) && is_ct_int(r)) {
+			l->tvar->num = l->tvar->real < r->tvar->num;
+			l->code = CT_INT;
+		} else if (is_ct_real(l) && is_ct_real(r)) {
+			l->tvar->num = l->tvar->real < r->tvar->num;
+			l->code = CT_INT;
+		} else
+			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+	}
+	else eet(p->f, op, UNKNOWN_OPERATION, 0);
 
 	free_glob_expr(r);
 	return l;

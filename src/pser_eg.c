@@ -7,6 +7,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p);
 struct GlobExpr *unary_g_expression(struct Pser *p);
 struct GlobExpr *mulng_g_expression(struct Pser *p);
 struct GlobExpr *addng_g_expression(struct Pser *p);
+struct GlobExpr *shtng_g_expression(struct Pser *p);
 struct GlobExpr *b_and_g_expression(struct Pser *p);
 struct GlobExpr *b_xor_g_expression(struct Pser *p);
 struct GlobExpr *b_or__g_expression(struct Pser *p);
@@ -319,8 +320,25 @@ struct GlobExpr *addng_g_expression(struct Pser *p) {
 	return e;
 }
 
-struct GlobExpr *b_and_g_expression(struct Pser *p) {
+struct GlobExpr *shtng_g_expression(struct Pser *p) {
 	struct GlobExpr *e = addng_g_expression(p);
+	struct Token *c;
+
+	loop {
+		c = pser_cur(p);
+
+		if (c->code == SHL || c->code == SHR) {
+			consume(p);
+			e = global_bin(p, e, addng_g_expression(p), c);
+		} else
+			break;
+	}
+
+	return e;
+}
+
+struct GlobExpr *b_and_g_expression(struct Pser *p) {
+	struct GlobExpr *e = shtng_g_expression(p);
 	struct Token *c;
 
 	loop {
@@ -328,7 +346,7 @@ struct GlobExpr *b_and_g_expression(struct Pser *p) {
 
 		if (c->code == AMPER) {
 			consume(p);
-			e = global_bin(p, e, addng_g_expression(p), c);
+			e = global_bin(p, e, shtng_g_expression(p), c);
 		} else
 			break;
 	}
