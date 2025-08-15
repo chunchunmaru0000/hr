@@ -28,6 +28,11 @@ struct GlobExpr *glob_add_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 	l->code = r->code;
 	return l;
 }
+// ###########################################################################################
+//#define num_fun(word, op) 			\
+//int_fun(word, op);							\
+
+// ###########################################################################################
 // str
 struct GlobExpr *glob_add_two_strs(struct GlobExpr *l, struct GlobExpr *r) {
 	l->tvar->view->size--; // remove last " of l
@@ -226,26 +231,36 @@ struct GlobExpr *glob_div_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 	return l;
 }
 // ###########################################################################################
+#define int_fun(word, op) 															  \
+	struct GlobExpr *glob_##word##_two_ints(struct GlobExpr *l, struct GlobExpr *r) { \
+		l->tvar->num op##= r->tvar->num; 										 	  \
+		return l;																 	  \
+	}
+
+// ###########################################################################################
 // 											%
 // ###########################################################################################
-struct GlobExpr *glob_mod_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num %= r->tvar->num;
-	return l;
-}
+int_fun(mod, %);
+//struct GlobExpr *glob_mod_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
+//	l->tvar->num %= r->tvar->num;
+//	return l;
+//}
 // ###########################################################################################
 // 											&
 // ###########################################################################################
-struct GlobExpr *glob_bit_and_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num &= r->tvar->num;
-	return l;
-}
+int_fun(mod, &);
+//struct GlobExpr *glob_bit_and_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
+//	l->tvar->num &= r->tvar->num;
+//	return l;
+//}
 // ###########################################################################################
 // 											^
 // ###########################################################################################
-struct GlobExpr *glob_bit_xor_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num ^= r->tvar->num;
-	return l;
-}
+int_fun(mod, ^);
+//struct GlobExpr *glob_bit_xor_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
+//	l->tvar->num ^= r->tvar->num;
+//	return l;
+//}
 // ###########################################################################################
 // 											|
 // ###########################################################################################
