@@ -9,6 +9,7 @@ struct GlobExpr *mulng_g_expression(struct Pser *p);
 struct GlobExpr *addng_g_expression(struct Pser *p);
 struct GlobExpr *shtng_g_expression(struct Pser *p);
 struct GlobExpr *mlsng_g_expression(struct Pser *p);
+struct GlobExpr *equng_g_expression(struct Pser *p);
 struct GlobExpr *b_and_g_expression(struct Pser *p);
 struct GlobExpr *b_xor_g_expression(struct Pser *p);
 struct GlobExpr *b_or__g_expression(struct Pser *p);
@@ -316,11 +317,12 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 #define bf(name, next, ops)                                                    \
 	struct GlobExpr *name(struct Pser *p) { binop(next, ops); }
 
-bf(mulng_g_expression, unary_g_expression, ops2(MUL, DIV));
+bf(mulng_g_expression, unary_g_expression, ops3(MUL, DIV, MOD));
 bf(addng_g_expression, mulng_g_expression, ops2(PLUS, MINUS));
 bf(shtng_g_expression, addng_g_expression, ops2(SHL, SHR));
 bf(mlsng_g_expression, shtng_g_expression, ops4(LESS, LESSE, MORE, MOREE));
-bf(b_and_g_expression, mlsng_g_expression, ops1(AMPER));
+bf(equng_g_expression, mlsng_g_expression, ops2(EQUE, NEQU));
+bf(b_and_g_expression, equng_g_expression, ops1(AMPER));
 bf(b_xor_g_expression, b_and_g_expression, ops1(BIT_XOR));
 bf(b_or__g_expression, b_xor_g_expression, ops1(BIT_OR));
 bf(l_and_g_expression, b_or__g_expression, ops1(AND));
