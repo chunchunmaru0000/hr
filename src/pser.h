@@ -48,6 +48,7 @@ extern const char *const STR_GOTO;
 extern const char *const STR_LOOP;
 
 extern const char *const STR_AS;
+extern const char *const STR_SIZE_OF;
 
 struct Pser {
 	struct Fpfc *f;

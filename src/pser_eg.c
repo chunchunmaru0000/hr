@@ -246,7 +246,6 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 		return e;
 	}
-
 	if (c->code == MUL) {
 		consume(p);
 		e = after_g_expression(p);
@@ -264,7 +263,6 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 		return e;
 	}
-
 	if (c->code == AMPER) {
 		consume(p);
 		e = after_g_expression(p);
@@ -282,20 +280,38 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 		return e;
 	}
+	if (c->code == ID) {
+		if (sc(STR_AS, (char *)c->view->st)) {
+			consume(p); // skip окак
 
-	if (c->code == ID && sc(STR_AS, (char *)c->view->st)) {
-		consume(p); // skip окак
+			type = type_expr(p);
+			e = unary_g_expression(p);
 
-		type = type_expr(p);
-		e = unary_g_expression(p);
+			check_global_type_compatibility(p, type, e);
 
-		check_global_type_compatibility(p, type, e);
+			if (e->type)
+				free_type(e->type);
+			e->type = type;
 
-		if (e->type)
-			free_type(e->type);
-		e->type = type;
+			return e;
+		} else if (sc(STR_SIZE_OF, (char *)c->view->st)) {
+			consume(p); // skip мера
 
-		return e;
+			type = type_expr(p);
+			long size = unsafe_size_of_type(type);
+			free_type(type);
+
+			e = malloc(sizeof(struct GlobExpr));
+			e->type = 0;
+			e->globs = 0;
+			e->from = 0;
+			e->tvar = malloc(sizeof(struct Token));
+			copy_token(e->tvar, c);
+			e->tvar->num = size;
+			e->code = CT_INT;
+
+			return e;
+		}
 	}
 
 	return after_g_expression(p);
