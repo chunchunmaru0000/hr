@@ -222,6 +222,19 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		}
 		return e;
 	}
+	if (c->code == EXCL) {
+		consume(p);
+		e = unary_g_expression(p);
+
+		if (e->code == CT_INT)
+			e->tvar->num = !e->tvar->num;
+		else if (e->code == CT_REAL) {
+			e->tvar->num = !e->tvar->real;
+			e->code = CT_INT;
+		} else
+			eet(p->f, c, NOT_NUM_VALUE_FOR_THIS_UNARY_OP, 0);
+		return e;
+	}
 	if (c->code == BIT_NOT) {
 		consume(p);
 		e = unary_g_expression(p);
