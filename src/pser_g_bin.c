@@ -8,27 +8,6 @@ const char *const CANT_MUL_STR_ON_VALUE_LESS_THAN_ZERO =
 const char *const DIV_ON_ZERO = "Деление на ноль запрещено.";
 
 // ###########################################################################################
-// 											+
-// ###########################################################################################
-// int and real
-struct GlobExpr *glob_add_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num += r->tvar->num;
-	return l;
-}
-struct GlobExpr *glob_add_two_reals(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real += r->tvar->real;
-	return l;
-}
-struct GlobExpr *glob_add_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real += r->tvar->num;
-	return l;
-}
-struct GlobExpr *glob_add_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real = l->tvar->num + r->tvar->real;
-	l->code = r->code;
-	return l;
-}
-// ###########################################################################################
 #define int_fun(word, op) 															 		\
 	struct GlobExpr *glob_##word##_two_ints(struct GlobExpr *l, struct GlobExpr *r) {		\
 		l->tvar->num = l->tvar->num op r->tvar->num; 										\
@@ -51,12 +30,6 @@ struct GlobExpr *glob_add_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 		return l;																			\
 	}
 // ###########################################################################################
-num_fun(eque, ==);
-num_fun(nequ, !=);
-
-num_fun(more, >);
-num_fun(lesse, <=);
-num_fun(moree, >=);
 // str
 struct GlobExpr *glob_add_two_strs(struct GlobExpr *l, struct GlobExpr *r) {
 	l->tvar->view->size--; // remove last " of l
@@ -153,45 +126,7 @@ struct GlobExpr *glob_add_str_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 	blist_clear_free(num);
 	return l;
 }
-// ###########################################################################################
-// 											-
-// ###########################################################################################
-struct GlobExpr *glob_sub_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num -= r->tvar->num;
-	return l;
-}
-struct GlobExpr *glob_sub_two_reals(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real -= r->tvar->real;
-	return l;
-}
-struct GlobExpr *glob_sub_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real -= r->tvar->num;
-	return l;
-}
-struct GlobExpr *glob_sub_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num -= r->tvar->real; // TODO: check type code
-	return l;
-}
-// ###########################################################################################
-// 											*
-// ###########################################################################################
-struct GlobExpr *glob_mul_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num *= r->tvar->num;
-	return l;
-}
-struct GlobExpr *glob_mul_two_reals(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real *= r->tvar->real;
-	return l;
-}
-struct GlobExpr *glob_mul_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real *= r->tvar->num;
-	return l;
-}
-struct GlobExpr *glob_mul_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real = l->tvar->num * r->tvar->real;
-	l->code = r->code;
-	return l;
-}
+
 struct GlobExpr *glob_mul_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 	long i = r->tvar->num;
 
@@ -231,139 +166,27 @@ struct GlobExpr *glob_mul_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 ret:
 	return l;
 }
-// ###########################################################################################
-// 											/
-// ###########################################################################################
-#define is_int_zero(e) ((is_ct_int((e)) && (e)->tvar->num == 0))
-#define is_real_zero(e) ((is_ct_real((e)) && (e)->tvar->real == 0.0))
 
-struct GlobExpr *glob_div_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num /= r->tvar->num;
-	return l;
-}
-struct GlobExpr *glob_div_two_reals(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real /= r->tvar->real;
-	return l;
-}
-struct GlobExpr *glob_div_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real /= r->tvar->num;
-	return l;
-}
-struct GlobExpr *glob_div_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->real = l->tvar->num / r->tvar->real;
-	l->code = r->code;
-	return l;
-}
 // ###########################################################################################
-// 											%
-// ###########################################################################################
+num_fun(add, +)
+num_fun(sub, -)
+num_fun(mul, *)
+num_fun(div, /)
+num_fun(and, &&)
+num_fun(or, ||)
+num_fun(eque, ==)
+num_fun(nequ, !=)
+num_fun(less, <)
+num_fun(more, >)
+num_fun(lesse, <=)
+num_fun(moree, >=)
+
 int_fun(mod, %);
-//struct GlobExpr *glob_mod_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-//	l->tvar->num %= r->tvar->num;
-//	return l;
-//}
-// ###########################################################################################
-// 											&
-// ###########################################################################################
 int_fun(bit_and, &);
-//struct GlobExpr *glob_bit_and_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-//	l->tvar->num &= r->tvar->num;
-//	return l;
-//}
-// ###########################################################################################
-// 											^
-// ###########################################################################################
+int_fun(bit_or, |);
 int_fun(bit_xor, ^);
-//struct GlobExpr *glob_bit_xor_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-//	l->tvar->num ^= r->tvar->num;
-//	return l;
-//}
-// ###########################################################################################
-// 											|
-// ###########################################################################################
-struct GlobExpr *glob_bit_or_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num |= r->tvar->num;
-	return l;
-}
-// ###########################################################################################
-// 											&&
-// ###########################################################################################
-struct GlobExpr *glob_and_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num = l->tvar->num && r->tvar->num;
-	return l;
-}
-struct GlobExpr *glob_and_two_reals(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num = l->tvar->num && r->tvar->num;
-	l->code = CT_INT;
-	return l;
-}
-struct GlobExpr *glob_and_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num = l->tvar->real && r->tvar->num;
-	l->code = CT_INT;
-	return l;
-}
-struct GlobExpr *glob_and_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num = l->tvar->num && r->tvar->real;
-	return l;
-}
-// ###########################################################################################
-// 											||
-// ###########################################################################################
-struct GlobExpr *glob_or_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num = l->tvar->num || r->tvar->num;
-	return l;
-}
-struct GlobExpr *glob_or_two_reals(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num = l->tvar->num || r->tvar->num;
-	l->code = CT_INT;
-	return l;
-}
-struct GlobExpr *glob_or_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num = l->tvar->real || r->tvar->num;
-	l->code = CT_INT;
-	return l;
-}
-struct GlobExpr *glob_or_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num = l->tvar->num || r->tvar->real;
-	return l;
-}
-// ###########################################################################################
-// 											<<
-// ###########################################################################################
-struct GlobExpr *glob_shl_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num <<= r->tvar->num;
-	return l;
-}
-// ###########################################################################################
-// 											>>
-// ###########################################################################################
-struct GlobExpr *glob_shr_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num >>= r->tvar->num;
-	return l;
-}
-// ###########################################################################################
-// 											<
-// ###########################################################################################
-struct GlobExpr *glob_less_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num = l->tvar->num < r->tvar->num;
-	return l;
-}
-struct GlobExpr *glob_less_two_reals(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num = l->tvar->real < r->tvar->real;
-	l->code = CT_INT;
-	return l;
-}
-struct GlobExpr *glob_less_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num = l->tvar->real < r->tvar->num;
-	l->code = CT_INT;
-	return l;
-}
-struct GlobExpr *glob_less_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
-	l->tvar->num = l->tvar->num < r->tvar->real;
-	return l;
-}
-// ###########################################################################################
-//
+int_fun(shl, <<);
+int_fun(shr, >>);
 // ###########################################################################################
 
 #define is_ct_int(e) ((e)->code == CT_INT)
@@ -371,6 +194,9 @@ struct GlobExpr *glob_less_int_and_real(struct GlobExpr *l, struct GlobExpr *r) 
 #define is_ct_str(e) (((e)->code == CT_STR || (e)->code == CT_STR_PTR))
 #define is_ct_arr(e) (((e)->code == CT_ARR || (e)->code == CT_ARR_PTR))
 #define is_ct_struct(e) (((e)->code == CT_STRUCT || (e)->code == CT_STRUCT_PTR))
+
+#define is_int_zero(e) ((is_ct_int((e)) && (e)->tvar->num == 0))
+#define is_real_zero(e) ((is_ct_real((e)) && (e)->tvar->real == 0.0))
 
 // ###########################################################################################
 #define only_ints(op_e, word)                                                  \
