@@ -378,15 +378,6 @@ struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 		else
 			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
 
-	} else if (op->code == EQUE) {
- 		check_eque_types(sub)
- 		else
- 			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
- 	} else if (op->code == NEQU) {
- 		check_nequ_types(sub)
- 		else
- 			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);	
-
 	} else if (op->code == MUL) {
 		check_num_types(mul)
 		else if (is_ct_str(l) && is_ct_int(r)) {
@@ -406,16 +397,18 @@ struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
 
 	}
+	else only_nums(EQUE, eque)
+	else only_nums(NEQU, nequ)
 	else only_nums(MUNUS, sub)
+	else only_nums(AND, and)
+	else only_nums(OR, or) 
+	else only_nums(LESS, less)
 	else only_ints(MOD, mod)
 	else only_ints(AMPER, bit_and)
 	else only_ints(BIT_XOR, bit_xor)
 	else only_ints(BIT_OR, bit_or)
-	else only_nums(AND, and)
-	else only_nums(OR, or) 
 	else only_ints(SHL, shl)
 	else only_ints(SHR, shr)
-	else only_nums(LESS, less)
 	// TODO: MORE
 	// TODO: LESSE
 	// TODO: MOREE
