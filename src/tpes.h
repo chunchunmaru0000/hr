@@ -47,15 +47,15 @@ enum TCode {
 	MINUS, // -
 	MUL,   // *
 	DIV,   // /
-
+	MOD,   // %
 	BIT_NOT, // ~
 	AMPER,	 // &
 	BIT_XOR, // ^
 	BIT_OR,	 // |
 	AND,	 // &&
 	OR,		 // ||
-
 	EQUE,  // ==
+	NEQU,  // !=
 	MORE,  // >
 	LESS,  // <
 	SHL,   // <<

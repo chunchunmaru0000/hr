@@ -226,6 +226,13 @@ struct GlobExpr *glob_div_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 	return l;
 }
 // ###########################################################################################
+// 											%
+// ###########################################################################################
+struct GlobExpr *glob_mod_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num %= r->tvar->num;
+	return l;
+}
+// ###########################################################################################
 // 											&
 // ###########################################################################################
 struct GlobExpr *glob_bit_and_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
@@ -351,8 +358,13 @@ struct GlobExpr *glob_less_int_and_real(struct GlobExpr *l, struct GlobExpr *r) 
 		l = glob_##word##_real_and_int(l, r);                                  \
 	else if (is_ct_int(l) && is_ct_real(r))                                    \
 		l = glob_##word##_int_and_real(l, r);
-
 // ###########################################################################################
+#define only_nums(op_e, word) 												   \
+	if (op->code == (op_e)) {												   \
+		check_num_types(word)												   \
+		else															 	   \
+			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);			   \
+	}
 
 struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 							struct GlobExpr *r, struct Token *op) {
@@ -366,10 +378,14 @@ struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 		else
 			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
 
-	} else if (op->code == MINUS) {
-		check_num_types(sub)
-		else
-			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+	} else if (op->code == EQUE) {
+ 		check_eque_types(sub)
+ 		else
+ 			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+ 	} else if (op->code == NEQU) {
+ 		check_nequ_types(sub)
+ 		else
+ 			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);	
 
 	} else if (op->code == MUL) {
 		check_num_types(mul)
@@ -390,27 +406,21 @@ struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
 
 	}
+	else only_nums(MUNUS, sub)
+	else only_ints(MOD, mod)
 	else only_ints(AMPER, bit_and)
 	else only_ints(BIT_XOR, bit_xor)
 	else only_ints(BIT_OR, bit_or)
-	else if (op->code == AND) {
-		check_num_types(and)
-		else
-			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
-	}
-	else if (op->code == OR) {
-		check_num_types(or)
-		else
-			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
-	}
+	else only_nums(AND, and)
+	else only_nums(OR, or) 
 	else only_ints(SHL, shl)
 	else only_ints(SHR, shr)
-	else if (op->code == LESS) {
-		check_num_types(less)
-		else
-			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
-	}
-	else eet(p->f, op, UNKNOWN_OPERATION, 0);
+	else only_nums(LESS, less)
+	// TODO: MORE
+	// TODO: LESSE
+	// TODO: MOREE
+	else
+		eet(p->f, op, UNKNOWN_OPERATION, 0);
 
 	free_glob_expr(r);
 	return l;
