@@ -29,10 +29,34 @@ struct GlobExpr *glob_add_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 	return l;
 }
 // ###########################################################################################
-//#define num_fun(word, op) 			\
-//int_fun(word, op);							\
-
+#define int_fun(word, op) 															 		\
+	struct GlobExpr *glob_##word##_two_ints(struct GlobExpr *l, struct GlobExpr *r) {		\
+		l->tvar->num = l->tvar->num op r->tvar->num; 										\
+		return l;																 			\
+	}
 // ###########################################################################################
+#define num_fun(word, op) 																	\
+	int_fun(word, op);																		\
+	struct GlobExpr *glob_##word##_two_reals(struct GlobExpr *l, struct GlobExpr *r) {		\
+		l->tvar->real = l->tvar->real op r->tvar->real;										\
+		return l;																			\
+	}																						\
+	struct GlobExpr *glob_##word##_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {	\
+		l->tvar->real = l->tvar->real op r->tvar->num;										\
+		return l;																			\
+	}																						\
+	struct GlobExpr *glob_##word##_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {	\
+		l->tvar->real = l->tvar->num op r->tvar->real;										\
+		l->code = r->code;																	\
+		return l;																			\
+	}
+// ###########################################################################################
+num_fun(eque, ==);
+num_fun(nequ, !=);
+
+num_fun(more, >);
+num_fun(lesse, <=);
+num_fun(moree, >=);
 // str
 struct GlobExpr *glob_add_two_strs(struct GlobExpr *l, struct GlobExpr *r) {
 	l->tvar->view->size--; // remove last " of l
@@ -231,13 +255,6 @@ struct GlobExpr *glob_div_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 	return l;
 }
 // ###########################################################################################
-#define int_fun(word, op) 															  \
-	struct GlobExpr *glob_##word##_two_ints(struct GlobExpr *l, struct GlobExpr *r) { \
-		l->tvar->num op##= r->tvar->num; 										 	  \
-		return l;																 	  \
-	}
-
-// ###########################################################################################
 // 											%
 // ###########################################################################################
 int_fun(mod, %);
@@ -248,7 +265,7 @@ int_fun(mod, %);
 // ###########################################################################################
 // 											&
 // ###########################################################################################
-int_fun(mod, &);
+int_fun(bit_and, &);
 //struct GlobExpr *glob_bit_and_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
 //	l->tvar->num &= r->tvar->num;
 //	return l;
@@ -256,7 +273,7 @@ int_fun(mod, &);
 // ###########################################################################################
 // 											^
 // ###########################################################################################
-int_fun(mod, ^);
+int_fun(bit_xor, ^);
 //struct GlobExpr *glob_bit_xor_two_ints(struct GlobExpr *l, struct GlobExpr *r) {
 //	l->tvar->num ^= r->tvar->num;
 //	return l;
@@ -414,19 +431,19 @@ struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 	}
 	else only_nums(EQUE, eque)
 	else only_nums(NEQU, nequ)
-	else only_nums(MUNUS, sub)
+	else only_nums(MINUS, sub)
 	else only_nums(AND, and)
-	else only_nums(OR, or) 
+	else only_nums(OR, or)
 	else only_nums(LESS, less)
+	else only_nums(MORE, more)
+	else only_nums(LESSE, lesse)
+	else only_nums(MOREE, moree)
 	else only_ints(MOD, mod)
 	else only_ints(AMPER, bit_and)
 	else only_ints(BIT_XOR, bit_xor)
 	else only_ints(BIT_OR, bit_or)
 	else only_ints(SHL, shl)
 	else only_ints(SHR, shr)
-	// TODO: MORE
-	// TODO: LESSE
-	// TODO: MOREE
 	else
 		eet(p->f, op, UNKNOWN_OPERATION, 0);
 
