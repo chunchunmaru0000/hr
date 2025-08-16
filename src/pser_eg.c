@@ -160,10 +160,14 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		e->tvar = c;   // HERE TOKEN IS NOT COPIED
 		e->globs = new_plist(2);
 
-		consume(p);
-		while (not_ef_and(PAR_T_R, pser_cur(p)))
+		for (c = absorb(p); not_ef_and(PAR_T_R, c);) {
 			plist_add(e->globs, global_expression(p));
-		consume(p);
+
+			c = pser_cur(p);
+			if (c->code == COMMA) // delimeter
+				c = absorb(p);
+		}
+		consume(p); // consume PAR_T_R
 
 		break;
 	case PAR_C_L:
@@ -172,10 +176,14 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		e->tvar = c;   // HERE TOKEN IS NOT COPIED
 		e->globs = new_plist(2);
 
-		consume(p);
-		while (not_ef_and(PAR_C_R, pser_cur(p)))
+		for (c = absorb(p); not_ef_and(PAR_C_R, c);) {
 			plist_add(e->globs, global_expression(p));
-		consume(p);
+
+			c = pser_cur(p);
+			if (c->code == COMMA) // delimeter
+				c = absorb(p);
+		}
+		consume(p); // consume PAR_C_R
 
 		break;
 	case PAR_L:

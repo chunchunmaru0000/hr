@@ -235,6 +235,7 @@ const char *const EXPECTED__PAR_C_R = "Ожидалась ']' скобка.";
 const char *const EXPECTED__EQU = "Ожидался '=' знак равно.";
 const char *const EXPECTED__COLO = "Ожидалось ':'.";
 const char *const EXPECTED__ID = "Ожидалось имя или слово.";
+const char *const EXPECTED__COMMA = "Ожидалась ',' запятая.";
 
 const char *const SUGGEST__STR = "строка";
 const char *const SUGGEST__PAR_L = "(";
@@ -246,6 +247,7 @@ const char *const SUGGEST__COLO = ":";
 const char *const SUGGEST__ID = "имя";
 const char *const SUGGEST__INT = "целое";
 const char *const SUGGEST__FPN = "вещественное";
+const char *const SUGGEST__COMMA = ",";
 
 const char *const STR_EOF = "_КОНЕЦ_ФАЙЛА_";
 // parser directives

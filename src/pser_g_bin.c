@@ -153,7 +153,7 @@ struct GlobExpr *glob_mul_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 	l->tvar->view->size += 1; // restore first "
 	struct BList *str_once = copy_blist(l->tvar->str);
 
-	for (; i > 0; i--) {
+	for (i--; i > 0; i--) {
 		blat_blist(l->tvar->view, view_once);
 		blat_blist(l->tvar->str, str_once);
 	}

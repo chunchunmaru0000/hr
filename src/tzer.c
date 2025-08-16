@@ -63,15 +63,10 @@ enum TCode num_token(struct Tzer *t, struct Token *token) {
 	enum TCode code = INT;
 	char *num_view;
 
-	int base = 10, minus_flag = 1;
+	int base = 10;
 	uint64_t value = 0, mnt = 0;
 	double mnt_len_10_pow = 1;
 
-	if (c == '-') {
-		minus_flag = -1;
-		c = next(t);
-	} else if (c == '+')
-		c = next(t);
 	while (c == '0')
 		c = next(t);
 	n = get_tzer_token(t, 1);
@@ -100,7 +95,7 @@ enum TCode num_token(struct Tzer *t, struct Token *token) {
 				continue;
 			}
 			if (c < '0' || c > '9') {
-				token->num = value * minus_flag;
+				token->num = value;
 				goto __parsed;
 			}
 			value *= 10;
@@ -110,7 +105,7 @@ enum TCode num_token(struct Tzer *t, struct Token *token) {
 		if (c == '.')
 			c = next(t);
 		else {
-			token->num = value * minus_flag;
+			token->num = value;
 			goto __parsed;
 		}
 		code = REAL;
@@ -126,7 +121,7 @@ enum TCode num_token(struct Tzer *t, struct Token *token) {
 			c = next(t);
 			mnt_len_10_pow *= 10.0;
 		}
-		token->real = (value + mnt / mnt_len_10_pow) * minus_flag;
+		token->real = (value + mnt / mnt_len_10_pow);
 	} else if (base == 2) {
 		while (c == '_' || c == '0' || c == '1') {
 			if (c != '_') {
@@ -135,7 +130,7 @@ enum TCode num_token(struct Tzer *t, struct Token *token) {
 			}
 			c = next(t);
 		}
-		token->num = value * minus_flag;
+		token->num = value;
 	} else { // base = 16
 		// абвгде
 		// abcdef
@@ -192,7 +187,7 @@ enum TCode num_token(struct Tzer *t, struct Token *token) {
 				break;
 			c = next(t); // skip n, get next
 		}
-		token->num = value * minus_flag;
+		token->num = value;
 	}
 __parsed:
 	num_len = t->pos - start_pos;
@@ -466,9 +461,7 @@ struct Token *new_token(struct Tzer *t) {
 			code = com_token(t, token, 0);
 	} else if (c == '\n')
 		code = next_line(t, token);
-	else if ((c >= '0' && c <= '9') ||
-			 ((c == '-' || c == '+') &&
-			  (get_tzer_token(t, 1) >= '0' && get_tzer_token(t, 1) <= '9')))
+	else if ((c >= '0' && c <= '9'))
 		code = num_token(t, token);
 	else if (c == '"')
 		code = str_token(t, token);
