@@ -273,7 +273,7 @@ struct Inst *get_global_inst(struct Pser *p) {
 
 	while (cur->code == SLASHN || cur->code == SEP)
 		cur = absorb(p);
-	n = get_pser_token(p, 1);
+	n = pser_next(p);
 
 	// fill *os in funcs
 	switch (cur->code) {

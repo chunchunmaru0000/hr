@@ -185,7 +185,6 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 	return e;
 }
 
-// TODO: sizeof is unary thing
 struct GlobExpr *unary_g_expression(struct Pser *p) {
 	struct GlobExpr *e;
 	struct TypeExpr *type;

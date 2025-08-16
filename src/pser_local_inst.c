@@ -59,7 +59,7 @@ struct Inst *get_local_inst(struct Pser *p) {
 
 	while (c->code == SLASHN || c->code == SEP)
 		c = absorb(p);
-	n = get_pser_token(p, 1);
+	n = pser_next(p);
 
 	// fill *os in funcs
 	switch (c->code) {
