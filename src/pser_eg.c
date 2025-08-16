@@ -2,21 +2,6 @@
 
 // TODO: long a = (long)("str");
 
-struct GlobExpr *after_g_expression(struct Pser *p);
-struct GlobExpr *prime_g_expression(struct Pser *p);
-struct GlobExpr *unary_g_expression(struct Pser *p);
-struct GlobExpr *mulng_g_expression(struct Pser *p);
-struct GlobExpr *addng_g_expression(struct Pser *p);
-struct GlobExpr *shtng_g_expression(struct Pser *p);
-struct GlobExpr *mlsng_g_expression(struct Pser *p);
-struct GlobExpr *equng_g_expression(struct Pser *p);
-struct GlobExpr *b_and_g_expression(struct Pser *p);
-struct GlobExpr *b_xor_g_expression(struct Pser *p);
-struct GlobExpr *b_or__g_expression(struct Pser *p);
-struct GlobExpr *l_and_g_expression(struct Pser *p);
-struct GlobExpr *l_or__g_expression(struct Pser *p);
-#define global_expression(p) (l_or__g_expression((p)))
-
 struct GlobExpr *parse_global_expression(struct Pser *p,
 										 struct TypeExpr *type) {
 	struct GlobExpr *e = global_expression(p);

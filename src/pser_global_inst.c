@@ -14,6 +14,9 @@ enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os) {
 
 const char *const ENUM_ITEM_NAME_OVERLAP =
 	"Значение счета с таким же именем уже существует.";
+const char *const EXPECTED_INT_GLOB_EXPR =
+	"Результатом глобального выражения для значения счета может быть только "
+	"целое число.";
 
 // ### os explanation:
 //   _ - name
@@ -23,7 +26,8 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 	expect(p, enum_name, ID);
 	plist_add(os, enum_name);
 
-	struct Token *c, *num;
+	struct Token *c;
+	struct GlobExpr *e;
 	struct Defn *defn, *tmp_defn;
 	long counter = 0;
 	uint32_t i;
@@ -31,7 +35,7 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 	c = absorb(p);
 	expect(p, c, PAR_L);
 
-	for (c = absorb(p); not_ef_and(PAR_R, c); c = absorb(p)) {
+	for (c = absorb(p); not_ef_and(PAR_R, c);) {
 		expect(p, c, ID);
 		defn = malloc(sizeof(struct Defn));
 		defn->view = new_blist(0);
@@ -49,13 +53,26 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 				eet(p->f, c, ENUM_ITEM_NAME_OVERLAP, 0);
 		}
 
-		num = get_pser_token(p, 1);
-
-		if (num->code == INT) {
-			defn->value = (void *)num->num;
-			consume(p); // consume ID
-		} else
+		// word
+		//		,
+		//		)
+		//		expr
+		c = absorb(p);
+		if (c->code == PAR_R || c->code == COMMA) {
 			defn->value = (void *)counter;
+		} else {
+			e = global_expression(p);
+
+			if (e->code != CT_INT)
+				eet(p->f, c, EXPECTED_INT_GLOB_EXPR, 0);
+			defn->value = (void *)e->tvar->num;
+
+			free_glob_expr(e);
+			c = pser_cur(p);
+		}
+
+		if (c->code == COMMA)
+			c = absorb(p);
 
 		plist_add(p->enums, defn);
 		plist_add(os, defn);

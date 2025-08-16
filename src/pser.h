@@ -85,6 +85,7 @@ struct PList *find_lik_os(struct BList *name);
 
 #define consume(p) ((p)->pos++)
 #define pser_cur(p) (get_pser_token((p), 0))
+#define pser_next(p) (get_pser_token((p), 1))
 #define absorb(p) (next_pser_get((p), 0)) // consume + ret pser_cur
 #define not_ef_and(cd, c) ((c)->code != (cd) && (c)->code != EF)
 #define not_ef_and_and(cd1, cd2, c) ((c)->code != (cd1) && not_ef_and((cd2), (c))
@@ -338,3 +339,18 @@ void check_global_type_compatibility(struct Pser *p, struct TypeExpr *type,
 
 struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 							  struct GlobExpr *r, struct Token *op);
+
+struct GlobExpr *after_g_expression(struct Pser *p);
+struct GlobExpr *prime_g_expression(struct Pser *p);
+struct GlobExpr *unary_g_expression(struct Pser *p);
+struct GlobExpr *mulng_g_expression(struct Pser *p);
+struct GlobExpr *addng_g_expression(struct Pser *p);
+struct GlobExpr *shtng_g_expression(struct Pser *p);
+struct GlobExpr *mlsng_g_expression(struct Pser *p);
+struct GlobExpr *equng_g_expression(struct Pser *p);
+struct GlobExpr *b_and_g_expression(struct Pser *p);
+struct GlobExpr *b_xor_g_expression(struct Pser *p);
+struct GlobExpr *b_or__g_expression(struct Pser *p);
+struct GlobExpr *l_and_g_expression(struct Pser *p);
+struct GlobExpr *l_or__g_expression(struct Pser *p);
+#define global_expression(p) (l_or__g_expression((p)))
