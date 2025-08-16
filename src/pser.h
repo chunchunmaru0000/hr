@@ -338,7 +338,7 @@ void check_global_type_compatibility(struct Pser *p, struct TypeExpr *type,
 									 struct GlobExpr *e);
 
 struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
-							  struct GlobExpr *r, struct Token *op);
+							struct GlobExpr *r, struct Token *op);
 
 struct GlobExpr *after_g_expression(struct Pser *p);
 struct GlobExpr *prime_g_expression(struct Pser *p);
@@ -353,4 +353,5 @@ struct GlobExpr *b_xor_g_expression(struct Pser *p);
 struct GlobExpr *b_or__g_expression(struct Pser *p);
 struct GlobExpr *l_and_g_expression(struct Pser *p);
 struct GlobExpr *l_or__g_expression(struct Pser *p);
-#define global_expression(p) (l_or__g_expression((p)))
+struct GlobExpr *trnry_g_expression(struct Pser *p);
+#define global_expression(p) (trnry_g_expression((p)))

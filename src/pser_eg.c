@@ -50,8 +50,8 @@ const char *const GLOBAL_VAR_WAS_NOT_FOUND =
 	"Глобальная переменная с таким именем не была найдена.";
 const char *const FUN_VAR_DOESNT_HAVE_VALUE =
 	"Функция как переменная не может иметь значение.";
-const char *const NOT_NUM_VALUE_FOR_THIS_UNARY_OP =
-	"Для данной математической операции ожидалось строковое значение.";
+const char *const EXPECTED_NUM_FOR_THIS_OP =
+	"Для данной операции ожидалось числовое значение.";
 const char *const CANT_TAKE_PTR_FROM_THIS =
 	"В глобальном выражении адрес можно получить только из: глобальной "
 	"переменной или массива.";
@@ -194,10 +194,8 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		consume(p);
 		e = unary_g_expression(p);
 
-		if (e->code == CT_INT || e->code == CT_REAL)
-			;
-		else
-			eet(p->f, c, NOT_NUM_VALUE_FOR_THIS_UNARY_OP, 0);
+		if (e->code != CT_INT && e->code != CT_REAL)
+			eet(p->f, c, EXPECTED_NUM_FOR_THIS_OP, 0);
 
 		return e;
 	}
@@ -210,7 +208,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		} else if (e->code == CT_REAL) {
 			e->tvar->real *= -1;
 		} else {
-			eet(p->f, c, NOT_NUM_VALUE_FOR_THIS_UNARY_OP, 0);
+			eet(p->f, c, EXPECTED_NUM_FOR_THIS_OP, 0);
 		}
 		return e;
 	}
@@ -224,7 +222,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 			e->tvar->num = !e->tvar->real;
 			e->code = CT_INT;
 		} else
-			eet(p->f, c, NOT_NUM_VALUE_FOR_THIS_UNARY_OP, 0);
+			eet(p->f, c, EXPECTED_NUM_FOR_THIS_OP, 0);
 		return e;
 	}
 	if (c->code == BIT_NOT) {
@@ -348,3 +346,36 @@ bf(b_xor_g_expression, b_and_g_expression, ops1(BIT_XOR));
 bf(b_or__g_expression, b_xor_g_expression, ops1(BIT_OR));
 bf(l_and_g_expression, b_or__g_expression, ops1(AND));
 bf(l_or__g_expression, l_and_g_expression, ops1(OR));
+
+struct GlobExpr *trnry_g_expression(struct Pser *p) {
+	struct GlobExpr * true, *false, *res = 0;
+	struct GlobExpr *e = l_and_g_expression(p);
+	struct Token *c;
+
+	c = pser_cur(p);
+
+	if (c->code == QUEST) {
+		consume(p);
+
+		true = global_expression(p);
+		match(p, pser_cur(p), COLO);
+		false = global_expression(p);
+
+		if (e->code == CT_INT)
+			res = e->tvar->num ? true : false;
+		else if (e->code == CT_REAL)
+			res = e->tvar->real ? true : false;
+		else
+			eet(p->f, c, EXPECTED_NUM_FOR_THIS_OP, 0);
+
+		free_glob_expr(e);
+		if (res == true)
+			free_glob_expr(false);
+		else
+			free_glob_expr(true);
+
+		return res;
+	}
+
+	return e;
+}
