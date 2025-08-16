@@ -23,9 +23,28 @@ cat: ср
 	chmod +x ср
 	./ср
 
-ch_to_эээ:
-	mv тест.ср тест1.ср
-	mv тест_эээ.ср тест.ср
-ch_from_эээ:
-	mv тест.ср тест_эээ.ср
-	mv тест1.ср тест.ср
+# #WARNS := 0
+# #DEBUG := 0
+# #OPT := 3
+# TESTS := ../tests/
+# BUILD := ../tests/build
+# HRS := $(wildcard $(TESTS)/*.ср)
+# ASMS := $(wildcard $(TESTS)/*.асм)
+# BS := $(patsubst $(TESTS)/%.ср, $(BUILD)/%, $(TS))
+# 
+# b:
+# 	mkdir -p $(BUILD)
+# 
+# $(BUILD)/%: $(TESTS)%.асм асм b
+# 	@./асм $< $@ -о $(DEBUG) -п $(WARNS) -с $(OPT)
+# 	chmod +x $@ ; $@ ;
+# 
+# all: $(BS)
+# 	@./асм тест.асм тест -о $(DEBUG) -п $(WARNS) -с $(OPT)
+# 	@./асм тест_заглавными.асм тест_заглавными -о $(DEBUG) -п $(WARNS) -с $(OPT)
+# 	@chmod +x тест_заглавными
+# 	./тест_заглавными < t.txt
+# 	rm -rf $(BUILD)
+# 	rm тест
+# 	rm тест_заглавными
+# 	
