@@ -8,6 +8,7 @@ int main() {
 	char *outname = "тест.асм";
 
 	struct Pser *p = new_pser(filename, 1);
+	preprocess(p);
 	struct Gner *g = new_gner(p, T_Асм_Linux_64, 1);
 	gen(g);
 
