@@ -34,6 +34,7 @@ enum TCode {
 	PAR_T_L, // {
 	PAR_T_R, // }
 	EXCL,	 // !
+	SHARP,   // #
 	EF,		 // end file
 	// LITERALS
 	INT,  // int literal
