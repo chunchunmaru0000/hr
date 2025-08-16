@@ -29,6 +29,7 @@ void preprocess(struct Pser *p) {
 	struct Prep *pr = malloc(sizeof(struct Prep));
 	pr->pos = 0;
 	pr->head = gen_node_tokens(p->ts);
+	pr->defines = new_plist(10);
 	pr->macros = new_plist(10);
 
 	p->ts->size = 0;
@@ -40,11 +41,16 @@ void pre(struct Prep *pr, struct PList *final_tokens, struct Fpfc *f) {
 
 	for (c = pr->head; c; c = c->next) {
 		if (c->token->code != SHARP)
-			continue; // TODO: try apply statement
+			// TODO: try apply statement
+			// so here need to search for defines and macros
+			// and apply them
+			continue;
+
 		n = c->next;
 		if (!c)
 			eet(f, c->token, WASNT_EXPECTING_EOF, 0);
 
+		
 		// here need to:
 		// - parse statement
 		// - save statement

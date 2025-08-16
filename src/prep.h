@@ -6,12 +6,28 @@ struct NodeToken {
 	struct NodeToken *prev;
 };
 
-struct Macro {};
+struct Define {
+	struct Token *name;
+	struct Token *replace;
+};
+
+struct MacroArg {
+	struct Token *name;
+	struct PList *places;
+	// place type PT_INSERT or PT_MERGE
+};
+
+struct Macro {
+	struct Token *name;
+	struct PList *args;
+	struct PList *tokens;
+};
 
 struct Prep {
 	uint32_t pos;
-
 	struct NodeToken *head;
+
+	struct PList *defines;
 	struct PList *macros;
 };
 

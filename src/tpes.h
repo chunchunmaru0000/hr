@@ -34,7 +34,7 @@ enum TCode {
 	PAR_T_L, // {
 	PAR_T_R, // }
 	EXCL,	 // !
-	SHARP,   // #
+	SHARP,	 // #
 	EF,		 // end file
 	// LITERALS
 	INT,  // int literal
@@ -73,6 +73,10 @@ enum TCode {
 	SHLE,		  // <<=
 	SHRE,		  // >>=
 				  // |= &= ^= %= &&= ||= === !==
+
+	SHSH, // ##
+	SH_L, // (#
+	SH_R, // #)
 };
 
 struct Token {
