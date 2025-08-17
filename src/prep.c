@@ -57,6 +57,12 @@ void free_node_token(struct NodeToken *n) {
 	free(n);
 }
 
+struct NodeToken *clone_node_token(struct NodeToken *src) {
+	struct NodeToken *dst = malloc(sizeof(struct NodeToken));
+	memcpy(dst, src, sizeof(struct NodeToken));
+	return dst;
+}
+
 // lst is guaranteed
 struct NodeToken *cut_off_inclusive(struct NodeToken *fst,
 									struct NodeToken *lst) {
@@ -85,7 +91,6 @@ struct NodeToken *cut_off_inclusive(struct NodeToken *fst,
 void replace_token(struct Token *dst, struct Token *src) {
 	dst->code = src->code;
 	// pos stays same
-
 	blist_clear_free(dst->view);
 	dst->view = copy_str(src->view);
 	if (dst->str)
@@ -94,6 +99,15 @@ void replace_token(struct Token *dst, struct Token *src) {
 
 	dst->num = src->num;
 	dst->real = src->real;
+}
+
+void replace_inclusive(struct NodeToken *place, struct NodeToken *fst,
+					   struct NodeToken *lst) {
+	if (fst == lst) {
+		replace_token(place->token, fst->token);
+		return;
+	}
+	exit(199);
 }
 
 #define foreach_begin(item, items)                                             \
@@ -138,13 +152,27 @@ struct NodeToken *parse_macro_args(struct Prep *pr, struct NodeToken *c,
 
 struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
 									struct Macro *macro) {
-	c = take_guaranteed_next(pr, c); // skip '(#'
-	macro->fst = c;
+	struct NodeToken *clone, *clone_prev;
 
-	for (; c->token->code != SH_R; c = take_applyed_next(pr, c))
-		;
-	// here c should be '#)'
-	macro->lst = c->prev;
+	c = take_guaranteed_next(pr, c); // skip '(#'
+
+	// here need to copy tree cuz it will be freed from final tokens
+	clone = clone_node_token(c); // first is different
+	clone->prev = 0;
+	macro->fst = clone;
+
+	clone_prev = clone;
+	c = take_applyed_next(pr, c);
+	for (; c->token->code != SH_R; c = take_applyed_next(pr, c)) {
+		clone = clone_node_token(c);
+		clone->prev = clone_prev;
+		clone_prev->next = clone;
+
+		clone_prev = clone;
+	}
+	clone->next = 0;
+	macro->lst = clone;
+
 	return c; // need to return '#)' cuz it will be last
 }
 
@@ -206,8 +234,11 @@ struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c) {
 
 	foreach_begin(macro, pr->macros);
 	if (vc(macro->name, c->token)) {
-		// call_macro(c, macro);
-		exit(200);
+		if (macro->args) {
+			exit(200); // call_macro(pr, c, macro);
+		} else {
+			replace_inclusive(c, macro->fst, macro->lst);
+		}
 		return take_applyed_next(pr, c);
 	}
 	foreach_end;
