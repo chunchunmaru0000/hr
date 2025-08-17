@@ -2,11 +2,15 @@
 #include <stdio.h>
 
 void pre(struct Prep *pr, struct PList *final_tokens);
+struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c);
 
 const char *const WASNT_EXPECTING_EOF = "Неожиданно встречен конец файла.";
 const char *const WAS_EXPECTING_PREP_INST_WORD =
 	"После токена '#' ожидалось одно из ключевых слов препроцессора: "
 	"'вот' или 'се'.";
+const char *const EXPCEPTED_PAR_L_OR_SH_L =
+	"В объявлении макро ожидалось либо '(' для начала аргументов либо '(#' для "
+	"начало текста макро.";
 
 struct NodeToken *gen_node_tokens(struct PList *tokens) {
 	struct NodeToken *head = malloc(sizeof(struct NodeToken));
@@ -112,9 +116,68 @@ struct NodeToken *parse_vot(struct Prep *pr, struct NodeToken *c) {
 	return c;
 }
 
+struct NodeToken *parse_macro_args(struct Prep *pr, struct NodeToken *c,
+								   struct Macro *macro) {
+	struct MacroArg *arg;
+
+	macro->args = new_plist(4);
+	c = take_guaranteed_next(pr, c); // skip '('
+
+	for (; c->token->code != PAR_R; c = take_guaranteed_next(pr, c)) {
+		expect(pr, c->token, ID);
+
+		arg = malloc(sizeof(struct MacroArg));
+		arg->name = c->token;
+		arg->usages = new_plist(2);
+
+		plist_add(macro->args, arg);
+	}
+	// here c should be ')'
+	return take_guaranteed_next(pr, c);
+}
+
+struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
+									struct Macro *macro) {
+	c = take_guaranteed_next(pr, c); // skip '(#'
+	macro->fst = c;
+
+	for (; c->token->code != SH_R; c = take_applyed_next(pr, c))
+		;
+	// here c should be '#)'
+	macro->lst = c->prev;
+	return c; // need to return '#)' cuz it will be last
+}
+
+struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c) {
+	struct Macro *macro = malloc(sizeof(struct Macro));
+
+	// - parse statement
+	c = take_guaranteed_next(pr, c);
+	expect(pr, c->token, ID);
+	macro->name = c->token;
+
+	c = take_guaranteed_next(pr, c);
+	// parse args
+	if (c->token->code == SH_L)
+		macro->args = 0;
+	else if (c->token->code == PAR_L) {
+		c = parse_macro_args(pr, c, macro);
+		expect(pr, c->token, SH_L);
+	} else
+		eet(pr->f, c->token, EXPCEPTED_PAR_L_OR_SH_L, 0);
+	// parse block
+	c = parse_macro_block(pr, c, macro);
+
+	// - save statement
+	plist_add(pr->macros, macro);
+
+	return c;
+}
+
 const char *const STR_VOT = "вот";
 const char *const STR_SE = "се";
 
+// TODO: if redefine then free last one
 struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
 	if (name->token->code != ID)
 		eet(pr->f, name->token, WAS_EXPECTING_PREP_INST_WORD, 0);
@@ -122,17 +185,14 @@ struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
 	if (vcs(name->token, STR_VOT))
 		return parse_vot(pr, name);
 
-	if (vcs(name->token, STR_SE)) {
-		// - parse statement
-		// - save statement
-		// return parse_se(pr, name);
-	}
+	if (vcs(name->token, STR_SE))
+		return parse_se(pr, name);
 
 	eet(pr->f, name->token, WAS_EXPECTING_PREP_INST_WORD, 0);
 	return 0;
 }
 
-void apply_token(struct Prep *pr, struct NodeToken *c) {
+struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c) {
 	struct Define *define;
 	struct Macro *macro;
 	uint32_t i;
@@ -140,18 +200,19 @@ void apply_token(struct Prep *pr, struct NodeToken *c) {
 	foreach_begin(define, pr->defines);
 	if (vc(define->name, c->token)) {
 		replace_token(c->token, define->replace);
-		goto replaced;
+		return take_applyed_next(pr, c);
 	}
 	foreach_end;
 
 	foreach_begin(macro, pr->macros);
 	if (vc(macro->name, c->token)) {
 		// call_macro(c, macro);
-		goto replaced;
+		exit(200);
+		return take_applyed_next(pr, c);
 	}
 	foreach_end;
 
-replaced:;
+	return c->next;
 }
 
 void pre(struct Prep *pr, struct PList *final_tokens) {
@@ -160,8 +221,7 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 	for (c = pr->head; c;) {
 		// printf("doin' %s\n", vs(c->token));
 		if (c->token->code != SHARP) {
-			apply_token(pr, c);
-			c = c->next;
+			c = take_applyed_next(pr, c);
 			continue;
 		}
 

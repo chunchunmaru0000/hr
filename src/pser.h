@@ -29,6 +29,7 @@ extern const char *const EXPECTED__ID;
 extern const char *const EXPECTED__INT;
 extern const char *const EXPECTED__FPN;
 extern const char *const EXPECTED__COMMA;
+extern const char *const EXPECTED__SH_L;
 
 extern const char *const SUGGEST__STR;
 extern const char *const SUGGEST__PAR_L;
@@ -41,6 +42,7 @@ extern const char *const SUGGEST__ID;
 extern const char *const SUGGEST__INT;
 extern const char *const SUGGEST__FPN;
 extern const char *const SUGGEST__COMMA;
+extern const char *const SUGGEST__SH_L;
 
 extern const char *const ERR_WRONG_TOKEN;
 

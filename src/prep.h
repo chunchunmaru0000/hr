@@ -13,14 +13,16 @@ struct Define {
 
 struct MacroArg {
 	struct Token *name;
-	struct PList *places;
+	struct PList *usages;
 	// place type PT_INSERT or PT_MERGE
 };
 
 struct Macro {
 	struct Token *name;
 	struct PList *args;
-	struct PList *tokens;
+
+	struct NodeToken *fst;
+	struct NodeToken *lst;
 };
 
 struct Prep {
