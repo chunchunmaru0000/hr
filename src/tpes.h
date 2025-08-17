@@ -74,9 +74,9 @@ enum TCode {
 	SHRE,		  // >>=
 				  // |= &= ^= %= &&= ||= === !==
 
-	SHSH, // ##
-	SH_L, // (#
-	SH_R, // #)
+	SHPLUS, // #+
+	SH_L,	// (#
+	SH_R,	// #)
 };
 
 struct Token {

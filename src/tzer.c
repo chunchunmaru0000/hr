@@ -343,8 +343,8 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 		view = naa(t, "?", 1, cp, QUEST);
 		break;
 	case '#':
-		if (n == '#')
-			view = naa(t, "##", 2, cp, SHSH);
+		if (n == '+')
+			view = naa(t, "#+", 2, cp, SHPLUS);
 		else if (n == ')')
 			view = naa(t, "#)", 2, cp, SH_R);
 		else
