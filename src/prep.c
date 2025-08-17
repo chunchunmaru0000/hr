@@ -46,20 +46,58 @@ struct NodeToken *take_guaranteed_next(struct Fpfc *f, struct NodeToken *n) {
 	return n->next;
 }
 
+void free_node_token(struct NodeToken *n) {
+	// TODO: actually maybe i need to free some tokens but dunno
+	// anyway no need for this now
+	// but at least its known memory leak
+	free(n);
+}
+
+// lst is guaranteed
+struct NodeToken *cut_off_inclusive(struct NodeToken *fst,
+									struct NodeToken *lst) {
+	struct NodeToken *res, *tmp;
+	if (fst->prev) {
+		res = fst->prev;
+		res->next = lst->next;
+		res->next->prev = res;
+	} else {
+		res = lst->next;
+		res->prev = 0;
+	}
+
+	for (tmp = fst; tmp != lst; tmp = fst) {
+		fst = tmp->next;
+		// printf("about to free: %s\n", vs(tmp->token));
+		free_node_token(tmp);
+	}
+	// here tmp == lst
+	// printf("about to free lst: %s\n", vs(tmp->token));
+	free_node_token(tmp); // so frees lst
+
+	return res;
+}
+
 const char *const STR_VOT = "вот";
 const char *const STR_SE = "се";
 
 void pre(struct Prep *pr, struct PList *final_tokens, struct Fpfc *f) {
-	struct NodeToken *c, *n, *fst, *lst;
+	struct NodeToken *c, *fst, *lst;
 	struct Token *t;
 
-	for (c = pr->head; c; c = c->next) {
-		if (c->token->code != SHARP)
+	struct Define *define;
+	struct Macro *macro;
+
+	for (c = pr->head; c;) {
+		//	printf("doin': %s\n", vs(c->token));
+
+		if (c->token->code != SHARP) {
 			// TODO: try apply statement
 			// so here need to search for defines and macros
 			// and apply them
+			c = c->next;
 			continue;
-		continue;
+		}
 
 		fst = c;
 		c = take_guaranteed_next(f, c);
@@ -68,12 +106,30 @@ void pre(struct Prep *pr, struct PList *final_tokens, struct Fpfc *f) {
 		if (t->code != ID)
 			eet(f, t, WAS_EXPECTING_PREP_INST_WORD, 0);
 
-		if (vcs(t, STR_VOT))
-			;
 		// here need to:
-		// - parse statement
-		// - save statement
+		if (vcs(t, STR_VOT)) {
+			define = malloc(sizeof(struct Define));
+
+			// - parse statement
+			c = take_guaranteed_next(f, c);
+			define->name = c->token;
+			c = take_guaranteed_next(f, c);
+			define->replace = c->token;
+
+			// - save statement
+			plist_add(pr->defines, define);
+
+			lst = c;
+		} else if (vcs(t, STR_SE)) {
+			// - parse statement
+			// - save statement
+		} else
+			eet(f, t, WAS_EXPECTING_PREP_INST_WORD, 0);
+
 		// - cut off statemnt nodes so it wont be in final_tokens
+		c = cut_off_inclusive(fst, lst); // its already next token in here
+		if (pr->head == fst) // fst is freed but pointer is just a value
+			pr->head = c;	 // in case if its first and tokens decapitated
 	}
 
 	// collect tokens
