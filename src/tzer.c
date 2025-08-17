@@ -464,6 +464,7 @@ struct Token *new_token(struct Tzer *t) {
 	p->line = t->p->line;
 	p->col = t->p->col;
 	token->p = p;
+	token->str = 0;
 
 	// every of funcs that takes token shall assign view to token
 	if (c == '\0')

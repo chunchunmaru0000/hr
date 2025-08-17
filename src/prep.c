@@ -1,7 +1,7 @@
 #include "prep.h"
 #include <stdio.h>
 
-void pre(struct Prep *pr, struct PList *final_tokens, struct Fpfc *f);
+void pre(struct Prep *pr, struct PList *final_tokens);
 
 const char *const WASNT_EXPECTING_EOF = "Неожиданно встречен конец файла.";
 const char *const WAS_EXPECTING_PREP_INST_WORD =
@@ -31,18 +31,18 @@ struct NodeToken *gen_node_tokens(struct PList *tokens) {
 
 void preprocess(struct Pser *p) {
 	struct Prep *pr = malloc(sizeof(struct Prep));
-	pr->pos = 0;
+	pr->f = p->f;
 	pr->head = gen_node_tokens(p->ts);
 	pr->defines = new_plist(10);
 	pr->macros = new_plist(10);
 
 	p->ts->size = 0;
-	pre(pr, p->ts, p->f);
+	pre(pr, p->ts);
 }
 
-struct NodeToken *take_guaranteed_next(struct Fpfc *f, struct NodeToken *n) {
+struct NodeToken *take_guaranteed_next(struct Prep *pr, struct NodeToken *n) {
 	if (!n->next)
-		eet(f, n->token, WASNT_EXPECTING_EOF, 0);
+		eet(pr->f, n->token, WASNT_EXPECTING_EOF, 0);
 	return n->next;
 }
 
@@ -78,53 +78,96 @@ struct NodeToken *cut_off_inclusive(struct NodeToken *fst,
 	return res;
 }
 
+void replace_token(struct Token *dst, struct Token *src) {
+	dst->code = src->code;
+	// pos stays same
+
+	blist_clear_free(dst->view);
+	dst->view = copy_str(src->view);
+	if (dst->str)
+		blist_clear_free(dst->str);
+	dst->str = src->str ? copy_str(src->str) : 0;
+
+	dst->num = src->num;
+	dst->real = src->real;
+}
+
+#define foreach_begin(item, items)                                             \
+	for (i = 0; i < items->size; i++) {                                        \
+		item = plist_get(items, i);
+#define foreach_end }
+
+struct NodeToken *parse_vot(struct Prep *pr, struct NodeToken *c) {
+	struct Define *define = malloc(sizeof(struct Define));
+
+	// - parse statement
+	c = take_guaranteed_next(pr, c);
+	define->name = c->token; // TODO: should name be ID?
+	c = take_guaranteed_next(pr, c);
+	define->replace = c->token;
+
+	// - save statement
+	plist_add(pr->defines, define);
+
+	return c;
+}
+
 const char *const STR_VOT = "вот";
 const char *const STR_SE = "се";
 
-void pre(struct Prep *pr, struct PList *final_tokens, struct Fpfc *f) {
-	struct NodeToken *c, *fst, *lst;
-	struct Token *t;
+struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
+	if (name->token->code != ID)
+		eet(pr->f, name->token, WAS_EXPECTING_PREP_INST_WORD, 0);
 
+	if (vcs(name->token, STR_VOT))
+		return parse_vot(pr, name);
+
+	if (vcs(name->token, STR_SE)) {
+		// - parse statement
+		// - save statement
+		// return parse_se(pr, name);
+	}
+
+	eet(pr->f, name->token, WAS_EXPECTING_PREP_INST_WORD, 0);
+	return 0;
+}
+
+void apply_token(struct Prep *pr, struct NodeToken *c) {
 	struct Define *define;
 	struct Macro *macro;
+	uint32_t i;
+
+	foreach_begin(define, pr->defines);
+	if (vc(define->name, c->token)) {
+		replace_token(c->token, define->replace);
+		goto replaced;
+	}
+	foreach_end;
+
+	foreach_begin(macro, pr->macros);
+	if (vc(macro->name, c->token)) {
+		// call_macro(c, macro);
+		goto replaced;
+	}
+	foreach_end;
+
+replaced:;
+}
+
+void pre(struct Prep *pr, struct PList *final_tokens) {
+	struct NodeToken *c, *name, *fst, *lst;
 
 	for (c = pr->head; c;) {
-		//	printf("doin': %s\n", vs(c->token));
-
+		// printf("doin' %s\n", vs(c->token));
 		if (c->token->code != SHARP) {
-			// TODO: try apply statement
-			// so here need to search for defines and macros
-			// and apply them
+			apply_token(pr, c);
 			c = c->next;
 			continue;
 		}
 
 		fst = c;
-		c = take_guaranteed_next(f, c);
-
-		t = c->token;
-		if (t->code != ID)
-			eet(f, t, WAS_EXPECTING_PREP_INST_WORD, 0);
-
-		// here need to:
-		if (vcs(t, STR_VOT)) {
-			define = malloc(sizeof(struct Define));
-
-			// - parse statement
-			c = take_guaranteed_next(f, c);
-			define->name = c->token;
-			c = take_guaranteed_next(f, c);
-			define->replace = c->token;
-
-			// - save statement
-			plist_add(pr->defines, define);
-
-			lst = c;
-		} else if (vcs(t, STR_SE)) {
-			// - parse statement
-			// - save statement
-		} else
-			eet(f, t, WAS_EXPECTING_PREP_INST_WORD, 0);
+		name = take_guaranteed_next(pr, c);
+		lst = try_parse_sh(pr, name);
 
 		// - cut off statemnt nodes so it wont be in final_tokens
 		c = cut_off_inclusive(fst, lst); // its already next token in here

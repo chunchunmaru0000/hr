@@ -24,7 +24,7 @@ struct Macro {
 };
 
 struct Prep {
-	uint32_t pos;
+	struct Fpfc *f;
 	struct NodeToken *head;
 
 	struct PList *defines;
