@@ -54,7 +54,7 @@ enum IP_Code pser_local_inst_loop(struct Pser *p, struct PList *os) {
 struct Inst *get_local_inst(struct Pser *p) {
 	struct Token *c = pser_cur(p), *n;
 	struct PList *os = new_plist(2);
-	char *cv = (char *)c->view->st;
+	char *cv = vs(c);
 	enum IP_Code code = IP_NONE;
 
 	while (c->code == SLASHN || c->code == SEP)

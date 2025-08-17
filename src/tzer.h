@@ -1,10 +1,6 @@
 #include "tpes.h"
 #include <string.h>
 
-#define loop while (1)
-#define loa(arr) (sizeof((arr)) / sizeof((arr)[0]))
-#define sc(view, str) (strcmp((view), (str)) == 0)
-
 extern const char *const COLOR_BLACK;
 extern const char *const COLOR_RED;
 extern const char *const COLOR_LIGHT_RED;

@@ -2,7 +2,11 @@
 #include <stdio.h>
 
 void pre(struct Prep *pr, struct PList *final_tokens, struct Fpfc *f);
+
 const char *const WASNT_EXPECTING_EOF = "Неожиданно встречен конец файла.";
+const char *const WAS_EXPECTING_PREP_INST_WORD =
+	"После токена '#' ожидалось одно из ключевых слов препроцессора: "
+	"'вот' или 'се'.";
 
 struct NodeToken *gen_node_tokens(struct PList *tokens) {
 	struct NodeToken *head = malloc(sizeof(struct NodeToken));
@@ -36,8 +40,18 @@ void preprocess(struct Pser *p) {
 	pre(pr, p->ts, p->f);
 }
 
+struct NodeToken *take_guaranteed_next(struct Fpfc *f, struct NodeToken *n) {
+	if (!n->next)
+		eet(f, n->token, WASNT_EXPECTING_EOF, 0);
+	return n->next;
+}
+
+const char *const STR_VOT = "вот";
+const char *const STR_SE = "се";
+
 void pre(struct Prep *pr, struct PList *final_tokens, struct Fpfc *f) {
-	struct NodeToken *c, *n;
+	struct NodeToken *c, *n, *fst, *lst;
+	struct Token *t;
 
 	for (c = pr->head; c; c = c->next) {
 		if (c->token->code != SHARP)
@@ -45,12 +59,17 @@ void pre(struct Prep *pr, struct PList *final_tokens, struct Fpfc *f) {
 			// so here need to search for defines and macros
 			// and apply them
 			continue;
+		continue;
 
-		n = c->next;
-		if (!c)
-			eet(f, c->token, WASNT_EXPECTING_EOF, 0);
+		fst = c;
+		c = take_guaranteed_next(f, c);
 
-		
+		t = c->token;
+		if (t->code != ID)
+			eet(f, t, WAS_EXPECTING_PREP_INST_WORD, 0);
+
+		if (vcs(t, STR_VOT))
+			;
 		// here need to:
 		// - parse statement
 		// - save statement

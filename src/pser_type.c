@@ -25,7 +25,7 @@ int unsafe_size_of_struct(struct BList *name) {
 		declare_struct = plist_get(parsed_structs, i);
 		name_token = plist_get(declare_struct->os, DCLR_STRUCT_NAME);
 
-		if (sc((char *)name->st, (char *)name_token->view->st))
+		if (sc((char *)name->st, vs(name_token)))
 			goto struct_name_found;
 	}
 	exit(224);
@@ -64,7 +64,7 @@ int size_of_struct(struct Pser *p, struct BList *name) {
 		declare_struct = plist_get(parsed_structs, i);
 		name_token = plist_get(declare_struct->os, DCLR_STRUCT_NAME);
 
-		if (sc((char *)name->st, (char *)name_token->view->st))
+		if (sc((char *)name->st, vs(name_token)))
 			goto struct_name_found;
 	}
 	eet(p->f, pser_cur(p), STRUCT_NAME_WASNT_FOUND, (char *)name->st);
@@ -388,12 +388,12 @@ struct TypeExpr *type_expr(struct Pser *p) {
 	struct TypeExpr *texpr = new_type_expr(TC_VOID);
 
 	if (cur->code == ID) {
-		if (sc((char *)cur->view->st, STR_STR_TW)) {
+		if (vcs(cur, STR_STR_TW)) {
 			texpr->code = TC_PTR;
 			texpr->data.ptr_target = new_type_expr(TC_UINT8);
 
 		} else if (1) {
-			if (sc((char *)cur->view->st, STR_STRUCT_TW)) {
+			if (vcs(cur, STR_STRUCT_TW)) {
 				texpr->code = TC_PTR;
 				texpr->data.ptr_target = new_type_expr(TC_STRUCT);
 
@@ -401,7 +401,7 @@ struct TypeExpr *type_expr(struct Pser *p) {
 				expect(p, cur, ID);
 
 				texpr->data.ptr_target->data.name = cur->view;
-			} else if (sc((char *)cur->view->st, STR_ENUM_TW)) {
+			} else if (vcs(cur, STR_ENUM_TW)) {
 				texpr->code = TC_ENUM;
 
 				cur = absorb(p);
@@ -416,7 +416,7 @@ struct TypeExpr *type_expr(struct Pser *p) {
 			for (size_t i = 0; i < loa(TYPE_WORDS); i++) {
 				tw = TYPE_WORDS + i;
 
-				if (sc((char *)cur->view->st, tw->view)) {
+				if (vcs(cur, tw->view)) {
 					texpr->code = tw->code;
 					goto ret_type_expr;
 				}

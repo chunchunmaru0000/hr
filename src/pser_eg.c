@@ -20,7 +20,7 @@ struct GlobVar *find_global_var(struct Pser *p, struct BList *name) {
 	for (i = 0; i < p->global_vars->size; i++) {
 		var = plist_get(p->global_vars, i);
 
-		if (sc((char *)var->name->view->st, (char *)name->st))
+		if (sc(vs(var->name), (char *)name->st))
 			return var;
 	}
 	return 0;
@@ -32,7 +32,7 @@ struct Defn *find_enum_value(struct Pser *p, struct BList *name) {
 	for (i = 0; i < p->enums->size; i++) {
 		enum_value = plist_get(p->enums, i);
 
-		if (sc((char *)enum_value->view->st, (char *)name->st))
+		if (sc(vs(enum_value), (char *)name->st))
 			return enum_value;
 	}
 	return 0;
@@ -96,7 +96,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 
 		other_var = find_global_var(p, c->view);
 		if (other_var == 0)
-			eet(p->f, c, GLOBAL_VAR_WAS_NOT_FOUND, (char *)c->view->st);
+			eet(p->f, c, GLOBAL_VAR_WAS_NOT_FOUND, vs(c));
 
 		e->from = other_var;
 
@@ -271,7 +271,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		return e;
 	}
 	if (c->code == ID) {
-		if (sc(STR_AS, (char *)c->view->st)) {
+		if (sc(STR_AS, vs(c))) {
 			consume(p); // skip окак
 
 			type = type_expr(p);
@@ -284,7 +284,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 			e->type = type;
 
 			return e;
-		} else if (sc(STR_SIZE_OF, (char *)c->view->st)) {
+		} else if (sc(STR_SIZE_OF, vs(c))) {
 			consume(p); // skip мера
 
 			type = type_expr(p);

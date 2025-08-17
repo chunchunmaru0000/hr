@@ -48,7 +48,7 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 
 		for (; i < g->local_labels->size; i++) {
 			tok = plist_get(g->local_labels, i);
-			if (sc((char *)tok->view->st, (char *)name->view->st))
+			if (vc(tok, name))
 				eet(in->f, name, REDEFINING_OF_LOCAL_LABEL,
 					CHANGE_LABEL_NAME_OR_DELETE_LABEL);
 		}
@@ -102,7 +102,7 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	uint32_t i, j, vars;
 	struct Arg *arg;
-	struct LocalVar *var;
+	struct LocalVar *var, *tmp_var;
 	long last_offset = -1;
 
 	for (i = 0; i < in->os->size; i++) {
@@ -115,10 +115,9 @@ void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 				new_local_var(plist_get(arg->names, j), arg, g->stack_counter);
 
 			for (vars = 0; vars < g->local_vars->size; vars++) {
-				if (sc((char *)((struct LocalVar *)plist_get(g->local_vars,
-															 vars))
-						   ->name->view->st,
-					   (char *)var->name->view->st))
+				tmp_var = plist_get(g->local_vars, vars);
+
+				if (vc(tmp_var->name, var->name))
 					eet(in->f, var->name, REDEFINING_OF_LOCAL_VAR,
 						CHANGE_VAR_NAME_OR_DELETE_VAR);
 			}

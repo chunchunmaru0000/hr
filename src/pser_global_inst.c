@@ -49,7 +49,7 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 		for (i = 0; i < p->enums->size; i++) {
 			tmp_defn = plist_get(p->enums, i);
 
-			if (sc((char *)defn->view->st, (char *)tmp_defn->view->st))
+			if (vc(defn, tmp_defn))
 				eet(p->f, c, ENUM_ITEM_NAME_OVERLAP, 0);
 		}
 
@@ -246,7 +246,7 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 		in = plist_get(parsed_structs, i);
 		c = plist_get(in->os, 0); // struct name token
 
-		if (sc((char *)name->view->st, (char *)c->view->st))
+		if (vc(name, c))
 			eet(p->f, name, GLOBAL_STRUCTS_NAMES_OVERLAP,
 				SUGGEST_RENAME_STRUCT);
 	}

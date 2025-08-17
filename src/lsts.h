@@ -49,3 +49,16 @@ void blist_print(struct BList *);
 void blist_add_set(struct BList *, uc, uint32_t *, size_t);
 struct BList *copy_str(struct BList *src);
 struct BList *copy_blist(struct BList *l);
+
+#define loop while (1)
+#define loa(arr) (sizeof((arr)) / sizeof((arr)[0]))
+// String Compare
+#define sc(str1, str2) (strcmp((str1), (str2)) == 0)
+// View Compare
+#define vc(t1, t2) (sc((char *)(t1)->view->st, (char *)(t2)->view->st))
+// View Compare String
+#define vcs(t, str) (sc((char *)(t)->view->st, (str)))
+// View String
+#define vs(t) ((char *)(t)->view->st)
+// String String
+#define ss(t) ((char *)(t)->str->st)

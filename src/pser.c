@@ -70,9 +70,8 @@ void check_list_of_vars_on_name(struct Pser *p, struct Token *name_to_check) {
 	for (i = 0; i < p->local_vars->size; i++) {
 		var = plist_get(p->local_vars, i);
 
-		if (sc((char *)name_to_check->view->st, (char *)var->name->view->st))
-			eet(p->f, name_to_check, ARGS_NAMES_OVERLAP,
-				(char *)var->name->view->st);
+		if (vc(name_to_check, var->name))
+			eet(p->f, name_to_check, ARGS_NAMES_OVERLAP, vs(var->name));
 	}
 }
 void check_list_of_args_on_name(struct Fpfc *f, struct PList *l,
@@ -88,8 +87,8 @@ void check_list_of_args_on_name(struct Fpfc *f, struct PList *l,
 		for (j = i == from_arg ? from_name + 1 : 0; j < arg->names->size; j++) {
 			name = plist_get(arg->names, j);
 
-			if (sc((char *)name_to_check->view->st, (char *)name->view->st))
-				eet(f, name, ARGS_NAMES_OVERLAP, (char *)name->view->st);
+			if (vc(name_to_check, name))
+				eet(f, name, ARGS_NAMES_OVERLAP, vs(name));
 		}
 	}
 }
@@ -154,7 +153,7 @@ struct PList *find_lik_os(struct BList *name) {
 		in = plist_get(parsed_structs, i);
 		s_name = plist_get(in->os, DCLR_STRUCT_NAME);
 
-		if (sc((char *)name->st, (char *)s_name->view->st))
+		if (sc((char *)name->st, vs(s_name)))
 			return in->os;
 	}
 
@@ -268,7 +267,7 @@ const char *const STR_SIZE_OF = "мера";
 struct Inst *get_global_inst(struct Pser *p) {
 	struct Token *cur = pser_cur(p), *n;
 	struct PList *os = new_plist(2);
-	char *cv = (char *)cur->view->st;
+	char *cv = vs(cur);
 	enum IP_Code code = IP_NONE;
 
 	while (cur->code == SLASHN || cur->code == SEP)
@@ -315,7 +314,7 @@ void include_in_is(struct Pser *p, struct PList *is, struct Inst *i) {
 	struct Token *path = plist_get(i->os, 0);
 	blist_add(path->str, 0); // string 0 terminator
 
-	struct Pser *tmp_p = new_pser((char *)path->str->st, p->debug);
+	struct Pser *tmp_p = new_pser(ss(path), p->debug);
 	plist_free(tmp_p->enums);
 	tmp_p->enums = p->enums;
 	struct PList *inc = pse(tmp_p);
