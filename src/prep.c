@@ -48,8 +48,11 @@ struct NodeToken *try_include(struct Prep *pr, struct NodeToken *prev,
 	free(tzer);
 
 	new_head = gen_node_tokens(pr, new_tokens);
+	plist_free(new_tokens);
+
 	new_head->prev = prev;
-	prev->next = new_head;
+	if (prev)
+		prev->next = new_head;
 
 	// here need to return tail, cuz head already attached to the prev
 	// so it will proceed gen loop from the tail
@@ -57,12 +60,11 @@ struct NodeToken *try_include(struct Prep *pr, struct NodeToken *prev,
 	while (new_head->next || new_head->token->code != EF)
 		new_head = new_head->next;
 
-	if (new_head->next && new_head->next->token->code == EF) {
+	if (new_head->token->code == EF) {
 		// TODO: free new_head->new_head and its token
-		new_head->next = 0;
-	}
-
-	return new_head;
+		return new_head->prev;
+	} else
+		exit(19);
 }
 
 struct NodeToken *try_parse_include(struct Prep *pr, struct NodeToken *prev,
@@ -94,12 +96,12 @@ struct NodeToken *gen_node_tokens(struct Prep *pr, struct PList *tokens) {
 	head->next = 0;
 	prev = head;
 	for (i = 1; i < tokens->size; i++) {
-		// cur = try_parse_include(pr, prev, tokens, i);
-		// if (cur) {
-		// 	prev = cur;
-		// 	i += 2; // skip 'влечь' and string path literal
-		// 	continue;
-		// }
+		cur = try_parse_include(pr, prev, tokens, i);
+		if (cur) {
+			prev = cur;
+			i += 2; // skip 'влечь' and string path literal
+			continue;
+		}
 
 		cur = malloc(sizeof(struct NodeToken));
 		cur->token = plist_get(tokens, i);
