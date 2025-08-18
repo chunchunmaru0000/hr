@@ -14,24 +14,29 @@ const char *const STR_INCLUDE = "влечь";
 const char *const WASNT_EXPECTING_EOF = "Неожиданно встречен конец файла.";
 const char *const WAS_EXPECTING_PREP_INST_WORD =
 	"После токена '#' ожидалось одно из ключевых слов препроцессора: "
-	"'вот' или 'се'.";
+	"'вот', 'влечь' или 'се'.";
 const char *const EXPCEPTED_PAR_L_OR_SH_L =
 	"В объявлении макро ожидалось либо '(' для начала аргументов либо '(#' для "
 	"начало текста макро.";
-const char *const EXPECTED_STR_AS_AN_INCLUDE_PATH = 
-	"После инструкции препроцессора '#влечь' ожидалась строка содержащая путь файла.";
+const char *const EXPECTED_STR_AS_AN_INCLUDE_PATH =
+	"После инструкции препроцессора '#влечь' ожидалась строка содержащая путь "
+	"файла.";
+const char *const EXPECTED_ID_AS_MACRO_ARG =
+	"Ожидалось слово в качестве аргумента для макро.";
+const char *const EXPECTED_ID_AS_MACRO_NAME =
+	"Ожидалось слово в качестве имени для макро.";
 
-struct NodeToken *try_include(struct Prep *pr,struct NodeToken *prev, 
+struct NodeToken *try_include(struct Prep *pr, struct NodeToken *prev,
 							  struct Token *path) {
 	struct BList *included_path;
 	uint32_t i;
-	struct *Tzer *tzer;
+	struct Tzer *tzer;
 	struct PList *new_tokens;
 	struct NodeToken *new_head;
 
-	foreach_begin(included_path, pr->included_files)
+	foreach_begin(included_path, pr->included_files);
 	// here compare token str cuz view has "
-	if (sc(ss(path), (char *)included_path->st)) 
+	if (sc(ss(path), (char *)included_path->st))
 		return 0;
 	foreach_end;
 
@@ -39,7 +44,7 @@ struct NodeToken *try_include(struct Prep *pr,struct NodeToken *prev,
 	plist_add(pr->included_files, included_path);
 
 	tzer = new_tzer((char *)included_path->st);
-	new_tokens = tze(t, 128);
+	new_tokens = tze(tzer, 128);
 	free(tzer);
 
 	new_head = gen_node_tokens(pr, new_tokens);
@@ -51,19 +56,19 @@ struct NodeToken *try_include(struct Prep *pr,struct NodeToken *prev,
 	// also need to skip EOF token in here
 	while (new_head->next || new_head->token->code != EF)
 		new_head = new_head->next;
-		
-	if (new_head->next && new_head->next->token->code == EF){
+
+	if (new_head->next && new_head->next->token->code == EF) {
 		// TODO: free new_head->new_head and its token
 		new_head->next = 0;
 	}
-	
+
 	return new_head;
 }
 
-struct NodeToken *try_parse_include(struct Prep *pr, struct NodeToken *prev, 
+struct NodeToken *try_parse_include(struct Prep *pr, struct NodeToken *prev,
 									struct PList *tokens, uint32_t i) {
 	struct Token *token;
-	
+
 	token = plist_get(tokens, i);
 	if (token->code != SHARP || i + 2 >= tokens->size)
 		return 0;
@@ -75,7 +80,7 @@ struct NodeToken *try_parse_include(struct Prep *pr, struct NodeToken *prev,
 	token = plist_get(tokens, ++i);
 	if (token->code != STR)
 		eet(pr->f, token, EXPECTED_STR_AS_AN_INCLUDE_PATH, 0);
-		
+
 	return try_include(pr, prev, token);
 }
 
@@ -89,13 +94,13 @@ struct NodeToken *gen_node_tokens(struct Prep *pr, struct PList *tokens) {
 	head->next = 0;
 	prev = head;
 	for (i = 1; i < tokens->size; i++) {
-		cur = try_parse_include(pr, prev, tokens, i);
-		if (cur) {
-			prev = cur;
-			i += 2; // skip 'влечь' and string path literal
-			continue;
-		}
-	
+		// cur = try_parse_include(pr, prev, tokens, i);
+		// if (cur) {
+		// 	prev = cur;
+		// 	i += 2; // skip 'влечь' and string path literal
+		// 	continue;
+		// }
+
 		cur = malloc(sizeof(struct NodeToken));
 		cur->token = plist_get(tokens, i);
 		cur->prev = prev;
@@ -185,7 +190,6 @@ void replace_inclusive(struct NodeToken *place, struct NodeToken *fst,
 	exit(199);
 }
 
-
 struct NodeToken *parse_vot(struct Prep *pr, struct NodeToken *c) {
 	struct Define *define = malloc(sizeof(struct Define));
 
@@ -209,7 +213,8 @@ struct NodeToken *parse_macro_args(struct Prep *pr, struct NodeToken *c,
 	c = take_guaranteed_next(pr, c); // skip '('
 
 	for (; c->token->code != PAR_R; c = take_guaranteed_next(pr, c)) {
-		expect(pr, c->token, ID);
+		if (c->token->code != ID)
+			eet(pr->f, c->token, EXPECTED_ID_AS_MACRO_ARG, 0);
 
 		arg = malloc(sizeof(struct MacroArg));
 		arg->name = c->token;
@@ -252,7 +257,8 @@ struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c) {
 
 	// - parse statement
 	c = take_guaranteed_next(pr, c);
-	expect(pr, c->token, ID);
+	if (c->token->code != ID)
+		eet(pr->f, c->token, EXPECTED_ID_AS_MACRO_NAME, 0);
 	macro->name = c->token;
 
 	c = take_guaranteed_next(pr, c);

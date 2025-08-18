@@ -18,8 +18,9 @@ struct Tzer *new_tzer(char *filename) {
 	p->col = 1;
 	t->pos = 0;
 
+	printf("%s\n", filename);
 	FILE *file = fopen(filename, "r");
-	if (!file)
+	if (!file) // TODO: this err doesnt works good
 		ee(f, p, "ОШИБКА В ОТКРЫТИИ ФАЙЛА");
 
 	fseek(file, 0, SEEK_END);
@@ -231,6 +232,7 @@ enum TCode str_token(struct Tzer *t, struct Token *token) {
 	strncpy(str_view, t->f->code + start_pos, str_len);
 	token->view = blist_from_str(str_view, str_len);
 
+	convert_blist_to_blist_from_str(str_str);
 	token->str = str_str;
 	blist_cut(str_str);
 

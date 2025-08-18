@@ -251,9 +251,6 @@ const char *const SUGGEST__COMMA = ",";
 const char *const SUGGEST__SH_L = "(#";
 
 const char *const STR_EOF = "_КОНЕЦ_ФАЙЛА_";
-// parser directives
-const char *const STR_DEFINE = "вот";
-const char *const STR_INCLUDE = "влечь";
 // words
 const char *const STR_LET = "пусть";
 const char *const STR_ASM = "_асм";
