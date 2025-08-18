@@ -7,7 +7,7 @@ struct Pser *new_pser(char *filename, uc debug) {
 	struct Tzer *t = new_tzer(filename);
 	p->f = t->f;
 
-	struct PList *ts = tze(t, 10);
+	struct PList *ts = tze(t, 128);
 	free(t);
 	p->pos = 0;
 	p->ts = ts;

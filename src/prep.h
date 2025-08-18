@@ -27,7 +27,9 @@ struct Macro {
 
 struct Prep {
 	struct Fpfc *f;
+	struct PList *included_files; // list of BLists
 	struct NodeToken *head;
+
 
 	struct PList *defines;
 	struct PList *macros;
