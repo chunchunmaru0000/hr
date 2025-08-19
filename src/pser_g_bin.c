@@ -204,7 +204,7 @@ int_fun(shr, >>);
 		if (is_ct_int(l) && is_ct_int(r))                                      \
 			l = glob_##word##_two_ints(l, r);                                  \
 		else                                                                   \
-			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);              \
+			eet(op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);					   \
 	}                                                                          \
 // ###########################################################################################
 #define check_num_types(word)                                                  \
@@ -221,7 +221,7 @@ int_fun(shr, >>);
 	if (op->code == (op_e)) {												   \
 		check_num_types(word)												   \
 		else															 	   \
-			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);			   \
+			eet(op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);			   \
 	}
 
 struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
@@ -234,25 +234,25 @@ struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 		else if (is_ct_real(l) && is_ct_str(r)) l = glob_add_real_and_str(l, r);
 		else if (is_ct_str(l) && is_ct_real(r)) l = glob_add_str_and_real(l, r);
 		else
-			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+			eet(op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
 
 	} else if (op->code == MUL) {
 		check_num_types(mul)
 		else if (is_ct_str(l) && is_ct_int(r)) {
 			if (r->tvar->num < 0)
-				eet(p->f, op, CANT_MUL_STR_ON_VALUE_LESS_THAN_ZERO, 0);
+				eet(op, CANT_MUL_STR_ON_VALUE_LESS_THAN_ZERO, 0);
 
 			l = glob_mul_str_and_int(l, r);
 		} else
-			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+			eet(op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
 
 	} else if (op->code == DIV) {
 		if (is_int_zero(r) || is_real_zero(r))
-			eet(p->f, op, DIV_ON_ZERO, 0);
+			eet(op, DIV_ON_ZERO, 0);
 
 		check_num_types(div)
 		else
-			eet(p->f, op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
+			eet(op, INVALID_OPERANDS_TYPES_FOR_THIS_OP, 0);
 
 	}
 	else only_nums(EQUE, eque)
@@ -271,7 +271,7 @@ struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 	else only_ints(SHL, shl)
 	else only_ints(SHR, shr)
 	else
-		eet(p->f, op, UNKNOWN_OPERATION, 0);
+		eet(op, UNKNOWN_OPERATION, 0);
 
 	free_glob_expr(r);
 	return l;

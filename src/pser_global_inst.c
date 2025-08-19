@@ -6,7 +6,7 @@
 enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os) {
 	struct Token *code = absorb(p);
 
-	match(p, code, STR);
+	match(code, STR);
 
 	plist_add(os, code);
 	return IP_ASM;
@@ -23,7 +23,7 @@ const char *const EXPECTED_INT_GLOB_EXPR =
 // ... - defns where name is name and value is num
 enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 	struct Token *enum_name = absorb(p);
-	expect(p, enum_name, ID);
+	expect(enum_name, ID);
 	plist_add(os, enum_name);
 
 	struct Token *c;
@@ -33,10 +33,10 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 	uint32_t i;
 
 	c = absorb(p);
-	expect(p, c, PAR_L);
+	expect(c, PAR_L);
 
 	for (c = absorb(p); not_ef_and(PAR_R, c);) {
-		expect(p, c, ID);
+		expect(c, ID);
 		defn = malloc(sizeof(struct Defn));
 		defn->view = new_blist(0);
 		blat_blist(defn->view, enum_name->view); // enum name
@@ -50,7 +50,7 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 			tmp_defn = plist_get(p->enums, i);
 
 			if (vc(defn, tmp_defn))
-				eet(p->f, c, ENUM_ITEM_NAME_OVERLAP, 0);
+				eet(c, ENUM_ITEM_NAME_OVERLAP, 0);
 		}
 
 		// word
@@ -64,7 +64,7 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 			e = global_expression(p);
 
 			if (e->code != CT_INT)
-				eet(p->f, c, EXPECTED_INT_GLOB_EXPR, 0);
+				eet(c, EXPECTED_INT_GLOB_EXPR, 0);
 			defn->value = (void *)e->tvar->num;
 
 			free_glob_expr(e);
@@ -78,7 +78,7 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 		plist_add(os, defn);
 		counter++;
 	}
-	match(p, c, PAR_R);
+	match(c, PAR_R);
 
 	return IP_DECLARE_ENUM;
 }
@@ -138,7 +138,7 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 	plist_add(args, arg);
 
 	struct Token *c = pser_cur(p);
-	expect(p, c, ID); // ensures min one name
+	expect(c, ID); // ensures min one name
 	plist_add(arg->names, c);
 
 	while (not_ef_and(COLO, c)) {
@@ -150,13 +150,13 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 		} else
 			while (c->code == DIV) {
 				c = absorb(p);
-				expect(p, c, ID);
+				expect(c, ID);
 				plist_add(arg->names, c);
 				c = pser_cur(p);
 			}
 	}
 	colo_pos = p->pos;
-	match(p, c, COLO);
+	match(c, COLO);
 	uc is_one_memory = args->size == 1;
 	is_one_memories_flag = is_one_memory;
 
@@ -164,17 +164,16 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 	type_size = size_of_type(p, type);
 
 	if (is_one_memory && from && (type_size != size_of_type(p, from->type)))
-		eet(p->f, get_pser_token((p), -1), TYPES_SIZES_NOT_MATCH,
+		eet(get_pser_token((p), -1), TYPES_SIZES_NOT_MATCH,
 			SUGGEST_CHANGE_ARG_TYPE_SIZE);
 	if (!is_one_memory && from)
-		eet(p->f, get_pser_token((p), colo_pos - p->pos - 1),
+		eet(get_pser_token((p), colo_pos - p->pos - 1),
 			SEVERAL_ARGS_CANT_SHARE_MEM, SUGGEST_DELETE_ARGS_OR_COMMA);
 
 	c = pser_cur(p);
 	if (c->code == COMMA) {
 		if (!is_one_memory)
-			eet(p->f, c, SEVERAL_ARGS_CANT_SHARE_MEM,
-				SUGGEST_DELETE_ARGS_OR_COMMA);
+			eet(c, SEVERAL_ARGS_CANT_SHARE_MEM, SUGGEST_DELETE_ARGS_OR_COMMA);
 		consume(p); // consume ,
 
 		// set thing to the single arg
@@ -185,8 +184,7 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 		// get new arg
 		eithers = parse_arg(p, arg, args_offset);
 		if (!is_one_memories_flag && eithers->size != 1)
-			eet(p->f, c, COMMA_ARGS_CAN_BE_ONLY_BY_ONE,
-				SUGGEST_DELETE_ARGS_OR_COMMA);
+			eet(c, COMMA_ARGS_CAN_BE_ONLY_BY_ONE, SUGGEST_DELETE_ARGS_OR_COMMA);
 		// add all and free
 		for (i = 0; i < eithers->size; i++)
 			plist_add(args, plist_get(eithers, i));
@@ -223,7 +221,7 @@ void parse_args(struct Pser *p, struct PList *os) {
 		plist_free(args);
 		c = pser_cur(p);
 	}
-	match(p, c, PAR_R);
+	match(c, PAR_R);
 }
 
 // ### os explanation:
@@ -237,7 +235,7 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 
 	struct Inst *in;
 	struct Token *c, *name = absorb(p); // skip лик
-	expect(p, name, ID);
+	expect(name, ID);
 	plist_add(os, name); // struct name
 	plist_add(os, 0);	 // reserved for size
 	plist_add(os, 0);	 // reserved for mems_count
@@ -247,14 +245,13 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 		c = plist_get(in->os, 0); // struct name token
 
 		if (vc(name, c))
-			eet(p->f, name, GLOBAL_STRUCTS_NAMES_OVERLAP,
-				SUGGEST_RENAME_STRUCT);
+			eet(name, GLOBAL_STRUCTS_NAMES_OVERLAP, SUGGEST_RENAME_STRUCT);
 	}
 
-	expect(p, absorb(p), PAR_L);
+	expect(absorb(p), PAR_L);
 	parse_args(p, os);
 
-	check_list_of_args_on_uniq_names(p->f, os, DCLR_STRUCT_ARGS);
+	check_list_of_args_on_uniq_names(os, DCLR_STRUCT_ARGS);
 
 	for (i = DCLR_STRUCT_ARGS; i < os->size; i++) {
 		arg = plist_get(os, i);
@@ -289,14 +286,14 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	fun_type->data.args_types = new_plist(2);
 
 	struct Token *cur = absorb(p); // skip фц
-	expect(p, cur, ID);
+	expect(cur, ID);
 	plist_add(os, 0); // reserved place for variable
 	fun_variable->name = cur;
 	fun_variable->type = fun_type;
 	fun_variable->value = 0; // os;
 
 	cur = absorb(p);
-	expect(p, cur, PAR_L);
+	expect(cur, PAR_L);
 
 	parse_args(p, os);
 	for (i = 1; i < os->size; i++) {
@@ -310,10 +307,10 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 		}
 
 		if (arg->type->code == TC_ARR)
-			eet(p->f, cur, ARR_AS_A_FUN_ARG_IS_PROHIBITED,
+			eet(cur, ARR_AS_A_FUN_ARG_IS_PROHIBITED,
 				SUGGEST_CHANGE_TYPE_TO_A_PTR);
 		if (arg->type->code == TC_STRUCT)
-			eet(p->f, cur, STRUCT_AS_A_FUN_ARG_IS_PROHIBITED,
+			eet(cur, STRUCT_AS_A_FUN_ARG_IS_PROHIBITED,
 				SUGGEST_CHANGE_TYPE_TO_A_PTR);
 
 		// it haves here types cuz fun type args are types
@@ -329,8 +326,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	}
 
 	if (fun_type->data.args_types->size > MAX_ARGS_ON_REGISTERS)
-		eet(p->f, fun_variable->name, TOO_MUCH_ARGS_FOR_NOW,
-			SUGGEST_CUT_ARGS_SIZE);
+		eet(fun_variable->name, TOO_MUCH_ARGS_FOR_NOW, SUGGEST_CUT_ARGS_SIZE);
 
 	// if there is no type then its void type
 	type = pser_cur(p)->code == PAR_L ? new_type_expr(TC_VOID) : type_expr(p);
@@ -350,7 +346,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 		if (tmp_var->type->code == TC_FUN &&
 			sc((char *)tmp_var->signature->st,
 			   (char *)fun_variable->signature->st))
-			eet(p->f, fun_variable->name, FUN_SIGNATURES_OVERLAP,
+			eet(fun_variable->name, FUN_SIGNATURES_OVERLAP,
 				SUGGEST_FIX_FUN_SIGNATURES_OVERLAP);
 	}
 
@@ -380,13 +376,13 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 	if (args->size != 1) {
 		arg = plist_get(args, args->size - 1);
 		// i dont beleive that its works but it should
-		eet(p->f, plist_get(arg->names, arg->names->size - 1),
+		eet(plist_get(arg->names, arg->names->size - 1),
 			SEVERAL_ARGS_CANT_SHARE_MEM, SUGGEST_DELETE_ARGS_OR_COMMA);
 	}
 	arg = plist_get(args, 0);
 
 	// skip '='
-	match(p, pser_cur(p), EQU);
+	match(pser_cur(p), EQU);
 	global_expr = parse_global_expression(p, arg->type);
 
 	for (i = 0; i < arg->names->size; i++) {
@@ -405,8 +401,7 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 			// do i want to use here the name or the signature i dunno TODO: not
 			// always woks as i wished
 			if (sc((char *)tmp_var->signature->st, (char *)var->signature->st))
-				eet(p->f, var->name, GLOBAL_VARS_NAMES_OVERLAP,
-					SUGGEST_RENAME_VAR);
+				eet(var->name, GLOBAL_VARS_NAMES_OVERLAP, SUGGEST_RENAME_VAR);
 		}
 
 		plist_add(p->global_vars, var);

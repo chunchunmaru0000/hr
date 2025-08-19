@@ -49,7 +49,7 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		for (; i < g->local_labels->size; i++) {
 			tok = plist_get(g->local_labels, i);
 			if (vc(tok, name))
-				eet(in->f, name, REDEFINING_OF_LOCAL_LABEL,
+				eet(name, REDEFINING_OF_LOCAL_LABEL,
 					CHANGE_LABEL_NAME_OR_DELETE_LABEL);
 		}
 		plist_add(g->local_labels, name);
@@ -118,7 +118,7 @@ void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 				tmp_var = plist_get(g->local_vars, vars);
 
 				if (vc(tmp_var->name, var->name))
-					eet(in->f, var->name, REDEFINING_OF_LOCAL_VAR,
+					eet(var->name, REDEFINING_OF_LOCAL_VAR,
 						CHANGE_VAR_NAME_OR_DELETE_VAR);
 			}
 

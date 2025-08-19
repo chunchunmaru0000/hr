@@ -96,7 +96,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 
 		other_var = find_global_var(p, c->view);
 		if (other_var == 0)
-			eet(p->f, c, GLOBAL_VAR_WAS_NOT_FOUND, vs(c));
+			eet(c, GLOBAL_VAR_WAS_NOT_FOUND, vs(c));
 
 		e->from = other_var;
 
@@ -176,10 +176,10 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		free(e->tvar); // it was malloced above
 		free(e);	   // it was malloced above
 		e = global_expression(p);
-		match(p, pser_cur(p), PAR_R);
+		match(pser_cur(p), PAR_R);
 		break;
 	default:
-		eet(p->f, c, UNEXPECTED_TOKEN_IN_GLOB_EXPR, 0);
+		eet(c, UNEXPECTED_TOKEN_IN_GLOB_EXPR, 0);
 	}
 
 	return e;
@@ -195,7 +195,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		e = unary_g_expression(p);
 
 		if (e->code != CT_INT && e->code != CT_REAL)
-			eet(p->f, c, EXPECTED_NUM_FOR_THIS_OP, 0);
+			eet(c, EXPECTED_NUM_FOR_THIS_OP, 0);
 
 		return e;
 	}
@@ -208,7 +208,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		} else if (e->code == CT_REAL) {
 			e->tvar->real *= -1;
 		} else {
-			eet(p->f, c, EXPECTED_NUM_FOR_THIS_OP, 0);
+			eet(c, EXPECTED_NUM_FOR_THIS_OP, 0);
 		}
 		return e;
 	}
@@ -222,7 +222,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 			e->tvar->num = !e->tvar->real;
 			e->code = CT_INT;
 		} else
-			eet(p->f, c, EXPECTED_NUM_FOR_THIS_OP, 0);
+			eet(c, EXPECTED_NUM_FOR_THIS_OP, 0);
 		return e;
 	}
 	if (c->code == BIT_NOT) {
@@ -230,7 +230,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		e = unary_g_expression(p);
 
 		if (e->code != CT_INT)
-			eet(p->f, c, BIT_NOT_WORKS_ONLY_WITH_INT, 0);
+			eet(c, BIT_NOT_WORKS_ONLY_WITH_INT, 0);
 
 		e->tvar->num = ~e->tvar->num;
 
@@ -249,7 +249,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		else if (e->code == CT_GLOBAL_PTR)
 			e->code = CT_GLOBAL;
 		else
-			eet(p->f, c, CANT_DEREFERENCE_THIS, 0);
+			eet(c, CANT_DEREFERENCE_THIS, 0);
 
 		return e;
 	}
@@ -266,7 +266,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		else if (e->from)
 			e->code = CT_GLOBAL_PTR;
 		else
-			eet(p->f, c, CANT_TAKE_PTR_FROM_THIS, 0);
+			eet(c, CANT_TAKE_PTR_FROM_THIS, 0);
 
 		return e;
 	}
@@ -358,7 +358,7 @@ struct GlobExpr *trnry_g_expression(struct Pser *p) {
 		consume(p);
 
 		true = global_expression(p);
-		match(p, pser_cur(p), COLO);
+		match(pser_cur(p), COLO);
 		false = global_expression(p);
 
 		if (e->code == CT_INT)
@@ -366,7 +366,7 @@ struct GlobExpr *trnry_g_expression(struct Pser *p) {
 		else if (e->code == CT_REAL)
 			res = e->tvar->real ? true : false;
 		else
-			eet(p->f, c, EXPECTED_NUM_FOR_THIS_OP, 0);
+			eet(c, EXPECTED_NUM_FOR_THIS_OP, 0);
 
 		free_glob_expr(e);
 		if (res == true)

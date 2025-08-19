@@ -67,7 +67,7 @@ int size_of_struct(struct Pser *p, struct BList *name) {
 		if (sc((char *)name->st, vs(name_token)))
 			goto struct_name_found;
 	}
-	eet(p->f, pser_cur(p), STRUCT_NAME_WASNT_FOUND, (char *)name->st);
+	eet(pser_cur(p), STRUCT_NAME_WASNT_FOUND, (char *)name->st);
 
 struct_name_found:
 
@@ -398,14 +398,14 @@ struct TypeExpr *type_expr(struct Pser *p) {
 				texpr->data.ptr_target = new_type_expr(TC_STRUCT);
 
 				cur = absorb(p);
-				expect(p, cur, ID);
+				expect(cur, ID);
 
 				texpr->data.ptr_target->data.name = cur->view;
 			} else if (vcs(cur, STR_ENUM_TW)) {
 				texpr->code = TC_ENUM;
 
 				cur = absorb(p);
-				expect(p, cur, ID);
+				expect(cur, ID);
 
 				texpr->data.name = cur->view;
 			} else
@@ -421,7 +421,7 @@ struct TypeExpr *type_expr(struct Pser *p) {
 					goto ret_type_expr;
 				}
 			}
-			eet(p->f, cur, NOT_A_TYPE_WORD, 0);
+			eet(cur, NOT_A_TYPE_WORD, 0);
 		}
 	} else if (cur->code == MUL) {
 		texpr->code = TC_PTR;
@@ -434,7 +434,7 @@ struct TypeExpr *type_expr(struct Pser *p) {
 		struct TypeExpr *strct = type_expr(p);
 
 		if (strct->code != TC_PTR || strct->data.ptr_target->code != TC_STRUCT)
-			eet(p->f, cur, AMPER_WORKS_ONLY_ON_STRUCTS, 0);
+			eet(cur, AMPER_WORKS_ONLY_ON_STRUCTS, 0);
 
 		free(texpr);
 		texpr = strct->data.ptr_target;
@@ -453,14 +453,14 @@ struct TypeExpr *type_expr(struct Pser *p) {
 			plist_add(texpr->data.arr, (void *)-1);
 		else if (cur->code == INT) {
 			if (cur->num < -1)
-				eet(p->f, cur, WRONG_ARR_SIZE, 0);
+				eet(cur, WRONG_ARR_SIZE, 0);
 			plist_add(texpr->data.arr, (void *)cur->num);
 			consume(p); // consume arr size
 			cur = pser_cur(p);
 		} else
-			eet(p->f, cur, ERR_WRONG_TOKEN_NUM_PAR_C_R, 0);
+			eet(cur, ERR_WRONG_TOKEN_NUM_PAR_C_R, 0);
 
-		expect(p, cur, PAR_C_R); // expect ]
+		expect(cur, PAR_C_R); // expect ]
 
 	} else if (cur->code == PAR_L) {
 		texpr->code = TC_FUN;
@@ -475,15 +475,15 @@ struct TypeExpr *type_expr(struct Pser *p) {
 			consume(p); // consume !
 			plist_add(texpr->data.args_types, type_expr(p));
 
-			expect(p, pser_cur(p), PAR_R); // expect )
+			expect(pser_cur(p), PAR_R); // expect )
 
 		} else if (cur->code == PAR_R) {
 			if (texpr->data.args_types->size == 0)
-				eet(p->f, cur, FUN_ZERO_ARGS, SUGGEST_ADD_ARGS);
+				eet(cur, FUN_ZERO_ARGS, SUGGEST_ADD_ARGS);
 		} else
-			eet(p->f, cur, FUN_TYPE_END_OF_FILE, 0);
+			eet(cur, FUN_TYPE_END_OF_FILE, 0);
 	} else
-		eet(p->f, cur, NOT_A_TYPE_WORD, 0);
+		eet(cur, NOT_A_TYPE_WORD, 0);
 
 ret_type_expr:
 	consume(p); // ] ) type_word struct_name str

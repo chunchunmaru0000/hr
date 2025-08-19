@@ -62,10 +62,9 @@ uint32_t get_utf8_chars_to_pos(const char *str, int col) {
 	return chars;
 }
 
-void print_source_line(const char *source_code, struct Pos *p,
-					   const char *const color, char *help) {
+void print_source_line(struct Pos *p, const char *const color, char *help) {
 	uint32_t line = p->line - 1;
-	const char *str_start = source_code;
+	const char *str_start = p->f->code;
 	uint32_t nc = line, ut8_chars_to_pos = 0;
 	char *help_end, *help_start = help;
 	if (line)
@@ -120,11 +119,9 @@ void print_source_line(const char *source_code, struct Pos *p,
 	putchar('\n');
 }
 
-struct ErrorInfo *new_error_info(struct Fpfc *f, struct Token *t,
-								 const char *const msg,
+struct ErrorInfo *new_error_info(struct Token *t, const char *const msg,
 								 const char *const sgst) {
 	struct ErrorInfo *ei = malloc(sizeof(struct ErrorInfo));
-	ei->f = f;
 	ei->t = t;
 	ei->msg = msg;
 	ei->sgst = sgst;
@@ -133,15 +130,14 @@ struct ErrorInfo *new_error_info(struct Fpfc *f, struct Token *t,
 	return ei;
 }
 
-void ee(struct Fpfc *f, struct Pos *p, const char *const msg) { // error exit
-	fprintf(stderr, "%s%s:%d:%d %sОШИБКА: %s\n", COLOR_WHITE, f->path, p->line,
-			p->col, COLOR_RED, msg);
-	print_source_line(f->code, p, COLOR_LIGHT_RED, 0);
+void ee(struct Pos *p, const char *const msg) { // error exit
+	fprintf(stderr, "%s%s:%d:%d %sОШИБКА: %s\n", COLOR_WHITE, p->f->path,
+			p->line, p->col, COLOR_RED, msg);
+	print_source_line(p, COLOR_LIGHT_RED, 0);
 	exit(1);
 }
 
-void et(struct Fpfc *f, struct Token *t, const char *const msg,
-		const char *const sgst) {
+void et(struct Token *t, const char *const msg, const char *const sgst) {
 	char *help;
 	uint32_t token_chars_len, help_len, sgst_len = -1;
 	if (sgst)
@@ -162,13 +158,12 @@ void et(struct Fpfc *f, struct Token *t, const char *const msg,
 		memcpy(help + token_chars_len + 1, sgst, sgst_len);
 	}
 
-	fprintf(stderr, "%s%s:%d:%d %sОШИБКА: %s\n", COLOR_WHITE, f->path,
+	fprintf(stderr, "%s%s:%d:%d %sОШИБКА: %s\n", COLOR_WHITE, t->p->f->path,
 			t->p->line, t->p->col, COLOR_RED, msg);
-	print_source_line(f->code, t->p, COLOR_LIGHT_RED, help);
+	print_source_line(t->p, COLOR_LIGHT_RED, help);
 }
 
-void eet(struct Fpfc *f, struct Token *t, const char *const msg,
-		 const char *const sgst) {
-	et(f, t, msg, sgst);
+void eet(struct Token *t, const char *const msg, const char *const sgst) {
+	et(t, msg, sgst);
 	exit(1);
 }

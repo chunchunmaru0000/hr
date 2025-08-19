@@ -164,7 +164,7 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 
 		if ((cstr = find_error_msg(error))) {
 			err_token = plist_get(msgs, --i);
-			ei = new_error_info(p->f, err_token, cstr->str, cstr->sgst);
+			ei = new_error_info(err_token, cstr->str, cstr->sgst);
 
 			if (cstr->code == CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT ||
 				cstr->code == CE_TOO_MUCH_ITEMS_FOR_THIS_ARR) {
@@ -179,7 +179,7 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 
 		if ((cstr = find_warn_msg(error))) {
 			err_token = plist_get(msgs, --i);
-			ei = new_error_info(p->f, err_token, cstr->str, cstr->sgst);
+			ei = new_error_info(err_token, cstr->str, cstr->sgst);
 
 			ei->extra = (void *)plist_get(msgs, --i);
 			if (cstr->code == CE_ARR_SIZES_DO_NOW_MATCH ||

@@ -49,12 +49,12 @@ struct Token *next_pser_get(struct Pser *p, long off) {
 }
 
 void parse_block_of_local_inst(struct Pser *p, struct PList *os) {
-	match(p, pser_cur(p), PAR_L);
+	match(pser_cur(p), PAR_L);
 
 	while (not_ef_and(PAR_R, pser_cur(p)))
 		plist_add(os, get_local_inst(p));
 
-	match(p, pser_cur(p), PAR_R);
+	match(pser_cur(p), PAR_R);
 }
 
 const char *const ARGS_NAMES_OVERLAP =
@@ -68,11 +68,11 @@ void check_list_of_vars_on_name(struct Pser *p, struct Token *name_to_check) {
 		var = plist_get(p->local_vars, i);
 
 		if (vc(name_to_check, var->name))
-			eet(p->f, name_to_check, ARGS_NAMES_OVERLAP, vs(var->name));
+			eet(name_to_check, ARGS_NAMES_OVERLAP, vs(var->name));
 	}
 }
-void check_list_of_args_on_name(struct Fpfc *f, struct PList *l,
-								uint32_t from_arg, uint32_t from_name,
+void check_list_of_args_on_name(struct PList *l, uint32_t from_arg,
+								uint32_t from_name,
 								struct Token *name_to_check) {
 	uint32_t i, j;
 	struct Arg *arg;
@@ -85,12 +85,11 @@ void check_list_of_args_on_name(struct Fpfc *f, struct PList *l,
 			name = plist_get(arg->names, j);
 
 			if (vc(name_to_check, name))
-				eet(f, name, ARGS_NAMES_OVERLAP, vs(name));
+				eet(name, ARGS_NAMES_OVERLAP, vs(name));
 		}
 	}
 }
-void check_list_of_args_on_uniq_names(struct Fpfc *f, struct PList *l,
-									  uint32_t start_index) {
+void check_list_of_args_on_uniq_names(struct PList *l, uint32_t start_index) {
 	uint32_t i, j;
 	struct Arg *arg;
 	struct Token *name;
@@ -100,7 +99,7 @@ void check_list_of_args_on_uniq_names(struct Fpfc *f, struct PList *l,
 
 		for (j = 0; j < arg->names->size; j++) {
 			name = plist_get(arg->names, j);
-			check_list_of_args_on_name(f, l, i, j, name);
+			check_list_of_args_on_name(l, i, j, name);
 		}
 	}
 }
@@ -291,7 +290,7 @@ struct Inst *get_global_inst(struct Pser *p) {
 		if (code != IP_NONE)
 			break;
 	default:
-		eet(p->f, cur, ERR_WRONG_TOKEN, 0);
+		eet(cur, ERR_WRONG_TOKEN, 0);
 	}
 	//	TODO
 	//	global expression,

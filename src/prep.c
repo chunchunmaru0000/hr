@@ -81,7 +81,7 @@ struct NodeToken *try_parse_include(struct NodeToken *prev,
 
 	token = plist_get(tokens, ++i);
 	if (token->code != STR)
-		eet(token->p->f, token, EXPECTED_STR_AS_AN_INCLUDE_PATH, 0);
+		eet(token, EXPECTED_STR_AS_AN_INCLUDE_PATH, 0);
 
 	return try_include(prev, token);
 }
@@ -134,9 +134,9 @@ struct PList *preprocess(struct Tzer *tzer) {
 	return tokens;
 }
 
-struct NodeToken *take_guaranteed_next(struct Prep *pr, struct NodeToken *n) {
+struct NodeToken *take_guaranteed_next(struct NodeToken *n) {
 	if (!n->next)
-		eet(pr->f, n->token, WASNT_EXPECTING_EOF, 0);
+		eet(n->token, WASNT_EXPECTING_EOF, 0);
 	return n->next;
 }
 
@@ -256,9 +256,9 @@ struct NodeToken *parse_vot(struct Prep *pr, struct NodeToken *c) {
 	struct Define *define = malloc(sizeof(struct Define));
 
 	// - parse statement
-	c = take_guaranteed_next(pr, c);
+	c = take_guaranteed_next(c);
 	define->name = c->token; // TODO: should name be ID?
-	c = take_guaranteed_next(pr, c);
+	c = take_guaranteed_next(c);
 	define->replace = c->token;
 
 	// - save statement
@@ -272,11 +272,11 @@ struct NodeToken *parse_macro_args(struct Prep *pr, struct NodeToken *c,
 	struct MacroArg *arg;
 
 	macro->args = new_plist(4);
-	c = take_guaranteed_next(pr, c); // skip '('
+	c = take_guaranteed_next(c); // skip '('
 
-	for (; c->token->code != PAR_R; c = take_guaranteed_next(pr, c)) {
+	for (; c->token->code != PAR_R; c = take_guaranteed_next(c)) {
 		if (c->token->code != ID)
-			eet(pr->f, c->token, EXPECTED_ID_AS_MACRO_ARG, 0);
+			eet(c->token, EXPECTED_ID_AS_MACRO_ARG, 0);
 
 		arg = malloc(sizeof(struct MacroArg));
 		arg->name = c->token;
@@ -285,14 +285,14 @@ struct NodeToken *parse_macro_args(struct Prep *pr, struct NodeToken *c,
 		plist_add(macro->args, arg);
 	}
 	// here c should be ')'
-	return take_guaranteed_next(pr, c);
+	return take_guaranteed_next(c);
 }
 
 struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
 									struct Macro *macro) {
 	struct NodeToken *clone, *clone_prev;
 
-	c = take_guaranteed_next(pr, c); // skip '(#'
+	c = take_guaranteed_next(c); // skip '(#'
 
 	// here need to copy tree cuz it will be freed from final tokens
 	clone = clone_node_token(c); // first is different
@@ -318,20 +318,20 @@ struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c) {
 	struct Macro *macro = malloc(sizeof(struct Macro));
 
 	// - parse statement
-	c = take_guaranteed_next(pr, c);
+	c = take_guaranteed_next(c);
 	if (c->token->code != ID)
-		eet(pr->f, c->token, EXPECTED_ID_AS_MACRO_NAME, 0);
+		eet(c->token, EXPECTED_ID_AS_MACRO_NAME, 0);
 	macro->name = c->token;
 
-	c = take_guaranteed_next(pr, c);
+	c = take_guaranteed_next(c);
 	// parse args
 	if (c->token->code == SH_L)
 		macro->args = 0;
 	else if (c->token->code == PAR_L) {
 		c = parse_macro_args(pr, c, macro);
-		expect(pr, c->token, SH_L);
+		expect(c->token, SH_L);
 	} else
-		eet(pr->f, c->token, EXPCEPTED_PAR_L_OR_SH_L, 0);
+		eet(c->token, EXPCEPTED_PAR_L_OR_SH_L, 0);
 	// parse block
 	c = parse_macro_block(pr, c, macro);
 
@@ -347,7 +347,7 @@ const char *const STR_SE = "се";
 // TODO: if redefine then free last one
 struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
 	if (name->token->code != ID)
-		eet(pr->f, name->token, WAS_EXPECTING_PREP_INST_WORD, 0);
+		eet(name->token, WAS_EXPECTING_PREP_INST_WORD, 0);
 
 	if (vcs(name->token, STR_VOT))
 		return parse_vot(pr, name);
@@ -355,7 +355,7 @@ struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
 	if (vcs(name->token, STR_SE))
 		return parse_se(pr, name);
 
-	eet(pr->f, name->token, WAS_EXPECTING_PREP_INST_WORD, 0);
+	eet(name->token, WAS_EXPECTING_PREP_INST_WORD, 0);
 	return 0;
 }
 
@@ -396,7 +396,7 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 		}
 
 		fst = c;
-		name = take_guaranteed_next(pr, c);
+		name = take_guaranteed_next(c);
 		lst = try_parse_sh(pr, name);
 
 		// - cut off statemnt nodes so it wont be in final_tokens

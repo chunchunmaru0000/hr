@@ -8,8 +8,7 @@
 	} while (0)
 
 extern uc NEED_WARN;
-void pw(struct Fpfc *f, struct Token *t, const char *const msg,
-		const char *const sgst);
+void pw(struct Token *t, const char *const msg, const char *const sgst);
 #define MAX_ARGS_ON_REGISTERS 7
 
 // IP_DECLARE_STRUCT
@@ -79,10 +78,10 @@ struct Token *next_pser_get(struct Pser *, long);
 struct Token *get_pser_token(struct Pser *, long);
 struct PList *find_lik_os(struct BList *name);
 #define pser_by(p, ppos) (get_pser_token((p), (ppos) - (p)->pos))
-#define expect(pser, t, c)                                                     \
+#define expect(t, c)                                                           \
 	do {                                                                       \
 		if ((t)->code != (c))                                                  \
-			eet((pser)->f, (t), EXPECTED__##c, SUGGEST__##c);                  \
+			eet((t), EXPECTED__##c, SUGGEST__##c);                             \
 	} while (0)
 
 #define consume(p) ((p)->pos++)
@@ -91,9 +90,9 @@ struct PList *find_lik_os(struct BList *name);
 #define absorb(p) (next_pser_get((p), 0)) // consume + ret pser_cur
 #define not_ef_and(cd, c) ((c)->code != (cd) && (c)->code != EF)
 #define not_ef_and_and(cd1, cd2, c) ((c)->code != (cd1) && not_ef_and((cd2), (c))
-#define match(pser, t, c)                                                      \
+#define match(t, c)                                                            \
 	do {                                                                       \
-		expect(pser, t, c);                                                    \
+		expect(t, c);                                                          \
 		consume(p);                                                            \
 	} while (0)
 
@@ -318,10 +317,9 @@ struct BList *real_to_str(double num);
 void get_fun_signature_considering_args(struct PList *os, struct GlobVar *var);
 void get_global_signature(struct GlobVar *var);
 int are_types_equal(struct TypeExpr *, struct TypeExpr *);
-void check_list_of_args_on_uniq_names(struct Fpfc *f, struct PList *l,
-									  uint32_t start_index);
-void check_list_of_args_on_name(struct Fpfc *f, struct PList *l,
-								uint32_t from_arg, uint32_t from_name,
+void check_list_of_args_on_uniq_names(struct PList *l, uint32_t start_index);
+void check_list_of_args_on_name(struct PList *l, uint32_t from_arg,
+								uint32_t from_name,
 								struct Token *name_to_check);
 void check_list_of_vars_on_name(struct Pser *p, struct Token *name_to_check);
 

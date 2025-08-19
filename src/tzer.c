@@ -20,7 +20,7 @@ struct Tzer *new_tzer(char *filename) {
 
 	FILE *file = fopen(filename, "r");
 	if (!file) // TODO: this err doesnt works good
-		ee(f, p, "ОШИБКА В ОТКРЫТИИ ФАЙЛА");
+		ee(p, "ОШИБКА В ОТКРЫТИИ ФАЙЛА");
 
 	fseek(file, 0, SEEK_END);
 	long size = ftell(file);
@@ -395,7 +395,7 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 			view = naa(t, "<", 1, cp, LESS);
 		break;
 	default:
-		ee(t->f, t->p, SHOULD_BE_UNREACHABLE);
+		ee(t->p, SHOULD_BE_UNREACHABLE);
 	}
 
 	token->view = view;

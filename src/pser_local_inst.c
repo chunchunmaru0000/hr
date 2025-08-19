@@ -7,7 +7,7 @@ enum IP_Code pser_local_inst_let(struct Pser *p, struct PList *os) {
 	struct Arg *arg;
 	uint32_t i, j;
 
-	expect(p, absorb(p), PAR_L);
+	expect(absorb(p), PAR_L);
 	parse_args(p, os);
 
 	for (i = 0; i < os->size; i++) {
@@ -38,7 +38,7 @@ enum IP_Code pser_local_inst_label(struct Pser *p, struct PList *os,
 //   _ - label name token
 enum IP_Code pser_local_inst_goto(struct Pser *p, struct PList *os) {
 	struct Token *name = absorb(p);
-	match(p, name, ID);
+	match(name, ID);
 	plist_add(os, name);
 	return IP_GOTO;
 }
@@ -82,7 +82,7 @@ struct Inst *get_local_inst(struct Pser *p) {
 		if (code != IP_NONE)
 			break;
 	default:
-		eet(p->f, c, "ээээ ты че", 0);
+		eet(c, "ээээ ты че", 0);
 	}
 	// 	expression,
 	//
