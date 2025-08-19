@@ -7,8 +7,8 @@
 #define foreach_end }
 
 void pre(struct Prep *pr, struct PList *final_tokens);
-struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c);
-struct NodeToken *gen_node_tokens(struct Prep *pr, struct PList *tokens);
+struct NodeToken *take_applyed_next(struct NodeToken *c);
+struct NodeToken *gen_node_tokens(struct PList *tokens);
 const char *const STR_INCLUDE = "влечь";
 
 const char *const WASNT_EXPECTING_EOF = "Неожиданно встречен конец файла.";
@@ -26,29 +26,27 @@ const char *const EXPECTED_ID_AS_MACRO_ARG =
 const char *const EXPECTED_ID_AS_MACRO_NAME =
 	"Ожидалось слово в качестве имени для макро.";
 
-struct NodeToken *try_include(struct Prep *pr, struct NodeToken *prev,
-							  struct Token *path) {
+struct NodeToken *try_include(struct NodeToken *prev, struct Token *path) {
 	struct BList *included_path;
 	uint32_t i;
 	struct Tzer *tzer;
 	struct PList *new_tokens;
 	struct NodeToken *new_head;
 
-	foreach_begin(included_path, pr->included_files);
+	foreach_begin(included_path, included_files);
 	// here compare token str cuz view has "
 	if (sc(ss(path), (char *)included_path->st))
 		return 0;
 	foreach_end;
 
 	included_path = path->str;
-	plist_add(pr->included_files, included_path);
+	plist_add(included_files, included_path);
 
 	tzer = new_tzer((char *)included_path->st);
 	new_tokens = tze(tzer, 128);
-	free(tzer);
-	// here need to preprocess tokens
+	new_head = gen_node_tokens(new_tokens);
 
-	new_head = gen_node_tokens(pr, new_tokens);
+	free(tzer);
 	plist_free(new_tokens);
 
 	new_head->prev = prev;
@@ -68,8 +66,8 @@ struct NodeToken *try_include(struct Prep *pr, struct NodeToken *prev,
 		exit(19);
 }
 
-struct NodeToken *try_parse_include(struct Prep *pr, struct NodeToken *prev,
-									struct PList *tokens, uint32_t i) {
+struct NodeToken *try_parse_include(struct NodeToken *prev,	struct PList *tokens, 
+									uint32_t i) {
 	struct Token *token;
 
 	token = plist_get(tokens, i);
@@ -84,10 +82,10 @@ struct NodeToken *try_parse_include(struct Prep *pr, struct NodeToken *prev,
 	if (token->code != STR)
 		eet(pr->f, token, EXPECTED_STR_AS_AN_INCLUDE_PATH, 0);
 
-	return try_include(pr, prev, token);
+	return try_include(prev, token);
 }
 
-struct NodeToken *gen_node_tokens(struct Prep *pr, struct PList *tokens) {
+struct NodeToken *gen_node_tokens(struct PList *tokens) {
 	struct NodeToken *head = malloc(sizeof(struct NodeToken));
 	struct NodeToken *cur = head, *prev = 0;
 	uint32_t i;
@@ -97,7 +95,7 @@ struct NodeToken *gen_node_tokens(struct Prep *pr, struct PList *tokens) {
 	head->next = 0;
 	prev = head;
 	for (i = 1; i < tokens->size; i++) {
-		cur = try_parse_include(pr, prev, tokens, i);
+		cur = try_parse_include(prev, tokens, i);
 		if (cur) {
 			prev = cur;
 			i += 2; // skip 'влечь' and string path literal
@@ -115,16 +113,24 @@ struct NodeToken *gen_node_tokens(struct Prep *pr, struct PList *tokens) {
 	return head;
 }
 
-void preprocess(struct Pser *p) {
+struct PList *included_files = 0;
+
+struct PList *preprocess(struct Tzer *tzer) {
 	struct Prep *pr = malloc(sizeof(struct Prep));
-	pr->f = p->f;
-	pr->included_files = new_plist(8);
-	pr->head = gen_node_tokens(pr, p->ts);
+	pr->f = tzer->f;
 	pr->defines = new_plist(10);
 	pr->macros = new_plist(10);
+	if (included_files == 0)
+		included_files = new_plist(8);
 
-	p->ts->size = 0;
-	pre(pr, p->ts);
+	struct PList *tokens = tze(tzer, 128);
+	free(tzer);
+
+	pr->head = gen_node_tokens(tokens);
+	tokens->size = 0;
+	pre(pr, tokens);
+
+	return tokens;
 }
 
 struct NodeToken *take_guaranteed_next(struct Prep *pr, struct NodeToken *n) {

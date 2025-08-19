@@ -7,8 +7,11 @@ int main() {
 	char *filename = "тест.ср";
 	char *outname = "тест.асм";
 
-	struct Pser *p = new_pser(filename, 1);
-	preprocess(p);
+	struct Tzer *t = new_tzer(filename);
+	struct Fpfc *f = t->f;
+	struct PList *tokens = preprocess(t); // tzer freed in here
+	
+	struct Pser *p = new_pser(f, tokens, filename, 1);
 	struct Gner *g = new_gner(p, T_Асм_Linux_64, 1);
 	gen(g);
 

@@ -2,15 +2,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-struct Pser *new_pser(char *filename, uc debug) {
+struct Pser *new_pser(struct Fpfc *f, struct PList *tokens, 
+					  char *filename, uc debug) {
 	struct Pser *p = malloc(sizeof(struct Pser));
-	struct Tzer *t = new_tzer(filename);
-	p->f = t->f;
-
-	struct PList *ts = tze(t, 128);
-	free(t);
+	p->f = f;
 	p->pos = 0;
-	p->ts = ts;
+	p->ts = tokens;
 	p->debug = debug;
 
 	p->errors = new_plist(2);
