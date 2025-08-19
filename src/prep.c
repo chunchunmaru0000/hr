@@ -27,6 +27,8 @@ const char *const EXPECTED_ID_AS_MACRO_ARG =
 const char *const EXPECTED_ID_AS_MACRO_NAME =
 	"Ожидалось слово в качестве имени для макро.";
 
+#define ALREADY_INCLUDED -1
+
 struct NodeToken *try_include(struct NodeToken *prev, struct Token *path) {
 	struct BList *included_path;
 	uint32_t i;
@@ -37,7 +39,7 @@ struct NodeToken *try_include(struct NodeToken *prev, struct Token *path) {
 	foreach_begin(included_path, included_files);
 	// here compare token str cuz view has "
 	if (sc(ss(path), (char *)included_path->st))
-		return 0;
+		return (void *)ALREADY_INCLUDED;
 	foreach_end;
 
 	included_path = path->str;
@@ -45,11 +47,13 @@ struct NodeToken *try_include(struct NodeToken *prev, struct Token *path) {
 
 	tzer = new_tzer((char *)included_path->st);
 	new_tokens = tze(tzer, 128);
+	printf("# gen_node_tokens in %s\n", vs(path));
 	new_head = gen_node_tokens(new_tokens);
 
 	free(tzer);
 	plist_free(new_tokens);
 
+	printf("# after gen_node_tokens in %s with head of %p\n", vs(path), new_head);
 	new_head->prev = prev;
 	if (prev)
 		prev->next = new_head;
@@ -87,26 +91,38 @@ struct NodeToken *try_parse_include(struct NodeToken *prev,
 }
 
 struct NodeToken *gen_node_tokens(struct PList *tokens) {
-	struct NodeToken *head = malloc(sizeof(struct NodeToken));
+	struct NodeToken *head; // = malloc(sizeof(struct NodeToken));
 	struct NodeToken *cur = head, *prev = 0;
 	uint32_t i;
 
-	head->token = plist_get(tokens, 0);
-	head->prev = 0;
-	head->next = 0;
-	prev = head;
-	for (i = 1; i < tokens->size; i++) {
+	// head->token = plist_get(tokens, 0);
+	// head->prev = 0;
+	// head->next = 0;
+	// prev = head;
+	for (i = 0; i < tokens->size; i++) {
+		printf("\t# included %d\n", i);
 		cur = try_parse_include(prev, tokens, i);
+		printf("# included %p\n", cur);
+
+		if (cur == 0)
+			goto just_token;
+		if (cur == (void *)ALREADY_INCLUDED)
+			goto skip_include;
 		if (cur) {
 			prev = cur;
+		skip_include:
 			i += 2; // skip 'влечь' and string path literal
 			continue;
 		}
 
+	just_token:
 		cur = malloc(sizeof(struct NodeToken));
 		cur->token = plist_get(tokens, i);
 		cur->prev = prev;
-		prev->next = cur;
+		if (!prev)
+			head = prev;
+		else
+			prev->next = cur;
 		prev = cur;
 	}
 	cur->next = 0;
