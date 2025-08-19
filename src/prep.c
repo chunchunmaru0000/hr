@@ -7,8 +7,9 @@
 #define foreach_end }
 
 void pre(struct Prep *pr, struct PList *final_tokens);
-struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c);
-struct NodeToken *gen_node_tokens(struct Prep *pr, struct PList *tokens);
+struct NodeToken *take_applyed_next(struct NodeToken *c);
+struct NodeToken *gen_node_tokens(struct PList *tokens);
+void replace_token(struct Token *dst, struct Token *src);
 const char *const STR_INCLUDE = "влечь";
 
 const char *const WASNT_EXPECTING_EOF = "Неожиданно встречен конец файла.";
@@ -26,29 +27,27 @@ const char *const EXPECTED_ID_AS_MACRO_ARG =
 const char *const EXPECTED_ID_AS_MACRO_NAME =
 	"Ожидалось слово в качестве имени для макро.";
 
-struct NodeToken *try_include(struct Prep *pr, struct NodeToken *prev,
-							  struct Token *path) {
+struct NodeToken *try_include(struct NodeToken *prev, struct Token *path) {
 	struct BList *included_path;
 	uint32_t i;
 	struct Tzer *tzer;
 	struct PList *new_tokens;
 	struct NodeToken *new_head;
 
-	foreach_begin(included_path, pr->included_files);
+	foreach_begin(included_path, included_files);
 	// here compare token str cuz view has "
 	if (sc(ss(path), (char *)included_path->st))
 		return 0;
 	foreach_end;
 
 	included_path = path->str;
-	plist_add(pr->included_files, included_path);
+	plist_add(included_files, included_path);
 
 	tzer = new_tzer((char *)included_path->st);
 	new_tokens = tze(tzer, 128);
-	free(tzer);
-	// here need to preprocess tokens
+	new_head = gen_node_tokens(new_tokens);
 
-	new_head = gen_node_tokens(pr, new_tokens);
+	free(tzer);
 	plist_free(new_tokens);
 
 	new_head->prev = prev;
@@ -68,8 +67,8 @@ struct NodeToken *try_include(struct Prep *pr, struct NodeToken *prev,
 		exit(19);
 }
 
-struct NodeToken *try_parse_include(struct Prep *pr, struct NodeToken *prev,
-									struct PList *tokens, uint32_t i) {
+struct NodeToken *try_parse_include(struct NodeToken *prev,	struct PList *tokens, 
+									uint32_t i) {
 	struct Token *token;
 
 	token = plist_get(tokens, i);
@@ -84,10 +83,10 @@ struct NodeToken *try_parse_include(struct Prep *pr, struct NodeToken *prev,
 	if (token->code != STR)
 		eet(pr->f, token, EXPECTED_STR_AS_AN_INCLUDE_PATH, 0);
 
-	return try_include(pr, prev, token);
+	return try_include(prev, token);
 }
 
-struct NodeToken *gen_node_tokens(struct Prep *pr, struct PList *tokens) {
+struct NodeToken *gen_node_tokens(struct PList *tokens) {
 	struct NodeToken *head = malloc(sizeof(struct NodeToken));
 	struct NodeToken *cur = head, *prev = 0;
 	uint32_t i;
@@ -97,7 +96,7 @@ struct NodeToken *gen_node_tokens(struct Prep *pr, struct PList *tokens) {
 	head->next = 0;
 	prev = head;
 	for (i = 1; i < tokens->size; i++) {
-		cur = try_parse_include(pr, prev, tokens, i);
+		cur = try_parse_include(prev, tokens, i);
 		if (cur) {
 			prev = cur;
 			i += 2; // skip 'влечь' and string path literal
@@ -115,16 +114,24 @@ struct NodeToken *gen_node_tokens(struct Prep *pr, struct PList *tokens) {
 	return head;
 }
 
-void preprocess(struct Pser *p) {
+struct PList *included_files = 0;
+
+struct PList *preprocess(struct Tzer *tzer) {
 	struct Prep *pr = malloc(sizeof(struct Prep));
-	pr->f = p->f;
-	pr->included_files = new_plist(8);
-	pr->head = gen_node_tokens(pr, p->ts);
+	pr->f = tzer->f;
 	pr->defines = new_plist(10);
 	pr->macros = new_plist(10);
+	if (included_files == 0)
+		included_files = new_plist(8);
 
-	p->ts->size = 0;
-	pre(pr, p->ts);
+	struct PList *tokens = tze(tzer, 128);
+	free(tzer);
+
+	pr->head = gen_node_tokens(tokens);
+	tokens->size = 0;
+	pre(pr, tokens);
+
+	return tokens;
 }
 
 struct NodeToken *take_guaranteed_next(struct Prep *pr, struct NodeToken *n) {
@@ -143,6 +150,17 @@ void free_node_token(struct NodeToken *n) {
 struct NodeToken *clone_node_token(struct NodeToken *src) {
 	struct NodeToken *dst = malloc(sizeof(struct NodeToken));
 	memcpy(dst, src, sizeof(struct NodeToken));
+	return dst;
+}
+
+struct NodeToken *deep_clone_token(struct Token *src, struct Pos *pos) {
+	struct Token *dst = malloc(sizeof(struct Token));
+
+	dst->view = 0;
+	dst->str = 0;
+	replace_token(dst, src);
+	dst->pos = pos;
+	
 	return dst;
 }
 
@@ -174,8 +192,10 @@ struct NodeToken *cut_off_inclusive(struct NodeToken *fst,
 void replace_token(struct Token *dst, struct Token *src) {
 	dst->code = src->code;
 	// pos stays same
-	blist_clear_free(dst->view);
+	if (dst->view)
+		blist_clear_free(dst->view);
 	dst->view = copy_str(src->view);
+
 	if (dst->str)
 		blist_clear_free(dst->str);
 	dst->str = src->str ? copy_str(src->str) : 0;
@@ -184,13 +204,51 @@ void replace_token(struct Token *dst, struct Token *src) {
 	dst->real = src->real;
 }
 
-void replace_inclusive(struct NodeToken *place, struct NodeToken *fst,
+void copy_nodes(struct Pos *place_pos, 
+				struct NodeToken *src_fst, struct NodeToken *src_lst,
+				struct NodeToken **dst_fst, struct NodeToken **dst_lst) {
+	struct NodeToken *copy_head, *prev_copy;
+
+	// here need to copy token so it will have pos of a place
+	copy_head = clone_node_token(src_fst);
+	copy_head->token = deep_clone_token(src_fst->token, place_pos);
+	prev_copy = copy_head;
+	
+	for (src_fst = src_fst->next; src_fst != src_lst; src_fst = src_fst->next) {	
+		fst_copy = clone_node_token(src_fst);
+		fst_copy->token = deep_clone_token(src_fst->token, place_pos);
+		fst_copy->prev = prev_copy;
+		prev_copy->next = fst_copy;
+
+		prev_copy = fst_copy;
+	}
+	fst_copy = clone_node_token(src_lst);
+	fst_copy->token = deep_clone_token(src_lst->token, place_pos);
+	fst_copy->prev = prev_copy;
+	prev_copy->next = fst_copy;
+
+	*dst_fst = copy_head;
+	*dst_lst = fst_copy;
+}
+
+struct NodeToken *replace_inclusive(struct NodeToken *place, struct NodeToken *fst,
 					   struct NodeToken *lst) {
 	if (fst == lst) {
 		replace_token(place->token, fst->token);
-		return;
+		return place;
 	}
-	exit(199);
+
+	struct NodeToken *fst_copy, *lst_copy;
+	copy_nodes(place->token->pos, fst, lst, &fst_copy, &lst_copy);
+	
+	place->prev->next = fst_copy;
+	fst_copy->prev = place->prev;
+
+	place->next->prev = lst_copy;
+	lst_copy->next = place->next;
+
+	free_node_token(place);
+	return fst_copy;
 }
 
 struct NodeToken *parse_vot(struct Prep *pr, struct NodeToken *c) {
@@ -317,7 +375,7 @@ struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c) {
 		if (macro->args) {
 			exit(200); // call_macro(pr, c, macro);
 		} else {
-			replace_inclusive(c, macro->fst, macro->lst);
+			c = replace_inclusive(c, macro->fst, macro->lst);
 		}
 		return take_applyed_next(pr, c);
 	}

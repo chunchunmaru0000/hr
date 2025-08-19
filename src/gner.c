@@ -35,7 +35,7 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 	g->tmp_blist = 0;
 
 	// struct PList *ts; // tokens
-	plist_free(p->local_vars);
+	plist_free(p->local_vars); // TODO: think about lists things
 	plist_free(p->errors);
 	plist_free(p->warns);
 	free(p);

@@ -27,7 +27,6 @@ struct Macro {
 
 struct Prep {
 	struct Fpfc *f;
-	struct PList *included_files; // list of BLists
 	struct NodeToken *head;
 
 
@@ -35,4 +34,5 @@ struct Prep {
 	struct PList *macros;
 };
 
-void preprocess(struct Pser *p);
+extern struct PList *included_files; // list of BLists
+struct PList *preprocess(struct Tzer *tzer);
