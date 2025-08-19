@@ -18,7 +18,6 @@ struct Tzer *new_tzer(char *filename) {
 	p->col = 1;
 	t->pos = 0;
 
-	printf("%s\n", filename);
 	FILE *file = fopen(filename, "r");
 	if (!file) // TODO: this err doesnt works good
 		ee(f, p, "ОШИБКА В ОТКРЫТИИ ФАЙЛА");

@@ -46,6 +46,7 @@ struct NodeToken *try_include(struct Prep *pr, struct NodeToken *prev,
 	tzer = new_tzer((char *)included_path->st);
 	new_tokens = tze(tzer, 128);
 	free(tzer);
+	// here need to preprocess tokens
 
 	new_head = gen_node_tokens(pr, new_tokens);
 	plist_free(new_tokens);
