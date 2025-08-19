@@ -9,6 +9,7 @@
 void pre(struct Prep *pr, struct PList *final_tokens);
 struct NodeToken *take_applyed_next(struct NodeToken *c);
 struct NodeToken *gen_node_tokens(struct PList *tokens);
+void replace_token(struct Token *dst, struct Token *src);
 const char *const STR_INCLUDE = "влечь";
 
 const char *const WASNT_EXPECTING_EOF = "Неожиданно встречен конец файла.";
@@ -152,6 +153,17 @@ struct NodeToken *clone_node_token(struct NodeToken *src) {
 	return dst;
 }
 
+struct NodeToken *deep_clone_token(struct Token *src, struct Pos *pos) {
+	struct Token *dst = malloc(sizeof(struct Token));
+
+	dst->view = 0;
+	dst->str = 0;
+	replace_token(dst, src);
+	dst->pos = pos;
+	
+	return dst;
+}
+
 // lst is guaranteed
 struct NodeToken *cut_off_inclusive(struct NodeToken *fst,
 									struct NodeToken *lst) {
@@ -180,8 +192,10 @@ struct NodeToken *cut_off_inclusive(struct NodeToken *fst,
 void replace_token(struct Token *dst, struct Token *src) {
 	dst->code = src->code;
 	// pos stays same
-	blist_clear_free(dst->view);
+	if (dst->view)
+		blist_clear_free(dst->view);
 	dst->view = copy_str(src->view);
+
 	if (dst->str)
 		blist_clear_free(dst->str);
 	dst->str = src->str ? copy_str(src->str) : 0;
@@ -190,13 +204,51 @@ void replace_token(struct Token *dst, struct Token *src) {
 	dst->real = src->real;
 }
 
-void replace_inclusive(struct NodeToken *place, struct NodeToken *fst,
+void copy_nodes(struct Pos *place_pos, 
+				struct NodeToken *src_fst, struct NodeToken *src_lst,
+				struct NodeToken **dst_fst, struct NodeToken **dst_lst) {
+	struct NodeToken *copy_head, *prev_copy;
+
+	// here need to copy token so it will have pos of a place
+	copy_head = clone_node_token(src_fst);
+	copy_head->token = deep_clone_token(src_fst->token, place_pos);
+	prev_copy = copy_head;
+	
+	for (src_fst = src_fst->next; src_fst != src_lst; src_fst = src_fst->next) {	
+		fst_copy = clone_node_token(src_fst);
+		fst_copy->token = deep_clone_token(src_fst->token, place_pos);
+		fst_copy->prev = prev_copy;
+		prev_copy->next = fst_copy;
+
+		prev_copy = fst_copy;
+	}
+	fst_copy = clone_node_token(src_lst);
+	fst_copy->token = deep_clone_token(src_lst->token, place_pos);
+	fst_copy->prev = prev_copy;
+	prev_copy->next = fst_copy;
+
+	*dst_fst = copy_head;
+	*dst_lst = fst_copy;
+}
+
+struct NodeToken *replace_inclusive(struct NodeToken *place, struct NodeToken *fst,
 					   struct NodeToken *lst) {
 	if (fst == lst) {
 		replace_token(place->token, fst->token);
-		return;
+		return place;
 	}
-	exit(199);
+
+	struct NodeToken *fst_copy, *lst_copy;
+	copy_nodes(place->token->pos, fst, lst, &fst_copy, &lst_copy);
+	
+	place->prev->next = fst_copy;
+	fst_copy->prev = place->prev;
+
+	place->next->prev = lst_copy;
+	lst_copy->next = place->next;
+
+	free_node_token(place);
+	return fst_copy;
 }
 
 struct NodeToken *parse_vot(struct Prep *pr, struct NodeToken *c) {
@@ -323,7 +375,7 @@ struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c) {
 		if (macro->args) {
 			exit(200); // call_macro(pr, c, macro);
 		} else {
-			replace_inclusive(c, macro->fst, macro->lst);
+			c = replace_inclusive(c, macro->fst, macro->lst);
 		}
 		return take_applyed_next(pr, c);
 	}

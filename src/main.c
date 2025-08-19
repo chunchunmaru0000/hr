@@ -4,6 +4,9 @@
 uc NEED_WARN = 1;
 
 int main() {
+	printf("ALL TOKENS NEED TO IMPLEMENT f IN THEIR pos FROM NOW");
+	exit(2);
+
 	char *filename = "тест.ср";
 	char *outname = "тест.асм";
 
