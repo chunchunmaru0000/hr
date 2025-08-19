@@ -15,6 +15,7 @@ struct Fpfc { // File Path File Code
 struct Pos {
 	uint32_t line;
 	uint32_t col;
+	struct Fpfc *f;
 };
 
 enum TCode {

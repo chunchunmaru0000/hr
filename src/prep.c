@@ -7,7 +7,7 @@
 #define foreach_end }
 
 void pre(struct Prep *pr, struct PList *final_tokens);
-struct NodeToken *take_applyed_next(struct NodeToken *c);
+struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c);
 struct NodeToken *gen_node_tokens(struct PList *tokens);
 void replace_token(struct Token *dst, struct Token *src);
 const char *const STR_INCLUDE = "влечь";
@@ -67,8 +67,8 @@ struct NodeToken *try_include(struct NodeToken *prev, struct Token *path) {
 		exit(19);
 }
 
-struct NodeToken *try_parse_include(struct NodeToken *prev,	struct PList *tokens, 
-									uint32_t i) {
+struct NodeToken *try_parse_include(struct NodeToken *prev,
+									struct PList *tokens, uint32_t i) {
 	struct Token *token;
 
 	token = plist_get(tokens, i);
@@ -81,7 +81,7 @@ struct NodeToken *try_parse_include(struct NodeToken *prev,	struct PList *tokens
 
 	token = plist_get(tokens, ++i);
 	if (token->code != STR)
-		eet(pr->f, token, EXPECTED_STR_AS_AN_INCLUDE_PATH, 0);
+		eet(token->p->f, token, EXPECTED_STR_AS_AN_INCLUDE_PATH, 0);
 
 	return try_include(prev, token);
 }
@@ -153,14 +153,14 @@ struct NodeToken *clone_node_token(struct NodeToken *src) {
 	return dst;
 }
 
-struct NodeToken *deep_clone_token(struct Token *src, struct Pos *pos) {
+struct Token *deep_clone_token(struct Token *src, struct Pos *pos) {
 	struct Token *dst = malloc(sizeof(struct Token));
 
 	dst->view = 0;
 	dst->str = 0;
 	replace_token(dst, src);
-	dst->pos = pos;
-	
+	dst->p = pos;
+
 	return dst;
 }
 
@@ -204,17 +204,17 @@ void replace_token(struct Token *dst, struct Token *src) {
 	dst->real = src->real;
 }
 
-void copy_nodes(struct Pos *place_pos, 
-				struct NodeToken *src_fst, struct NodeToken *src_lst,
-				struct NodeToken **dst_fst, struct NodeToken **dst_lst) {
-	struct NodeToken *copy_head, *prev_copy;
+void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
+				struct NodeToken *src_lst, struct NodeToken **dst_fst,
+				struct NodeToken **dst_lst) {
+	struct NodeToken *copy_head, *prev_copy, *fst_copy;
 
 	// here need to copy token so it will have pos of a place
 	copy_head = clone_node_token(src_fst);
 	copy_head->token = deep_clone_token(src_fst->token, place_pos);
 	prev_copy = copy_head;
-	
-	for (src_fst = src_fst->next; src_fst != src_lst; src_fst = src_fst->next) {	
+
+	for (src_fst = src_fst->next; src_fst != src_lst; src_fst = src_fst->next) {
 		fst_copy = clone_node_token(src_fst);
 		fst_copy->token = deep_clone_token(src_fst->token, place_pos);
 		fst_copy->prev = prev_copy;
@@ -231,16 +231,17 @@ void copy_nodes(struct Pos *place_pos,
 	*dst_lst = fst_copy;
 }
 
-struct NodeToken *replace_inclusive(struct NodeToken *place, struct NodeToken *fst,
-					   struct NodeToken *lst) {
+struct NodeToken *replace_inclusive(struct NodeToken *place,
+									struct NodeToken *fst,
+									struct NodeToken *lst) {
 	if (fst == lst) {
 		replace_token(place->token, fst->token);
 		return place;
 	}
 
 	struct NodeToken *fst_copy, *lst_copy;
-	copy_nodes(place->token->pos, fst, lst, &fst_copy, &lst_copy);
-	
+	copy_nodes(place->token->p, fst, lst, &fst_copy, &lst_copy);
+
 	place->prev->next = fst_copy;
 	fst_copy->prev = place->prev;
 

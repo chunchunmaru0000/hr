@@ -104,8 +104,6 @@ enum IP_Code {
 	// any level
 	IP_ASM,
 	// global level
-	IP_INCLUDE,
-	IP_DEFINE,
 	IP_DECLARE_ENUM,
 	IP_DECLARE_STRUCT,
 	IP_DECLARE_FUNCTION,

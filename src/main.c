@@ -4,27 +4,24 @@
 uc NEED_WARN = 1;
 
 int main() {
-	printf("ALL TOKENS NEED TO IMPLEMENT f IN THEIR pos FROM NOW");
-	exit(2);
-
 	char *filename = "тест.ср";
 	char *outname = "тест.асм";
 
 	struct Tzer *t = new_tzer(filename);
 	struct Fpfc *f = t->f;
 	struct PList *tokens = preprocess(t); // tzer freed in here
-	
+
 	struct Pser *p = new_pser(f, tokens, filename, 1);
 	struct Gner *g = new_gner(p, T_Асм_Linux_64, 1);
 	gen(g);
 
 	long bytes = g->bprol->size + g->prol->size + g->text->size;
-	FILE *f = fopen(outname, "wb");
-	fwrite(g->bprol->st, 1, g->bprol->size, f);
-	fwrite(g->prol->st, 1, g->prol->size, f);
-	fwrite(g->aprol->st, 1, g->aprol->size, f);
-	fwrite(g->text->st, 1, g->text->size, f);
-	fclose(f);
+	FILE *file = fopen(outname, "wb");
+	fwrite(g->bprol->st, 1, g->bprol->size, file);
+	fwrite(g->prol->st, 1, g->prol->size, file);
+	fwrite(g->aprol->st, 1, g->aprol->size, file);
+	fwrite(g->text->st, 1, g->text->size, file);
+	fclose(file);
 
 	printf("В файл [%s] записано %ld байт", outname, bytes);
 	int end = bytes % 10;

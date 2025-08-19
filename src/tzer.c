@@ -464,6 +464,7 @@ struct Token *new_token(struct Tzer *t) {
 	struct Pos *p = malloc(sizeof(struct Pos));
 	p->line = t->p->line;
 	p->col = t->p->col;
+	p->f = t->f;
 	token->p = p;
 	token->str = 0;
 

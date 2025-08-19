@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-struct Pser *new_pser(struct Fpfc *f, struct PList *tokens, 
-					  char *filename, uc debug) {
+struct Pser *new_pser(struct Fpfc *f, struct PList *tokens, char *filename,
+					  uc debug) {
 	struct Pser *p = malloc(sizeof(struct Pser));
 	p->f = f;
 	p->pos = 0;
@@ -299,27 +299,10 @@ struct Inst *get_global_inst(struct Pser *p) {
 	//	IP_DECLARE_FUNCTION body,
 	//
 	//	IP_DEFINE
-	//	IP_INCLUDE
 	//	global IP_DECLARE_LABEL, // like seem to be meaningless
 	//	global IP_GOTO,
 
 	return new_inst(p, code, os, cur);
-}
-
-void include_in_is(struct Pser *p, struct PList *is, struct Inst *i) {
-	struct Token *path = plist_get(i->os, 0);
-	blist_add(path->str, 0); // string 0 terminator
-
-	struct Pser *tmp_p = new_pser(ss(path), p->debug);
-	plist_free(tmp_p->enums);
-	tmp_p->enums = p->enums;
-	struct PList *inc = pse(tmp_p);
-
-	for (uint32_t j = 0; j < inc->size; j++)
-		plist_add(is, plist_get(inc, j));
-
-	free(tmp_p);
-	free(inc);
 }
 
 struct PList *pse(struct Pser *p) {
@@ -327,9 +310,7 @@ struct PList *pse(struct Pser *p) {
 
 	struct Inst *i = get_global_inst(p);
 	while (i->code != IP_EOI) {
-		if (i->code == IP_INCLUDE)
-			include_in_is(p, is, i);
-		else if (i->code != IP_NONE) {
+		if (i->code != IP_NONE) {
 			if (i->code == IP_DECLARE_STRUCT)
 				plist_add(parsed_structs, i);
 			plist_add(is, i);
