@@ -165,9 +165,14 @@ struct PList *preprocess(struct Tzer *tzer) {
 	pr->f = tzer->f;
 	pr->defines = new_plist(10);
 	pr->macros = new_plist(10);
-	if (included_files == 0)
-		included_files =
-			new_plist(8); // TODO: in here need to have source file path too
+
+	if (included_files == 0) {
+		// TODO: in here need to have source file path too
+		included_files = new_plist(8);
+		struct BList *source_path = blist_from_str(pr->f->path, strlen(pr->f->path));
+		convert_blist_to_blist_from_str(source_path);
+		plist_add(included_files, source_path);
+	}
 
 	struct PList *tokens = tze(tzer, 128);
 	free(tzer);
@@ -452,6 +457,5 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 
 	// collect tokens
 	for (c = pr->head; c; c = c->next)
-		plist_add(final_tokens,
-				  c->token); // TODO: check if its still have EF token
+		plist_add(final_tokens, c->token);
 }
