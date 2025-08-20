@@ -52,14 +52,12 @@ struct NodeToken *get_included_head(struct BList *included_path) {
 
 	tzer = new_tzer((char *)included_path->st);
 	new_tokens = tze(tzer, 128);
-
-	printf("# gen_node_tokens in %s with %d num of tokens\n",
-		   (char *)included_path->st, new_tokens->size);
-
+	// printf("# gen_node_tokens in %s with %d num of tokens\n",
+	// 	   (char *)included_path->st, new_tokens->size);
 	included_head = gen_node_tokens(new_tokens);
 
 	free(tzer);
-	plist_free(new_tokens);
+	plist_free(new_tokens); // here every EF token is lost
 	return included_head;
 }
 
@@ -71,8 +69,10 @@ struct NodeToken *try_include(struct NodeToken *prev, struct Token *path) {
 		return (void *)ALREADY_INCLUDED;
 
 	included_head = get_included_head(path_to_include);
-	printf("## got included_head with token %s, prev now is %p\n",
-		   vs(included_head->token), prev);
+	// printf("## got included_head with token %s, prev now is %p\n",
+	// 	   vs(included_head->token), prev);
+	if (included_head->token->code == EF)
+		return prev;
 
 	included_head->prev = prev;
 	if (prev)
@@ -81,12 +81,16 @@ struct NodeToken *try_include(struct NodeToken *prev, struct Token *path) {
 	// here need to return tail, cuz head already attached to the prev
 	// so it will proceed gen loop from the tail
 	// also need to skip EOF token in here
-	printf("## in %s with head of %s and next %s\n", vs(path), vs(included_head->token), vs(included_head->next->token));
+	// printf("## in %s with head of %s and next %s\n", vs(path),
+	// 	   vs(included_head->token), vs(included_head->next->token));
 	while (included_head->next && included_head->token->code != EF)
 		included_head = included_head->next;
-	printf("### after a while with head of %s and next %p\n", vs(included_head->token), included_head->next);
+	// printf("### after a while with head of %s and next %p\n",
+	// 	   vs(included_head->token), included_head->next);
 
 	if (included_head->token->code == EF) {
+		// printf("#### in %s returns head of %s\n", vs(path),
+		// 	   vs(included_head->prev->token));
 		// TODO: free new_head->new_head and its token
 		return included_head->prev;
 	} else
@@ -117,20 +121,20 @@ struct NodeToken *gen_node_tokens(struct PList *tokens) {
 	struct NodeToken *cur = head, *prev = 0;
 	uint32_t i;
 
-	// head->token = plist_get(tokens, 0);
-	// head->prev = 0;
-	// head->next = 0;
-	// prev = head;
 	for (i = 0; i < tokens->size; i++) {
-		// printf("\t# included %d\n", i);
 		cur = try_parse_include(prev, tokens, i);
-		// printf("# included %p\n", cur);
 
 		if (cur == 0)
 			goto just_token;
 		if (cur == (void *)ALREADY_INCLUDED)
 			goto skip_include;
 		if (cur) {
+			// printf("##### included with cur of %s\n", vs(cur->token));
+			if (prev == 0)
+				head = cur;
+			else if (prev != cur)
+				prev->next = cur;
+			// printf("##### head now is %s\n", vs(head->token));
 			prev = cur;
 		skip_include:
 			i += 2; // skip 'влечь' and string path literal
@@ -149,6 +153,8 @@ struct NodeToken *gen_node_tokens(struct PList *tokens) {
 	}
 	cur->next = 0;
 
+	// printf("###### returns from gen_node_tokens with head of %s\n",
+	// 	   vs(head->token));
 	return head;
 }
 
@@ -160,7 +166,8 @@ struct PList *preprocess(struct Tzer *tzer) {
 	pr->defines = new_plist(10);
 	pr->macros = new_plist(10);
 	if (included_files == 0)
-		included_files = new_plist(8);
+		included_files =
+			new_plist(8); // TODO: in here need to have source file path too
 
 	struct PList *tokens = tze(tzer, 128);
 	free(tzer);
@@ -445,5 +452,6 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 
 	// collect tokens
 	for (c = pr->head; c; c = c->next)
-		plist_add(final_tokens, c->token);
+		plist_add(final_tokens,
+				  c->token); // TODO: check if its still have EF token
 }
