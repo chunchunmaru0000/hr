@@ -158,6 +158,15 @@ struct NodeToken *gen_node_tokens(struct PList *tokens) {
 	return head;
 }
 
+void add_source_path(struct Fpfc *f) {
+	uint32_t path_len = strlen(f->path);
+	char *path_copy = malloc(path_len + 1);
+	memcpy(path_copy, f->path, path_len + 1);
+
+	struct BList *source_path = blist_from_str(path_copy, path_len + 1);
+	source_path->size--;
+	plist_add(included_files, source_path);
+}
 struct PList *included_files = 0;
 
 struct PList *preprocess(struct Tzer *tzer) {
@@ -167,11 +176,8 @@ struct PList *preprocess(struct Tzer *tzer) {
 	pr->macros = new_plist(10);
 
 	if (included_files == 0) {
-		// TODO: in here need to have source file path too
 		included_files = new_plist(8);
-		struct BList *source_path = blist_from_str(pr->f->path, strlen(pr->f->path));
-		convert_blist_to_blist_from_str(source_path);
-		plist_add(included_files, source_path);
+		add_source_path(pr->f);
 	}
 
 	struct PList *tokens = tze(tzer, 128);
