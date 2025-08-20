@@ -14,7 +14,7 @@ cat: ср
 	gner.c \
 		gner_global_Асм_Linux_x64.c \
 		gner_local_Асм_Linux_x64.c \
-	prep.c prep_gen.c \
+	prep.c prep_gen.c prep_se.c \
 	pser.c eep.c \
 		pser_type.c \
 		pser_global_inst.c pser_local_inst.c \
