@@ -3,16 +3,17 @@
 // here all token can be just guaranteed cuz they will be applyed
 // while in macro body, so no need to do it twice
 struct Nodes *parse_macro_arg_nodes(struct NodeToken *c) {
-	
+	return 0;
+	return 0;
 }
 
 const char *const EXPECTED_PAR_L_AFTER_MACRO_NAME =
 	"Ожидалась '(' после имени макро.";
-const char *const EXPECTED_PAR_L_AFTER_MACRO_NAME =
+const char *const EXPECTED_PAR_R_AFTER_MACRO_ARGS =
 	"Ожидалась ')' после аргументов макро.";
 
 struct PList *parse_macro_args_nodes(struct Prep *pr, struct NodeToken *c,
-							 		struct Macro *macro) {
+									 struct Macro *macro) {
 	struct PList *args_nodes = new_plist(macro->args->size);
 	uint32_t i;
 
@@ -25,7 +26,7 @@ struct PList *parse_macro_args_nodes(struct Prep *pr, struct NodeToken *c,
 
 	c = take_applyed_next(pr, c);
 	if (c->token->code != PAR_R)
-		eet(c->token, EXPECTED_PAR_RL_AFTER_MACRO_NAME, 0);
+		eet(c->token, EXPECTED_PAR_R_AFTER_MACRO_ARGS, 0);
 
 	return args_nodes;
 }
@@ -40,7 +41,7 @@ struct NodeToken *call_macro(struct Prep *pr, struct NodeToken *c,
 	if (fst_to_cut->prev)
 		fst_to_cut->prev->next = head;
 	head->prev = fst_to_cut;
-	
+
 	return head;
 }
 
@@ -49,9 +50,9 @@ struct NodeToken *parse_macro_args(struct Prep *pr, struct NodeToken *c,
 	struct MacroArg *arg;
 
 	macro->args = new_plist(4);
-	c = take_guaranteed_next(c); // skip '('
+	c = take_applyed_next(pr, c); // skip '('
 
-	for (; c->token->code != PAR_R; c = take_guaranteed_next(c)) {
+	for (; c->token->code != PAR_R; c = take_applyed_next(pr, c)) {
 		if (c->token->code != ID)
 			eet(c->token, EXPECTED_ID_AS_MACRO_ARG, 0);
 
@@ -62,7 +63,7 @@ struct NodeToken *parse_macro_args(struct Prep *pr, struct NodeToken *c,
 		plist_add(macro->args, arg);
 	}
 	// here c should be ')'
-	return take_guaranteed_next(c);
+	return take_applyed_next(pr, c);
 }
 
 void figure_out_if_its_arg(struct Macro *macro, struct NodeToken *node) {
