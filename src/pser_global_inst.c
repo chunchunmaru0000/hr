@@ -1,14 +1,23 @@
 #include "pser.h"
 #include <stdint.h>
 
+const char *const EXPECTED_STR_GLOB_EXPR_AS_ASM_ARG =
+	"Глобальная инструкция ассемблера в качестве аргумента принимает только "
+	"выражение строки или указателя на нее.";
+
 // ### os explanation:
 //   _ - assembly string token
 enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os) {
-	struct Token *code = absorb(p);
+	struct Token *str_expr_token = absorb(p);
 
-	match(code, STR);
+	struct GlobExpr *str = global_expression(p);
+	if (str->code != CT_STR && str->code != CT_STR_PTR)
+		eet(str_expr_token, EXPECTED_STR_GLOB_EXPR_AS_ASM_ARG, 0);
 
-	plist_add(os, code);
+	str_expr_token = str->tvar;
+	free(str);
+
+	plist_add(os, str_expr_token);
 	return IP_ASM;
 }
 
