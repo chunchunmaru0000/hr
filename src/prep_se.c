@@ -1,17 +1,47 @@
 #include "prep.h"
 
+// here all token can be just guaranteed cuz they will be applyed
+// while in macro body, so no need to do it twice
+struct Nodes *parse_macro_arg_nodes(struct NodeToken *c) {
+	
+}
+
 const char *const EXPECTED_PAR_L_AFTER_MACRO_NAME =
 	"Ожидалась '(' после имени макро.";
+const char *const EXPECTED_PAR_L_AFTER_MACRO_NAME =
+	"Ожидалась ')' после аргументов макро.";
 
-struct NodeToken *call_macro(struct Prep *pr, struct NodeToken *c,
-							 struct Macro *macro) {
-	struct NodeToken *fst = c;
+struct PList *parse_macro_args_nodes(struct Prep *pr, struct NodeToken *c,
+							 		struct Macro *macro) {
+	struct PList *args_nodes = new_plist(macro->args->size);
+	uint32_t i;
 
 	c = take_applyed_next(pr, c);
 	if (c->token->code != PAR_L)
 		eet(c->token, EXPECTED_PAR_L_AFTER_MACRO_NAME, 0);
 
+	for (i = 0; i < macro->args->size; i++)
+		plist_add(args_nodes, parse_macro_arg_nodes(c));
+
+	c = take_applyed_next(pr, c);
+	if (c->token->code != PAR_R)
+		eet(c->token, EXPECTED_PAR_RL_AFTER_MACRO_NAME, 0);
+
+	return args_nodes;
+}
+
+struct NodeToken *call_macro(struct Prep *pr, struct NodeToken *c,
+							 struct Macro *macro) {
+	struct NodeToken *fst_to_cut = c, *lst_to_cut, *head;
+	struct PList *args_nodes = parse_macro_args_nodes(pr, c, macro);
+
+	// here apply args nodes to args usages
+
+	if (fst_to_cut->prev)
+		fst_to_cut->prev->next = head;
+	head->prev = fst_to_cut;
 	
+	return head;
 }
 
 struct NodeToken *parse_macro_args(struct Prep *pr, struct NodeToken *c,
@@ -51,6 +81,7 @@ void figure_out_if_its_arg(struct Macro *macro, struct NodeToken *node) {
 struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
 									struct Macro *macro) {
 	struct NodeToken *clone, *clone_prev;
+	macro->body = malloc(sizeof(struct NodeToken));
 
 	c = take_guaranteed_next(c); // skip '(#'
 
@@ -58,7 +89,7 @@ struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
 	clone = clone_node_token(c); // first is different
 	figure_out_if_its_arg(macro, clone);
 	clone->prev = 0;
-	macro->fst = clone;
+	macro->body->fst = clone;
 
 	clone_prev = clone;
 	c = take_applyed_next(pr, c);
@@ -71,7 +102,7 @@ struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
 		clone_prev = clone;
 	}
 	clone->next = 0;
-	macro->lst = clone;
+	macro->body->lst = clone;
 
 	return c; // need to return '#)' cuz it will be last
 }

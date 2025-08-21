@@ -145,6 +145,7 @@ void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
 	*dst_fst = copy_head;
 	*dst_lst = fst_copy;
 }
+// #define copy_nodeses(place_pos, str, dst)
 
 struct NodeToken *replace_inclusive(struct NodeToken *place,
 									struct NodeToken *fst,
@@ -166,6 +167,8 @@ struct NodeToken *replace_inclusive(struct NodeToken *place,
 	free_node_token(place);
 	return fst_copy;
 }
+#define replace_nodes_inclusive(place, nodes) \
+	(replace_inclusive((place), (nodes)->fst, (nodes)->lst))
 
 struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c) {
 	struct Define *define;
@@ -184,8 +187,9 @@ struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c) {
 		if (macro->args) {
 			c = call_macro(pr, c, macro);
 		} else {
-			c = replace_inclusive(c, macro->fst, macro->lst);
+			c = replace_nodes_inclusive(c, macro->body);
 		}
+		// like its important cuz if new head also is kinda macro so
 		return take_applyed_next(pr, c);
 	}
 	foreach_end;
