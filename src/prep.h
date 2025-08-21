@@ -22,10 +22,11 @@ struct Define {
 	struct Token *replace;
 };
 
+// for macro you first copy its tree and then for every usage of arg
+// and then insert(replace inclusive) arg provided tokens in place of arg usage
 struct MacroArg {
 	struct Token *name;
-	struct PList *usages;
-	// place type PT_INSERT or PT_MERGE
+	struct PList *usages; // its plist of NodeTokens
 };
 
 struct Macro {
@@ -63,3 +64,5 @@ struct NodeToken *take_guaranteed_next(struct NodeToken *n);
 struct NodeToken *clone_node_token(struct NodeToken *src);
 
 struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c);
+struct NodeToken *call_macro(struct Prep *pr, struct NodeToken *c,
+							 struct Macro *macro);

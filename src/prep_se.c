@@ -1,5 +1,19 @@
 #include "prep.h"
 
+const char *const EXPECTED_PAR_L_AFTER_MACRO_NAME =
+	"Ожидалась '(' после имени макро.";
+
+struct NodeToken *call_macro(struct Prep *pr, struct NodeToken *c,
+							 struct Macro *macro) {
+	struct NodeToken *fst = c;
+
+	c = take_applyed_next(pr, c);
+	if (c->token->code != PAR_L)
+		eet(c->token, EXPECTED_PAR_L_AFTER_MACRO_NAME, 0);
+
+	
+}
+
 struct NodeToken *parse_macro_args(struct Prep *pr, struct NodeToken *c,
 								   struct Macro *macro) {
 	struct MacroArg *arg;
@@ -21,6 +35,19 @@ struct NodeToken *parse_macro_args(struct Prep *pr, struct NodeToken *c,
 	return take_guaranteed_next(c);
 }
 
+void figure_out_if_its_arg(struct Macro *macro, struct NodeToken *node) {
+	if (macro->args == 0)
+		return;
+
+	struct MacroArg *arg;
+	uint32_t i;
+
+	foreach_begin(arg, macro->args);
+	if (vc(node->token, arg->name))
+		plist_add(arg->usages, node);
+	foreach_end;
+}
+
 struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
 									struct Macro *macro) {
 	struct NodeToken *clone, *clone_prev;
@@ -29,6 +56,7 @@ struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
 
 	// here need to copy tree cuz it will be freed from final tokens
 	clone = clone_node_token(c); // first is different
+	figure_out_if_its_arg(macro, clone);
 	clone->prev = 0;
 	macro->fst = clone;
 
@@ -36,6 +64,7 @@ struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
 	c = take_applyed_next(pr, c);
 	for (; c->token->code != SH_R; c = take_applyed_next(pr, c)) {
 		clone = clone_node_token(c);
+		figure_out_if_its_arg(macro, clone);
 		clone->prev = clone_prev;
 		clone_prev->next = clone;
 

@@ -182,7 +182,7 @@ struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c) {
 	foreach_begin(macro, pr->macros);
 	if (vc(macro->name, c->token)) {
 		if (macro->args) {
-			exit(200); // call_macro(pr, c, macro);
+			c = call_macro(pr, c, macro);
 		} else {
 			c = replace_inclusive(c, macro->fst, macro->lst);
 		}
