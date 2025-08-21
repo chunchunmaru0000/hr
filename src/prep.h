@@ -22,6 +22,10 @@ struct Define {
 	struct Token *replace;
 };
 
+struct Nodes {
+	struct NodeToken *fst;
+	struct NodeToken *lst;
+}
 // for macro you first copy its tree and then for every usage of arg
 // and then insert(replace inclusive) arg provided tokens in place of arg usage
 struct MacroArg {
@@ -33,8 +37,7 @@ struct Macro {
 	struct Token *name;
 	struct PList *args;
 
-	struct NodeToken *fst;
-	struct NodeToken *lst;
+	struct Nodes *body;
 };
 
 struct Prep {

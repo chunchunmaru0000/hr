@@ -3,6 +3,8 @@
 const char *const EXPECTED_PAR_L_AFTER_MACRO_NAME =
 	"Ожидалась '(' после имени макро.";
 
+struct PList *
+
 struct NodeToken *call_macro(struct Prep *pr, struct NodeToken *c,
 							 struct Macro *macro) {
 	struct NodeToken *fst = c;
@@ -51,6 +53,7 @@ void figure_out_if_its_arg(struct Macro *macro, struct NodeToken *node) {
 struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
 									struct Macro *macro) {
 	struct NodeToken *clone, *clone_prev;
+	macro->body = malloc(sizeof(struct NodeToken));
 
 	c = take_guaranteed_next(c); // skip '(#'
 
@@ -58,7 +61,7 @@ struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
 	clone = clone_node_token(c); // first is different
 	figure_out_if_its_arg(macro, clone);
 	clone->prev = 0;
-	macro->fst = clone;
+	macro->body->fst = clone;
 
 	clone_prev = clone;
 	c = take_applyed_next(pr, c);
@@ -71,7 +74,7 @@ struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
 		clone_prev = clone;
 	}
 	clone->next = 0;
-	macro->lst = clone;
+	macro->body->lst = clone;
 
 	return c; // need to return '#)' cuz it will be last
 }

@@ -167,6 +167,27 @@ struct NodeToken *replace_inclusive(struct NodeToken *place,
 	return fst_copy;
 }
 
+/*
+struct NodeToken *replace_nodes_inclusive(struct NodeToken *place,
+										  struct Nodes *nodes) {
+	if (nodes->fst == nodes->lst) {
+		replace_token(place->token, nodes->fst->token);
+		return place;
+	}
+	struct Nodes copy = {0, 0};
+	copy_nodes(place->token->p, fst, lst, &fst_copy, &lst_copy);
+
+	place->prev->next = fst_copy;
+	fst_copy->prev = place->prev;
+
+	place->next->prev = lst_copy;
+	lst_copy->next = place->next;
+
+	free_node_token(place);
+	return fst_copy;
+}
+*/
+
 struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c) {
 	struct Define *define;
 	struct Macro *macro;
@@ -184,7 +205,7 @@ struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c) {
 		if (macro->args) {
 			c = call_macro(pr, c, macro);
 		} else {
-			c = replace_inclusive(c, macro->fst, macro->lst);
+			c = replace_inclusive(c, macro->body->fst, macro->body->lst);
 		}
 		return take_applyed_next(pr, c);
 	}
