@@ -235,10 +235,7 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 	for (c = pr->head; c;) {
 		// printf("doin' %s\n", vs(c->token));
 		if (c->token->code != SHARP) {
-			c = c->next;
-			if (c)
-				try_apply(pr, c);
-			//c = next_applyed(pr, c);
+			c = try_apply(pr, c)->next;
 			continue;
 		}
 

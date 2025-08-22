@@ -290,7 +290,7 @@ struct Inst *get_global_inst(struct Pser *p) {
 		if (code != IP_NONE)
 			break;
 	default:
-		eet(cur, ERR_WRONG_TOKEN, 0);
+		eet(cur, ERR_WRONG_TOKEN, vs(cur));
 	}
 	//	TODO
 	//	global expression,
