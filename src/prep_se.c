@@ -1,4 +1,5 @@
 #include "prep.h"
+#include <stdio.h>
 
 // here all token can be just guaranteed cuz they will be applyed
 // while in macro body, so no need to do it twice
@@ -15,16 +16,20 @@ const char *const EXPECTED_PAR_R_AFTER_MACRO_ARGS =
 struct PList *parse_macro_args_nodes(struct Prep *pr, struct NodeToken *c,
 									 struct Macro *macro) {
 	struct PList *args_nodes = new_plist(macro->args->size);
+	struct NodeToken *tmp;
 	uint32_t i;
 
-	c = take_applyed_next(pr, c);
+	printf("asdf\n");
+
+	c = next_applyed(pr, c); // here it could be either
+
 	if (c->token->code != PAR_L)
 		eet(c->token, EXPECTED_PAR_L_AFTER_MACRO_NAME, 0);
 
 	for (i = 0; i < macro->args->size; i++)
 		plist_add(args_nodes, parse_macro_arg_nodes(c));
 
-	c = take_applyed_next(pr, c);
+	c = next_applyed(pr, c);
 	if (c->token->code != PAR_R)
 		eet(c->token, EXPECTED_PAR_R_AFTER_MACRO_ARGS, 0);
 
@@ -45,14 +50,17 @@ struct NodeToken *call_macro(struct Prep *pr, struct NodeToken *c,
 	return head;
 }
 
-struct NodeToken *parse_macro_args(struct Prep *pr, struct NodeToken *c,
-								   struct Macro *macro) {
+// ####################################################################
+// 						BELOW IS DELCARATION PARSE
+// ####################################################################
+
+struct NodeToken *parse_macro_args(struct NodeToken *c, struct Macro *macro) {
 	struct MacroArg *arg;
 
 	macro->args = new_plist(4);
-	c = take_applyed_next(pr, c); // skip '('
+	c = take_guaranteed_next(c); // skip '('
 
-	for (; c->token->code != PAR_R; c = take_applyed_next(pr, c)) {
+	for (; c->token->code != PAR_R; c = take_guaranteed_next(c)) {
 		if (c->token->code != ID)
 			eet(c->token, EXPECTED_ID_AS_MACRO_ARG, 0);
 
@@ -63,7 +71,7 @@ struct NodeToken *parse_macro_args(struct Prep *pr, struct NodeToken *c,
 		plist_add(macro->args, arg);
 	}
 	// here c should be ')'
-	return take_applyed_next(pr, c);
+	return take_guaranteed_next(c);
 }
 
 void figure_out_if_its_arg(struct Macro *macro, struct NodeToken *node) {
@@ -79,8 +87,10 @@ void figure_out_if_its_arg(struct Macro *macro, struct NodeToken *node) {
 	foreach_end;
 }
 
-struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
-									struct Macro *macro) {
+// while in parse need to use take_guaranteed_next cuz some of the macros
+// that cant be applyed yet will be anyway parsable in take_applyed_next
+// when it will be actually called
+struct NodeToken *parse_macro_block(struct NodeToken *c, struct Macro *macro) {
 	struct NodeToken *clone, *clone_prev;
 	macro->body = malloc(sizeof(struct NodeToken));
 
@@ -93,8 +103,8 @@ struct NodeToken *parse_macro_block(struct Prep *pr, struct NodeToken *c,
 	macro->body->fst = clone;
 
 	clone_prev = clone;
-	c = take_applyed_next(pr, c);
-	for (; c->token->code != SH_R; c = take_applyed_next(pr, c)) {
+	c = take_guaranteed_next(c);
+	for (; c->token->code != SH_R; c = take_guaranteed_next(c)) {
 		clone = clone_node_token(c);
 		figure_out_if_its_arg(macro, clone);
 		clone->prev = clone_prev;
@@ -122,12 +132,12 @@ struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c) {
 	if (c->token->code == SH_L)
 		macro->args = 0;
 	else if (c->token->code == PAR_L) {
-		c = parse_macro_args(pr, c, macro);
+		c = parse_macro_args(c, macro);
 		expect(c->token, SH_L);
 	} else
 		eet(c->token, EXPCEPTED_PAR_L_OR_SH_L, 0);
 	// parse block
-	c = parse_macro_block(pr, c, macro);
+	c = parse_macro_block(c, macro);
 
 	// - save statement
 	plist_add(pr->macros, macro);

@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 void pre(struct Prep *pr, struct PList *final_tokens);
-struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c);
 void replace_token(struct Token *dst, struct Token *src);
 
 const char *const WASNT_EXPECTING_EOF = "Неожиданно встречен конец файла.";
@@ -167,10 +166,10 @@ struct NodeToken *replace_inclusive(struct NodeToken *place,
 	free_node_token(place);
 	return fst_copy;
 }
-#define replace_nodes_inclusive(place, nodes) \
+#define replace_nodes_inclusive(place, nodes)                                  \
 	(replace_inclusive((place), (nodes)->fst, (nodes)->lst))
 
-struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c) {
+struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c) {
 	struct Define *define;
 	struct Macro *macro;
 	uint32_t i;
@@ -178,7 +177,7 @@ struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c) {
 	foreach_begin(define, pr->defines);
 	if (vc(define->name, c->token)) {
 		replace_token(c->token, define->replace);
-		return take_applyed_next(pr, c);
+		return try_apply(pr, c);
 	}
 	foreach_end;
 
@@ -190,11 +189,11 @@ struct NodeToken *take_applyed_next(struct Prep *pr, struct NodeToken *c) {
 			c = replace_nodes_inclusive(c, macro->body);
 		}
 		// like its important cuz if new head also is kinda macro so
-		return take_applyed_next(pr, c);
+		return try_apply(pr, c);
 	}
 	foreach_end;
 
-	return c->next;
+	return c;
 }
 
 struct NodeToken *parse_vot(struct Prep *pr, struct NodeToken *c) {
@@ -236,11 +235,16 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 	for (c = pr->head; c;) {
 		// printf("doin' %s\n", vs(c->token));
 		if (c->token->code != SHARP) {
-			c = take_applyed_next(pr, c);
+			c = c->next;
+			if (c)
+				try_apply(pr, c);
+			//c = next_applyed(pr, c);
 			continue;
 		}
 
 		fst = c;
+		// TODO: do i want here next_applyed or just take_guaranteed_next
+		// like you now by this it can even redefine macro defenition
 		name = take_guaranteed_next(c);
 		lst = try_parse_sh(pr, name);
 
@@ -248,6 +252,7 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 		c = cut_off_inclusive(fst, lst); // its already next token in here
 		if (pr->head == fst) // fst is freed but pointer is just a value
 			pr->head = c;	 // in case if its first and tokens decapitated
+		// try_apply(pr, c); // TODO: dunno, prev todo is about same thing
 	}
 
 	// collect tokens
