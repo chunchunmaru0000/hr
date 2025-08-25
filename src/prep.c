@@ -136,20 +136,20 @@ void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
 	struct NodeToken *copy_head, *prev_copy, *fst_copy;
 
 	// here need to copy token so it will have pos of a place
-	copy_head = clone_node_token(src_fst);
-	copy_head->token = deep_clone_token(src_fst->token, place_pos);
+	copy_head = place_pos ? deep_clone_node_with_pos(src_fst, place_pos)
+						  : deep_clone_node(src_fst);
 	prev_copy = copy_head;
 
 	for (src_fst = src_fst->next; src_fst != src_lst; src_fst = src_fst->next) {
-		fst_copy = clone_node_token(src_fst);
-		fst_copy->token = deep_clone_token(src_fst->token, place_pos);
+		fst_copy = place_pos ? deep_clone_node_with_pos(src_fst, place_pos)
+							 : deep_clone_node(src_fst);
 		fst_copy->prev = prev_copy;
 		prev_copy->next = fst_copy;
 
 		prev_copy = fst_copy;
 	}
-	fst_copy = clone_node_token(src_lst);
-	fst_copy->token = deep_clone_token(src_lst->token, place_pos);
+	fst_copy = place_pos ? deep_clone_node_with_pos(src_lst, place_pos)
+						 : deep_clone_node(src_lst);
 	fst_copy->prev = prev_copy;
 	prev_copy->next = fst_copy;
 
@@ -196,7 +196,7 @@ struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c) {
 	foreach_begin(macro, pr->macros);
 	if (vc(macro->name, c->token)) {
 		if (macro->args) {
-			c = call_macro(pr, c, macro);
+			c = call_macro(c, macro);
 		} else {
 			c = replace_nodes_inclusive(c, macro->body);
 		}

@@ -26,6 +26,7 @@ void plist_free(struct PList *);
 void plist_re(struct PList *l);
 void plist_clear_items_free(struct PList *);
 void plist_free_items_free(struct PList *);
+#define p_last(l) (plist_get((l), (l)->size - 1))
 
 struct BList {
 	uc *st; // start
@@ -49,6 +50,7 @@ void blist_print(struct BList *);
 void blist_add_set(struct BList *, uc, uint32_t *, size_t);
 struct BList *copy_str(struct BList *src);
 struct BList *copy_blist(struct BList *l);
+#define b_last(l) (blist_get((l), (l)->size - 1))
 
 #define loop while (1)
 #define loa(arr) (sizeof((arr)) / sizeof((arr)[0]))

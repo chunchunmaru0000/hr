@@ -53,8 +53,7 @@ extern struct PList *included_files; // list of BLists
 struct PList *preprocess(struct Tzer *tzer);
 
 struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c);
-struct NodeToken *call_macro(struct Prep *pr, struct NodeToken *c,
-							 struct Macro *macro);
+struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro);
 
 struct NodeToken *take_guaranteed_next(struct NodeToken *n);
 struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c);
