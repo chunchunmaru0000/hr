@@ -48,10 +48,17 @@ struct Prep {
 	struct PList *macros;
 };
 
+struct NodeToken *gen_node_tokens(struct PList *tokens);
 extern struct PList *included_files; // list of BLists
 struct PList *preprocess(struct Tzer *tzer);
 
-struct NodeToken *gen_node_tokens(struct PList *tokens);
+struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c);
+struct NodeToken *call_macro(struct Prep *pr, struct NodeToken *c,
+							 struct Macro *macro);
+
+struct NodeToken *take_guaranteed_next(struct NodeToken *n);
+struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c);
+#define next_applyed(pr, c) (try_apply((pr), take_guaranteed_next((c))))
 
 struct NodeToken *replace_inclusive(struct NodeToken *place,
 									struct NodeToken *fst,
@@ -63,11 +70,6 @@ void replace_token(struct Token *dst, struct Token *src);
 struct NodeToken *cut_off_inclusive(struct NodeToken *fst,
 									struct NodeToken *lst);
 struct NodeToken *clone_node_token(struct NodeToken *src);
-
-struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c);
-struct NodeToken *call_macro(struct Prep *pr, struct NodeToken *c,
-							 struct Macro *macro);
-
-struct NodeToken *take_guaranteed_next(struct NodeToken *n);
-struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c);
-#define next_applyed(pr, c) (try_apply((pr), take_guaranteed_next((c))))
+struct NodeToken *deep_clone_node_with_pos(struct NodeToken *src,
+										   struct Pos *pos);
+struct NodeToken *deep_clone_node(struct NodeToken *src);

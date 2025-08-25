@@ -118,6 +118,18 @@ void replace_token(struct Token *dst, struct Token *src) {
 	dst->real = src->real;
 }
 
+struct NodeToken *deep_clone_node_with_pos(struct NodeToken *src,
+										   struct Pos *pos) {
+	struct NodeToken *dst = clone_node_token(src);
+	dst->token = deep_clone_token(src->token, pos);
+	return dst;
+}
+struct NodeToken *deep_clone_node(struct NodeToken *src) {
+	struct NodeToken *dst = clone_node_token(src);
+	dst->token = deep_clone_token(src->token, src->token->p);
+	return dst;
+}
+
 void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
 				struct NodeToken *src_lst, struct NodeToken **dst_fst,
 				struct NodeToken **dst_lst) {

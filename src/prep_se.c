@@ -4,8 +4,13 @@
 // here all token can be just guaranteed cuz they will be applyed
 // while in macro body, so no need to do it twice
 struct Nodes *parse_macro_arg_nodes(struct NodeToken *c) {
-	return 0;
-	return 0;
+	struct Nodes *arg_nodes = malloc(sizeof(struct Nodes)), *clone;
+
+	clone = deep_clone_node(c);
+	arg_nodes->fst = clone;
+	for ()
+
+		return arg_nodes;
 }
 
 const char *const EXPECTED_PAR_L_AFTER_MACRO_NAME =
