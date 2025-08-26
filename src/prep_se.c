@@ -36,10 +36,10 @@ struct Nodes *parse_macro_arg_nodes(struct NodeToken **c) {
 	arg_nodes->fst = *c;
 
 	(*c) = take_guaranteed_next(*c);
-	for (; (*c)->token->code != COMMA; (*c) = take_guaranteed_next(*c)) {
+	for (;; (*c) = take_guaranteed_next(*c)) {
 		code = (*c)->token->code;
 
-		if (code == PAR_R && last_opened_stack == 0)
+		if ((code == PAR_R || code == COMMA) && last_opened_stack->size == 0)
 			break;
 
 		if (code == PAR_L || code == PAR_C_L || code == PAR_T_L)
