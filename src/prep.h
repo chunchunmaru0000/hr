@@ -62,6 +62,8 @@ struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c);
 struct NodeToken *replace_inclusive(struct NodeToken *place,
 									struct NodeToken *fst,
 									struct NodeToken *lst);
+#define replace_nodes_inclusive(place, nodes)                                  \
+	(replace_inclusive((place), (nodes)->fst, (nodes)->lst))
 void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
 				struct NodeToken *src_lst, struct NodeToken **dst_fst,
 				struct NodeToken **dst_lst);

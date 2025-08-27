@@ -178,8 +178,6 @@ struct NodeToken *replace_inclusive(struct NodeToken *place,
 	free_node_token(place);
 	return fst_copy;
 }
-#define replace_nodes_inclusive(place, nodes)                                  \
-	(replace_inclusive((place), (nodes)->fst, (nodes)->lst))
 
 struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c) {
 	struct Define *define;

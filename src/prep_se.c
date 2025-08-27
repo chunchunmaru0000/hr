@@ -5,14 +5,21 @@ struct PList *parse_macro_args_nodes(struct NodeToken **c, struct Macro *macro);
 struct Nodes *gen_macro_body(struct Macro *macro, struct PList *args_nodes);
 
 struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro) {
-	struct NodeToken *fst_to_cut = c;
+	struct NodeToken *fst_at, *lst_at, *macro_call;
+	// struct NodeToken *fst_to_cut = c;
 
 	// all of args_nodes nodes need to clone when insert
+	// last two values of the list are first args token and last args token
 	struct PList *args_nodes = parse_macro_args_nodes(&c, macro);
+	// just save args tokens and clear list of them
+	fst_at = plist_get(args_nodes, args_nodes->size - 2);
+	lst_at = plist_get(args_nodes, args_nodes->size - 1);
+	args_nodes->size -= 2;
 	// here apply args nodes to args usages
 	struct Nodes *body = gen_macro_body(macro, args_nodes);
-	// here cuts and frees and also replaces and returns first
-	c = replace_part_inclusive(fst_to_cut, c->prev, body);
+	// replace_nodes_inclusive
+	macro_call = cut_off_inclusive(fst_at, lst_at);
+	c = replace_nodes_inclusive(macro_call, body);
 
 	return c;
 }
@@ -110,9 +117,11 @@ const char *const EXPECTED_COMMA_AFTER_MACRO_ARGS =
 struct PList *parse_macro_args_nodes(struct NodeToken **c,
 									 struct Macro *macro) {
 	struct PList *args_nodes = new_plist(macro->args->size);
+	struct NodeToken *fst_at, *lst_at;
 	uint32_t i;
 
 	(*c) = take_guaranteed_next(*c); // here its takes one after macro name
+	fst_at = *c;
 
 	// if not parentices then why not just begin args
 	if ((*c)->token->code == PAR_L) {
@@ -142,6 +151,11 @@ struct PList *parse_macro_args_nodes(struct NodeToken **c,
 			eet((*c)->token, EXPECTED_COMMA_AFTER_MACRO_ARGS, 0);
 		*c = take_guaranteed_next(*c);
 	}
+
+	lst_at = (*c)->prev;
+
+	plist_add(args_nodes, fst_at);
+	plist_add(args_nodes, lst_at);
 
 	return args_nodes;
 }
