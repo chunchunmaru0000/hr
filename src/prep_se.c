@@ -1,6 +1,35 @@
 #include "prep.h"
 #include <stdio.h>
 
+struct PList *parse_macro_args_nodes(struct NodeToken **c, struct Macro *macro);
+struct Nodes *gen_macro_body(struct Macro *macro, struct PList *args_nodes);
+
+struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro) {
+	struct NodeToken *fst_to_cut = c;
+
+	// all of args_nodes nodes need to clone when insert
+	struct PList *args_nodes = parse_macro_args_nodes(&c, macro);
+	// here apply args nodes to args usages
+	struct Nodes *body = gen_macro_body(macro, args_nodes);
+	// here cuts and frees and also replaces and returns first
+	c = replace_part_inclusive(fst_to_cut, c->prev, body);
+
+	return c;
+}
+
+// ####################################################################
+// 						BELOW IS CALL GEN
+// ####################################################################
+
+// ALREADY EXISTS
+// void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
+//				struct NodeToken *src_lst, struct NodeToken **dst_fst,
+//				struct NodeToken **dst_lst)
+
+// ####################################################################
+// 						BELOW IS CALL PARSE
+// ####################################################################
+
 const char *const PAR_WASNT_CLOSED = "'(' не была закрыта.";
 const char *const CLOSE_PAR = "закрыть '('";
 const char *const PAR_ARR_WASNT_CLOSED = "'[' не была закрыта.";
@@ -115,18 +144,6 @@ struct PList *parse_macro_args_nodes(struct NodeToken **c,
 	}
 
 	return args_nodes;
-}
-
-struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro) {
-	struct NodeToken *fst_to_cut = c;
-
-	// all of args_nodes nodes need to clone when insert
-	struct PList *args_nodes = parse_macro_args_nodes(&c, macro);
-
-	// here apply args nodes to args usages
-
-	c = cut_off_inclusive(fst_to_cut, c->prev);
-	return c;
 }
 
 // ####################################################################
