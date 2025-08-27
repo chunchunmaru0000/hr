@@ -32,6 +32,11 @@ struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro) {
 // void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
 //				struct NodeToken *src_lst, struct NodeToken **dst_fst,
 //				struct NodeToken **dst_lst)
+struct Nodes *gen_macro_body(struct Macro *macro, struct PList *args_nodes) {
+	struct Nodes *body = malloc(sizeof(struct Nodes));
+
+	return body;
+}
 
 // ####################################################################
 // 						BELOW IS CALL PARSE
