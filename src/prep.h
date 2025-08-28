@@ -30,7 +30,7 @@ struct Nodes {
 // and then insert(replace inclusive) arg provided tokens in place of arg usage
 struct MacroArg {
 	struct Token *name;
-	struct PList *usages; // its plist of NodeTokens
+//	struct PList *usages; // its plist of NodeTokens
 };
 
 struct Macro {
@@ -67,6 +67,7 @@ struct NodeToken *replace_inclusive(struct NodeToken *place,
 void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
 				struct NodeToken *src_lst, struct NodeToken **dst_fst,
 				struct NodeToken **dst_lst);
+struct Nodes *copy_nodeses(struct Pos *place_pos, struct Nodes *src);
 void replace_token(struct Token *dst, struct Token *src);
 struct NodeToken *cut_off_inclusive(struct NodeToken *fst,
 									struct NodeToken *lst);

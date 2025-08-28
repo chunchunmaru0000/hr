@@ -130,6 +130,8 @@ struct NodeToken *deep_clone_node(struct NodeToken *src) {
 	return dst;
 }
 
+// WHEN USE NO NEED TO MALLOC, it allocs for you, need only ptr to set value in
+// it cuz returns two values
 void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
 				struct NodeToken *src_lst, struct NodeToken **dst_fst,
 				struct NodeToken **dst_lst) {
@@ -156,7 +158,16 @@ void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
 	*dst_fst = copy_head;
 	*dst_lst = fst_copy;
 }
-// #define copy_nodeses(place_pos, str, dst)
+struct Nodes *copy_nodeses(struct Pos *place_pos, struct Nodes *src) {
+	struct NodeToken *dst_fst, *dst_lst;
+	struct Nodes *dst = malloc(sizeof(struct Nodes));
+
+	copy_nodes(place_pos, src->fst, src->lst, &dst_fst, &dst_lst);
+
+	dst->fst = dst_fst;
+	dst->lst = dst_lst;
+	return dst;
+}
 
 struct NodeToken *replace_inclusive(struct NodeToken *place,
 									struct NodeToken *fst,

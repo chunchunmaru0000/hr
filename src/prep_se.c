@@ -28,12 +28,36 @@ struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro) {
 // 						BELOW IS CALL GEN
 // ####################################################################
 
-// ALREADY EXISTS
-// void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
-//				struct NodeToken *src_lst, struct NodeToken **dst_fst,
-//				struct NodeToken **dst_lst)
+int figure_out_if_its_arg(struct Macro *macro, struct NodeToken *node) {
+	if (macro->args == 0)
+		return -1;
+
+	struct MacroArg *arg;
+	uint32_t i;
+
+	foreach_begin(arg, macro->args);
+	if (vc(node->token, arg->name)) // plist_add(arg->usages, node);
+		return i;
+	foreach_end;
+
+	return -1;
+}
+
 struct Nodes *gen_macro_body(struct Macro *macro, struct PList *args_nodes) {
-	struct Nodes *body = malloc(sizeof(struct Nodes));
+	struct Nodes *body = copy_nodeses(0, macro->body);
+	struct Nodes *arg_nodes;
+	struct NodeToken *c;
+	int arg_index;
+
+	for (c = body->fst; c; c = c->next) {
+		arg_index = figure_out_if_its_arg(macro, c);
+		if (arg_index == -1)
+			continue;
+
+		arg_nodes = plist_get(args_nodes, arg_index);
+		arg_nodes = copy_nodeses(0, arg_nodes);
+		c = replace(c, arg_nodes);
+	}
 
 	return body;
 }
@@ -181,25 +205,12 @@ struct NodeToken *parse_macro_args(struct NodeToken *c, struct Macro *macro) {
 
 		arg = malloc(sizeof(struct MacroArg));
 		arg->name = c->token;
-		arg->usages = new_plist(2);
+		// arg->usages = new_plist(2);
 
 		plist_add(macro->args, arg);
 	}
 	// here c should be ')'
 	return take_guaranteed_next(c);
-}
-
-void figure_out_if_its_arg(struct Macro *macro, struct NodeToken *node) {
-	if (macro->args == 0)
-		return;
-
-	struct MacroArg *arg;
-	uint32_t i;
-
-	foreach_begin(arg, macro->args);
-	if (vc(node->token, arg->name))
-		plist_add(arg->usages, node);
-	foreach_end;
 }
 
 // while in parse need to use take_guaranteed_next cuz some of the macros
@@ -213,7 +224,7 @@ struct NodeToken *parse_macro_block(struct NodeToken *c, struct Macro *macro) {
 
 	// here need to copy tree cuz it will be freed from final tokens
 	clone = clone_node_token(c); // first is different
-	figure_out_if_its_arg(macro, clone);
+	// figure_out_if_its_arg(macro, clone);
 	clone->prev = 0;
 	macro->body->fst = clone;
 
@@ -221,7 +232,7 @@ struct NodeToken *parse_macro_block(struct NodeToken *c, struct Macro *macro) {
 	c = take_guaranteed_next(c);
 	for (; c->token->code != SH_R; c = take_guaranteed_next(c)) {
 		clone = clone_node_token(c);
-		figure_out_if_its_arg(macro, clone);
+		//	figure_out_if_its_arg(macro, clone);
 		clone->prev = clone_prev;
 		clone_prev->next = clone;
 
