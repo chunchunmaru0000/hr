@@ -54,9 +54,8 @@ struct Nodes *gen_macro_body(struct Macro *macro, struct PList *args_nodes) {
 		if (arg_index == -1)
 			continue;
 
-		arg_nodes = plist_get(args_nodes, arg_index);
-		arg_nodes = copy_nodeses(0, arg_nodes);
-		c = replace(c, arg_nodes);
+		arg_nodes = copy_nodeses(0, plist_get(args_nodes, arg_index));
+		c = replace_nodes_inclusive(c, arg_nodes);
 	}
 
 	return body;
