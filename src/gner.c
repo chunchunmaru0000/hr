@@ -20,6 +20,7 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 	g->labels->fors = 0;
 	g->labels->ifs = 0;
 	g->labels->elses = 0;
+	g->labels->ptrs = 0;
 
 	g->bprol = new_blist(128);
 	g->prol = new_blist(128);
