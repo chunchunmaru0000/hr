@@ -7,10 +7,11 @@ struct Nodes *gen_macro_body(struct Macro *macro, struct PList *args_nodes);
 struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro) {
 	struct NodeToken *fst_at, *lst_at, *macro_call;
 	// struct NodeToken *fst_to_cut = c;
-
 	// all of args_nodes nodes need to clone when insert
 	// last two values of the list are first args token and last args token
+	printf("## INFO. before parse_macro_args_nodes\n");
 	struct PList *args_nodes = parse_macro_args_nodes(&c, macro);
+	printf("## INFO. after parse_macro_args_nodes\n");
 	// just save args tokens and clear list of them
 	fst_at = plist_get(args_nodes, args_nodes->size - 2);
 	lst_at = plist_get(args_nodes, args_nodes->size - 1);
@@ -144,7 +145,7 @@ const char *const EXPECTED_COMMA_AFTER_MACRO_ARGS =
 
 struct PList *parse_macro_args_nodes(struct NodeToken **c,
 									 struct Macro *macro) {
-	struct PList *args_nodes = new_plist(macro->args->size);
+	struct PList *args_nodes = new_plist(MAX_ARGS_ON_REGISTERS);
 	struct NodeToken *fst_at, *lst_at;
 	uint32_t i;
 
