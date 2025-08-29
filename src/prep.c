@@ -44,6 +44,7 @@ struct PList *preprocess(struct Tzer *tzer) {
 	pr->head = gen_node_tokens(tokens);
 	tokens->size = 0;
 	pre(pr, tokens);
+	// TODO: here need to free all macros and defines also prep itself
 
 	return tokens;
 }
@@ -141,6 +142,12 @@ void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
 	copy_head = place_pos ? deep_clone_node_with_pos(src_fst, place_pos)
 						  : deep_clone_node(src_fst);
 	prev_copy = copy_head;
+
+	if (src_fst == src_lst) {
+		*dst_fst = copy_head;
+		*dst_lst = copy_head;
+		return;
+	}
 
 	for (src_fst = src_fst->next; src_fst != src_lst; src_fst = src_fst->next) {
 		fst_copy = place_pos ? deep_clone_node_with_pos(src_fst, place_pos)
