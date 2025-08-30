@@ -265,6 +265,9 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 		if (c->token->code != SHARP) {
 			c = try_apply(pr, c)->next;
 			continue;
+		} else if (c->token->code == SHPLUS) {
+			c = shplus(pr, c);
+			continue;
 		}
 
 		fst = c;

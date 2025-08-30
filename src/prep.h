@@ -30,7 +30,6 @@ struct Nodes {
 // and then insert(replace inclusive) arg provided tokens in place of arg usage
 struct MacroArg {
 	struct Token *name;
-//	struct PList *usages; // its plist of NodeTokens
 };
 
 struct Macro {
@@ -54,6 +53,7 @@ struct PList *preprocess(struct Tzer *tzer);
 
 struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c);
 struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro);
+struct NodeToken *shplus(struct Prep *pr, struct NodeToken *c);
 
 struct NodeToken *take_guaranteed_next(struct NodeToken *n);
 struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c);

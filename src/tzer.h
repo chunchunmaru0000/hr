@@ -20,6 +20,9 @@ struct Tzer {
 	struct Fpfc *f;
 	struct Pos *p;
 	size_t pos;
+
+	char *code;
+	uint32_t clen;
 };
 
 enum ExtraType {
@@ -41,6 +44,7 @@ struct ErrorInfo *new_error_info(struct Token *t, const char *const msg,
 struct Tzer *new_tzer(char *);
 struct Token *new_token(struct Tzer *);
 struct PList *tze(struct Tzer *, long);
+void full_free_token(struct Token *t);
 void print_source_line(struct Pos *, const char *const, char *);
 void ee(struct Pos *, const char *const);
 void et(struct Token *t, const char *const msg, const char *const sgst);

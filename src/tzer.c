@@ -34,13 +34,15 @@ struct Tzer *new_tzer(char *filename) {
 	f->path = filename;
 	f->code = text;
 	f->clen = size - 1;
+
+	t->code = (char *)f->code;
+	t->clen = f->clen;
 	return t;
 }
 
-#define cur(t) ((t)->pos < (t)->f->clen ? (t)->f->code[(t)->pos] : '\0')
+#define cur(t) ((t)->pos < (t)->clen ? (t)->code[(t)->pos] : '\0')
 #define get_tzer_token(t, offset)                                              \
-	((t)->pos + (offset) < (t)->f->clen ? (t)->f->code[(t)->pos + (offset)]    \
-										: '\0')
+	((t)->pos + (offset) < (t)->clen ? (t)->code[(t)->pos + (offset)] : '\0')
 char next(struct Tzer *t) {
 	t->pos++;
 	t->p->col++;
@@ -506,4 +508,11 @@ struct PList *tze(struct Tzer *t, long list_cap) {
 	plist_add(l, token);
 
 	return l;
+}
+
+void full_free_token(struct Token *t) {
+	blist_clear_free(t->view);
+	blist_clear_free(t->str);
+	free(t->p);
+	free(t);
 }
