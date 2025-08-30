@@ -1,4 +1,5 @@
 src/ср
 t.md
-src/тест*
-src/test*
+src/*.ср
+src/*асм
+src/*asm
