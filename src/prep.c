@@ -211,13 +211,11 @@ struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c) {
 
 	foreach_begin(macro, pr->macros);
 	if (vc(macro->name, c->token)) {
-		printf("# INFO. before call macro %s\n", vs(macro->name));
 		if (macro->args) {
 			c = call_macro(c, macro);
 		} else {
 			c = replace_nodes_inclusive(c, macro->body);
 		}
-		printf("# INFO. after call macro %s\n", vs(macro->name));
 		// like its important cuz if new head also is kinda macro so
 		return try_apply(pr, c);
 	}

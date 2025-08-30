@@ -140,8 +140,10 @@ void ee(struct Pos *p, const char *const msg) { // error exit
 void et(struct Token *t, const char *const msg, const char *const sgst) {
 	char *help;
 	uint32_t token_chars_len, help_len, sgst_len = -1;
-	if (sgst)
-		sgst_len = strlen(sgst);
+
+	sgst_len = sgst ? strlen(sgst) : strlen(vs(t));
+	// if (sgst)
+	// 	sgst_len = strlen(sgst);
 
 	token_chars_len =
 		get_utf8_chars_to_pos((const char *)t->view->st, t->view->size);
@@ -153,10 +155,12 @@ void et(struct Token *t, const char *const msg, const char *const sgst) {
 	for (uint32_t i = 0; i < token_chars_len; i++)
 		help[i] = UNDERLINE_CHAR; // fill with underline
 
-	if (sgst) {
-		help[token_chars_len] = '\n'; // split by \n
-		memcpy(help + token_chars_len + 1, sgst, sgst_len);
-	}
+	help[token_chars_len] = '\n'; // split by \n
+	memcpy(help + token_chars_len + 1, sgst ? sgst : vs(t), sgst_len);
+	// if (sgst) {
+	// 	help[token_chars_len] = '\n'; // split by \n
+	// 	memcpy(help + token_chars_len + 1, sgst, sgst_len);
+	// }
 
 	fprintf(stderr, "%s%s:%d:%d %sОШИБКА: %s\n", COLOR_WHITE, t->p->f->path,
 			t->p->line, t->p->col, COLOR_RED, msg);
