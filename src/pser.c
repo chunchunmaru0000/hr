@@ -292,12 +292,11 @@ struct Inst *get_global_inst(struct Pser *p) {
 	default:
 		eet(cur, ERR_WRONG_TOKEN, vs(cur));
 	}
+	//	TODO global expression TYPES,
 	//	TODO
-	//	global expression,
 	//
 	//	IP_DECLARE_FUNCTION body,
 	//
-	//	IP_DEFINE
 	//	global IP_DECLARE_LABEL, // like seem to be meaningless
 	//	global IP_GOTO,
 
