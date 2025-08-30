@@ -141,7 +141,7 @@ void et(struct Token *t, const char *const msg, const char *const sgst) {
 	char *help;
 	uint32_t token_chars_len, help_len, sgst_len = -1;
 
-	sgst_len = sgst ? strlen(sgst) : strlen(vs(t));
+	sgst_len = sgst ? strlen(sgst) : t->view->size; // strlen(vs(t))
 	// if (sgst)
 	// 	sgst_len = strlen(sgst);
 
