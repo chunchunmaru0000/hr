@@ -504,7 +504,8 @@ struct PList *tze(struct Tzer *t, long list_cap) {
 		// printf("%s:%ld:%ld:%s\n", t->filename, token->line, token->col,
 		// token->view);
 	}
-	token->view = &EOF_STR_B;
+	token->view = copy_str(&EOF_STR_B);
+	token->str = copy_str(&EOF_STR_B);
 	plist_add(l, token);
 
 	return l;

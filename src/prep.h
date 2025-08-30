@@ -49,8 +49,10 @@ struct Prep {
 
 struct NodeToken *gen_node_tokens(struct PList *tokens);
 extern struct PList *included_files; // list of BLists
+extern struct NodeToken *new_included_head;
 struct PList *preprocess(struct Tzer *tzer);
 
+struct NodeToken *parse_include(struct NodeToken *c);
 struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c);
 struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro);
 struct NodeToken *shplus(struct Prep *pr, struct NodeToken *c);
@@ -75,3 +77,4 @@ struct NodeToken *clone_node_token(struct NodeToken *src);
 struct NodeToken *deep_clone_node_with_pos(struct NodeToken *src,
 										   struct Pos *pos);
 struct NodeToken *deep_clone_node(struct NodeToken *src);
+void full_free_node_token(struct NodeToken *n);

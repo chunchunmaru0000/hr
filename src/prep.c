@@ -55,12 +55,14 @@ struct NodeToken *take_guaranteed_next(struct NodeToken *n) {
 	return n->next;
 }
 
-void free_node_token(struct NodeToken *n) {
-	// TODO: actually maybe i need to free some tokens but dunno
-	// anyway no need for this now
-	// but at least its known memory leak
+void full_free_node_token(struct NodeToken *n) {
+	full_free_token(n->token);
 	free(n);
 }
+
+// TODO: free_node_token here is only i know that it leaks somewhere
+// but i dont care bow for that
+void free_node_token(struct NodeToken *n) { free(n); }
 
 struct NodeToken *clone_node_token(struct NodeToken *src) {
 	struct NodeToken *dst = malloc(sizeof(struct NodeToken));
@@ -241,6 +243,7 @@ struct NodeToken *parse_vot(struct Prep *pr, struct NodeToken *c) {
 
 const char *const STR_VOT = "вот";
 const char *const STR_SE = "се";
+const char *const STR_INCLUDE = "влечь";
 
 // TODO: if redefine then free last one
 struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
@@ -252,6 +255,9 @@ struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
 
 	if (vcs(name->token, STR_SE))
 		return parse_se(pr, name);
+
+	if (vcs(name->token, STR_INCLUDE))
+		return parse_include(name);
 
 	eet(name->token, WAS_EXPECTING_PREP_INST_WORD, 0);
 	return 0;
@@ -275,6 +281,10 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 		// like you now by this it can even redefine macro defenition
 		name = take_guaranteed_next(c);
 		lst = try_parse_sh(pr, name);
+		if (!lst) { // in case of STR_INCLUD when include
+			c = new_included_head;
+			continue;
+		}
 
 		// - cut off statemnt nodes so it wont be in final_tokens
 		c = cut_off_inclusive(fst, lst); // its already next token in here
