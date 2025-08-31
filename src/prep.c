@@ -61,8 +61,18 @@ void full_free_node_token(struct NodeToken *n) {
 }
 
 // TODO: free_node_token here is only i know that it leaks somewhere
-// but i dont care bow for that
-void free_node_token(struct NodeToken *n) { free(n); }
+// but i dont care bow for that, it mostly leaks only tokens, but
+// ther Pos is needed so need not to fully, not only pos, i dunno what else
+void free_node_token(struct NodeToken *n) {
+	// printf("before free token\n");
+	// printf("when free %s\n", vs(n->token));
+	// if (n->token->view)
+	// 	blist_clear_free(n->token->view);
+	// if (n->token->str)
+	// 	blist_clear_free(n->token->str);
+	// free(n->token);
+	free(n);
+}
 
 struct NodeToken *clone_node_token(struct NodeToken *src) {
 	struct NodeToken *dst = malloc(sizeof(struct NodeToken));

@@ -19,8 +19,14 @@ struct Tzer *new_tzer(char *filename) {
 	t->pos = 0;
 
 	FILE *file = fopen(filename, "r");
-	if (!file) // TODO: this err doesnt works good
-		ee(p, "ОШИБКА В ОТКРЫТИИ ФАЙЛА");
+	if (!file) {
+		if (file_to_include)
+			eet(file_to_include, "Ошибка при открытии файла при его включении.",
+				0);
+		printf("Ошибка при открытии исходного файла, возможно файл "
+			   "отсутствует: %s\n",
+			   filename);
+	}
 
 	fseek(file, 0, SEEK_END);
 	long size = ftell(file);

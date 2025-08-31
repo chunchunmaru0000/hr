@@ -50,6 +50,7 @@ struct NodeToken *get_included_tail(struct NodeToken *included_head) {
 	return included_tail;
 }
 
+struct Token *file_to_include = 0;
 struct NodeToken *new_included_head = 0;
 struct NodeToken *parse_include(struct NodeToken *c) {
 	struct NodeToken *fst = c->prev, *lst = c->next, *path_name = lst;
@@ -59,22 +60,29 @@ struct NodeToken *parse_include(struct NodeToken *c) {
 	if (!path_to_include) // ALREADY_INCLUDED
 		goto _defer_just_ret_with_no_include;
 
+	file_to_include = path_name->token;
+
 	included_head = get_included_head(path_to_include);
 	if (included_head->token->code == EF) {
 		full_free_node_token(included_head);
 		goto _defer_just_ret_with_no_include;
 	}
+	file_to_include = 0;
 
 	// included_tail cant be 0 cuz if its then
 	// included_head is EF that is handled above
 	included_tail = get_included_tail(included_head);
 
 	c = cut_off_inclusive(c, lst); // cut off влечь and path_name
+
+	free(fst->token->p);
+	fst->token->p = 0;
 	new_included_head = replace_inclusive(fst, included_head, included_tail);
 
 	return 0;
 
 _defer_just_ret_with_no_include:
+	file_to_include = 0;
 	return lst;
 }
 

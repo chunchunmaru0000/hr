@@ -1,6 +1,8 @@
 #include "tpes.h"
 #include <string.h>
 
+extern struct Token *file_to_include;
+
 extern const char *const COLOR_BLACK;
 extern const char *const COLOR_RED;
 extern const char *const COLOR_LIGHT_RED;
