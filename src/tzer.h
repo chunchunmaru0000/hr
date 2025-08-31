@@ -47,6 +47,7 @@ struct Tzer *new_tzer(char *);
 struct Token *new_token(struct Tzer *);
 struct PList *tze(struct Tzer *, long);
 void full_free_token(struct Token *t);
+void full_free_token_without_pos(struct Token *t);
 void print_source_line(struct Pos *, const char *const, char *);
 void ee(struct Pos *, const char *const);
 void et(struct Token *t, const char *const msg, const char *const sgst);

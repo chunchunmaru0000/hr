@@ -201,7 +201,7 @@ __parsed:
 	num_len = t->pos - start_pos;
 	num_view = malloc(num_len + 1);
 	num_view[num_len] = 0;
-	strncpy(num_view, &t->f->code[start_pos], num_len);
+	strncpy(num_view, &t->code[start_pos], num_len);
 	// printf("\t\tnum_view: %s value: %lx\n", num_view, value);
 
 	token->view = blist_from_str(num_view, num_len);
@@ -236,7 +236,7 @@ enum TCode str_token(struct Tzer *t, struct Token *token) {
 
 	char *str_view = malloc(str_len + 1);
 	str_view[str_len] = 0;
-	strncpy(str_view, t->f->code + start_pos, str_len);
+	strncpy(str_view, t->code + start_pos, str_len);
 	token->view = blist_from_str(str_view, str_len);
 
 	convert_blist_to_blist_from_str(str_str);
@@ -436,7 +436,7 @@ enum TCode com_token(struct Tzer *t, struct Token *token, uc is_long) {
 
 	com_view = malloc(com_len + 1);
 	com_view[com_len] = 0;
-	strncpy(com_view, t->f->code + start_pos, com_len);
+	strncpy(com_view, t->code + start_pos, com_len);
 
 	token->view = blist_from_str(com_view, com_len);
 	return COM;
@@ -454,7 +454,7 @@ enum TCode id_token(struct Tzer *t, struct Token *token) {
 
 	id_view = malloc(id_len + 1);
 	id_view[id_len] = 0;
-	strncpy(id_view, t->f->code + start_pos, id_len);
+	strncpy(id_view, t->code + start_pos, id_len);
 
 	token->view = blist_from_str(id_view, id_len);
 	return ID;
@@ -517,9 +517,19 @@ struct PList *tze(struct Tzer *t, long list_cap) {
 	return l;
 }
 
+void full_free_token_without_pos(struct Token *t) {
+	if (t->view)
+		blist_clear_free(t->view);
+	if (t->str)
+		blist_clear_free(t->str);
+	free(t);
+}
+
 void full_free_token(struct Token *t) {
-	blist_clear_free(t->view);
-	blist_clear_free(t->str);
+	if (t->view)
+		blist_clear_free(t->view);
+	if (t->str)
+		blist_clear_free(t->str);
 	free(t->p);
 	free(t);
 }

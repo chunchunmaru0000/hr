@@ -68,7 +68,6 @@ struct NodeToken *parse_include(struct NodeToken *c) {
 		goto _defer_just_ret_with_no_include;
 	}
 	file_to_include = 0;
-
 	// included_tail cant be 0 cuz if its then
 	// included_head is EF that is handled above
 	included_tail = get_included_tail(included_head);

@@ -278,11 +278,12 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 
 	for (c = pr->head; c;) {
 		// printf("doin' %s\n", vs(c->token));
+		if (c->token->code == SHPLUS) {
+			c = shplus(pr, c);
+			continue;
+		}
 		if (c->token->code != SHARP) {
 			c = try_apply(pr, c)->next;
-			continue;
-		} else if (c->token->code == SHPLUS) {
-			c = shplus(pr, c);
 			continue;
 		}
 
@@ -300,7 +301,6 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 		c = cut_off_inclusive(fst, lst); // its already next token in here
 		if (pr->head == fst) // fst is freed but pointer is just a value
 			pr->head = c;	 // in case if its first and tokens decapitated
-		// try_apply(pr, c); // TODO: dunno, prev todo is about same thing
 	}
 
 	// collect tokens
