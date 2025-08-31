@@ -25,17 +25,16 @@ struct Token *add_tokens(struct Token *plus, struct Token *t0,
 
 	t->code = vs(t0);
 
-
 	full_free_token(t0);
 	full_free_token(plus);
 	full_free_token(t1);
 }
 
 struct NodeToken *shplus(struct Prep *pr, struct NodeToken *c) {
-	struct NodeToken *next = try_apply(pr, take_guaranteed_next(c));
+	struct NodeToken *next = next_applyed(pr, c);
 	struct NodeToken *prev = c->prev; // its applyed already
 
-	if (!prev) // just dont add, im too laze to do err here
+	if (!prev) // just dont add, im too lazy to do err here
 		return next;
 
 	struct Token *new_token = add_tokens(c->token, prev->token, next->token);
