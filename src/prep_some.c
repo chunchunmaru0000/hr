@@ -1,6 +1,48 @@
 #include "prep.h"
 #include <stdio.h>
 
+// #################################################################
+//					BELOW IS PREP STRINGIFY
+// #################################################################
+
+struct NodeToken *sh_string(struct NodeToken *c) {
+	struct NodeToken *fst = c, *snd = take_guaranteed_next(c), *lst;
+	struct Token *str_token = malloc(sizeof(struct Token));
+
+	str_token->view = new_blist(32);
+	str_token->code = STR;
+	str_token->p = fst->token->p;
+
+	str_token->num = 0;
+	str_token->real = 0;
+	str_token->str = new_blist(32);
+
+	blist_add(str_token->view, '"');
+	c = snd; // snd here already first take_guaranteed_next(c)
+	while (c->token->code != SH_QR) {
+		blat_blist(str_token->view, c->token->view);
+		blat_blist(str_token->str, c->token->view);
+		blist_add(str_token->view, ' ');
+		blist_add(str_token->str, ' ');
+
+		c = take_guaranteed_next(c);
+	}
+	lst = c;
+
+	blist_add(str_token->view, '"');
+	convert_blist_to_blist_from_str(str_token->view);
+	convert_blist_to_blist_from_str(str_token->str);
+
+	cut_off_inclusive(snd, lst);
+	replace_token(fst->token, str_token);
+
+	return fst;
+}
+
+// #################################################################
+//					BELOW IS PREP TOKENS ADD
+// #################################################################
+
 const char *const TOO_MUCH_TOKENS =
 	"В результате сложения токенов может быть только один токен.";
 const char *const WAS_TOKENS = "токенов было ";

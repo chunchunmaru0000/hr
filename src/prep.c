@@ -15,6 +15,9 @@ const char *const EXPECTED_ID_AS_MACRO_ARG =
 	"Ожидалось слово в качестве аргумента для макро.";
 const char *const EXPECTED_ID_AS_MACRO_NAME =
 	"Ожидалось слово в качестве имени для макро.";
+const char *const SH_QR_CANT_OCCUR_BY_ITSELF =
+	"Токен '\"#' не может быть использован отдельно, только в качестве "
+	"закрываюшего токена для '#\"', например: #\"текст текст 123 текст\"#.";
 
 void add_source_path(struct Fpfc *f) {
 	uint32_t path_len = strlen(f->path);
@@ -49,6 +52,8 @@ struct PList *preprocess(struct Tzer *tzer) {
 	return tokens;
 }
 
+// TODO: here need to do when like something is opened and got EF need to err on
+// place where you opened, it will be some little bit other func
 struct NodeToken *take_guaranteed_next(struct NodeToken *n) {
 	if (!n->next)
 		eet(n->token, WASNT_EXPECTING_EOF, 0);
@@ -273,19 +278,24 @@ struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
 	return 0;
 }
 
+#define iter(cond, line)                                                       \
+	if (code cond) {                                                           \
+		line;                                                                  \
+		continue;                                                              \
+	}
+
 void pre(struct Prep *pr, struct PList *final_tokens) {
 	struct NodeToken *c, *name, *fst, *lst;
+	enum TCode code;
 
 	for (c = pr->head; c;) {
+		code = c->token->code;
 		// printf("doin' %s\n", vs(c->token));
-		if (c->token->code == SHPLUS) {
-			c = shplus(pr, c);
-			continue;
-		}
-		if (c->token->code != SHARP) {
-			c = try_apply(pr, c)->next;
-			continue;
-		}
+
+		iter(== SH_QR, eet(c->token, SH_QR_CANT_OCCUR_BY_ITSELF, 0));
+		iter(== SH_QL, c = sh_string(c));
+		iter(== SHPLS, c = shplus(pr, c));
+		iter(!= SHARP, c = try_apply(pr, c)->next);
 
 		fst = c;
 		// TODO: do i want here next_applyed or just take_guaranteed_next

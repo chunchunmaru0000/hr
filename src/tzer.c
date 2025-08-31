@@ -353,11 +353,17 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 		break;
 	case '#':
 		if (n == '+')
-			view = naa(t, "#+", 2, cp, SHPLUS);
+			view = naa(t, "#+", 2, cp, SHPLS);
 		else if (n == ')')
 			view = naa(t, "#)", 2, cp, SH_R);
+		else if (n == '"')
+			view = naa(t, "#\"", 2, cp, SH_QL);
 		else
 			view = naa(t, "#", 1, cp, SHARP);
+		break;
+	case '"':
+		// if (n == '#')
+		view = naa(t, "\"#", 2, cp, SH_QR);
 		break;
 	case '{':
 		view = naa(t, "{", 1, cp, PAR_T_L);
@@ -488,9 +494,12 @@ struct Token *new_token(struct Tzer *t) {
 		code = next_line(t, token);
 	else if ((c >= '0' && c <= '9'))
 		code = num_token(t, token);
-	else if (c == '"')
-		code = str_token(t, token);
-	else if (char_in_str(c, usable_chars))
+	else if (c == '"') {
+		if (get_tzer_token(t, 1) == '#')
+			code = usable_token(t, token);
+		else
+			code = str_token(t, token);
+	} else if (char_in_str(c, usable_chars))
 		code = usable_token(t, token);
 	else
 		code = id_token(t, token);
