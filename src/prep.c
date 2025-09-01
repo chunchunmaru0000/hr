@@ -59,6 +59,11 @@ struct NodeToken *take_guaranteed_next(struct NodeToken *n) {
 		eet(n->token, WASNT_EXPECTING_EOF, 0);
 	return n->next;
 }
+struct NodeToken *next_of_line(struct NodeToken *e, struct NodeToken *n) {
+	if (!n->next)
+		eet(e->token, WASNT_EXPECTING_EOF, 0);
+	return n->next;
+}
 
 void full_free_node_token(struct NodeToken *n) {
 	full_free_token(n->token);

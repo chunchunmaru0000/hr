@@ -25,7 +25,7 @@ struct NodeToken *sh_string(struct NodeToken *c) {
 		blist_add(str_token->view, ' ');
 		blist_add(str_token->str, ' ');
 
-		c = take_guaranteed_next(c);
+		c = next_of_line(fst, c);
 	}
 	lst = c;
 

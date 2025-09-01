@@ -59,6 +59,7 @@ struct NodeToken *shplus(struct Prep *pr, struct NodeToken *c);
 struct NodeToken *sh_string(struct NodeToken *c);
 
 struct NodeToken *take_guaranteed_next(struct NodeToken *n);
+struct NodeToken *next_of_line(struct NodeToken *e, struct NodeToken *n);
 struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c);
 #define next_applyed(pr, c) (try_apply((pr), take_guaranteed_next((c))))
 
