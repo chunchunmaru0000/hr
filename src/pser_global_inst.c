@@ -124,6 +124,7 @@ const char *const SUGGEST_CHANGE_TYPE_TO_A_PTR = "изменить тип на �
 const char *const GLOBAL_STRUCTS_NAMES_OVERLAP =
 	"Лик с таким именем уже существует.";
 const char *const SUGGEST_RENAME_STRUCT = "переименовать лик";
+const char *const EXPECTED_COLO_OR_DIV_IN_ARG = "В данном месте аргумента ожидалось ':' или '/'.";
 
 struct Arg *new_arg() {
 	struct Arg *arg = malloc(sizeof(struct Arg));
@@ -156,13 +157,19 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 			arg = new_arg();
 			plist_add(arg->names, c);
 			plist_add(args, arg);
-		} else
+			continue;
+		} else if (c->code == DIV) {
 			while (c->code == DIV) {
 				c = absorb(p);
 				expect(c, ID);
 				plist_add(arg->names, c);
 				c = pser_cur(p);
 			}
+			continue;
+		}
+		if (c->code != COLO)
+			eet(c, EXPECTED_COLO_OR_DIV_IN_ARG, 0);
+		break;
 	}
 	colo_pos = p->pos;
 	match(c, COLO);
