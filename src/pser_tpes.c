@@ -250,7 +250,6 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	//
 	// 		are_types_compatible(msgs, arr_type(type), e);
 	//
-	// 		// TODO: it better after cuz if warn will also err
 	// 		if (n == msgs->size) {
 	// 			// need to do arr size = 1
 	// 			n = (long)arr_size(type);

@@ -84,8 +84,6 @@ void free_prep(struct Prep *pr) {
 	free(pr);
 }
 
-// TODO: here need to do when like something is opened and got EF need to err on
-// place where you opened, it will be some little bit other func
 struct NodeToken *take_guaranteed_next(struct NodeToken *n) {
 	if (!n->next)
 		eet(n->token, WASNT_EXPECTING_EOF, 0);
