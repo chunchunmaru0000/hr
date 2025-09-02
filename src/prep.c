@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 void pre(struct Prep *pr, struct PList *final_tokens);
+void free_prep(struct Prep *pr);
 void replace_token(struct Token *dst, struct Token *src);
 
 const char *const WASNT_EXPECTING_EOF = "Неожиданно встречен конец файла.";
@@ -47,9 +48,40 @@ struct PList *preprocess(struct Tzer *tzer) {
 	pr->head = gen_node_tokens(tokens);
 	tokens->size = 0;
 	pre(pr, tokens);
-	// TODO: here need to free all macros and defines also prep itself
 
+	free_prep(pr);
 	return tokens;
+}
+
+void free_prep(struct Prep *pr) {
+	struct Macro *macro;
+	struct MacroArg *macro_arg;
+	struct Define *define;
+	struct NodeToken *node, *tmp_node;
+	uint32_t i;
+
+	foreach_begin(define, pr->defines);
+	free(define);
+	foreach_end;
+
+	foreach_begin(macro, pr->macros);
+	if (macro->args) {
+		foreach_begin(macro_arg, macro->args);
+		free(macro_arg);
+		foreach_end;
+		plist_free(macro->args);
+	}
+	for (node = macro->body->fst; node; node = tmp_node) {
+		tmp_node = node->next;
+		free(node);
+	}
+	free(macro->body);
+	free(macro);
+	foreach_end;
+
+	plist_free(pr->defines);
+	plist_free(pr->macros);
+	free(pr);
 }
 
 // TODO: here need to do when like something is opened and got EF need to err on
@@ -251,7 +283,7 @@ struct NodeToken *parse_vot(struct Prep *pr, struct NodeToken *c) {
 
 	// - parse statement
 	c = take_guaranteed_next(c);
-	define->name = c->token; // TODO: should name be ID?
+	define->name = c->token;
 	c = take_guaranteed_next(c);
 	define->replace = c->token;
 
@@ -303,9 +335,7 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 		iter(!= SHARP, c = try_apply(pr, c)->next);
 
 		fst = c;
-		// TODO: do i want here next_applyed or just take_guaranteed_next
-		// like you now by this it can even redefine macro defenition
-		name = take_guaranteed_next(c);
+		name = next_applyed(pr, c);
 		lst = try_parse_sh(pr, name);
 		if (!lst) { // in case of STR_INCLUD when include
 			c = new_included_head;

@@ -215,7 +215,7 @@ struct NodeToken *parse_macro_args(struct NodeToken *c, struct Macro *macro) {
 // when it will be actually called
 struct NodeToken *parse_macro_block(struct NodeToken *c, struct Macro *macro) {
 	struct NodeToken *clone, *clone_prev;
-	macro->body = malloc(sizeof(struct NodeToken));
+	macro->body = malloc(sizeof(struct Nodes));
 
 	c = take_guaranteed_next(c); // skip '(#'
 
