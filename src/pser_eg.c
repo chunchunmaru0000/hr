@@ -70,6 +70,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 	e->type = 0;
 	e->globs = 0;
 	e->from = 0;
+	e->not_from_child = 0;
 	e->tvar = malloc(sizeof(struct Token));
 
 	switch (c->code) {
@@ -113,6 +114,11 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		if (other_var->value->code == CT_ARR ||
 			other_var->value->code == CT_STRUCT)
 			goto e_be_global_and_copy_token_and_break;
+
+		if (other_var->value->code == CT_GLOBAL_PTR) {
+			e->not_from_child = 1;
+			goto e_be_global_and_copy_token_and_break;
+		}
 
 		e->code = other_var->value->code;
 		copy_token(e->tvar, other_var->value->tvar);
@@ -263,9 +269,10 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 			e->code = CT_STRUCT_PTR;
 		else if (e->code == CT_ARR)
 			e->code = CT_ARR_PTR;
-		else if (e->from)
+		else if (e->from) {
+			e->not_from_child = 0;
 			e->code = CT_GLOBAL_PTR;
-		else
+		} else
 			eet(c, CANT_TAKE_PTR_FROM_THIS, 0);
 
 		return e;
@@ -295,6 +302,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 			e->type = 0;
 			e->globs = 0;
 			e->from = 0;
+			e->not_from_child = 0;
 			e->tvar = malloc(sizeof(struct Token));
 			copy_token(e->tvar, c);
 			e->tvar->num = size;

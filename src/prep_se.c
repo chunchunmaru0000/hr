@@ -72,8 +72,7 @@ const char *const PAR_CUR_WASNT_CLOSED = "'{' не была закрыта.";
 const char *const CLOSE_PAR_CUR = "закрыть '{'";
 const char *const NOTHING_TO_CLOSE =
 	"Встречена закрывающая скобка, но не было открывающей.";
-const char *const CANT_HAVE_EMPTY_ARG_YET =
-	"TODO: Аргумент не может быть пустым.";
+const char *const CANT_HAVE_EMPTY_ARG_YET = "Аргумент не может быть пустым.";
 const char *const NEED_CLOSE_BY_PAR_R = "Аргумент должен был быть закрыт ')'.";
 const char *const NEED_CLOSE_BY_COMMA = "Аргумент должен был быть закрыт ','.";
 

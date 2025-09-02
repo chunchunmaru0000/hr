@@ -1,4 +1,5 @@
 #include "pser.h"
+#include <stdio.h>
 
 enum CE_Code {
 	CE_NONE,
@@ -234,6 +235,10 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	}
 
 	if (e->code == CT_GLOBAL) {
+		if (e->not_from_child) {
+			e->code = CT_GLOBAL_PTR;
+			goto judge_it_as_ptr;
+		}
 		plist_add(msgs, e->tvar);
 		plist_add(msgs, (void *)CE_UNCOMPUTIBLE_DATA);
 		return;
@@ -467,6 +472,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 
 	// here e->from != 0
 	if (e->code == CT_GLOBAL_PTR) {
+	judge_it_as_ptr:
 		// pointer can be taken only from an Identificator
 		// so why do i even consider to compare its value type
 		// so in here need to comapre e->from->type
@@ -479,11 +485,18 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		}
 
 		// wrap around e->from->type
-		tmp_type = &(struct TypeExpr){TC_PTR, {.ptr_target = e->from->type}};
+		tmp_type =
+			e->not_from_child
+				? e->from->type
+				: &(struct TypeExpr){TC_PTR, {.ptr_target = e->from->type}};
 
-		// TODO: if types sizes arent equal, need to i dunno flag if it matters
-		// or kinda thing, its easer then have it return an enum
+		// printf("%s %d\n", vs(e->tvar), e->not_from_child);
 		if (!are_types_equal(type, tmp_type)) {
+			// printf("tmp_type = %d %d\n", tmp_type->code,
+			// 	   tmp_type->data.ptr_target->code);
+			// printf("    type = %d %d\n", type->code,
+			// 	   type->data.ptr_target->code);
+
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
 		}
