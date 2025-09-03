@@ -100,23 +100,19 @@ void full_free_node_token(struct NodeToken *n) {
 	free(n);
 }
 
-// TODO: free_node_token here is only i know that it leaks somewhere
-// but i dont care bow for that, it mostly leaks only tokens, but
-// ther Pos is needed so need not to fully, not only pos, i dunno what else
 void free_node_token(struct NodeToken *n) {
-	// printf("before free token\n");
-	// printf("when free %s\n", vs(n->token));
-	// if (n->token->view)
-	// 	blist_clear_free(n->token->view);
-	// if (n->token->str)
-	// 	blist_clear_free(n->token->str);
-	// free(n->token);
+	full_free_token_without_pos(n->token);
 	free(n);
 }
+// void free_node_token_new(struct NodeToken *n) {
+// 	printf("# INFO. free_node_token_new |%s|\n", vs(n->token));
+// 	free(n);
+// }
 
 struct NodeToken *clone_node_token(struct NodeToken *src) {
 	struct NodeToken *dst = malloc(sizeof(struct NodeToken));
 	memcpy(dst, src, sizeof(struct NodeToken));
+	dst->token = deep_clone_token(src->token, src->token->p);
 	return dst;
 }
 
@@ -281,9 +277,9 @@ struct NodeToken *parse_vot(struct Prep *pr, struct NodeToken *c) {
 
 	// - parse statement
 	c = take_guaranteed_next(c);
-	define->name = c->token;
+	define->name = deep_clone_token(c->token, c->token->p);
 	c = take_guaranteed_next(c);
-	define->replace = c->token;
+	define->replace = deep_clone_token(c->token, c->token->p);
 
 	// - save statement
 	plist_add(pr->defines, define);

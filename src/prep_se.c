@@ -201,7 +201,7 @@ struct NodeToken *parse_macro_args(struct NodeToken *c, struct Macro *macro) {
 			eet(c->token, EXPECTED_ID_AS_MACRO_ARG, 0);
 
 		arg = malloc(sizeof(struct MacroArg));
-		arg->name = c->token;
+		arg->name = deep_clone_token(c->token, c->token->p);
 		// arg->usages = new_plist(2);
 
 		plist_add(macro->args, arg);
@@ -248,7 +248,7 @@ struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c) {
 	c = take_guaranteed_next(c);
 	if (c->token->code != ID)
 		eet(c->token, EXPECTED_ID_AS_MACRO_NAME, 0);
-	macro->name = c->token;
+	macro->name = deep_clone_token(c->token, c->token->p);
 
 	c = take_guaranteed_next(c);
 	// parse args

@@ -79,4 +79,5 @@ struct NodeToken *clone_node_token(struct NodeToken *src);
 struct NodeToken *deep_clone_node_with_pos(struct NodeToken *src,
 										   struct Pos *pos);
 struct NodeToken *deep_clone_node(struct NodeToken *src);
+struct Token *deep_clone_token(struct Token *src, struct Pos *pos);
 void full_free_node_token(struct NodeToken *n);
