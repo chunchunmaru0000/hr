@@ -245,6 +245,11 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		}
 		return;
 	}
+	if (type->code == TC_ARR && e->code != CT_ARR) {
+		printf("TODO check if arr and its value\n");
+		// are_types_compatible(msgs, arr_type(type), e);
+		// return;
+	}
 
 	if (e->code == CT_GLOBAL) {
 		if (e->not_from_child) {
