@@ -18,6 +18,8 @@ enum CE_Code {
 	CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT,
 	CE_TOO_MUCH_ITEMS_FOR_THIS_ARR,
 	CE_TOO_LESS_ITEMS_FOR_THIS_ARR,
+	CE_TOO_MUCH_CHARS_FOR_THIS_STR,
+	CE_TOO_LESS_CHARS_FOR_THIS_STR,
 	CE_CANT_DEFINE_ARR_TYPE,
 	CE_CANT_DEFINE_STRUCT_TYPE,
 	CE_STRUCT_WASNT_FOUND,
@@ -64,6 +66,10 @@ const char *const TOO_MUCH_ITEMS_FOR_THIS_ARR =
 	"Слишком много элементов для массива данного типа.";
 const char *const TOO_LESS_ITEMS_FOR_THIS_ARR =
 	"Слишком мало элементов для массива данного типа.";
+const char *const TOO_MUCH_CHARS_FOR_THIS_STR =
+	"Слишком много байт для данной строки.";
+const char *const TOO_LESS_CHARS_FOR_THIS_STR =
+	"Слишком мало байт для данной строки.";
 const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
 const char *const EXPECTED_ARR_OF_LEN = "ожидался массив длиной: ";
 const char *const EXPECTED_STRUCT_OF_LEN = "ожидалось аргументов: ";
@@ -107,6 +113,8 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_STRUCT_WASNT_FOUND, STRUCT_WASNT_FOUND, 0},
 	{CE_TOO_MUCH_ITEMS_FOR_THIS_ARR, TOO_MUCH_ITEMS_FOR_THIS_ARR,
 	 EXPECTED_ARR_OF_LEN},
+	{CE_TOO_MUCH_CHARS_FOR_THIS_STR, TOO_MUCH_CHARS_FOR_THIS_STR,
+	 EXPECTED_ARR_OF_LEN},
 	{CE_STR_IS_NOT_A_PTR, STR_IS_NOT_A_PTR, 0},
 	{CE_ARR_IS_NOT_A_PTR, ARR_IS_NOT_A_PTR, 0},
 	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA, 0},
@@ -121,6 +129,8 @@ const struct CE_CodeStr cecstrs_warns[] = {
 	{CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT, TOO_LESS_FIELDS_FOR_THIS_STRUCT,
 	 EXPECTED_STRUCT_OF_LEN},
 	{CE_TOO_LESS_ITEMS_FOR_THIS_ARR, TOO_LESS_ITEMS_FOR_THIS_ARR,
+	 EXPECTED_ARR_OF_LEN},
+	{CE_TOO_LESS_CHARS_FOR_THIS_STR, TOO_LESS_CHARS_FOR_THIS_STR,
 	 EXPECTED_ARR_OF_LEN},
 };
 
@@ -168,7 +178,8 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 			ei = new_error_info(err_token, cstr->str, cstr->sgst);
 
 			if (cstr->code == CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT ||
-				cstr->code == CE_TOO_MUCH_ITEMS_FOR_THIS_ARR) {
+				cstr->code == CE_TOO_MUCH_ITEMS_FOR_THIS_ARR ||
+				cstr->code == CE_TOO_MUCH_CHARS_FOR_THIS_STR) {
 
 				ei->extra = (void *)plist_get(msgs, --i);
 				ei->extra_type = ET_INT;
@@ -185,6 +196,7 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 			ei->extra = (void *)plist_get(msgs, --i);
 			if (cstr->code == CE_ARR_SIZES_DO_NOW_MATCH ||
 				cstr->code == CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT ||
+				cstr->code == CE_TOO_LESS_CHARS_FOR_THIS_STR ||
 				cstr->code == CE_TOO_LESS_ITEMS_FOR_THIS_ARR)
 
 				ei->extra_type = ET_INT;
@@ -315,13 +327,38 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			return;
 		}
 
-		// TODO err if sizes not match
 		// asume array size
 		n = (long)arr_len(type);
-		if (n != -1 && n != e->tvar->str->size + 1) {
-			plist_add(msgs, (void *)n);
-			tmp_code = CE_ARR_SIZES_DO_NOW_MATCH;
+/*	 */ #define arr_items n
+
+		if (arr_items == -1) { // need to adjust it by size of e->globs->size
+			arr_items = e->tvar->str->size + 1;
+			plist_set(type->data.arr, 1, (void *)arr_items);
+			goto valid_str_as_arr_size;
 		}
+		if (e->tvar->str->size + 1 > arr_items) {
+			plist_add(msgs, (void *)arr_items);
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_TOO_MUCH_CHARS_FOR_THIS_STR);
+			return;
+		}
+		if (arr_items > e->tvar->str->size + 1) {
+			plist_add(msgs, (void *)arr_items);
+			plist_add(msgs, e->tvar);
+			plist_add(msgs, (void *)CE_TOO_LESS_CHARS_FOR_THIS_STR);
+
+			e->tvar->view->size--;
+			for (; e->tvar->str->size + 1 < arr_items;) {
+				blist_add(e->tvar->view, '\\');
+				blist_add(e->tvar->view, '0'); // \0
+				blist_add(e->tvar->str, 0);
+			}
+			blist_add(e->tvar->view, '"');
+			convert_blist_to_blist_from_str(e->tvar->view);
+			convert_blist_to_blist_from_str(e->tvar->str);
+		}
+
+	valid_str_as_arr_size:
 		// set size in any way
 		n = e->tvar->str->size + 1; // + 1 cuz '\0'
 		plist_set(type->data.arr, 1, (void *)n);
