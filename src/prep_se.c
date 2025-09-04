@@ -95,6 +95,7 @@ void exit_par(struct Token *token) {
 }
 
 enum TCode close_code;
+// TODO: macro(a, b, (c, d)) comma in (c, d) is saparator that is wrong
 // here all token can be just guaranteed cuz they will be applyed
 // while in macro body, so no need to do it twice
 struct Nodes *parse_macro_arg_nodes(struct NodeToken **c) {
