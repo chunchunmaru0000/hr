@@ -36,6 +36,7 @@ struct PList *preprocess(struct Tzer *tzer) {
 	pr->f = tzer->f;
 	pr->defines = new_plist(10);
 	pr->macros = new_plist(10);
+	pr->sentences = new_plist(10);
 
 	if (included_files == 0) {
 		included_files = new_plist(8);
@@ -290,6 +291,7 @@ struct NodeToken *parse_vot(struct Prep *pr, struct NodeToken *c) {
 const char *const STR_VOT = "вот";
 const char *const STR_SE = "се";
 const char *const STR_INCLUDE = "влечь";
+const char *const STR_SENTENCE = "буки";
 
 // TODO: if redefine then free last one
 struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
@@ -304,6 +306,9 @@ struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
 
 	if (vcs(name->token, STR_INCLUDE))
 		return parse_include(name);
+
+	if (vcs(name->token, STR_SENTENCE))
+		return parse_sent(pr, name);
 
 	eet(name->token, WAS_EXPECTING_PREP_INST_WORD, 0);
 	return 0;

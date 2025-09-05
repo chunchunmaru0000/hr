@@ -80,6 +80,7 @@ enum TCode {
 	SH_R,	// #)
 	SH_QL,	// #"
 	SH_QR,	// "#
+	SH_OR,  // #|
 };
 
 struct Token {

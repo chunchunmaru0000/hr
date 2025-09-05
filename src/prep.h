@@ -39,12 +39,25 @@ struct Macro {
 	struct Nodes *body;
 };
 
+struct SentenceWord {
+	struct Token *word;
+	struct SentenceWord *or_word;
+};
+
+struct Sentence {
+	struct PList *args; // plist of NodeToken's
+
+	struct PList *words; // plist of SentenceWord's
+	struct Nodes *body;
+};
+
 struct Prep {
 	struct Fpfc *f;
 	struct NodeToken *head;
 
 	struct PList *defines;
 	struct PList *macros;
+	struct PList *sentences;
 };
 
 struct NodeToken *gen_node_tokens(struct PList *tokens);
@@ -52,11 +65,13 @@ extern struct PList *included_files; // list of BLists
 extern struct NodeToken *new_included_head;
 struct PList *preprocess(struct Tzer *tzer);
 
-struct NodeToken *parse_include(struct NodeToken *c);
 struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c);
+struct NodeToken *parse_include(struct NodeToken *c);
+struct NodeToken *parse_sent(struct Prep *pr, struct NodeToken *name);
 struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro);
 struct NodeToken *shplus(struct Prep *pr, struct NodeToken *c);
 struct NodeToken *sh_string(struct NodeToken *c);
+struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro);
 
 struct NodeToken *take_guaranteed_next(struct NodeToken *n);
 struct NodeToken *next_of_line(struct NodeToken *e, struct NodeToken *n);
