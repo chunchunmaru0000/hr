@@ -35,13 +35,14 @@ struct SentenceWord *new_sentence_word(struct Token *t,
 
 struct SentenceWord *parse_word_or_word(struct PList *words,
 										struct NodeToken **c,
-										struct NodeToken *n) {
+										struct NodeToken **n) {
 	struct SentenceWord *sentence_word;
-	sentence_word = new_sentence_word((*c)->token, 0);
+	sentence_word =
+		new_sentence_word(deep_clone_token((*c)->token, (*c)->token->p), 0);
 
-	if (n->token->code == SH_OR) {
-		*c = take_guaranteed_next(n);
-		n = take_guaranteed_next(*c);
+	if ((*n)->token->code == SH_OR) {
+		*c = take_guaranteed_next(*n);
+		(*n) = take_guaranteed_next(*c);
 		sentence_word->or_word = parse_word_or_word(words, c, n);
 	}
 	return sentence_word;
@@ -61,7 +62,7 @@ int until_next_arg(struct PList *words, struct NodeToken **c) {
 		if (code == SHARP)
 			return 1;
 
-		plist_add(words, parse_word_or_word(words, c, n));
+		plist_add(words, parse_word_or_word(words, c, &n));
 		*c = n;
 	}
 }
@@ -86,15 +87,13 @@ void parse_sent_args_and_words(struct Prep *pr, struct Sentence *sent,
 		if (c->token->code != SHARP)
 			eet(c->token, EXPECTED_SHARP_AS_CLOSING_ARG, 0);
 	}
-	// 	if (c->token->code != SH_R)
-	// 		eet(c->token, EXPECTED_SENT_START_SH_R, 0);
 
-	*name = c; // '#)'
+	*name = take_guaranteed_next(c); // skip '#)' and ret with'(#'
 	sent->args = args;
 	sent->words = words;
 }
 
-struct Nodes *parse_sent_body(struct NodeToken **start) {
+struct Nodes *parse_body(struct NodeToken **start) {
 	struct Nodes *body = malloc(sizeof(struct Nodes));
 	struct NodeToken *c = *start, *clone, *clone_prev;
 
@@ -123,15 +122,37 @@ struct Nodes *parse_sent_body(struct NodeToken **start) {
 	return body;
 }
 
+void debug_sent(struct Sentence *sent);
+
 struct NodeToken *parse_sent(struct Prep *pr, struct NodeToken *name) {
 	struct NodeToken *c = name;
 	struct Sentence *sent = malloc(sizeof(struct Sentence));
 	plist_add(pr->sentences, sent);
 
 	parse_sent_args_and_words(pr, sent, &c);
-	// TODO: sent->args = parse_sent_args(pr, &c); or do
-	// parse_sent_args_and_words
-	sent->body = parse_sent_body(&c);
+	sent->body = parse_body(&c);
 
+	// debug_sent(sent);
 	return c;
+}
+
+void debug_sent(struct Sentence *sent) {
+	uint32_t i;
+	struct SentenceWord *word;
+	struct NodeToken *arg;
+	struct NodeToken *node;
+
+	foreach_begin(word, sent->words);
+	printf("#INFO WORD %d. %s\n", i, vs(word->word));
+	for (word = word->or_word; word; word = word->or_word)
+		printf("#INFO WORD %d. | %s\n", i, vs(word->word));
+	foreach_end;
+
+	foreach_begin(arg, sent->args);
+	printf("#INFO ARG %d. %s\n", i, vs(arg->token));
+	foreach_end;
+
+	for (node = sent->body->fst; node; node = node->next) {
+		printf("#INFO BODY NODE. %s\n", vs(node->token));
+	}
 }

@@ -54,8 +54,12 @@ struct PList *preprocess(struct Tzer *tzer) {
 	return tokens;
 }
 
+void free_node_token(struct NodeToken *n);
+void free_sentence_word(struct SentenceWord *w);
 void free_prep(struct Prep *pr) {
 	struct Macro *macro;
+	struct Sentence *sent;
+	struct SentenceWord *word;
 	struct MacroArg *macro_arg;
 	struct Define *define;
 	struct NodeToken *node, *tmp_node;
@@ -74,15 +78,40 @@ void free_prep(struct Prep *pr) {
 	}
 	for (node = macro->body->fst; node; node = tmp_node) {
 		tmp_node = node->next;
-		free(node);
+		free_node_token(node);
 	}
 	free(macro->body);
 	free(macro);
 	foreach_end;
 
+	foreach_begin(sent, pr->sentences);
+	foreach_begin(word, sent->words);
+	free_sentence_word(word);
+	foreach_end;
+	foreach_begin(node, sent->args);
+	free_node_token(node);
+	foreach_end;
+	for (node = sent->body->fst; node; node = tmp_node) {
+		tmp_node = node->next;
+		free_node_token(node);
+	}
+	plist_free(sent->words);
+	plist_free(sent->args);
+	free(sent->body);
+	free(sent);
+	foreach_end;
+
 	plist_free(pr->defines);
 	plist_free(pr->macros);
+	plist_free(pr->sentences);
 	free(pr);
+}
+
+void free_sentence_word(struct SentenceWord *w) {
+	struct SentenceWord *or_word = w->or_word;
+	full_free_token_without_pos(w->word);
+	if (or_word)
+		free_sentence_word(or_word);
 }
 
 struct NodeToken *take_guaranteed_next(struct NodeToken *n) {
