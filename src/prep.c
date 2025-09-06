@@ -60,19 +60,22 @@ void free_prep(struct Prep *pr) {
 	struct Macro *macro;
 	struct Sentence *sent;
 	struct SentenceWord *word;
-	struct MacroArg *macro_arg;
+	struct Token *macro_arg;
 	struct Define *define;
 	struct NodeToken *node, *tmp_node;
-	uint32_t i;
-
+	uint32_t i, j;
+	// ################ DEFINES ##################
 	foreach_begin(define, pr->defines);
 	free(define);
 	foreach_end;
 
-	foreach_begin(macro, pr->macros);
+	plist_free(pr->defines);
+	// ################ MACROS ##################
+	foreach_by(i, macro, pr->macros);
+	full_free_token_without_pos(macro->name);
 	if (macro->args) {
-		foreach_begin(macro_arg, macro->args);
-		free(macro_arg);
+		foreach_by(j, macro_arg, macro->args);
+		full_free_token_without_pos(macro_arg);
 		foreach_end;
 		plist_free(macro->args);
 	}
@@ -84,11 +87,13 @@ void free_prep(struct Prep *pr) {
 	free(macro);
 	foreach_end;
 
-	foreach_begin(sent, pr->sentences);
-	foreach_begin(word, sent->words);
+	plist_free(pr->macros);
+	// ################ SENTENCES ##################
+	foreach_by(i, sent, pr->sentences);
+	foreach_by(j, word, sent->words);
 	free_sentence_word(word);
 	foreach_end;
-	foreach_begin(node, sent->args);
+	foreach_by(j, node, sent->args);
 	free_node_token(node);
 	foreach_end;
 	for (node = sent->body->fst; node; node = tmp_node) {
@@ -101,8 +106,6 @@ void free_prep(struct Prep *pr) {
 	free(sent);
 	foreach_end;
 
-	plist_free(pr->defines);
-	plist_free(pr->macros);
 	plist_free(pr->sentences);
 	free(pr);
 }

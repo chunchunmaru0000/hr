@@ -6,7 +6,7 @@ struct Nodes *gen_macro_body(struct Macro *macro, struct PList *args_nodes);
 
 struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro) {
 	struct NodeToken *fst_at, *lst_at, *macro_call;
-	// struct NodeToken *fst_to_cut = c;
+
 	// all of args_nodes nodes need to clone when insert
 	// last two values of the list are first args token and last args token
 	struct PList *args_nodes = parse_macro_args_nodes(&c, macro);
@@ -31,11 +31,11 @@ int figure_out_if_its_arg(struct Macro *macro, struct NodeToken *node) {
 	if (macro->args == 0)
 		return -1;
 
-	struct MacroArg *arg;
+	struct Token *arg;
 	uint32_t i;
 
 	foreach_begin(arg, macro->args);
-	if (vc(node->token, arg->name)) // plist_add(arg->usages, node);
+	if (vc(node->token, arg)) // plist_add(arg->usages, node);
 		return i;
 	foreach_end;
 
@@ -95,7 +95,6 @@ void exit_par(struct Token *token) {
 }
 
 enum TCode close_code;
-// TODO: macro(a, b, (c, d)) comma in (c, d) is saparator that is wrong
 // here all token can be just guaranteed cuz they will be applyed
 // while in macro body, so no need to do it twice
 struct Nodes *parse_macro_arg_nodes(struct NodeToken **c) {
@@ -157,6 +156,8 @@ struct PList *parse_macro_args_nodes(struct NodeToken **c,
 	} else
 		close_code = COMMA;
 
+	if (macro->args == 0)
+		goto end_macro_call_args;
 	if (macro->args->size) {
 		if (close_code == PAR_R) {
 			// close all args before last with ','
@@ -172,6 +173,7 @@ struct PList *parse_macro_args_nodes(struct NodeToken **c,
 				plist_add(args_nodes, parse_macro_arg_nodes(c));
 		}
 	} else {
+	end_macro_call_args:
 		if (close_code == PAR_R && ((*c)->token->code != PAR_R))
 			eet((*c)->token, EXPECTED_PAR_R_AFTER_MACRO_ARGS, 0);
 		if (close_code == COMMA && (*c)->token->code != COMMA)
@@ -192,8 +194,6 @@ struct PList *parse_macro_args_nodes(struct NodeToken **c,
 // ####################################################################
 
 struct NodeToken *parse_macro_args(struct NodeToken *c, struct Macro *macro) {
-	struct MacroArg *arg;
-
 	macro->args = new_plist(4);
 	c = take_guaranteed_next(c); // skip '('
 
@@ -201,11 +201,7 @@ struct NodeToken *parse_macro_args(struct NodeToken *c, struct Macro *macro) {
 		if (c->token->code != ID)
 			eet(c->token, EXPECTED_ID_AS_MACRO_ARG, 0);
 
-		arg = malloc(sizeof(struct MacroArg));
-		arg->name = deep_clone_token(c->token, c->token->p);
-		// arg->usages = new_plist(2);
-
-		plist_add(macro->args, arg);
+		plist_add(macro->args, deep_clone_token(c->token, c->token->p));
 	}
 	// here c should be ')'
 	return take_guaranteed_next(c);

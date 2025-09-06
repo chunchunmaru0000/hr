@@ -3,6 +3,9 @@
 #define foreach_begin(item, items)                                             \
 	for (i = 0; i < items->size; i++) {                                        \
 		item = plist_get(items, i);
+#define foreach_by(count, item, items)                                         \
+	for ((count) = 0; (count) < items->size; (count)++) {                      \
+		item = plist_get(items, (count));
 #define foreach_end }
 
 extern const char *const WASNT_EXPECTING_EOF;
@@ -28,14 +31,10 @@ struct Nodes {
 };
 // for macro you first copy its tree and then for every usage of arg
 // and then insert(replace inclusive) arg provided tokens in place of arg usage
-struct MacroArg {
-	struct Token *name;
-};
 
 struct Macro {
 	struct Token *name;
 	struct PList *args;
-
 	struct Nodes *body;
 };
 
