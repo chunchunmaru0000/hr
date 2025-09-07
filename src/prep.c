@@ -304,6 +304,9 @@ struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c) {
 	}
 	foreach_end;
 
+	// if (try_apply_sentence(pr, &c))
+	// 	return try_apply(pr, c);
+
 	return c;
 }
 

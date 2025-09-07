@@ -74,6 +74,7 @@ struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro);
 struct NodeToken *shplus(struct Prep *pr, struct NodeToken *c);
 struct NodeToken *sh_string(struct NodeToken *c);
 struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro);
+int try_apply_sentence(struct Prep *pr, struct NodeToken **c);
 
 struct NodeToken *take_guaranteed_next(struct NodeToken *n);
 struct NodeToken *next_of_line(struct NodeToken *e, struct NodeToken *n);

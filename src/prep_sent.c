@@ -6,6 +6,59 @@
 // ####################################################################
 
 // ####################################################################
+// 						BELOW IS SENTENCE CALL TRY
+// ####################################################################
+
+int cmp_sent_word(struct SentenceWord *w, struct Token *token) {
+	while (w) {
+		if (vc(w->word, token))
+			return 1;
+		w = w->or_word;
+	}
+	return 0;
+}
+
+int try_apply_sentence(struct Prep *pr, struct NodeToken **c) {
+	struct SentenceWord *sent_word;
+	struct SentenceArg *sent_arg;
+	struct Sentence *sentence;
+	struct NodeToken *n, *snd_word, *lst_word;
+	uint32_t i, j;
+
+	foreach_by(i, sentence, pr->sentences);
+	sent_word = plist_get(sentence->words, 0);
+	printf("#INFO. try sentence %s\n", vs(sent_word->word));
+
+	if (cmp_sent_word(sent_word, (*c)->token)) {
+		if (sentence->args->size) {
+			exit(220);
+
+		} else { // here just all words should be equal
+			n = take_guaranteed_next(*c);
+			snd_word = n;
+
+			for (j = 1; j < sentence->words->size; j++) {
+				if (!cmp_sent_word(plist_get(sentence->words, j), n->token))
+					break;
+				n = take_guaranteed_next(n);
+			}
+			if (j == sentence->words->size)
+				continue;
+
+			lst_word = n == snd_word ? snd_word : n->prev;
+			*c = cut_off_inclusive(snd_word, lst_word);
+			*c = replace_nodes_inclusive(*c, copy_nodeses(0, sentence->body));
+			return 1;
+		}
+	}
+
+	printf("#INFO. end sentence %s\n", vs(sent_word->word));
+	foreach_end;
+
+	return 0;
+}
+
+// ####################################################################
 // 						BELOW IS SENTENCE PARSE
 // ####################################################################
 
@@ -48,7 +101,7 @@ struct SentenceWord *parse_word_or_word(struct PList *words,
 	return sentence_word;
 }
 
-int until_next_arg(struct PList *words, struct NodeToken **c) {
+int until_next_arg(struct PList *words, struct NodeToken **c, uint32_t *i) {
 	struct NodeToken *n;
 	enum TCode code;
 
@@ -63,6 +116,7 @@ int until_next_arg(struct PList *words, struct NodeToken **c) {
 			return 1;
 
 		plist_add(words, parse_word_or_word(words, c, &n));
+		(*i)++;
 		*c = n;
 	}
 }
@@ -78,7 +132,7 @@ void parse_sent_args_and_words(struct Prep *pr, struct Sentence *sent,
 	if (c->token->code != SH_L)
 		eet(c->token, EXPECTED_SENT_START_SH_L, 0);
 
-	for (i = 0; until_next_arg(words, &c);) {
+	for (i = 0; until_next_arg(words, &c, &i); i++) {
 		c = take_guaranteed_next(c);
 		if (c->token->code != ID)
 			eet(c->token, EXPECTED_ID_AS_MACRO_NAME, 0);
@@ -128,7 +182,21 @@ struct Nodes *parse_body(struct NodeToken **start) {
 }
 
 void debug_sent(struct Sentence *sent);
+void test_sent(struct Sentence *sent, struct NodeToken *name);
+const char *const SENTENCE_CANT_HAVE_LESS_THAN_2_WORDS =
+	"Буки не могут иметь в себе менее двух слов, не считая аргументы.";
+const char *const SENTENCE_CANT_START_WITH_ARG =
+	"Буки не могут начинаться с аргумента.";
+const char *const TWO_ARGS_NEED_TO_BE_SEPARATED =
+	"Два аргумента в буках должны разделяться хотя бы одним словом, так как "
+	"слова являются разграничителями аргументов.";
 
+// TODO: need to so most late first args sents are first to compare
+//	sents
+//	|> sort fun sent -> sent->args[0]->index end
+//	|> reverse
+// and it will guarantee that is there is sents that start with same words them
+// longest ones can always be possible and no need to declare them before
 struct NodeToken *parse_sent(struct Prep *pr, struct NodeToken *name) {
 	struct NodeToken *c = name;
 	struct Sentence *sent = malloc(sizeof(struct Sentence));
@@ -137,14 +205,37 @@ struct NodeToken *parse_sent(struct Prep *pr, struct NodeToken *name) {
 	parse_sent_args_and_words(pr, sent, &c);
 	sent->body = parse_body(&c);
 
-	// debug_sent(sent);
+	test_sent(sent, name);
+	debug_sent(sent);
+
 	return c;
+}
+
+void test_sent(struct Sentence *sent, struct NodeToken *name) {
+	struct SentenceArg *sent_arg, *tmp_arg;
+	uint32_t i;
+
+	if (sent->words->size < 2)
+		eet(name->token, SENTENCE_CANT_HAVE_LESS_THAN_2_WORDS, 0);
+	if (sent->args->size) {
+		sent_arg = plist_get(sent->args, 0);
+
+		if (sent_arg->index == 0)
+			eet(sent_arg->token, SENTENCE_CANT_START_WITH_ARG, 0);
+
+		for (i = 1; i < sent->args->size; i++) {
+			tmp_arg = plist_get(sent->args, i);
+			if (tmp_arg->index - sent_arg->index < 2)
+				eet(tmp_arg->token, TWO_ARGS_NEED_TO_BE_SEPARATED, 0);
+			sent_arg = tmp_arg;
+		}
+	}
 }
 
 void debug_sent(struct Sentence *sent) {
 	uint32_t i;
 	struct SentenceWord *word;
-	struct NodeToken *arg;
+	struct SentenceArg *arg;
 	struct NodeToken *node;
 
 	foreach_begin(word, sent->words);
@@ -154,7 +245,7 @@ void debug_sent(struct Sentence *sent) {
 	foreach_end;
 
 	foreach_begin(arg, sent->args);
-	printf("#INFO ARG %d. %s\n", i, vs(arg->token));
+	printf("#INFO ARG %d. %s with index %d\n", i, vs(arg->token), arg->index);
 	foreach_end;
 
 	for (node = sent->body->fst; node; node = node->next) {
