@@ -71,17 +71,22 @@ void parse_sent_args_and_words(struct Prep *pr, struct Sentence *sent,
 							   struct NodeToken **name) {
 	struct PList *args = new_plist(8);
 	struct PList *words = new_plist(16);
+	struct SentenceArg *arg;
 	struct NodeToken *c = next_applyed(pr, *name);
+	uint32_t i;
 
 	if (c->token->code != SH_L)
 		eet(c->token, EXPECTED_SENT_START_SH_L, 0);
 
-	while (until_next_arg(words, &c)) {
+	for (i = 0; until_next_arg(words, &c);) {
 		c = take_guaranteed_next(c);
 		if (c->token->code != ID)
 			eet(c->token, EXPECTED_ID_AS_MACRO_NAME, 0);
 
-		plist_add(args, deep_clone_node(c));
+		arg = malloc(sizeof(struct SentenceArg));
+		arg->index = i;
+		arg->token = deep_clone_token(c->token, c->token->p);
+		plist_add(args, arg);
 
 		c = take_guaranteed_next(c);
 		if (c->token->code != SHARP)

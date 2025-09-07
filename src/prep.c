@@ -60,6 +60,7 @@ void free_prep(struct Prep *pr) {
 	struct Macro *macro;
 	struct Sentence *sent;
 	struct SentenceWord *word;
+	struct SentenceArg *sent_arg;
 	struct Token *macro_arg;
 	struct Define *define;
 	struct NodeToken *node, *tmp_node;
@@ -93,8 +94,9 @@ void free_prep(struct Prep *pr) {
 	foreach_by(j, word, sent->words);
 	free_sentence_word(word);
 	foreach_end;
-	foreach_by(j, node, sent->args);
-	free_node_token(node);
+	foreach_by(j, sent_arg, sent->args);
+	full_free_token_without_pos(sent_arg->token);
+	free(sent_arg);
 	foreach_end;
 	for (node = sent->body->fst; node; node = tmp_node) {
 		tmp_node = node->next;

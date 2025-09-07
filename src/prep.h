@@ -42,10 +42,13 @@ struct SentenceWord {
 	struct Token *word;
 	struct SentenceWord *or_word;
 };
+struct SentenceArg {
+	struct Token *token;
+	uint32_t index;
+};
 
 struct Sentence {
-	struct PList *args; // plist of NodeToken's
-
+	struct PList *args;	 // plist of SentenceArg's
 	struct PList *words; // plist of SentenceWord's
 	struct Nodes *body;
 };
