@@ -27,7 +27,6 @@ int try_apply_sentence(struct Prep *pr, struct NodeToken **c) {
 
 	foreach_by(i, sentence, pr->sentences);
 	sent_word = plist_get(sentence->words, 0);
-	printf("#INFO. try sentence %s\n", vs(sent_word->word));
 
 	if (cmp_sent_word(sent_word, (*c)->token)) {
 		if (sentence->args->size) {
@@ -52,7 +51,6 @@ int try_apply_sentence(struct Prep *pr, struct NodeToken **c) {
 		}
 	}
 
-	printf("#INFO. end sentence %s\n", vs(sent_word->word));
 	foreach_end;
 
 	return 0;
@@ -126,7 +124,7 @@ void parse_sent_args_and_words(struct Prep *pr, struct Sentence *sent,
 	struct PList *args = new_plist(8);
 	struct PList *words = new_plist(16);
 	struct SentenceArg *arg;
-	struct NodeToken *c = next_applyed(pr, *name);
+	struct NodeToken *c = take_guaranteed_next(*name);
 	uint32_t i;
 
 	if (c->token->code != SH_L)
@@ -182,7 +180,7 @@ struct Nodes *parse_body(struct NodeToken **start) {
 }
 
 void debug_sent(struct Sentence *sent);
-void test_sent(struct Sentence *sent, struct NodeToken *name);
+void assert_sent(struct Sentence *sent, struct NodeToken *name);
 const char *const SENTENCE_CANT_HAVE_LESS_THAN_2_WORDS =
 	"Буки не могут иметь в себе менее двух слов, не считая аргументы.";
 const char *const SENTENCE_CANT_START_WITH_ARG =
@@ -205,13 +203,13 @@ struct NodeToken *parse_sent(struct Prep *pr, struct NodeToken *name) {
 	parse_sent_args_and_words(pr, sent, &c);
 	sent->body = parse_body(&c);
 
-	test_sent(sent, name);
+	assert_sent(sent, name);
 	debug_sent(sent);
 
 	return c;
 }
 
-void test_sent(struct Sentence *sent, struct NodeToken *name) {
+void assert_sent(struct Sentence *sent, struct NodeToken *name) {
 	struct SentenceArg *sent_arg, *tmp_arg;
 	uint32_t i;
 
