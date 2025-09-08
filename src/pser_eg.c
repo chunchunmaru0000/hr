@@ -192,6 +192,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 }
 
 struct GlobExpr *unary_g_expression(struct Pser *p) {
+	long size;
 	struct GlobExpr *e;
 	struct TypeExpr *type;
 	struct Token *c = pser_cur(p);
@@ -295,7 +296,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 			consume(p); // skip мера
 
 			type = type_expr(p);
-			long size = unsafe_size_of_type(type);
+			size = unsafe_size_of_type(type);
 			free_type(type);
 
 			e = malloc(sizeof(struct GlobExpr));
@@ -308,6 +309,30 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 			e->tvar->num = size;
 			e->code = CT_INT;
 
+			return e;
+		} else if (sc(STR_SIZE_OF_VAL, vs(c))) {
+			consume(p);				   // skip мера
+			match(pser_cur(p), PAR_L); // (
+
+			e = global_expression(p);
+			size = unsafe_size_of_global_value(e);
+			free_type(e->type);
+
+			e->type = 0;
+			e->from = 0;
+			e->not_from_child = 0;
+			copy_token(e->tvar, c);
+			e->tvar->num = size;
+			e->code = CT_INT;
+
+			if (e->globs) { // here use size cuz why not
+				for (size = 0; size < e->globs->size; size++)
+					free_glob_expr(plist_get(e->globs, size));
+				plist_free(e->globs);
+			}
+			e->globs = 0;
+
+			match(pser_cur(p), PAR_R); // )
 			return e;
 		}
 	}
