@@ -29,7 +29,6 @@ int try_apply_sentence(struct Prep *pr, struct NodeToken **cur) {
 
 	foreach_by(i, sentence, pr->sentences);
 	sent_word = plist_get(sentence->words, 0);
-	printf("sent word %s and cur of %s\n", vs(sent_word->word), vs(c->token));
 
 	if (cmp_sent_word(sent_word, c->token)) {
 		if (sentence->args->size) {
