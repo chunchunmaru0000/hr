@@ -18,22 +18,25 @@ int cmp_sent_word(struct SentenceWord *w, struct Token *token) {
 	return 0;
 }
 
-int try_apply_sentence(struct Prep *pr, struct NodeToken **c) {
+int try_apply_sentence(struct Prep *pr, struct NodeToken **cur) {
+	struct NodeToken *c = *cur;
 	struct SentenceWord *sent_word;
 	struct SentenceArg *sent_arg;
 	struct Sentence *sentence;
+	struct Nodes *body;
 	struct NodeToken *n, *snd_word, *lst_word;
 	uint32_t i, j;
 
 	foreach_by(i, sentence, pr->sentences);
 	sent_word = plist_get(sentence->words, 0);
+	printf("sent word %s and cur of %s\n", vs(sent_word->word), vs(c->token));
 
-	if (cmp_sent_word(sent_word, (*c)->token)) {
+	if (cmp_sent_word(sent_word, c->token)) {
 		if (sentence->args->size) {
 			exit(220);
 
 		} else { // here just all words should be equal
-			n = take_guaranteed_next(*c);
+			n = take_guaranteed_next(c);
 			snd_word = n;
 
 			for (j = 1; j < sentence->words->size; j++) {
@@ -41,12 +44,13 @@ int try_apply_sentence(struct Prep *pr, struct NodeToken **c) {
 					break;
 				n = take_guaranteed_next(n);
 			}
-			if (j == sentence->words->size)
+			if (j != sentence->words->size)
 				continue;
 
 			lst_word = n == snd_word ? snd_word : n->prev;
-			*c = cut_off_inclusive(snd_word, lst_word);
-			*c = replace_nodes_inclusive(*c, copy_nodeses(0, sentence->body));
+			c = cut_off_inclusive(snd_word, lst_word);
+			body = copy_nodeses(0, sentence->body);
+			*cur = replace_nodes_inclusive(c, body);
 			return 1;
 		}
 	}
@@ -204,7 +208,7 @@ struct NodeToken *parse_sent(struct Prep *pr, struct NodeToken *name) {
 	sent->body = parse_body(&c);
 
 	assert_sent(sent, name);
-	debug_sent(sent);
+	// debug_sent(sent);
 
 	return c;
 }
