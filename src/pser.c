@@ -1,6 +1,7 @@
 #include "pser.h"
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 struct Pser *new_pser(struct Fpfc *f, struct PList *tokens, char *filename,
 					  uc debug) {
@@ -216,6 +217,40 @@ void free_glob_expr(struct GlobExpr *e) {
 		goto just_free_token_and_e;
 	} else
 		exit(221);
+}
+
+long unsafe_size_of_global_value(struct GlobExpr *e) {
+	if (e->type)
+		return unsafe_size_of_type(e->type);
+	enum CT_Code code = e->code;
+
+	long res = 0;
+	if (code == CT_INT)
+		res = QWORD;
+	else if (code == CT_REAL)
+		res = QWORD;
+	else if (code == CT_FUN)
+		res = QWORD;
+	else if (code == CT_STR)
+		res = e->tvar->str->size + 1; // +1 for \0
+	else if (code == CT_ARR)
+		exit(217);
+	else if (code == CT_STRUCT)
+		exit(218);
+	else if (code == CT_STR_PTR)
+		res = QWORD;
+	else if (code == CT_ARR_PTR)
+		res = QWORD;
+	else if (code == CT_STRUCT_PTR)
+		res = QWORD;
+	else if (code == CT_GLOBAL)
+		exit(219);
+	else if (code == CT_GLOBAL_PTR)
+		res = QWORD;
+	else if (code == CT_ZERO)
+		exit(216);
+
+	return res;
 }
 
 const char *const ERR_WRONG_TOKEN = "Неверное выражение.";

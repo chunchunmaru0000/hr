@@ -1,4 +1,5 @@
 #include "pser.h"
+#include <stdio.h>
 
 // TODO: long a = (long)("str");
 
@@ -311,12 +312,13 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 			return e;
 		} else if (sc(STR_SIZE_OF_VAL, vs(c))) {
-			consume(p);				   // skip мера
+			consume(p);				   // skip размера
 			match(pser_cur(p), PAR_L); // (
 
 			e = global_expression(p);
 			size = unsafe_size_of_global_value(e);
-			free_type(e->type);
+			if (e->type)
+				free_type(e->type);
 
 			e->type = 0;
 			e->from = 0;

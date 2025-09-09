@@ -326,6 +326,7 @@ void check_list_of_args_on_name(struct PList *l, uint32_t from_arg,
 								uint32_t from_name,
 								struct Token *name_to_check);
 void check_list_of_vars_on_name(struct Pser *p, struct Token *name_to_check);
+long unsafe_size_of_global_value(struct GlobExpr *e);
 
 void eei(struct Inst *, const char *const msg, const char *const sgst);
 
