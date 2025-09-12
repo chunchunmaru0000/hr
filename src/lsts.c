@@ -166,7 +166,7 @@ void blist_print(struct BList *l) {
 	putchar('\n');
 }
 
-void blist_add_set(struct BList *l, uc sz, uint32_t *value, size_t n) {
+void blist_add_set(struct BList *l, uc sz, long *value, size_t n) {
 	if (n < 1)
 		return;
 
