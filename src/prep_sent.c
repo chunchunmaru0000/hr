@@ -30,6 +30,7 @@ int try_apply_sentence(struct Prep *pr, struct NodeToken **cur) {
 	foreach_by(i, sentence, pr->sentences);
 	sent_word = plist_get(sentence->words, 0);
 
+	// printf("#INFO. try_apply_sentence [%s]\n", vs((*cur)->token));
 	if (cmp_sent_word(sent_word, c->token)) {
 		if (sentence->args->size) {
 			exit(220);
@@ -39,6 +40,8 @@ int try_apply_sentence(struct Prep *pr, struct NodeToken **cur) {
 			snd_word = n;
 
 			for (j = 1; j < sentence->words->size; j++) {
+				// printf("#INFO. try_apply_sentence №%d [%s]\n", j,
+				// vs(n->token));
 				if (!cmp_sent_word(plist_get(sentence->words, j), n->token))
 					break;
 				n = take_guaranteed_next(n);

@@ -270,7 +270,8 @@ struct NodeToken *replace_inclusive(struct NodeToken *place,
 	struct NodeToken *fst_copy, *lst_copy;
 	copy_nodes(place->token->p, fst, lst, &fst_copy, &lst_copy);
 
-	place->prev->next = fst_copy;
+	if (place->prev)
+		place->prev->next = fst_copy;
 	fst_copy->prev = place->prev;
 
 	place->next->prev = lst_copy;
@@ -354,7 +355,7 @@ struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
 #define iter(cond, line)                                                       \
 	if (code cond) {                                                           \
 		line;                                                                  \
-		continue;                                                              \
+		goto try_fill_head_if_empty;                                           \
 	}
 
 void pre(struct Prep *pr, struct PList *final_tokens) {
@@ -382,9 +383,26 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 		c = cut_off_inclusive(fst, lst); // its already next token in here
 		if (pr->head == fst) // fst is freed but pointer is just a value
 			pr->head = c;	 // in case if its first and tokens decapitated
+
+	try_fill_head_if_empty:
+		// printf("c [%p]", c);
+		// if (c) {
+		// 	printf("[%s]\n", vs(c->token));
+		// 	printf("\tc->prev  [%p]\n", c->prev);
+		// 	printf("\tpr->head [%p]\n", pr->head);
+		// } else
+		// 	putchar('\n');
+
+		if (c) {
+			if (c->prev == 0)
+				pr->head = c;
+			else if (c->prev->prev == 0)
+				pr->head = c->prev;
+		}
 	}
 
 	// collect tokens
+	//printf("pr->head [%p]\n", pr->head);
 	for (c = pr->head; c; c = c->next)
 		plist_add(final_tokens, c->token);
 }
