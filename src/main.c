@@ -15,7 +15,8 @@ int main() {
 	struct Gner *g = new_gner(p, T_Асм_Linux_64, 1);
 	gen(g);
 
-	long bytes = g->bprol->size + g->prol->size + g->text->size;
+	long bytes =
+		g->bprol->size + g->prol->size + g->aprol->size + g->text->size;
 	FILE *file = fopen(outname, "wb");
 	fwrite(g->bprol->st, 1, g->bprol->size, file);
 	fwrite(g->prol->st, 1, g->prol->size, file);
