@@ -29,6 +29,8 @@ struct NodeToken *sh_string(struct NodeToken *c) {
 	}
 	lst = c;
 
+	str_token->view->size--; // remove last ' '
+	str_token->str->size--;
 	blist_add(str_token->view, '"');
 	convert_blist_to_blist_from_str(str_token->view);
 	convert_blist_to_blist_from_str(str_token->str);
