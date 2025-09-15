@@ -18,6 +18,9 @@ int cmp_sent_word(struct SentenceWord *w, struct Token *token) {
 	return 0;
 }
 
+int try_apply_with_args_sentence(struct Sentence *sentence,
+								 struct NodeToken **cur) {}
+
 int try_apply_without_args_sentence(struct Sentence *sentence,
 									struct NodeToken **cur) {
 	struct NodeToken *c = *cur;
@@ -47,22 +50,17 @@ int try_apply_without_args_sentence(struct Sentence *sentence,
 
 int try_apply_sentence(struct Prep *pr, struct NodeToken **cur) {
 	struct NodeToken *c = *cur;
-	struct SentenceWord *sent_word;
 	struct Sentence *sentence;
 	uint32_t i;
 
 	foreach_by(i, sentence, pr->sentences);
-	sent_word = plist_get(sentence->words, 0);
-
 	// printf("#INFO. try_apply_sentence [%s]\n", vs((*cur)->token));
-	if (cmp_sent_word(sent_word, c->token)) {
-		if (sentence->args->size) {
-			exit(220);
+	if (!cmp_sent_word(plist_get(sentence->words, 0), c->token))
+		continue;
 
-		} else if (try_apply_without_args_sentence(sentence, cur))
-			return 1;
-	}
-
+	if (sentence->args->size ? try_apply_with_args_sentence(sentence, cur)
+							 : try_apply_without_args_sentence(sentence, cur))
+		return 1;
 	foreach_end;
 	return 0;
 }
