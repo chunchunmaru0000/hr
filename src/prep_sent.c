@@ -18,14 +18,38 @@ int cmp_sent_word(struct SentenceWord *w, struct Token *token) {
 	return 0;
 }
 
+int try_apply_without_args_sentence(struct Sentence *sentence,
+									struct NodeToken **cur) {
+	struct NodeToken *c = *cur;
+	struct Nodes *body;
+	struct NodeToken *n, *snd_word, *lst_word;
+	uint32_t i;
+
+	n = take_guaranteed_next(c);
+	snd_word = n;
+
+	for (i = 1; i < sentence->words->size; i++) {
+		// printf("#INFO. try_apply_sentence тДЦ%d [%s]\n", i, vs(n->token));
+		if (!cmp_sent_word(plist_get(sentence->words, i), n->token))
+			break;
+		n = take_guaranteed_next(n);
+	}
+	if (i != sentence->words->size)
+		return 0;
+
+	lst_word = n == snd_word ? snd_word : n->prev;
+	c = cut_off_inclusive(snd_word, lst_word);
+	body = copy_nodeses(0, sentence->body);
+	*cur = replace_nodes_inclusive(c, body);
+
+	return 1;
+}
+
 int try_apply_sentence(struct Prep *pr, struct NodeToken **cur) {
 	struct NodeToken *c = *cur;
 	struct SentenceWord *sent_word;
-	struct SentenceArg *sent_arg;
 	struct Sentence *sentence;
-	struct Nodes *body;
-	struct NodeToken *n, *snd_word, *lst_word;
-	uint32_t i, j;
+	uint32_t i;
 
 	foreach_by(i, sentence, pr->sentences);
 	sent_word = plist_get(sentence->words, 0);
@@ -35,30 +59,11 @@ int try_apply_sentence(struct Prep *pr, struct NodeToken **cur) {
 		if (sentence->args->size) {
 			exit(220);
 
-		} else { // here just all words should be equal
-			n = take_guaranteed_next(c);
-			snd_word = n;
-
-			for (j = 1; j < sentence->words->size; j++) {
-				// printf("#INFO. try_apply_sentence №%d [%s]\n", j,
-				// vs(n->token));
-				if (!cmp_sent_word(plist_get(sentence->words, j), n->token))
-					break;
-				n = take_guaranteed_next(n);
-			}
-			if (j != sentence->words->size)
-				continue;
-
-			lst_word = n == snd_word ? snd_word : n->prev;
-			c = cut_off_inclusive(snd_word, lst_word);
-			body = copy_nodeses(0, sentence->body);
-			*cur = replace_nodes_inclusive(c, body);
+		} else if (try_apply_without_args_sentence(sentence, cur))
 			return 1;
-		}
 	}
 
 	foreach_end;
-
 	return 0;
 }
 

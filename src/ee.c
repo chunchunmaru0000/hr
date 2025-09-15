@@ -131,8 +131,8 @@ struct ErrorInfo *new_error_info(struct Token *t, const char *const msg,
 }
 
 void ee(struct Pos *p, const char *const msg) { // error exit
-	fprintf(stderr, "%s%s:%d:%d %sОШИБКА: %s\n", COLOR_WHITE, p->f->path,
-			p->line, p->col, COLOR_RED, msg);
+	fprintf(stderr, "%s%s:%d:%d %sОШИБКА: %s%s\n", COLOR_WHITE, p->f->path,
+			p->line, p->col, COLOR_RED, msg, COLOR_RESET);
 	print_source_line(p, COLOR_LIGHT_RED, 0);
 	exit(1);
 }
