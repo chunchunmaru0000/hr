@@ -116,6 +116,7 @@ int try_apply_with_args_sentence(struct Sentence *sentence,
 			break; // exits loop
 
 		} else {
+			exit(215);
 			word_after_arg = plist_get(sentence->words, arg->index + 1);
 			next_arg = plist_get(sentence->args, i + 1);
 		}
@@ -123,7 +124,7 @@ int try_apply_with_args_sentence(struct Sentence *sentence,
 
 	// TODO: copy all arg_nodes in args_nodes
 
-	lst_word = n == snd_word ? snd_word : n->prev;
+	lst_word = n;
 	c = cut_off_inclusive(snd_word, lst_word);
 
 	node_args = get_sent_args_as_plist_of_node_tokens(sentence);
