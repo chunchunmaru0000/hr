@@ -18,26 +18,73 @@ int cmp_sent_word(struct SentenceWord *w, struct Token *token) {
 	return 0;
 }
 
+int cmp_words_until(uint32_t *from, uint32_t to, struct Sentence *sentence,
+					struct NodeToken **n) {
+	for (; *from < to; (*from)++) {
+		// printf("#INFO. try_apply_sentence №%d [%s]\n", i, vs(n->token));
+		if (!cmp_sent_word(plist_get(sentence->words, *from), (*n)->token))
+			return 0;
+		*n = take_guaranteed_next(*n);
+	}
+	return 1;
+}
+
+struct PList *get_sent_args_as_plist_of_nodes_tokens(struct Sentence *s) {
+	struct PList *node_args = new_plist(s->args->size);
+	struct SentenceArg *s_arg;
+	uint32_t i = 0;
+	foreach_by(i, s_arg, s->args);
+	plist_set(node_args, i, s_arg->token);
+	foreach_end;
+	return node_args;
+}
+
 int try_apply_with_args_sentence(struct Sentence *sentence,
-								 struct NodeToken **cur) {}
+								 struct NodeToken **cur) {
+	struct NodeToken *c = *cur, *n, *snd_word, *lst_word;
+	struct PList *args_nodes, *node_args;
+	struct Nodes *body, *arg_nodes;
+	struct SentenceArg *arg, *next_arg = plist_get(sentence->args, 0);
+	uint32_t i, j = 1; // start index of cmp cuz zero word is already compared
+
+	n = take_guaranteed_next(c);
+	snd_word = n;
+
+	for (i = 0; i < sentence->args->size; i++) {
+		arg = next_arg;
+
+		if (!cmp_words_until(&j, arg->index, sentence, &n))
+			return 0;
+		// here all words before this arg are valid so can just parse arg nodes
+
+		if (i + 1 == sentence->args->size) { // means last arg
+		} else {
+			next_arg = plist_get(sentence->args, i + 1);
+		}
+	}
+
+	lst_word = n == snd_word ? snd_word : n->prev;
+	c = cut_off_inclusive(snd_word, lst_word);
+
+	node_args = get_sent_args_as_plist_of_nodes_tokens(sentence);
+	body = gen_body(sentence->body, node_args, args_nodes);
+	*cur = replace_nodes_inclusive(c, body);
+
+	plist_free(node_args);
+	return 1;
+}
 
 int try_apply_without_args_sentence(struct Sentence *sentence,
 									struct NodeToken **cur) {
 	struct NodeToken *c = *cur;
 	struct Nodes *body;
 	struct NodeToken *n, *snd_word, *lst_word;
-	uint32_t i;
+	uint32_t i = 1;
 
 	n = take_guaranteed_next(c);
 	snd_word = n;
 
-	for (i = 1; i < sentence->words->size; i++) {
-		// printf("#INFO. try_apply_sentence тДЦ%d [%s]\n", i, vs(n->token));
-		if (!cmp_sent_word(plist_get(sentence->words, i), n->token))
-			break;
-		n = take_guaranteed_next(n);
-	}
-	if (i != sentence->words->size)
+	if (!cmp_words_until(&i, sentence->words->size, sentence, &n))
 		return 0;
 
 	lst_word = n == snd_word ? snd_word : n->prev;
@@ -128,8 +175,7 @@ int until_next_arg(struct PList *words, struct NodeToken **c, uint32_t *i) {
 	}
 }
 
-void parse_sent_args_and_words(struct Prep *pr, struct Sentence *sent,
-							   struct NodeToken **name) {
+void parse_sent_args_and_words(struct Sentence *sent, struct NodeToken **name) {
 	struct PList *args = new_plist(8);
 	struct PList *words = new_plist(16);
 	struct SentenceArg *arg;
@@ -209,7 +255,7 @@ struct NodeToken *parse_sent(struct Prep *pr, struct NodeToken *name) {
 	struct Sentence *sent = malloc(sizeof(struct Sentence));
 	plist_add(pr->sentences, sent);
 
-	parse_sent_args_and_words(pr, sent, &c);
+	parse_sent_args_and_words(sent, &c);
 	sent->body = parse_body(&c);
 
 	assert_sent(sent, name);

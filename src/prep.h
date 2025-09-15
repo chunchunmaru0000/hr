@@ -81,6 +81,8 @@ struct NodeToken *next_of_line(struct NodeToken *e, struct NodeToken *n);
 struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c);
 #define next_applyed(pr, c) (try_apply((pr), take_guaranteed_next((c))))
 struct Nodes *parse_body(struct NodeToken **start);
+struct Nodes *gen_body(struct Nodes *body, struct PList *args,
+					   struct PList *args_nodes);
 
 struct NodeToken *replace_inclusive(struct NodeToken *place,
 									struct NodeToken *fst,

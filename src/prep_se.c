@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 struct PList *parse_macro_args_nodes(struct NodeToken **c, struct Macro *macro);
-struct Nodes *gen_macro_body(struct Macro *macro, struct PList *args_nodes);
 
 struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro) {
 	struct NodeToken *fst_at, *lst_at, *macro_call;
@@ -15,7 +14,7 @@ struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro) {
 	lst_at = plist_get(args_nodes, args_nodes->size - 1);
 	args_nodes->size -= 2;
 	// here apply args nodes to args usages
-	struct Nodes *body = gen_macro_body(macro, args_nodes);
+	struct Nodes *body = gen_body(macro->body, macro->args, args_nodes);
 	// replace_nodes_inclusive
 	macro_call = cut_off_inclusive(fst_at, lst_at);
 	c = replace_nodes_inclusive(macro_call, body);
@@ -27,14 +26,14 @@ struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro) {
 // 						BELOW IS CALL GEN
 // ####################################################################
 
-int figure_out_if_its_arg(struct Macro *macro, struct NodeToken *node) {
-	if (macro->args == 0)
+int figure_out_if_its_arg(struct PList *args, struct NodeToken *node) {
+	if (!args)
 		return -1;
 
 	struct Token *arg;
 	uint32_t i;
 
-	foreach_begin(arg, macro->args);
+	foreach_begin(arg, args);
 	if (vc(node->token, arg)) // plist_add(arg->usages, node);
 		return i;
 	foreach_end;
@@ -42,14 +41,15 @@ int figure_out_if_its_arg(struct Macro *macro, struct NodeToken *node) {
 	return -1;
 }
 
-struct Nodes *gen_macro_body(struct Macro *macro, struct PList *args_nodes) {
-	struct Nodes *body = copy_nodeses(0, macro->body);
+struct Nodes *gen_body(struct Nodes *body, struct PList *args,
+					   struct PList *args_nodes) {
+	body = copy_nodeses(0, body);
 	struct Nodes *arg_nodes;
 	struct NodeToken *c;
 	int arg_index;
 
 	for (c = body->fst; c; c = c->next) {
-		arg_index = figure_out_if_its_arg(macro, c);
+		arg_index = figure_out_if_its_arg(args, c);
 		if (arg_index == -1)
 			continue;
 
