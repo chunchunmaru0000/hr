@@ -132,11 +132,13 @@ struct NodeToken *take_guaranteed_next(struct NodeToken *n) {
 		eet(n->token, WASNT_EXPECTING_EOF, 0);
 	return n->next;
 }
+// TODO: not use next_of_line and replace it with nol_with_err
 struct NodeToken *next_of_line(struct NodeToken *e, struct NodeToken *n) {
 	if (!n->next)
 		eet(e->token, WASNT_EXPECTING_EOF, 0);
 	return n->next;
 }
+// Next Of Line
 struct NodeToken *nol_with_err(struct NodeToken *e, struct NodeToken *n,
 							   const char *const err) {
 	if (!n->next)
