@@ -87,7 +87,8 @@ int try_apply_with_args_sentence(struct Sentence *sentence,
 					eet(n->token, CANT_HAVE_EMPTY_ARG_YET, 0);
 
 				while (n->token->code != COMMA)
-					n = next_of_line(arg_nodes->fst, n);
+					n = nol_with_err(arg_nodes->fst, n,
+									 EXPECTED_COMMA_AFTER_SENT_WITH_END_ON_ARG);
 
 				arg_nodes->lst = n->prev;
 			} else {

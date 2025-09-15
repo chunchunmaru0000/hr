@@ -137,6 +137,12 @@ struct NodeToken *next_of_line(struct NodeToken *e, struct NodeToken *n) {
 		eet(e->token, WASNT_EXPECTING_EOF, 0);
 	return n->next;
 }
+struct NodeToken *nol_with_err(struct NodeToken *e, struct NodeToken *n,
+							   const char *const err) {
+	if (!n->next)
+		eet(e->token, err, 0);
+	return n->next;
+}
 
 void full_free_node_token(struct NodeToken *n) {
 	full_free_token(n->token);

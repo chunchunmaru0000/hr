@@ -79,6 +79,8 @@ int try_apply_sentence(struct Prep *pr, struct NodeToken **c);
 
 struct NodeToken *take_guaranteed_next(struct NodeToken *n);
 struct NodeToken *next_of_line(struct NodeToken *e, struct NodeToken *n);
+struct NodeToken *nol_with_err(struct NodeToken *e, struct NodeToken *n,
+							   const char *const err);
 struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c);
 #define next_applyed(pr, c) (try_apply((pr), take_guaranteed_next((c))))
 struct Nodes *parse_body(struct NodeToken **start);
