@@ -13,6 +13,7 @@ extern const char *const WAS_EXPECTING_PREP_INST_WORD;
 extern const char *const EXPCEPTED_PAR_L_OR_SH_L;
 extern const char *const EXPECTED_ID_AS_MACRO_ARG;
 extern const char *const EXPECTED_ID_AS_MACRO_NAME;
+extern const char *const CANT_HAVE_EMPTY_ARG_YET;
 
 struct NodeToken {
 	struct Token *token; // value
@@ -102,3 +103,4 @@ struct NodeToken *deep_clone_node_with_pos(struct NodeToken *src,
 struct NodeToken *deep_clone_node(struct NodeToken *src);
 struct Token *deep_clone_token(struct Token *src, struct Pos *pos);
 void full_free_node_token(struct NodeToken *n);
+struct Nodes *new_nodes(struct NodeToken *fst, struct NodeToken *lst);

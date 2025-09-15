@@ -92,7 +92,8 @@ void free_prep(struct Prep *pr) {
 	// ################ SENTENCES ##################
 	foreach_by(i, sent, pr->sentences);
 	foreach_by(j, word, sent->words);
-	free_sentence_word(word);
+	if (word)
+		free_sentence_word(word);
 	foreach_end;
 	foreach_by(j, sent_arg, sent->args);
 	full_free_token_without_pos(sent_arg->token);
@@ -110,6 +111,13 @@ void free_prep(struct Prep *pr) {
 
 	plist_free(pr->sentences);
 	free(pr);
+}
+
+struct Nodes *new_nodes(struct NodeToken *fst, struct NodeToken *lst) {
+	struct Nodes *nodes = malloc(sizeof(struct Nodes));
+	nodes->fst = fst;
+	nodes->lst = lst;
+	return nodes;
 }
 
 void free_sentence_word(struct SentenceWord *w) {
@@ -402,7 +410,7 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 	}
 
 	// collect tokens
-	//printf("pr->head [%p]\n", pr->head);
+	// printf("pr->head [%p]\n", pr->head);
 	for (c = pr->head; c; c = c->next)
 		plist_add(final_tokens, c->token);
 }

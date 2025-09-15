@@ -9,6 +9,10 @@
 // 						BELOW IS SENTENCE CALL TRY
 // ####################################################################
 
+const char *const EXPECTED_COMMA_AFTER_SENT_WITH_END_ON_ARG =
+	"Если буки кончаются на аргумент, то при вызове таких бук после последнего "
+	"аргумента должна стоять запятая, чтобы ограничивать данный аргумент.";
+
 int cmp_sent_word(struct SentenceWord *w, struct Token *token) {
 	while (w) {
 		if (vc(w->word, token))
@@ -39,6 +43,19 @@ struct PList *get_sent_args_as_plist_of_nodes_tokens(struct Sentence *s) {
 	return node_args;
 }
 
+void free_args_nodes_not_copyed(struct PList *args_nodes) {
+	struct Nodes *arg_nodes;
+	uint32_t i;
+	foreach_begin(arg_nodes, args_nodes);
+	free(arg_nodes);
+	foreach_end;
+}
+#define exit_zero_with_freed_args_nodes()                                      \
+	do {                                                                       \
+		free_args_nodes_not_copyed(args_nodes);                                \
+		return 0;                                                              \
+	} while (0)
+
 int try_apply_with_args_sentence(struct Sentence *sentence,
 								 struct NodeToken **cur) {
 	struct NodeToken *c = *cur, *n, *snd_word, *lst_word;
@@ -46,22 +63,49 @@ int try_apply_with_args_sentence(struct Sentence *sentence,
 	struct Nodes *body, *arg_nodes;
 	struct SentenceArg *arg, *next_arg = plist_get(sentence->args, 0);
 	uint32_t i, j = 1; // start index of cmp cuz zero word is already compared
+	struct SentenceWord *word_after_arg;
 
 	n = take_guaranteed_next(c);
 	snd_word = n;
 
-	for (i = 0; i < sentence->args->size; i++) {
+	for (i = 0; /* i < sentence->args->size */; i++) {
 		arg = next_arg;
 
 		if (!cmp_words_until(&j, arg->index, sentence, &n))
-			return 0;
+			exit_zero_with_freed_args_nodes();
 		// here all words before this arg are valid so can just parse arg nodes
 
-		if (i + 1 == sentence->args->size) { // means last arg
+		// here will just get args nodes and only after copy them it saves
+		// malloc and free time in case if return that is longer than just
+		// second loop for args usages
+		if (i + 1 >= sentence->args->size) { // means last arg
+			// here need to parse last arg
+			arg_nodes = new_nodes(n, 0);
+
+			if (arg->index + 1 >= sentence->words->size) {
+				if (n->token->code == COMMA)
+					eet(n->token, CANT_HAVE_EMPTY_ARG_YET, 0);
+
+				while (n->token->code != COMMA)
+					n = next_of_line(arg_nodes->fst, n);
+
+				arg_nodes->lst = n->prev;
+			} else {
+				j = arg->index + 1;
+				if (!cmp_words_until(&j, sentence->words->size, sentence, &n))
+					exit_zero_with_freed_args_nodes();
+			}
+
+			plist_add(args_nodes, arg_nodes);
+			break; // exits loop
+
 		} else {
+			word_after_arg = plist_get(sentence->words, arg->index + 1);
 			next_arg = plist_get(sentence->args, i + 1);
 		}
 	}
+
+	// TODO: copy all arg_nodes in args_nodes
 
 	lst_word = n == snd_word ? snd_word : n->prev;
 	c = cut_off_inclusive(snd_word, lst_word);
@@ -198,6 +242,8 @@ void parse_sent_args_and_words(struct Sentence *sent, struct NodeToken **name) {
 		c = take_guaranteed_next(c);
 		if (c->token->code != SHARP)
 			eet(c->token, EXPECTED_SHARP_AS_CLOSING_ARG, 0);
+
+		plist_add(words, 0); // as arg index filler
 	}
 
 	*name = take_guaranteed_next(c); // skip '#)' and ret with'(#'
