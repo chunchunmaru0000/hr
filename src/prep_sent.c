@@ -33,7 +33,7 @@ int cmp_words_until(uint32_t *from, uint32_t to, struct Sentence *sentence,
 	return 1;
 }
 
-struct PList *get_sent_args_as_plist_of_nodes_tokens(struct Sentence *s) {
+struct PList *get_sent_args_as_plist_of_node_tokens(struct Sentence *s) {
 	struct PList *node_args = new_plist(s->args->size);
 	struct SentenceArg *s_arg;
 	uint32_t i = 0;
@@ -49,6 +49,7 @@ void free_args_nodes_not_copyed(struct PList *args_nodes) {
 	foreach_begin(arg_nodes, args_nodes);
 	free(arg_nodes);
 	foreach_end;
+	plist_free(args_nodes);
 }
 #define exit_zero_with_freed_args_nodes()                                      \
 	do {                                                                       \
@@ -59,7 +60,7 @@ void free_args_nodes_not_copyed(struct PList *args_nodes) {
 int try_apply_with_args_sentence(struct Sentence *sentence,
 								 struct NodeToken **cur) {
 	struct NodeToken *c = *cur, *n, *snd_word, *lst_word;
-	struct PList *args_nodes, *node_args;
+	struct PList *node_args, *args_nodes = new_plist(sentence->args->size);
 	struct Nodes *body, *arg_nodes;
 	struct SentenceArg *arg, *next_arg = plist_get(sentence->args, 0);
 	uint32_t i, j = 1; // start index of cmp cuz zero word is already compared
@@ -111,7 +112,7 @@ int try_apply_with_args_sentence(struct Sentence *sentence,
 	lst_word = n == snd_word ? snd_word : n->prev;
 	c = cut_off_inclusive(snd_word, lst_word);
 
-	node_args = get_sent_args_as_plist_of_nodes_tokens(sentence);
+	node_args = get_sent_args_as_plist_of_node_tokens(sentence);
 	body = gen_body(sentence->body, node_args, args_nodes);
 	*cur = replace_nodes_inclusive(c, body);
 
