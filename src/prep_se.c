@@ -34,13 +34,15 @@ int figure_out_if_its_arg(struct PList *args, struct NodeToken *node) {
 	uint32_t i;
 
 	foreach_begin(arg, args);
-	if (vc(node->token, arg)) // plist_add(arg->usages, node);
+	if (vc(node->token, arg))
 		return i;
 	foreach_end;
 
 	return -1;
 }
 
+// [* Token] args
+// [* struct Nodes] args_nodes
 struct Nodes *gen_body(struct Nodes *body, struct PList *args,
 					   struct PList *args_nodes) {
 	body = copy_nodeses(0, body);

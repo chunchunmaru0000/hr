@@ -35,10 +35,11 @@ int cmp_words_until(uint32_t *from, uint32_t to, struct Sentence *sentence,
 
 struct PList *get_sent_args_as_plist_of_node_tokens(struct Sentence *s) {
 	struct PList *node_args = new_plist(s->args->size);
-	struct SentenceArg *s_arg;
-	uint32_t i = 0;
-	foreach_by(i, s_arg, s->args);
-	plist_set(node_args, i, s_arg->token);
+	struct SentenceArg *sentence_arg;
+	uint32_t i;
+
+	foreach_begin(sentence_arg, s->args);
+	plist_add(node_args, sentence_arg->token);
 	foreach_end;
 	return node_args;
 }
@@ -79,12 +80,16 @@ int try_apply_with_args_sentence(struct Sentence *sentence,
 		// here will just get args nodes and only after copy them it saves
 		// malloc and free time in case if return that is longer than just
 		// second loop for args usages
-		if (i + 1 >= sentence->args->size) { // means last arg
+
+#define is_last_arg_iter() (i + 1 >= sentence->args->size)
+#define is_arg_last_word() (arg->index + 1 >= sentence->words->size)
+
+		if (is_last_arg_iter()) {
 			// here need to parse last arg
 			arg_nodes = new_nodes(n, 0);
 			plist_add(args_nodes, arg_nodes);
 
-			if (arg->index + 1 >= sentence->words->size) {
+			if (is_arg_last_word()) {
 				if (n->token->code == COMMA)
 					eet(n->token, CANT_HAVE_EMPTY_ARG_YET, 0);
 
@@ -122,13 +127,11 @@ int try_apply_with_args_sentence(struct Sentence *sentence,
 		}
 	}
 
-	// TODO: copy all arg_nodes in args_nodes
+	node_args = get_sent_args_as_plist_of_node_tokens(sentence);
+	body = gen_body(sentence->body, node_args, args_nodes);
 
 	lst_word = n;
 	c = cut_off_inclusive(snd_word, lst_word);
-
-	node_args = get_sent_args_as_plist_of_node_tokens(sentence);
-	body = gen_body(sentence->body, node_args, args_nodes);
 	*cur = replace_nodes_inclusive(c, body);
 
 	plist_free(node_args);
