@@ -58,6 +58,48 @@ void free_args_nodes_not_copyed(struct PList *args_nodes) {
 		return 0;                                                              \
 	} while (0)
 
+struct NodeToken *try_apply_last_arg(struct Sentence *sentence,
+									 struct PList *args_nodes,
+									 struct SentenceArg *arg,
+									 struct NodeToken *n, uint32_t *j) {
+	struct SentenceWord *word_after_arg;
+	struct Nodes *arg_nodes = new_nodes(n, 0);
+	plist_add(args_nodes, arg_nodes);
+
+#define is_arg_last_word() (arg->index + 1 >= sentence->words->size)
+	if (is_arg_last_word()) {
+		if (n->token->code == COMMA)
+			eet(n->token, CANT_HAVE_EMPTY_ARG_YET, 0);
+
+		while (n->token->code != COMMA)
+			n = nol_with_err(arg_nodes->fst, n,
+							 EXPECTED_COMMA_AFTER_SENT_WITH_END_ON_ARG);
+
+		arg_nodes->lst = n->prev;
+	} else {
+		word_after_arg = plist_get(sentence->words, arg->index + 1);
+
+		if (cmp_sent_word(word_after_arg, n->token))
+			eet(n->token, CANT_HAVE_EMPTY_ARG_YET, 0);
+		// cuz can assume its not equal with word_after_arg
+		n = next_of_line(arg_nodes->fst, n);
+
+		while (!cmp_sent_word(word_after_arg, n->token))
+			n = next_of_line(arg_nodes->fst, n);
+
+		arg_nodes->lst = n->prev;
+
+		// TODO: i beleive its 2 cuz last word is already compared in
+		// while loop above
+		*j = arg->index + 2;
+		// TODO: here may be some shit in cmp_words_until with last n so
+		if (!cmp_words_until(j, sentence->words->size, sentence, &n))
+			exit_zero_with_freed_args_nodes();
+	}
+
+	return n;
+}
+
 int try_apply_with_args_sentence(struct Sentence *sentence,
 								 struct NodeToken **cur) {
 	struct NodeToken *c = *cur, *n, *snd_word, *lst_word;
@@ -75,58 +117,19 @@ int try_apply_with_args_sentence(struct Sentence *sentence,
 
 		if (!cmp_words_until(&j, arg->index, sentence, &n))
 			exit_zero_with_freed_args_nodes();
-		// here all words before this arg are valid so can just parse arg nodes
 
-		// here will just get args nodes and only after copy them it saves
-		// malloc and free time in case if return that is longer than just
-		// second loop for args usages
-
-#define is_last_arg_iter() (i + 1 >= sentence->args->size)
-#define is_arg_last_word() (arg->index + 1 >= sentence->words->size)
-
-		if (is_last_arg_iter()) {
-			// here need to parse last arg
-			arg_nodes = new_nodes(n, 0);
-			plist_add(args_nodes, arg_nodes);
-
-			if (is_arg_last_word()) {
-				if (n->token->code == COMMA)
-					eet(n->token, CANT_HAVE_EMPTY_ARG_YET, 0);
-
-				while (n->token->code != COMMA)
-					n = nol_with_err(arg_nodes->fst, n,
-									 EXPECTED_COMMA_AFTER_SENT_WITH_END_ON_ARG);
-
-				arg_nodes->lst = n->prev;
-			} else {
-				word_after_arg = plist_get(sentence->words, arg->index + 1);
-
-				if (cmp_sent_word(word_after_arg, n->token))
-					eet(n->token, CANT_HAVE_EMPTY_ARG_YET, 0);
-				// cuz can assume its not equal with word_after_arg
-				n = next_of_line(arg_nodes->fst, n);
-
-				while (!cmp_sent_word(word_after_arg, n->token))
-					n = next_of_line(arg_nodes->fst, n);
-
-				arg_nodes->lst = n->prev;
-
-				// TODO: i beleive its 2 cuz last word is already compared in
-				// while loop above
-				j = arg->index + 2;
-				// TODO: here may be some shin in cmp_words_until with last n so
-				if (!cmp_words_until(&j, sentence->words->size, sentence, &n))
-					exit_zero_with_freed_args_nodes();
-			}
-			break; // exits loop
-
-		} else {
+		if (i + 1 < sentence->args->size) { // not last arg iter
 			exit(215);
 			word_after_arg = plist_get(sentence->words, arg->index + 1);
 			next_arg = plist_get(sentence->args, i + 1);
+		} else { // last arg iter
+			if ((n = try_apply_last_arg(sentence, args_nodes, arg, n, &j)) == 0)
+				return 0;
+			break; // exits loop
 		}
 	}
 
+	// gens body before cutting it, so there was no need to copy nodes
 	node_args = get_sent_args_as_plist_of_node_tokens(sentence);
 	body = gen_body(sentence->body, node_args, args_nodes);
 
