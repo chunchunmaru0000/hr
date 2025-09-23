@@ -5,6 +5,8 @@
 //					BELOW IS PREP STRINGIFY
 // #################################################################
 
+const char *const EXPECTED_CLOSING_SH_QR = "Встречсен конец файла во время поиска закрывающего '\"#'";
+
 struct NodeToken *sh_string(struct NodeToken *c) {
 	struct NodeToken *fst = c, *snd = take_guaranteed_next(c), *lst;
 	struct Token *str_token = malloc(sizeof(struct Token));
@@ -25,7 +27,7 @@ struct NodeToken *sh_string(struct NodeToken *c) {
 		blist_add(str_token->view, ' ');
 		blist_add(str_token->str, ' ');
 
-		c = next_of_line(fst, c);
+		c = nol_with_err(fst, c, EXPECTED_CLOSING_SH_QR);
 	}
 	lst = c;
 

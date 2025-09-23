@@ -12,6 +12,8 @@
 const char *const EXPECTED_COMMA_AFTER_SENT_WITH_END_ON_ARG =
 	"Если буки кончаются на аргумент, то при вызове таких бук после последнего "
 	"аргумента должна стоять запятая, чтобы ограничивать данный аргумент.";
+const char *const EXPECTED_ARG_CLOSE =
+	"Встречен конец файла во время поиска конца аргумента.";
 
 int cmp_sent_word(struct SentenceWord *w, struct Token *token) {
 	while (w) {
@@ -82,17 +84,14 @@ struct NodeToken *try_apply_last_arg(struct Sentence *sentence,
 		if (cmp_sent_word(word_after_arg, n->token))
 			eet(n->token, CANT_HAVE_EMPTY_ARG_YET, 0);
 		// cuz can assume its not equal with word_after_arg
-		n = next_of_line(arg_nodes->fst, n);
+		n = nol_with_err(arg_nodes->fst, n, EXPECTED_ARG_CLOSE);
 
 		while (!cmp_sent_word(word_after_arg, n->token))
-			n = next_of_line(arg_nodes->fst, n);
+			n = nol_with_err(arg_nodes->fst, n, EXPECTED_ARG_CLOSE);
 
 		arg_nodes->lst = n->prev;
 
-		// TODO: i beleive its 2 cuz last word is already compared in
-		// while loop above
 		*j = arg->index + 2;
-		// TODO: here may be some shit in cmp_words_until with last n so
 		if (!cmp_words_until(j, sentence->words->size, sentence, &n))
 			exit_zero_with_freed_args_nodes();
 	}
@@ -313,7 +312,7 @@ const char *const TWO_ARGS_NEED_TO_BE_SEPARATED =
 	"Два аргумента в буках должны разделяться хотя бы одним словом, так как "
 	"слова являются разграничителями аргументов.";
 
-// TODO: need to so most late first args sents are first to compare
+// TODO: need to sort most late first args sents are first to compare
 //	sents
 //	|> sort fun sent -> sent->args[0]->index end
 //	|> reverse
