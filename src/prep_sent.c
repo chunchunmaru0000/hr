@@ -60,16 +60,39 @@ void free_args_nodes_not_copyed(struct PList *args_nodes) {
 		return 0;                                                              \
 	} while (0)
 
-struct NodeToken *try_apply_last_arg(struct Sentence *sentence,
-									 struct PList *args_nodes,
-									 struct SentenceArg *arg,
-									 struct NodeToken *n, uint32_t *j) {
+struct NodeToken *try_apply_arg(struct Sentence *sentence,
+								struct PList *args_nodes,
+								struct SentenceArg *arg, struct NodeToken *n,
+								uint32_t *j) {
 	struct SentenceWord *word_after_arg;
 	struct Nodes *arg_nodes = new_nodes(n, 0);
 	plist_add(args_nodes, arg_nodes);
 
+	word_after_arg = plist_get(sentence->words, arg->index + 1);
+
+	if (cmp_sent_word(word_after_arg, n->token))
+		eet(n->token, CANT_HAVE_EMPTY_ARG_YET, 0);
+	// cuz can assume its not equal with word_after_arg
+	n = nol_with_err(arg_nodes->fst, n, EXPECTED_ARG_CLOSE);
+
+	while (!cmp_sent_word(word_after_arg, n->token))
+		n = nol_with_err(arg_nodes->fst, n, EXPECTED_ARG_CLOSE);
+
+	arg_nodes->lst = n->prev;
+
+	*j = arg->index + 1;
+	return n;
+}
+
+struct NodeToken *try_apply_last_arg(struct Sentence *sentence,
+									 struct PList *args_nodes,
+									 struct SentenceArg *arg,
+									 struct NodeToken *n, uint32_t *j) {
 #define is_arg_last_word() (arg->index + 1 >= sentence->words->size)
 	if (is_arg_last_word()) {
+		struct Nodes *arg_nodes = new_nodes(n, 0);
+		plist_add(args_nodes, arg_nodes);
+
 		if (n->token->code == COMMA)
 			eet(n->token, CANT_HAVE_EMPTY_ARG_YET, 0);
 
@@ -79,19 +102,8 @@ struct NodeToken *try_apply_last_arg(struct Sentence *sentence,
 
 		arg_nodes->lst = n->prev;
 	} else {
-		word_after_arg = plist_get(sentence->words, arg->index + 1);
-
-		if (cmp_sent_word(word_after_arg, n->token))
-			eet(n->token, CANT_HAVE_EMPTY_ARG_YET, 0);
-		// cuz can assume its not equal with word_after_arg
-		n = nol_with_err(arg_nodes->fst, n, EXPECTED_ARG_CLOSE);
-
-		while (!cmp_sent_word(word_after_arg, n->token))
-			n = nol_with_err(arg_nodes->fst, n, EXPECTED_ARG_CLOSE);
-
-		arg_nodes->lst = n->prev;
-
-		*j = arg->index + 2;
+		n = try_apply_arg(sentence, args_nodes, arg, n, j);
+		(*j)++; // *j = arg->index + 2;
 		if (!cmp_words_until(j, sentence->words->size, sentence, &n))
 			exit_zero_with_freed_args_nodes();
 	}
@@ -103,10 +115,9 @@ int try_apply_with_args_sentence(struct Sentence *sentence,
 								 struct NodeToken **cur) {
 	struct NodeToken *c = *cur, *n, *snd_word, *lst_word;
 	struct PList *node_args, *args_nodes = new_plist(sentence->args->size);
-	struct Nodes *body, *arg_nodes;
+	struct Nodes *body;
 	struct SentenceArg *arg, *next_arg = plist_get(sentence->args, 0);
 	uint32_t i, j = 1; // start index of cmp cuz zero word is already compared
-	struct SentenceWord *word_after_arg;
 
 	n = take_guaranteed_next(c);
 	snd_word = n;
@@ -118,9 +129,9 @@ int try_apply_with_args_sentence(struct Sentence *sentence,
 			exit_zero_with_freed_args_nodes();
 
 		if (i + 1 < sentence->args->size) { // not last arg iter
-			exit(215);
-			word_after_arg = plist_get(sentence->words, arg->index + 1);
+			n = try_apply_arg(sentence, args_nodes, arg, n, &j);
 			next_arg = plist_get(sentence->args, i + 1);
+
 		} else { // last arg iter
 			if ((n = try_apply_last_arg(sentence, args_nodes, arg, n, &j)) == 0)
 				return 0;
