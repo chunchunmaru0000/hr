@@ -281,12 +281,18 @@ void parse_sent_args_and_words(struct Sentence *sent, struct NodeToken **name) {
 }
 
 struct Nodes *parse_body(struct NodeToken **start) {
-	struct Nodes *body = malloc(sizeof(struct Nodes));
+	struct Nodes *body = new_nodes(0, 0);
 	struct NodeToken *c = *start, *clone, *clone_prev;
 
 	if (c->token->code != SH_L)
 		eet(c->token, EXPECTED_SENT_BODY_SH_L, 0);
 	c = take_guaranteed_next(c); // skip '(#'
+
+	if (c->token->code == SH_R) {
+		// body fst and lst are zeroes
+		*start = c; // need to return '#)' in start
+		return body;
+	}
 
 	// here need to copy tree cuz it will be freed from final tokens
 	clone = clone_node_token(c); // first is different

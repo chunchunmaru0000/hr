@@ -92,6 +92,7 @@ struct NodeToken *replace_inclusive(struct NodeToken *place,
 									struct NodeToken *lst);
 #define replace_nodes_inclusive(place, nodes)                                  \
 	(replace_inclusive((place), (nodes)->fst, (nodes)->lst))
+#define is_empty_nodes(nodes) ((nodes)->fst == 0 && (nodes)->lst == 0)
 void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
 				struct NodeToken *src_lst, struct NodeToken **dst_fst,
 				struct NodeToken **dst_lst);

@@ -230,12 +230,30 @@ struct NodeToken *deep_clone_node(struct NodeToken *src) {
 	return dst;
 }
 
+int both_zeros(struct NodeToken *fst, struct NodeToken *lst) {
+	if (fst == 0 || lst == 0) {
+		if (fst == 0 && lst == 0) {
+			return 1;
+		} else {
+			printf("why one of nodes is zero\n");
+			exit(177);
+		}
+	}
+	return 0;
+}
+
 // WHEN USE NO NEED TO MALLOC, it allocs for you, need only ptr to set value in
 // it cuz returns two values
 void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
 				struct NodeToken *src_lst, struct NodeToken **dst_fst,
 				struct NodeToken **dst_lst) {
 	struct NodeToken *copy_head, *prev_copy, *fst_copy;
+
+	if (both_zeros(src_fst, src_lst)) {
+		*dst_fst = 0;
+		*dst_lst = 0;
+		return;
+	}
 
 	// here need to copy token so it will have pos of a place
 	copy_head = place_pos ? deep_clone_node_with_pos(src_fst, place_pos)
@@ -265,25 +283,36 @@ void copy_nodes(struct Pos *place_pos, struct NodeToken *src_fst,
 	*dst_lst = fst_copy;
 }
 struct Nodes *copy_nodeses(struct Pos *place_pos, struct Nodes *src) {
-	struct NodeToken *dst_fst, *dst_lst;
-	struct Nodes *dst = malloc(sizeof(struct Nodes));
-
-	copy_nodes(place_pos, src->fst, src->lst, &dst_fst, &dst_lst);
-
-	dst->fst = dst_fst;
-	dst->lst = dst_lst;
+	struct Nodes *dst = new_nodes(0, 0);
+	copy_nodes(place_pos, src->fst, src->lst, &dst->fst, &dst->lst);
 	return dst;
 }
 
 struct NodeToken *replace_inclusive(struct NodeToken *place,
 									struct NodeToken *fst,
 									struct NodeToken *lst) {
+	struct NodeToken *fst_copy, *lst_copy;
+
+	if (both_zeros(fst, lst)) {
+		if (place->prev) {
+			fst_copy = place->prev;
+			fst_copy->next = place->next;
+			if (fst_copy->next)
+				fst_copy->next->prev = fst_copy;
+		} else {
+			if (place->next == 0)
+				exit(178);
+			fst_copy = place->next;
+		}
+		free_node_token(place);
+		return fst_copy;
+	}
+
 	if (fst == lst) {
 		replace_token(place->token, fst->token);
 		return place;
 	}
 
-	struct NodeToken *fst_copy, *lst_copy;
 	copy_nodes(place->token->p, fst, lst, &fst_copy, &lst_copy);
 
 	if (place->prev)
