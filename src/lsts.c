@@ -75,7 +75,7 @@ void *plist_set(struct PList *l, uint32_t i, void *p) {
 
 struct BList *new_blist(uint32_t cap_pace) {
 	struct BList *l = malloc(sizeof(struct BList));
-	l->cap_pace = cap_pace;
+	l->cap_pace = cap_pace ? cap_pace : 2;
 	l->cap = cap_pace;
 	l->size = 0;
 	l->st = malloc(cap_pace * sizeof(uc));
@@ -118,7 +118,6 @@ uint32_t blist_add(struct BList *l, uc p) {
 uint32_t blist_cut(struct BList *l) {
 	l->cap = l->size;
 	if (!l->size) {
-		free(l->st);
 		return 0;
 	}
 	l->st = realloc(l->st, l->size);
