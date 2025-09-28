@@ -384,7 +384,7 @@ bf(l_or__g_expression, l_and_g_expression, ops1(OR));
 
 struct GlobExpr *trnry_g_expression(struct Pser *p) {
 	struct GlobExpr * true, *false, *res = 0;
-	struct GlobExpr *e = l_and_g_expression(p);
+	struct GlobExpr *e = l_or__g_expression(p);
 	struct Token *c;
 
 	c = pser_cur(p);

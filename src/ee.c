@@ -22,7 +22,7 @@ const char *const COLOR_GAY = "\x1B[36m";
 const char *const COLOR_WHITE = "\x1B[37m";
 const char *const COLOR_RESET = "\x1B[0m";
 const int TEXT_TAB_SPACES = 4;
-const char UNDERLINE_CHAR = '+';
+const char UNDERLINE_CHAR = '~';
 
 const char *write_ln(const char *line) {
 	while (*line && *line != '\n') {
