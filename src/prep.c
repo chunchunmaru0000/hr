@@ -421,7 +421,8 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 		lst = try_parse_sh(pr, name);
 		if (!lst) { // in case of STR_INCLUD when include
 			c = new_included_head;
-			continue;
+			new_included_head = 0;
+			goto try_fill_head_if_empty;
 		}
 
 		// - cut off statemnt nodes so it wont be in final_tokens
