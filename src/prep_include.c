@@ -1,9 +1,13 @@
 #include "prep.h"
 #include <stdio.h>
 
-const char *const EXPECTED_STR_AS_AN_INCLUDE_PATH =
+const char *const EXPECTED_STR_AS_AN_INCLUDE_PATH_OR_PAR_L =
 	"После инструкции препроцессора '#влечь' ожидалась строка содержащая путь "
-	"файла.";
+	"файла, или открывающая скобка с последующими выражениями путей и "
+	"закрывающей скобкой.";
+const char *const ALREADY_INCLUDED = "Файл уже однажды включен.";
+const char *const EXPECTED_INCLUDES_CLOSE_PAR =
+	"Встречен конец файла, а скобка так и не была закрыта.";
 
 struct BList *try_include_path(struct Token *path) {
 	struct BList *included_path;
@@ -50,43 +54,88 @@ struct NodeToken *get_included_tail(struct NodeToken *included_head) {
 	return included_tail;
 }
 
-struct Token *file_to_include = 0;
-struct NodeToken *new_included_head = 0;
-struct NodeToken *parse_include(struct NodeToken *c) {
-	struct NodeToken *fst = c->prev, *lst = c->next, *path_name = lst;
-	struct NodeToken *included_head, *included_tail;
+struct NodeToken *try_get_included_head(struct NodeToken *path_name) {
+	struct NodeToken *included_head;
 
 	struct BList *path_to_include = try_include_path(path_name->token);
-	if (!path_to_include) // ALREADY_INCLUDED
-		goto _defer_just_ret_with_no_include;
+	if (!path_to_include)
+		eet(path_name->token, ALREADY_INCLUDED, 0); // TODO: eet2
 
 	file_to_include = path_name->token;
-
 	included_head = get_included_head(path_to_include);
+	file_to_include = 0;
+
 	if (included_head->token->code == EF) {
 		full_free_node_token(included_head);
-		goto _defer_just_ret_with_no_include;
+		return 0;
 	}
-	file_to_include = 0;
+
+	return included_head;
+}
+
+// fst is #, c is влечь
+struct NodeToken *single_include(struct NodeToken *c) {
+	struct NodeToken *fst = c->prev, *path_name = c->next;
+	struct NodeToken *included_head, *included_tail;
+
+	included_head = try_get_included_head(path_name);
+	if (!included_head)
+		return path_name; // need when include empty file
 	// included_tail cant be 0 cuz if its then
 	// included_head is EF that is handled above
 	included_tail = get_included_tail(included_head);
 
-	c = cut_off_inclusive(c, lst); // cut off влечь and path_name
+	c = cut_off_inclusive(c, path_name); // cut off влечь and path_name
 
 	free(fst->token->p);
 	fst->token->p = 0;
 	new_included_head = replace_inclusive(fst, included_head, included_tail);
 
 	return 0;
+}
 
-_defer_just_ret_with_no_include:
-	file_to_include = 0;
-	return lst;
+// fst is #, c is влечь
+struct NodeToken *multi_include(struct NodeToken *c) {
+	struct NodeToken *fst = c->prev, *par_l = c->next, *path_name = 0;
+	struct NodeToken *includes_head, *included_head, *included_tail;
+
+	for (c = tgn(par_l); c->token->code != PAR_R; c = c->next) {
+		if (!c || c->token->code == EF)
+			eet(par_l->token, EXPECTED_INCLUDES_CLOSE_PAR, 0);
+		path_name = c;
+
+		included_head = try_get_included_head(path_name);
+		if (!included_head)
+			continue; // empty file
+		included_tail = get_included_tail(included_head);
+	}
+	if (path_name == 0) {
+		return c; // no files to include
+	}
+
+	c = cut_off_inclusive(par_l->prev, c); // cut off влечь and par l to r
+	free(fst->token->p);
+	fst->token->p = 0;
+	new_included_head = replace_inclusive(fst, included_head, included_tail);
+	return 0;
+}
+
+struct Token *file_to_include = 0;
+struct NodeToken *new_included_head = 0;
+struct NodeToken *parse_include(struct NodeToken *c) {
+	struct NodeToken *path_name = tgn(c);
+
+	if (path_name->token->code == PAR_L)
+		return multi_include(c);
+	if (path_name->token->code == STR)
+		return single_include(c);
+
+	eet(path_name->token, EXPECTED_STR_AS_AN_INCLUDE_PATH_OR_PAR_L, 0);
+	return (void *)-1;
 }
 
 struct NodeToken *gen_node_tokens(struct PList *tokens) {
-	struct NodeToken *head; // = malloc(sizeof(struct NodeToken));
+	struct NodeToken *head;
 	struct NodeToken *cur = head, *prev = 0;
 	uint32_t i;
 

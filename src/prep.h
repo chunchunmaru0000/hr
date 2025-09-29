@@ -78,6 +78,7 @@ struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro);
 int try_apply_sentence(struct Prep *pr, struct NodeToken **c);
 
 struct NodeToken *take_guaranteed_next(struct NodeToken *n);
+#define tgn take_guaranteed_next
 struct NodeToken *next_of_line(struct NodeToken *e, struct NodeToken *n);
 struct NodeToken *nol_with_err(struct NodeToken *e, struct NodeToken *n,
 							   const char *const err);
