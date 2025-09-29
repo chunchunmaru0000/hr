@@ -397,6 +397,22 @@ struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
 	return 0;
 }
 
+void check_head(struct NodeToken **head, struct NodeToken *damocles) {
+	// printf("c [%p]", c);
+	// if (c) {
+	// 	printf("[%s]\n", vs(c->token));
+	// 	printf("\tc->prev  [%p]\n", c->prev);
+	// 	printf("\tpr->head [%p]\n", pr->head);
+	// } else
+	// 	putchar('\n');
+	if (damocles) {
+		if (damocles->prev == 0)
+			*head = damocles;
+		else if (damocles->prev->prev == 0)
+			*head = damocles->prev;
+	}
+}
+
 #define iter(cond, line)                                                       \
 	if (code cond) {                                                           \
 		line;                                                                  \
@@ -431,20 +447,7 @@ void pre(struct Prep *pr, struct PList *final_tokens) {
 			pr->head = c;	 // in case if its first and tokens decapitated
 
 	try_fill_head_if_empty:
-		// printf("c [%p]", c);
-		// if (c) {
-		// 	printf("[%s]\n", vs(c->token));
-		// 	printf("\tc->prev  [%p]\n", c->prev);
-		// 	printf("\tpr->head [%p]\n", pr->head);
-		// } else
-		// 	putchar('\n');
-
-		if (c) {
-			if (c->prev == 0)
-				pr->head = c;
-			else if (c->prev->prev == 0)
-				pr->head = c->prev;
-		}
+		check_head(&pr->head, c);
 	}
 
 	// collect tokens

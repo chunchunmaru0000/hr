@@ -5,6 +5,9 @@ const char *const EXPECTED_STR_AS_AN_INCLUDE_PATH_OR_PAR_L =
 	"После инструкции препроцессора '#влечь' ожидалась строка содержащая путь "
 	"файла, или открывающая скобка с последующими выражениями путей и "
 	"закрывающей скобкой.";
+const char *const EXPECTED_STR_AS_AN_INCLUDE_PATH =
+	"После инструкции препроцессора '#влечь' ожидалась строка содержащая путь "
+	"файла.";
 const char *const ALREADY_INCLUDED = "Файл уже однажды включен.";
 const char *const EXPECTED_INCLUDES_CLOSE_PAR =
 	"Встречен конец файла, а скобка так и не была закрыта.";
@@ -97,26 +100,36 @@ struct NodeToken *single_include(struct NodeToken *c) {
 // fst is #, c is влечь
 struct NodeToken *multi_include(struct NodeToken *c) {
 	struct NodeToken *fst = c->prev, *par_l = c->next, *path_name = 0;
-	struct NodeToken *includes_head, *included_head, *included_tail;
+	struct NodeToken *included_head, *included_tail;
+	struct NodeToken *includes_head = 0, *includes_tail;
 
 	for (c = tgn(par_l); c->token->code != PAR_R; c = c->next) {
 		if (!c || c->token->code == EF)
 			eet(par_l->token, EXPECTED_INCLUDES_CLOSE_PAR, 0);
 		path_name = c;
+		if (path_name->token->code != STR)
+			eet(path_name->token, EXPECTED_STR_AS_AN_INCLUDE_PATH, 0);
 
 		included_head = try_get_included_head(path_name);
 		if (!included_head)
 			continue; // empty file
 		included_tail = get_included_tail(included_head);
+
+		if (includes_head == 0) {
+			includes_head = included_head;
+		} else {
+			includes_tail->next = included_head;
+			included_head->prev = includes_tail;
+		}
+		includes_tail = included_tail;
 	}
-	if (path_name == 0) {
+	if (path_name == 0)
 		return c; // no files to include
-	}
 
 	c = cut_off_inclusive(par_l->prev, c); // cut off влечь and par l to r
 	free(fst->token->p);
 	fst->token->p = 0;
-	new_included_head = replace_inclusive(fst, included_head, included_tail);
+	new_included_head = replace_inclusive(fst, includes_head, includes_tail);
 	return 0;
 }
 
