@@ -388,7 +388,7 @@ struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
 		return parse_se(pr, name);
 
 	if (vcs(name->token, STR_INCLUDE))
-		return parse_include(name);
+		return parse_include(pr, name);
 
 	if (vcs(name->token, STR_SENTENCE))
 		return parse_sent(pr, name);

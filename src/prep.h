@@ -69,7 +69,7 @@ extern struct NodeToken *new_included_head;
 struct PList *preprocess(struct Tzer *tzer);
 
 struct NodeToken *parse_se(struct Prep *pr, struct NodeToken *c);
-struct NodeToken *parse_include(struct NodeToken *c);
+struct NodeToken *parse_include(struct Prep *pr, struct NodeToken *c);
 struct NodeToken *parse_sent(struct Prep *pr, struct NodeToken *name);
 struct NodeToken *call_macro(struct NodeToken *c, struct Macro *macro);
 struct NodeToken *shplus(struct Prep *pr, struct NodeToken *c);

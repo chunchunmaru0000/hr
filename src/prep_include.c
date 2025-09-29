@@ -98,15 +98,15 @@ struct NodeToken *single_include(struct NodeToken *c) {
 }
 
 // fst is #, c is влечь
-struct NodeToken *multi_include(struct NodeToken *c) {
+struct NodeToken *multi_include(struct Prep *pr, struct NodeToken *c) {
 	struct NodeToken *fst = c->prev, *par_l = c->next, *path_name = 0;
 	struct NodeToken *included_head, *included_tail;
 	struct NodeToken *includes_head = 0, *includes_tail;
 
-	for (c = tgn(par_l); c->token->code != PAR_R; c = c->next) {
+	for (c = tgn(par_l); c->token->code != PAR_R; c = path_name->next) {
 		if (!c || c->token->code == EF)
 			eet(par_l->token, EXPECTED_INCLUDES_CLOSE_PAR, 0);
-		path_name = c;
+		path_name = try_apply(pr, c);
 		if (path_name->token->code != STR)
 			eet(path_name->token, EXPECTED_STR_AS_AN_INCLUDE_PATH, 0);
 
@@ -135,11 +135,11 @@ struct NodeToken *multi_include(struct NodeToken *c) {
 
 struct Token *file_to_include = 0;
 struct NodeToken *new_included_head = 0;
-struct NodeToken *parse_include(struct NodeToken *c) {
+struct NodeToken *parse_include(struct Prep *pr, struct NodeToken *c) {
 	struct NodeToken *path_name = tgn(c);
 
 	if (path_name->token->code == PAR_L)
-		return multi_include(c);
+		return multi_include(pr, c);
 	if (path_name->token->code == STR)
 		return single_include(c);
 
