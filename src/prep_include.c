@@ -15,7 +15,7 @@ struct BList *try_include_path(struct Token *path) {
 		return 0;
 	foreach_end;
 
-	included_path = path->str;
+	included_path = copy_str(path->str);
 	plist_add(included_files, included_path);
 
 	return included_path;
