@@ -120,14 +120,8 @@ enum IP_Code {
 	IP_LOOP,
 	IP_FOR_LOOP,
 	IP_WHILE_LOOP,
-	// expression level, not decided yet
-	IP_EQU,
-	IP_PLUS_EQU,
-	IP_MINUS_EQU,
-	IP_MUL_EQU,
-	IP_DIV_EQU,
-	IP_SHR_EQU,
-	IP_SHL_EQU,
+
+	IP_EXPRESION,
 };
 
 struct Defn {
@@ -210,6 +204,8 @@ struct TypeExpr {
 #define is_void_ptr(t) ((t)->code == TC_PTR && ptr_targ((t))->code == TC_VOID)
 #define is_ptr_type(t) ((t)->code == TC_PTR || (t)->code == TC_FUN)
 
+#define set_arr_len(arr, len) (plist_set((arr), 1, (void *)(len)))
+
 struct TypeExpr *new_type_expr(enum TypeCode);
 void free_type(struct TypeExpr *type);
 int size_of_type(struct Pser *p, struct TypeExpr *type);
@@ -231,6 +227,35 @@ struct PLocalVar {
 };
 
 struct PLocalVar *new_plocal_var(struct Token *, struct Arg *);
+
+enum CE_Code {
+	CE_NONE,
+	CE_NUM_INCOMPATIBLE_TYPE,
+	CE_STR_INCOMPATIBLE_TYPE,
+	CE_ARR_SIZES_DO_NOW_MATCH,
+	CE_PTR_INCOMPATIBLE_TYPE,
+	CE_FUN_INCOMPATIBLE_TYPE,
+	CE_ARR_INCOMPATIBLE_TYPE,
+	CE_STRUCT_INCOMPATIBLE_TYPE,
+	CE_AS_INCOMPATIBLE_TYPE,
+	CE_ARR_ITEM_INCOMPATIBLE_TYPE,
+	CE_ARR_FROM_OTHER_GLOBAL_ARR,
+	CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT,
+	CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT,
+	CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT,
+	CE_TOO_MUCH_ITEMS_FOR_THIS_ARR,
+	CE_TOO_LESS_ITEMS_FOR_THIS_ARR,
+	CE_TOO_MUCH_CHARS_FOR_THIS_STR,
+	CE_TOO_LESS_CHARS_FOR_THIS_STR,
+	CE_CANT_DEFINE_ARR_TYPE,
+	CE_CANT_DEFINE_STRUCT_TYPE,
+	CE_STRUCT_WASNT_FOUND,
+	CE_STR_IS_NOT_A_PTR,
+	CE_ARR_IS_NOT_A_PTR,
+	CE_UNCOMPUTIBLE_DATA,
+
+	CE_todo,
+};
 
 // Compilation Time
 enum CT_Code {
@@ -267,6 +292,12 @@ struct GlobExpr {
 	struct PList *globs;   // list of GlobExpr's or 0
 };
 void free_glob_expr(struct GlobExpr *e);
+
+void cmpt_int(struct PList *, struct TypeExpr *, struct GlobExpr *);
+void cmpt_real(struct PList *, struct TypeExpr *, struct GlobExpr *);
+void cmpt_str(struct PList *, struct TypeExpr *, struct GlobExpr *);
+void cmpt_global(struct PList *, struct TypeExpr *, struct GlobExpr *);
+void cmpt_global_ptr(struct PList *, struct TypeExpr *, struct GlobExpr *);
 
 struct GlobVar {
 	struct Token *name;

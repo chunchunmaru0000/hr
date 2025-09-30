@@ -328,7 +328,6 @@ struct Inst *get_global_inst(struct Pser *p) {
 	default:
 		eet(cur, ERR_WRONG_TOKEN, vs(cur));
 	}
-	//	TODO global expression TYPES,
 	//	TODO
 	//
 	//	IP_DECLARE_FUNCTION body,

@@ -24,7 +24,7 @@ cat: ср
 		gner_local_Асм_Linux_x64.c \
 	prep.c prep_include.c prep_se.c prep_some.c prep_sent.c \
 	pser.c eep.c pser_type.c \
-		pser_global_inst.c pser_tpes.c pser_g_bin.c \
+		pser_global_inst.c pser_tpes.c pser_cmpts.c pser_g_bin.c \
 		pser_local_inst.c pser_eg.c pser_el.c \
 	tzer.c ee.c lsts.c
 	chmod +x ср

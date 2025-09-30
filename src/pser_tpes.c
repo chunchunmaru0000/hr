@@ -1,35 +1,6 @@
 #include "pser.h"
 #include <stdio.h>
 
-enum CE_Code {
-	CE_NONE,
-	CE_NUM_INCOMPATIBLE_TYPE,
-	CE_STR_INCOMPATIBLE_TYPE,
-	CE_ARR_SIZES_DO_NOW_MATCH,
-	CE_PTR_INCOMPATIBLE_TYPE,
-	CE_FUN_INCOMPATIBLE_TYPE,
-	CE_ARR_INCOMPATIBLE_TYPE,
-	CE_STRUCT_INCOMPATIBLE_TYPE,
-	CE_AS_INCOMPATIBLE_TYPE,
-	CE_ARR_ITEM_INCOMPATIBLE_TYPE,
-	CE_ARR_FROM_OTHER_GLOBAL_ARR,
-	CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT,
-	CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT,
-	CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT,
-	CE_TOO_MUCH_ITEMS_FOR_THIS_ARR,
-	CE_TOO_LESS_ITEMS_FOR_THIS_ARR,
-	CE_TOO_MUCH_CHARS_FOR_THIS_STR,
-	CE_TOO_LESS_CHARS_FOR_THIS_STR,
-	CE_CANT_DEFINE_ARR_TYPE,
-	CE_CANT_DEFINE_STRUCT_TYPE,
-	CE_STRUCT_WASNT_FOUND,
-	CE_STR_IS_NOT_A_PTR,
-	CE_ARR_IS_NOT_A_PTR,
-	CE_UNCOMPUTIBLE_DATA,
-
-	CE_todo,
-};
-
 const char *const NUM_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с числовым типом выражения.";
 const char *const STR_INCOMPATIBLE_TYPE =
@@ -225,12 +196,27 @@ struct GlobExpr *new_zero_type(struct TypeExpr *type, int size,
 	return e;
 }
 
+void (*cmpts[])(struct PList *msgs, struct TypeExpr *type,
+				struct GlobExpr *e) = {
+	cmpt_int,		 // 	CT_INT
+	cmpt_real,		 // 	CT_REAL
+	cmpt_int,		 // 	CT_FUN
+	cmpt_str,		 // 	CT_STR
+	cmpt_int,		 // 	CT_ARR
+	cmpt_int,		 // 	CT_STRUCT
+	cmpt_int,		 // 	CT_STR_PTR
+	cmpt_int,		 // 	CT_ARR_PTR
+	cmpt_int,		 // 	CT_STRUCT_PTR
+	cmpt_global,	 // 	CT_GLOBAL
+	cmpt_global_ptr, // 	CT_GLOBAL_PTR
+	cmpt_int,		 // 	CT_ZERO
+};
+
 void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 						  struct GlobExpr *e) {
 	long n;
 	struct TypeExpr *tmp_type;
 	struct GlobExpr *glob;
-	enum CE_Code tmp_code = CE_NONE;
 
 	if (e->type) {
 		// compares global types, not returns enum CE_Code, just boolean
@@ -251,13 +237,9 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		// return;
 	}
 
-	if (e->code == CT_GLOBAL) {
-		if (e->not_from_child) {
-			e->code = CT_GLOBAL_PTR;
-			goto judge_it_as_ptr;
-		}
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_UNCOMPUTIBLE_DATA);
+	if (e->code == CT_GLOBAL || e->code == CT_GLOBAL_PTR || e->code == CT_INT ||
+		e->code == CT_REAL || e->code == CT_STR) {
+		cmpts[e->code](msgs, type, e);
 		return;
 	}
 
@@ -280,98 +262,6 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	// 			return;
 	// 		}
 	// 	}
-
-	if (e->code == CT_INT) {
-		if (is_int_type(type))
-			return;
-
-		if (is_real_type(type)) {
-			e->tvar->real = e->tvar->num;
-			e->code = CT_REAL;
-			return;
-		}
-
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_NUM_INCOMPATIBLE_TYPE);
-		return;
-	}
-
-	if (e->code == CT_REAL) {
-		if (is_real_type(type))
-			return;
-
-		if (is_int_type(type)) {
-			e->tvar->num = e->tvar->real;
-			e->code = CT_INT;
-			return;
-		}
-
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_NUM_INCOMPATIBLE_TYPE);
-		return;
-	}
-
-	if (e->code == CT_STR) {
-		if (type->code == TC_PTR) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_STR_IS_NOT_A_PTR);
-			return;
-		}
-		// assume array
-		if (type->code != TC_ARR) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_STR_INCOMPATIBLE_TYPE);
-			return;
-		}
-
-		// assume uint8 array
-		tmp_type = arr_type(type);
-		if (tmp_type->code != TC_UINT8) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_STR_INCOMPATIBLE_TYPE);
-			return;
-		}
-
-		// asume array size
-		n = (long)arr_len(type);
-/*	 */ #define arr_items n
-
-		if (arr_items == -1) { // need to adjust it by size of e->globs->size
-			arr_items = e->tvar->str->size + 1;
-			plist_set(type->data.arr, 1, (void *)arr_items);
-			goto valid_str_as_arr_size;
-		}
-		if (e->tvar->str->size + 1 > arr_items) {
-			plist_add(msgs, (void *)arr_items);
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_TOO_MUCH_CHARS_FOR_THIS_STR);
-			return;
-		}
-		if (arr_items > e->tvar->str->size + 1) {
-			plist_add(msgs, (void *)arr_items);
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_TOO_LESS_CHARS_FOR_THIS_STR);
-
-			e->tvar->view->size--;
-			for (; e->tvar->str->size + 1 < arr_items;) {
-				blist_add(e->tvar->view, '\\');
-				blist_add(e->tvar->view, '0'); // \0
-				blist_add(e->tvar->str, 0);
-			}
-			blist_add(e->tvar->view, '"');
-			convert_blist_to_blist_from_str(e->tvar->view);
-			convert_blist_to_blist_from_str(e->tvar->str);
-		}
-
-	valid_str_as_arr_size:
-		// set size in any way
-		n = e->tvar->str->size + 1; // + 1 cuz '\0'
-		plist_set(type->data.arr, 1, (void *)n);
-
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)tmp_code);
-		return;
-	}
 
 	if (e->code == CT_ARR) {
 		if (e->from) {
@@ -507,39 +397,6 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			if (glob->type)
 				free_type(glob->type);
 			glob->type = arg->type;
-		}
-		return;
-	}
-
-	// here e->from != 0
-	if (e->code == CT_GLOBAL_PTR) {
-	judge_it_as_ptr:
-		// pointer can be taken only from an Identificator
-		// so why do i even consider to compare its value type
-		// so in here need to comapre e->from->type
-		// where e->from->type is a pointed to type, not a pointer type
-
-		if (!is_ptr_type(type)) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
-			return;
-		}
-
-		// wrap around e->from->type
-		tmp_type =
-			e->not_from_child
-				? e->from->type
-				: &(struct TypeExpr){TC_PTR, {.ptr_target = e->from->type}};
-
-		// printf("%s %d\n", vs(e->tvar), e->not_from_child);
-		if (!are_types_equal(type, tmp_type)) {
-			// printf("tmp_type = %d %d\n", tmp_type->code,
-			// 	   tmp_type->data.ptr_target->code);
-			// printf("    type = %d %d\n", type->code,
-			// 	   type->data.ptr_target->code);
-
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
 		}
 		return;
 	}

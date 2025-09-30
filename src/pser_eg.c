@@ -1,8 +1,6 @@
 #include "pser.h"
 #include <stdio.h>
 
-// TODO: long a = (long)("str");
-
 struct GlobExpr *parse_global_expression(struct Pser *p,
 										 struct TypeExpr *type) {
 	struct GlobExpr *e = global_expression(p);

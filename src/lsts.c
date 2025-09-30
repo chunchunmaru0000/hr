@@ -117,9 +117,8 @@ uint32_t blist_add(struct BList *l, uc p) {
 
 uint32_t blist_cut(struct BList *l) {
 	l->cap = l->size;
-	if (!l->size) {
+	if (!l->size)
 		return 0;
-	}
 	l->st = realloc(l->st, l->size);
 	return l->size;
 }
