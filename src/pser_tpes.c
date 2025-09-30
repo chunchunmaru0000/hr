@@ -178,38 +178,20 @@ void search_error_code(struct Pser *p, struct PList *msgs) {
 	}
 }
 
-struct GlobExpr *new_zero_type(struct TypeExpr *type, int size,
-							   struct Token *tvar) {
-	struct GlobExpr *e = malloc(sizeof(struct GlobExpr));
-
-	e->code = CT_ZERO;
-	e->from = 0;
-	e->type = type;
-
-	// not used for defining value, just in case here
-	e->tvar = malloc(sizeof(struct Token));
-	e->tvar->view = tvar->view;
-	e->tvar->num = size;
-
-	e->globs = 0;
-
-	return e;
-}
-
 void (*cmpts[])(struct PList *msgs, struct TypeExpr *type,
 				struct GlobExpr *e) = {
 	cmpt_int,		 // 	CT_INT
 	cmpt_real,		 // 	CT_REAL
-	cmpt_int,		 // 	CT_FUN
+	cmpt_fun,		 // 	CT_FUN
 	cmpt_str,		 // 	CT_STR
-	cmpt_int,		 // 	CT_ARR
-	cmpt_int,		 // 	CT_STRUCT
-	cmpt_int,		 // 	CT_STR_PTR
-	cmpt_int,		 // 	CT_ARR_PTR
-	cmpt_int,		 // 	CT_STRUCT_PTR
+	cmpt_str_ptr,	 // 	CT_STR_PTR
+	cmpt_arr,		 // 	CT_ARR
+	cmpt_arr_ptr,	 // 	CT_ARR_PTR
+	cmpt_struct,	 // 	CT_STRUCT
+	cmpt_struct_ptr, // 	CT_STRUCT_PTR
 	cmpt_global,	 // 	CT_GLOBAL
 	cmpt_global_ptr, // 	CT_GLOBAL_PTR
-	cmpt_int,		 // 	CT_ZERO
+//	cmpt_zero,		 // 	CT_ZERO
 };
 
 void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
@@ -237,8 +219,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		// return;
 	}
 
-	if (e->code == CT_GLOBAL || e->code == CT_GLOBAL_PTR || e->code == CT_INT ||
-		e->code == CT_REAL || e->code == CT_STR) {
+	if (e->code != CT_ZERO) {
 		cmpts[e->code](msgs, type, e);
 		return;
 	}
@@ -262,215 +243,6 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	// 			return;
 	// 		}
 	// 	}
-
-	if (e->code == CT_ARR) {
-		if (e->from) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_ARR_FROM_OTHER_GLOBAL_ARR);
-			return;
-		}
-		if (is_ptr_type(type)) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_ARR_IS_NOT_A_PTR);
-			return;
-		}
-		// TODO: check if e->code is compatible with arr_type(type)
-		if (type->code != TC_ARR) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_ARR_INCOMPATIBLE_TYPE);
-			return;
-		}
-
-		tmp_type = arr_type(type);
-		n = (long)arr_len(type);
-/*	 */ #define arr_items n
-
-		if (arr_items == -1) { // need to adjust it by size of e->globs->size
-			arr_items = e->globs->size;
-			plist_set(type->data.arr, 1, (void *)arr_items);
-			goto check_items_of_the_arr_on_types;
-		}
-		if (e->globs->size > arr_items) {
-			plist_add(msgs, (void *)arr_items);
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_TOO_MUCH_ITEMS_FOR_THIS_ARR);
-			return;
-		}
-		if (arr_items > e->globs->size) {
-			plist_add(msgs, (void *)arr_items);
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_TOO_LESS_ITEMS_FOR_THIS_ARR);
-
-			int item_size = unsafe_size_of_type(tmp_type);
-
-			for (; e->globs->size < arr_items;)
-				plist_add(e->globs,
-						  new_zero_type(tmp_type, item_size, e->tvar));
-		}
-	check_items_of_the_arr_on_types:
-
-		for (n = 0; n < e->globs->size; n++) {
-			glob = plist_get(e->globs, n);
-
-			if (glob->code == CT_ZERO)
-				continue;
-
-			are_types_compatible(msgs, tmp_type, glob);
-
-			// TODO: here is for example [окак тип [...] [...] [...]]
-			// it will segfault i beleive cuz all first arr types are same
-			// as окак type потому что сначала происходит то что внутри
-			// массивов а потом сами массивы изза рекурсии
-			if (glob->type)
-				free_type(glob->type);
-			glob->type = tmp_type;
-		}
-		return;
-	}
-
-	if (e->code == CT_STRUCT) {
-		if (e->from) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_STRUCT_FROM_OTHER_GLOBAL_STRUCT);
-			return;
-		}
-	check_type_on_struct_fields:
-		if (type->code != TC_STRUCT) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_STRUCT_INCOMPATIBLE_TYPE);
-			return;
-		}
-
-		struct PList *lik_os = find_lik_os(type->data.name);
-		// this check can be deleted cuz when parse a type then it already
-		// checks for existence of the struct
-		if (lik_os == 0) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_STRUCT_WASNT_FOUND);
-			return;
-		}
-
-		n = (long)plist_get(lik_os, DCLR_STRUCT_MEMS);
-/*	 */ #define lik_mems n
-
-		if (e->globs->size > lik_mems) {
-			plist_add(msgs, (void *)lik_mems);
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_TOO_MUCH_FIELDS_FOR_THIS_STRUCT);
-			return;
-		}
-
-		struct Arg *arg;
-		if (lik_mems > e->globs->size) {
-			plist_add(msgs, (void *)lik_mems);
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_TOO_LESS_FIELDS_FOR_THIS_STRUCT);
-
-			// get first arg
-			arg = get_arg_by_mem_index(lik_os, e->globs->size);
-			plist_add(e->globs,
-					  new_zero_type(arg->type, arg->arg_size, e->tvar));
-			// get all other args
-			for (; e->globs->size < lik_mems;) {
-				arg = get_arg_of_next_offset(lik_os, arg->offset);
-				plist_add(e->globs,
-						  new_zero_type(arg->type, arg->arg_size, e->tvar));
-			}
-		}
-
-		if (e->globs->size == 0) // zero args in struct in any case
-			return;
-
-		for (n = 0; n < e->globs->size; n++) {
-			glob = plist_get(e->globs, n);
-			arg = get_arg_by_mem_index(lik_os, n);
-
-			if (glob->code == CT_ZERO)
-				// it cintinues here so it wont free its type at the end of the
-				// loop or change it
-				continue;
-
-			// for now its first in mem arg type, later if there will be
-			// TODO: CT_NAMED_STRUCT_FIELD then it will be another logic
-			are_types_compatible(msgs, arg->type, glob);
-
-			if (glob->type)
-				free_type(glob->type);
-			glob->type = arg->type;
-		}
-		return;
-	}
-
-	if (e->code == CT_STR_PTR) {
-		if (!is_ptr_type(type)) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
-			return;
-		}
-
-		tmp_type = &(struct TypeExpr){
-			TC_PTR,
-			{.ptr_target = &(struct TypeExpr){TC_UINT8, {.ptr_target = 0}}}};
-
-		if (!are_types_equal(type, tmp_type)) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
-		}
-		return;
-	}
-
-	if (e->code == CT_ARR_PTR) {
-		if (!is_ptr_type(type)) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
-			return;
-		}
-		if (is_void_ptr(type)) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_CANT_DEFINE_ARR_TYPE);
-			return;
-		}
-
-		tmp_type = ptr_targ(type);
-
-		for (n = 0; n < e->globs->size; n++) {
-			glob = plist_get(e->globs, n);
-			are_types_compatible(msgs, tmp_type, glob);
-
-			// TODO: here too segafult possible
-			if (glob->type)
-				free_type(glob->type);
-			glob->type = tmp_type;
-		}
-		return;
-	}
-
-	if (e->code == CT_STRUCT_PTR) {
-		if (!is_ptr_type(type)) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_PTR_INCOMPATIBLE_TYPE);
-			return;
-		}
-		if (is_void_ptr(type)) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_CANT_DEFINE_STRUCT_TYPE);
-			return;
-		}
-
-		type = ptr_targ(type);
-		goto check_type_on_struct_fields;
-	}
-
-	// here e->from != 0
-	if (e->code == CT_FUN) {
-		// is it also includes is_void_ptr check in are_types_equal
-		if (!are_types_equal(type, e->from->type)) {
-			plist_add(msgs, e->tvar);
-			plist_add(msgs, (void *)CE_FUN_INCOMPATIBLE_TYPE);
-		}
-
-		return;
-	}
 
 	plist_add(msgs, e->tvar);
 	plist_add(msgs, (void *)CE_todo);
