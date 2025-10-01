@@ -322,10 +322,24 @@ void cmpt_arr(struct PList *msgs, struct TypeExpr *type, struct GlobExpr *e) {
 		plist_add(msgs, (void *)CE_ARR_IS_NOT_A_PTR);
 		return;
 	}
-	// TODO: check if e->code is compatible with arr_type(type)
 	if (type->code != TC_ARR) {
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_ARR_INCOMPATIBLE_TYPE);
+		if (e->globs->size == 0) {
+			// im lazy to do err, so just zero
+			plist_add(e->globs,
+					  new_zero_type(type, unsafe_size_of_type(type), e->tvar));
+			return;
+		}
+		for (i = 0; i < e->globs->size; i++) {
+			glob = plist_get(e->globs, i);
+			if (glob->code == CT_ZERO)
+				continue;
+
+			are_types_compatible(msgs, type, glob);
+
+			if (glob->type)
+				free_type(glob->type);
+			glob->type = type;
+		}
 		return;
 	}
 
@@ -357,7 +371,6 @@ check_items_of_the_arr_on_types:
 
 	for (i = 0; i < e->globs->size; i++) {
 		glob = plist_get(e->globs, i);
-
 		if (glob->code == CT_ZERO)
 			continue;
 
