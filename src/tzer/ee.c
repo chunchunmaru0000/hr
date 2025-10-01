@@ -62,18 +62,24 @@ uint32_t get_utf8_chars_to_pos(const char *str, int col) {
 	return chars;
 }
 
-void print_source_line(struct Pos *p, const char *const color, char *help) {
-	uint32_t line = p->line - 1;
+const char *get_line_start(struct Pos *p) {
 	const char *str_start = p->f->code;
-	uint32_t nc = line, ut8_chars_to_pos = 0;
-	char *help_end, *help_start = help;
+	uint32_t line = p->line - 1;
+	uint32_t nc = line;
+
 	if (line)
 		nc--;
-	while (nc) {
+	for (; nc; str_start++) {
 		if (*str_start == '\n')
 			nc--;
-		str_start++;
 	}
+	return str_start;
+}
+
+void print_source_line(struct Pos *p, const char *const color, char *help) {
+	char *help_end, *help_start = help;
+	uint32_t ut8_chars_to_pos = 0, line = p->line - 1;
+	const char *str_start = get_line_start(p);
 
 	printf("%s%5d |", COLOR_RESET, line);
 	if (line)
@@ -169,5 +175,16 @@ void et(struct Token *t, const char *const msg, const char *const sgst) {
 
 void eet(struct Token *t, const char *const msg, const char *const sgst) {
 	et(t, msg, sgst);
+	exit(1);
+}
+
+void eet2(struct Token *t0, struct Token *t1, const char *const msg,
+		  const char *const sgst) {
+	et(t0, msg, sgst);
+
+	fprintf(stderr, "%s%s:%d:%d %sВ: %s\n", COLOR_WHITE, t1->p->f->path,
+			t1->p->line, t1->p->col, COLOR_GREEN, msg);
+	print_source_line(t1->p, COLOR_GREEN, vs(t1));
+
 	exit(1);
 }
