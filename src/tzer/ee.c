@@ -64,10 +64,9 @@ uint32_t get_utf8_chars_to_pos(const char *str, int col) {
 
 const char *get_line_start(struct Pos *p) {
 	const char *str_start = p->f->code;
-	uint32_t line = p->line - 1;
-	uint32_t nc = line;
+	uint32_t nc = p->line - 1;
 
-	if (line)
+	if (nc)
 		nc--;
 	for (; nc; str_start++) {
 		if (*str_start == '\n')
@@ -182,9 +181,12 @@ void eet2(struct Token *t0, struct Token *t1, const char *const msg,
 		  const char *const sgst) {
 	et(t0, msg, sgst);
 
-	fprintf(stderr, "%s%s:%d:%d %sВ: %s\n", COLOR_WHITE, t1->p->f->path,
-			t1->p->line, t1->p->col, COLOR_GREEN, msg);
-	print_source_line(t1->p, COLOR_GREEN, vs(t1));
+	fprintf(stderr, "%s%s:%d:%d %sПРИЧИНА:\n%5d |", COLOR_WHITE, t1->p->f->path,
+			t1->p->line, t1->p->col, COLOR_GAY, t1->p->line);
+	t1->p->line++; // WHY
+	write_ln(get_line_start(t1->p));
+	t1->p->line--;
+	printf("%s\n", COLOR_RESET);
 
 	exit(1);
 }

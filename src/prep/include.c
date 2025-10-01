@@ -62,7 +62,7 @@ struct NodeToken *try_get_included_head(struct NodeToken *path_name) {
 
 	struct BList *path_to_include = try_include_path(path_name->token);
 	if (!path_to_include)
-		eet(path_name->token, ALREADY_INCLUDED, 0); // TODO: eet2
+		eet(path_name->token, ALREADY_INCLUDED, 0);
 
 	file_to_include = path_name->token;
 	included_head = get_included_head(path_to_include);

@@ -52,4 +52,6 @@ void print_source_line(struct Pos *, const char *const, char *);
 void ee(struct Pos *, const char *const);
 void et(struct Token *t, const char *const msg, const char *const sgst);
 void eet(struct Token *t, const char *const msg, const char *const sgst);
+void eet2(struct Token *t0, struct Token *t1, const char *const msg,
+		  const char *const sgst);
 #define etei(ei) (et((ei)->t, (ei)->msg, (ei)->sgst))

@@ -124,7 +124,8 @@ const char *const SUGGEST_CHANGE_TYPE_TO_A_PTR = "изменить тип на �
 const char *const GLOBAL_STRUCTS_NAMES_OVERLAP =
 	"Лик с таким именем уже существует.";
 const char *const SUGGEST_RENAME_STRUCT = "переименовать лик";
-const char *const EXPECTED_COLO_OR_DIV_IN_ARG = "В данном месте аргумента ожидалось ':' или '/'.";
+const char *const EXPECTED_COLO_OR_DIV_IN_ARG =
+	"В данном месте аргумента ожидалось ':' или '/'.";
 
 struct Arg *new_arg() {
 	struct Arg *arg = malloc(sizeof(struct Arg));
@@ -415,7 +416,8 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 			tmp_var = plist_get(p->global_vars, j);
 
 			if (sc((char *)tmp_var->signature->st, (char *)var->signature->st))
-				eet(var->name, GLOBAL_VARS_NAMES_OVERLAP, SUGGEST_RENAME_VAR);
+				eet2(var->name, tmp_var->name, GLOBAL_VARS_NAMES_OVERLAP,
+					 SUGGEST_RENAME_VAR);
 		}
 
 		plist_add(p->global_vars, var);
