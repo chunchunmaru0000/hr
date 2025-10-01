@@ -1,4 +1,4 @@
-#include "gner.h"
+#include "../gner/gner.h"
 #include <stdio.h>
 
 uc NEED_WARN = 1;

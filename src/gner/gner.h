@@ -1,5 +1,5 @@
-#include "prep.h"
-#include "regs.h"
+#include "../prep/prep.h"
+#include "../some/regs.h"
 #include <stdint.h>
 
 struct Fggs {

@@ -1,4 +1,4 @@
-#include "tpes.h"
+#include "../some/tpes.h"
 #include <string.h>
 
 extern struct Token *file_to_include;
