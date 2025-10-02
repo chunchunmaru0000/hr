@@ -38,7 +38,6 @@ void plist_free_items_free(struct PList *l) {
 	plist_free(l);
 }
 
-
 // void plist_cut_items_free(struct PList *l, long cut_to) {
 // 	long i, j;
 // 	void *value;
@@ -101,7 +100,7 @@ struct BList *blist_from_str(char *str, uint32_t str_len) {
 
 void convert_blist_to_blist_from_str(struct BList *l) {
 	blist_add(l, 0);
-	//l->cap_pace = 0;
+	// l->cap_pace = 0;
 	l->size--;
 }
 
@@ -193,4 +192,78 @@ struct BList *copy_blist(struct BList *l) {
 	struct BList *copy = new_blist(l->cap_pace);
 	blat_blist(copy, l);
 	return copy;
+}
+
+struct BList *int_to_hex_str(long num) {
+	char *num_view = malloc(11); // 0x23456789 = 10 chars + 0 term
+	int four_bits, i;
+	num_view[10] = 0;
+	num_view[0] = '0';
+	num_view[1] = 'x';
+
+	for (i = 0; i < 8; i++) {
+		four_bits = ((num >> ((7 - i) * 4)) & 0b1111);
+		num_view[2 + i] = four_bits + (four_bits < 0xa ? '0' : 'a' - 0xa);
+	}
+
+	return blist_from_str(num_view, 10);
+}
+
+struct BList *int_to_str(long num) {
+	char *num_view;
+	long num_clone;
+	int num_len = 0, minus_flag = 0;
+
+	if (!num) {
+		num_view = malloc(2);
+		num_view[1] = '\0';
+		num_view[0] = '0';
+		return blist_from_str(num_view, 1);
+	}
+
+	if (num < 0) {
+		minus_flag = 1;
+		num_len = 1;
+		num *= -1;
+	}
+	num_clone = num;
+
+	for (; num_clone; num_len++)
+		num_clone /= 10;
+
+	num_view = malloc(num_len + 1);
+	num_view[num_len] = '\0';
+	num_clone = num_len;
+
+	for (; num; num_len--) {
+		num_view[num_len - 1] = (num % 10) + '0';
+		num /= 10;
+	}
+
+	if (minus_flag)
+		num_view[0] = '-';
+
+	return blist_from_str(num_view, num_clone);
+}
+
+struct BList *real_to_str(double num) {
+	long before_dot = num;
+
+	if (before_dot < 0)
+		before_dot *= -1;
+
+	struct BList *num_str = int_to_str(num);
+	blist_add(num_str, '.');
+
+	num -= before_dot;
+	num *= 10;
+	while (num) {
+		before_dot = num;
+		blist_add(num_str, before_dot + '0');
+
+		num -= before_dot;
+		num *= 10;
+	}
+
+	return num_str;
 }

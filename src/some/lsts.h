@@ -50,6 +50,9 @@ void blist_print(struct BList *);
 void blist_add_set(struct BList *, uc, long *, size_t);
 struct BList *copy_str(struct BList *src);
 struct BList *copy_blist(struct BList *l);
+struct BList *int_to_hex_str(long num);
+struct BList *int_to_str(long num);
+struct BList *real_to_str(double num);
 #define b_last(l) (blist_get((l), (l)->size - 1))
 
 #define loop while (1)
