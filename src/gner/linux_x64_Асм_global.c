@@ -330,8 +330,10 @@ struct BList *lay_down_int_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) {
 		iprint_gen(SA_LET_32);
 	else if (code == TC_INT64 || code == TC_UINT64 || code == TC_VOID)
 		iprint_gen(SA_LET_64);
-	else
+	else {
+		printf("#ERR_INFO. e->type->code was %d\n", code);
 		exit(223);
+	}
 
 	int_add(generated, e->tvar->num);
 	print_gen(SA_START_COMMENT); // \t;
@@ -520,7 +522,11 @@ struct BList *gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e) 
 	struct BList *generated;
 	enum CT_Code code = e->code;
 
-	if (code == CT_INT)
+	if (code != CT_ARR && e->type->code == TC_ARR) {
+		e->type->code = arr_type(e->type)->code;
+		generated = gen_glob_expr_Асм_Linux_64(g, e);
+		e->type->code = TC_ARR;
+	} else if (code == CT_INT)
 		generated = lay_down_int_Асм_Linux_64(g, e);
 	else if (code == CT_REAL)
 		generated = lay_down_real_Асм_Linux_64(g, e);
