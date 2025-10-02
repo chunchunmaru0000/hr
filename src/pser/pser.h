@@ -7,6 +7,7 @@
 		blist_clear_free((snd));                                               \
 	} while (0)
 
+extern const char *const STRUCT_NAME_WASNT_FOUND;
 extern uc NEED_WARN;
 void pw(struct Token *t, const char *const msg, const char *const sgst);
 void etei_with_extra(struct ErrorInfo *info);
