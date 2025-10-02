@@ -1,4 +1,4 @@
-#include "pser.h"
+#include "../pser.h"
 
 const char *const UNKNOWN_OPERATION = "Неизвестная операция.";
 const char *const INVALID_OPERANDS_TYPES_FOR_THIS_OP =
