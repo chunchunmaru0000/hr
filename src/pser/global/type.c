@@ -211,21 +211,16 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		}
 		return;
 	}
+
+	// 	// and e here is not CT_GLOBAL
+	// 	if (type->code == TC_ARR && e->code != CT_ARR &&
+	// !is_compile_time_ptr(e))
 	if (type->code == TC_ARR && e->code != CT_ARR) {
 		arr_size = (long)arr_len(type);
 
 		arr_err_of_size(msgs, e, arr_size, 1);
 		are_types_compatible(msgs, arr_type(type), e);
 		set_arr_len(type->data.arr, 1); // 1 element
-
-		// if (arr_size == -1) {
-		// 	are_types_compatible(msgs, arr_type(type), e);
-		// 	set_arr_len(type->data.arr, 1); // 1 element
-		// } else if (arr_size == 1) {
-		// 	are_types_compatible(msgs, arr_type(type), e);
-		// } else if (arr_err_of_size(msgs, e, arr_size, 1) == NEED_ADD_ITEMS) {
-		// 	set_arr_len(type->data.arr, 1); // 1 element
-		// }
 		return;
 	}
 
@@ -233,26 +228,6 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		cmpts[e->code](msgs, type, e);
 		return;
 	}
-
-	// 	// and e here is not CT_GLOBAL
-	// 	if (type->code == TC_ARR && e->code != CT_ARR &&
-	// !is_compile_time_ptr(e)) { 		n = msgs->size;
-	//
-	// 		are_types_compatible(msgs, arr_type(type), e);
-	//
-	// 		if (n == msgs->size) {
-	// 			// need to do arr size = 1
-	// 			n = (long)arr_size(type);
-	// 			if (n != -1 && n != 1) {
-	// 				plist_add(msgs, (void *)n);
-	// 				plist_add(msgs, e->tvar);
-	// 				plist_add(msgs, (void *)CE_ARR_SIZES_DO_NOW_MATCH);
-	// 			}
-	//
-	// 			plist_set(type->data.arr, 1, (void *)1); // size of 1
-	// 			return;
-	// 		}
-	// 	}
 
 	plist_add(msgs, e->tvar);
 	plist_add(msgs, (void *)CE_todo);
