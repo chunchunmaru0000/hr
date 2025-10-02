@@ -415,9 +415,15 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 		for (j = 0; j < p->global_vars->size; j++) {
 			tmp_var = plist_get(p->global_vars, j);
 
-			if (sc((char *)tmp_var->signature->st, (char *)var->signature->st))
-				eet2(var->name, tmp_var->name, GLOBAL_VARS_NAMES_OVERLAP,
-					 SUGGEST_RENAME_VAR);
+			if (tmp_var->type->code == TC_ARR) {
+				if (sc(vs(tmp_var->name), vs(var->name)))
+					eet2(var->name, tmp_var->name, GLOBAL_VARS_NAMES_OVERLAP,
+						 SUGGEST_RENAME_VAR);
+			} else {
+				if (sc(bs(tmp_var->signature), bs(var->signature)))
+					eet2(var->name, tmp_var->name, GLOBAL_VARS_NAMES_OVERLAP,
+						 SUGGEST_RENAME_VAR);
+			}
 		}
 
 		plist_add(p->global_vars, var);

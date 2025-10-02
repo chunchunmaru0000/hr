@@ -64,3 +64,5 @@ struct BList *copy_blist(struct BList *l);
 #define vs(t) ((char *)(t)->view->st)
 // String String
 #define ss(t) ((char *)(t)->str->st)
+// BList String
+#define bs(l) ((char *)(l)->st)
