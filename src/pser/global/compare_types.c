@@ -191,7 +191,7 @@ void check_type_on_struct_fields(struct PList *msgs, struct TypeExpr *type,
 
 		if (glob->type)
 			free_type(glob->type);
-		glob->type = arg->type;
+		glob->type = copy_type_expr(arg->type);
 	}
 }
 
@@ -299,10 +299,10 @@ void cmpt_arr_ptr(struct PList *msgs, struct TypeExpr *type,
 		glob = plist_get(e->globs, i);
 		are_types_compatible(msgs, array_type, glob);
 
-		// TODO: here too segafult possible
+		// FIXED: here too segafult possible
 		if (glob->type)
 			free_type(glob->type);
-		glob->type = array_type;
+		glob->type = copy_type_expr(array_type);
 	}
 }
 
@@ -357,7 +357,7 @@ void cmpt_arr(struct PList *msgs, struct TypeExpr *type, struct GlobExpr *e) {
 
 			if (glob->type)
 				free_type(glob->type);
-			glob->type = type;
+			glob->type = copy_type_expr(type);
 		}
 		return;
 	}
@@ -385,12 +385,12 @@ check_items_of_the_arr_on_types:
 
 		are_types_compatible(msgs, array_type, glob);
 
-		// TODO: here is for example [окак тип [...] [...] [...]]
+		// FIXED by copy: here is for example [окак тип [...] [...] [...]]
 		// it will segfault i beleive cuz all first arr types are same
 		// as окак type потому что сначала происходит то что внутри
 		// массивов а потом сами массивы изза рекурсии
 		if (glob->type)
 			free_type(glob->type);
-		glob->type = array_type;
+		glob->type = copy_type_expr(array_type);
 	}
 }

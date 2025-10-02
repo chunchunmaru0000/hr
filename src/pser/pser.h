@@ -208,6 +208,7 @@ struct TypeExpr {
 #define set_arr_len(arr, len) (plist_set((arr), 1, (void *)(len)))
 
 struct TypeExpr *new_type_expr(enum TypeCode);
+struct TypeExpr *copy_type_expr(struct TypeExpr *type);
 void free_type(struct TypeExpr *type);
 int size_of_type(struct Pser *p, struct TypeExpr *type);
 int unsafe_size_of_type(struct TypeExpr *type);

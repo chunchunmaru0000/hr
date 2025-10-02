@@ -27,6 +27,40 @@ const struct TypeWord TYPE_WORD_ENUM = {"счет", TC_ENUM, 8};
 const struct TypeWord TYPE_WORD_PTR = {"ук", TC_PTR, 4};
 const struct TypeWord TYPE_WORD_FUN = {"фц", TC_FUN, 4};
 
+struct TypeExpr *copy_type_expr(struct TypeExpr *type) {
+	long i;
+	struct TypeExpr *copy = new_type_expr(TC_VOID), *other;
+
+	if (type->code < TC_PTR) {
+		copy->code = type->code;
+	} else if (type->code == TC_PTR) {
+		// * if [[ ptr ]] -> TypeExpr *
+		copy->data.ptr_target = copy_type_expr(type->data.ptr_target);
+	} else if (type->code == TC_FUN) {
+		// * if [[ fun ]] -> plist of TypeExpr * where last type is return type
+		copy->data.args_types = new_plist(type->data.args_types->size);
+
+		for (i = 0; i < type->data.args_types->size; i++) {
+			other = plist_get(type->data.args_types, i);
+			plist_add(copy->data.args_types, copy_type_expr(other));
+		}
+	} else if (type->code == TC_ARR) {
+		// * if [[ arr ]] -> plist with two items
+		copy->data.arr = new_plist(2);
+		// * - first item is TypeExpr *
+		other = arr_type(type);
+		plist_set(copy->data.arr, 0, other);
+		// * - second item is long that is len of arr, if len is -1 then any len
+		set_arr_len(copy->data.arr, arr_len(type));
+	} else if (type->code == TC_STRUCT) {
+		// * if [[ struct ]] -> name blist
+		copy->data.name = copy_str(type->data.name);
+	} else
+		exit(125);
+
+	return copy;
+}
+
 struct BList *type_to_blist_from_str(struct TypeExpr *type);
 
 void add_type_str_to_str(struct BList *str, struct TypeExpr *type) {
@@ -174,6 +208,7 @@ int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
 		return 1;
 
 	uint32_t res = 0;
+	long size1, size2;
 
 	if (t1->code == TC_PTR) {
 		if (is_void_ptr(t1) || is_void_ptr(t2))
@@ -182,8 +217,12 @@ int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
 	} else if (t1->code == TC_STRUCT || t1->code == TC_ENUM) {
 		res = sc((char *)t1->data.name->st, (char *)t2->data.name->st);
 	} else if (t1->code == TC_ARR) {
-		res = are_types_equal(arr_type(t1), arr_type(t2)) &&
-			  arr_len(t1) == arr_len(t2);
+		size1 = (long)arr_len(t1);
+		size2 = (long)arr_len(t2);
+		res = ((size1 == -1) || (size2 == -1) || (size1 == size2));
+		if (res == 0)
+			return 0;
+		res = res && are_types_equal(arr_type(t1), arr_type(t2));
 	} else { // TC_FUN
 		if (t1->data.args_types->size != t2->data.args_types->size)
 			return 0;
