@@ -306,10 +306,29 @@ void cmpt_arr_ptr(struct PList *msgs, struct TypeExpr *type,
 	}
 }
 
+int arr_err_of_size(struct PList *msgs, struct GlobExpr *e, long size,
+					long items) {
+	if (size == -1)
+		return 0;
+	if (size < items) {
+		plist_add(msgs, (void *)size);
+		plist_add(msgs, e->tvar);
+		plist_add(msgs, (void *)CE_TOO_MUCH_ITEMS_FOR_THIS_ARR);
+		return TOO_MUCH_ITEMS;
+	}
+	if (size > items) {
+		plist_add(msgs, (void *)size);
+		plist_add(msgs, e->tvar);
+		plist_add(msgs, (void *)CE_TOO_LESS_ITEMS_FOR_THIS_ARR);
+		return NEED_ADD_ITEMS;
+	}
+	return 0;
+}
+
 void cmpt_arr(struct PList *msgs, struct TypeExpr *type, struct GlobExpr *e) {
 	struct TypeExpr *array_type;
 	struct GlobExpr *glob;
-	long arr_items;
+	long arr_size;
 	uint32_t i;
 
 	if (e->from) {
@@ -344,27 +363,17 @@ void cmpt_arr(struct PList *msgs, struct TypeExpr *type, struct GlobExpr *e) {
 	}
 
 	array_type = arr_type(type);
-	arr_items = (long)arr_len(type);
+	arr_size = (long)arr_len(type);
 
-	if (arr_items == -1) { // need to adjust it by size of e->globs->size
-		arr_items = e->globs->size;
-		plist_set(type->data.arr, 1, (void *)arr_items);
+	if (arr_size == -1) { // need to adjust it by size of e->globs->size
+		arr_size = e->globs->size;
+		set_arr_len(type->data.arr, arr_size);
 		goto check_items_of_the_arr_on_types;
 	}
-	if (e->globs->size > arr_items) {
-		plist_add(msgs, (void *)arr_items);
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_TOO_MUCH_ITEMS_FOR_THIS_ARR);
-		return;
-	}
-	if (arr_items > e->globs->size) {
-		plist_add(msgs, (void *)arr_items);
-		plist_add(msgs, e->tvar);
-		plist_add(msgs, (void *)CE_TOO_LESS_ITEMS_FOR_THIS_ARR);
-
+	if (arr_err_of_size(msgs, e, arr_size, e->globs->size) == NEED_ADD_ITEMS) {
 		int item_size = unsafe_size_of_type(array_type);
 
-		for (; e->globs->size < arr_items;)
+		for (; e->globs->size < arr_size;)
 			plist_add(e->globs, new_zero_type(array_type, item_size, e->tvar));
 	}
 check_items_of_the_arr_on_types:

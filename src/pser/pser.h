@@ -291,8 +291,10 @@ struct GlobExpr {
 };
 void free_glob_expr(struct GlobExpr *e);
 
-void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
-						  struct GlobExpr *e);
+#define TOO_MUCH_ITEMS 1
+#define NEED_ADD_ITEMS -1
+void are_types_compatible(struct PList *, struct TypeExpr *, struct GlobExpr *);
+int arr_err_of_size(struct PList *, struct GlobExpr *, long size, long items);
 void cmpt_int(struct PList *, struct TypeExpr *, struct GlobExpr *);
 void cmpt_real(struct PList *, struct TypeExpr *, struct GlobExpr *);
 void cmpt_fun(struct PList *, struct TypeExpr *, struct GlobExpr *);
@@ -304,7 +306,7 @@ void cmpt_global(struct PList *, struct TypeExpr *, struct GlobExpr *);
 void cmpt_global_ptr(struct PList *, struct TypeExpr *, struct GlobExpr *);
 void cmpt_struct(struct PList *, struct TypeExpr *, struct GlobExpr *);
 void cmpt_struct_ptr(struct PList *, struct TypeExpr *, struct GlobExpr *);
-//void cmpt_zero(struct PList *, struct TypeExpr *, struct GlobExpr *);
+// void cmpt_zero(struct PList *, struct TypeExpr *, struct GlobExpr *);
 
 struct GlobVar {
 	struct Token *name;

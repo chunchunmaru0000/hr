@@ -191,14 +191,12 @@ void (*cmpts[])(struct PList *msgs, struct TypeExpr *type,
 	cmpt_struct_ptr, // 	CT_STRUCT_PTR
 	cmpt_global,	 // 	CT_GLOBAL
 	cmpt_global_ptr, // 	CT_GLOBAL_PTR
-//	cmpt_zero,		 // 	CT_ZERO
+					 // 	CT_ZERO
 };
 
 void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 						  struct GlobExpr *e) {
-	long n;
-	struct TypeExpr *tmp_type;
-	struct GlobExpr *glob;
+	long arr_size;
 
 	if (e->type) {
 		// compares global types, not returns enum CE_Code, just boolean
@@ -214,9 +212,21 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		return;
 	}
 	if (type->code == TC_ARR && e->code != CT_ARR) {
-		printf("TODO check if arr and its value\n");
-		// are_types_compatible(msgs, arr_type(type), e);
-		// return;
+		arr_size = (long)arr_len(type);
+
+		arr_err_of_size(msgs, e, arr_size, 1);
+		are_types_compatible(msgs, arr_type(type), e);
+		set_arr_len(type->data.arr, 1); // 1 element
+
+		// if (arr_size == -1) {
+		// 	are_types_compatible(msgs, arr_type(type), e);
+		// 	set_arr_len(type->data.arr, 1); // 1 element
+		// } else if (arr_size == 1) {
+		// 	are_types_compatible(msgs, arr_type(type), e);
+		// } else if (arr_err_of_size(msgs, e, arr_size, 1) == NEED_ADD_ITEMS) {
+		// 	set_arr_len(type->data.arr, 1); // 1 element
+		// }
+		return;
 	}
 
 	if (e->code != CT_ZERO) {
