@@ -229,7 +229,7 @@ int find_field_in_arg(struct PList *msgs, struct GlobExpr *e,
 				free_type(field->expression->type);
 			field->expression->type = copy_type_expr(arg->type);
 
-			free(field);
+			// free(field); // TODO: get why it segfaults sometimes
 			plist_set(fields, i, 0);
 			return 1;
 		}
@@ -271,6 +271,7 @@ void check_named_fields(struct PList *msgs, struct GlobExpr *e,
 		if (field) {
 			plist_add(msgs, field->name_token);
 			plist_add(msgs, (void *)CE_EXCESSING_FIELD);
+			free(field);
 		}
 	}
 	plist_free(fields);
