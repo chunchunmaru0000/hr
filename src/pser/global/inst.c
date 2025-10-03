@@ -247,6 +247,8 @@ void parse_args(struct Pser *p, struct PList *os) {
 //   _ - mems size, usefull cuz u may need to know it, mems are not args
 // ... - fields that are Arg's
 enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
+	os->cap_pace = 16;
+
 	long i, last_offset = -1, size = 0, mems_count = 0;
 	struct Arg *arg;
 

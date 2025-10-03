@@ -184,6 +184,7 @@ void gen_Асм_Linux_64_text(struct Gner *g) {
 
 			g->indent_level--;
 			break;
+		case IP_NONE:
 		default:
 			eei(in, "ээЭэ", 0);
 		}

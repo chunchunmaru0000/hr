@@ -184,11 +184,6 @@ void get_global_signature(struct GlobVar *var) {
 	convert_blist_to_blist_from_str(var->signature);
 }
 
-/*
-this funstion only exists cuz its faster than comparison of
-two function signature strings
-not now, also use in pser_tpes.c shit
-*/
 int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {
 	if (t1->code != t2->code) {
 		if (is_void_ptr(t1) && is_ptr_type(t2))

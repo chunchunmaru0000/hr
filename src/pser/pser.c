@@ -1,7 +1,7 @@
 #include "pser.h"
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 struct Pser *new_pser(struct Fpfc *f, struct PList *tokens, char *filename,
 					  uc debug) {
@@ -310,11 +310,14 @@ struct Inst *get_global_inst(struct Pser *p) {
 	case EF:
 		code = IP_EOI;
 		break;
+	case COMMA:
+		absorb(p);
+		code = IP_NONE;
+		break;
 	case ID:
-		if (sc(cv, STR_FUN)) {
-			os->cap_pace = 16;
+		if (sc(cv, STR_FUN))
 			code = inst_pser_dare_fun(p, os);
-		} else if (sc(cv, STR_LET))
+		else if (sc(cv, STR_LET))
 			code = inst_pser_global_let(p, os);
 		else if (sc(cv, STR_ASM))
 			code = inst_pser_asm(p, os);
@@ -343,11 +346,15 @@ struct PList *pse(struct Pser *p) {
 
 	struct Inst *i = get_global_inst(p);
 	while (i->code != IP_EOI) {
-		if (i->code != IP_NONE) {
+		if (i->code == IP_NONE) {
+			plist_free(i->os);
+			free(i);
+		} else {
 			if (i->code == IP_DECLARE_STRUCT)
 				plist_add(parsed_structs, i);
 			plist_add(is, i);
 		}
+
 		i = get_global_inst(p);
 	}
 	plist_add(is, i);

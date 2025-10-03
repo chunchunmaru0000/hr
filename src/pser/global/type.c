@@ -203,7 +203,7 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			type = arr_type(type);
 		}
 		// compares global types, not returns enum CE_Code, just boolean
-		if (!are_types_equal(type, e->type)) { // TODO are_type_exprs_compatible
+		if (!are_types_equal(type, e->type)) {
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_AS_INCOMPATIBLE_TYPE);
 			return;
