@@ -38,6 +38,14 @@ void plist_free_items_free(struct PList *l) {
 	plist_free(l);
 }
 
+uint32_t plist_cut(struct PList *l) {
+	l->cap = l->size;
+	if (!l->size)
+		return 0;
+	l->st = realloc(l->st, l->size);
+	return l->size;
+}
+
 // void plist_cut_items_free(struct PList *l, long cut_to) {
 // 	long i, j;
 // 	void *value;

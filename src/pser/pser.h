@@ -285,13 +285,21 @@ enum CT_Code {
 struct GlobExpr {
 	struct GlobVar *from;
 	uc not_from_child;
+	uc struct_with_fields;
 
 	enum CT_Code code;
 	struct TypeExpr *type; // or 0
 	struct Token *tvar;	   // тварь
-	struct PList *globs;   // list of GlobExpr's or 0
+	// list of GlobExpr's or 0 or NamedStructField's if struct_with_fields
+	struct PList *globs;
 };
 void free_glob_expr(struct GlobExpr *e);
+
+struct NamedStructField {
+	struct Token *name_token;
+	struct GlobExpr *expression;
+};
+void global_single_struct(struct Pser *p, struct GlobExpr *e, struct Token *c);
 
 #define TOO_MUCH_ITEMS 1
 #define NEED_ADD_ITEMS -1

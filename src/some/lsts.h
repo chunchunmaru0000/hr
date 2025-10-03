@@ -22,6 +22,7 @@ uint32_t plist_add(struct PList *, void *);
 void *plist_get(struct PList *, uint32_t);
 void *plist_set(struct PList *, uint32_t, void *);
 void plist_free(struct PList *);
+uint32_t plist_cut(struct PList *l);
 #define plist_clear(l) ((l)->size = 0)
 void plist_re(struct PList *l);
 void plist_clear_items_free(struct PList *);

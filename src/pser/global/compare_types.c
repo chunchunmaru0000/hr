@@ -176,6 +176,9 @@ void check_type_on_struct_fields(struct PList *msgs, struct TypeExpr *type,
 	if (e->globs->size == 0) // zero args in struct in any case
 		return;
 
+	if (e->struct_with_fields)
+		exit(155);
+
 	for (i = 0; i < e->globs->size; i++) {
 		glob = plist_get(e->globs, i);
 		arg = get_arg_by_mem_index(lik_os, i);

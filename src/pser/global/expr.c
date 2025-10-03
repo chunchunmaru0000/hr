@@ -145,20 +145,7 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		consume(p);
 		break;
 	case PAR_T_L:
-		e->code = CT_STRUCT_PTR;
-		free(e->tvar); // it was malloced above
-		e->tvar = c;   // HERE TOKEN IS NOT COPIED
-		e->globs = new_plist(2);
-
-		for (c = absorb(p); not_ef_and(PAR_T_R, c);) {
-			plist_add(e->globs, global_expression(p));
-
-			c = pser_cur(p);
-			if (c->code == COMMA) // delimeter
-				c = absorb(p);
-		}
-		consume(p); // consume PAR_T_R
-
+		global_single_struct(p, e, c);
 		break;
 	case PAR_C_L:
 		e->code = CT_ARR;
@@ -187,6 +174,8 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 		eet(c, UNEXPECTED_TOKEN_IN_GLOB_EXPR, 0);
 	}
 
+	if (e->globs)
+		plist_cut(e->globs);
 	return e;
 }
 
