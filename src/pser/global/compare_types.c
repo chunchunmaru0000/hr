@@ -1,6 +1,12 @@
 #include "../pser.h"
 #include <stdio.h>
 
+#define add_err(err)                                                           \
+	do {                                                                       \
+		plist_add(msgs, e->tvar);                                              \
+		plist_add(msgs, (void *)(err));                                        \
+	} while (0)
+
 void check_type_on_struct_fields(struct PList *, struct TypeExpr *,
 								 struct GlobExpr *);
 
@@ -10,7 +16,7 @@ struct GlobExpr *new_zero_type(struct TypeExpr *type, int size,
 
 	e->code = CT_ZERO;
 	e->from = 0;
-	e->type = type;
+	e->type = copy_type_expr(type);
 
 	// not used for defining value, just in case here
 	e->tvar = malloc(sizeof(struct Token));
@@ -126,6 +132,8 @@ void cmpt_struct(struct PList *msgs, struct TypeExpr *type,
 	check_type_on_struct_fields(msgs, type, e);
 }
 
+void check_named_fields(struct PList *msgs, struct GlobExpr *e,
+						struct PList *lik_os);
 void check_type_on_struct_fields(struct PList *msgs, struct TypeExpr *type,
 								 struct GlobExpr *e) {
 	struct GlobExpr *glob;
@@ -156,6 +164,13 @@ void check_type_on_struct_fields(struct PList *msgs, struct TypeExpr *type,
 		return;
 	}
 
+	if (!lik_mems)
+		return;
+	if (e->struct_with_fields) {
+		check_named_fields(msgs, e, lik_os);
+		return;
+	}
+
 	struct Arg *arg;
 	if (lik_mems > e->globs->size) {
 		plist_add(msgs, (void *)lik_mems);
@@ -176,26 +191,87 @@ void check_type_on_struct_fields(struct PList *msgs, struct TypeExpr *type,
 	if (e->globs->size == 0) // zero args in struct in any case
 		return;
 
-	if (e->struct_with_fields)
-		exit(155);
-
 	for (i = 0; i < e->globs->size; i++) {
 		glob = plist_get(e->globs, i);
 		arg = get_arg_by_mem_index(lik_os, i);
 
 		if (glob->code == CT_ZERO)
-			// it cintinues here so it wont free its type at the end of the
-			// loop or change it
 			continue;
 
-		// for now its first in mem arg type, later if there will be
-		// TODO: CT_NAMED_STRUCT_FIELD then it will be another logic
 		are_types_compatible(msgs, arg->type, glob);
 
 		if (glob->type)
 			free_type(glob->type);
 		glob->type = copy_type_expr(arg->type);
 	}
+}
+
+int find_field_in_arg(struct PList *msgs, struct GlobExpr *e,
+					  struct PList *fields, struct Arg *arg) {
+	struct NamedStructField *field;
+	struct Token *arg_name;
+	uint32_t i, j;
+
+	for (i = 0; i < fields->size; i++) {
+		field = plist_get(fields, i);
+		if (!field) // if not already checked
+			continue;
+
+		for (j = 0; j < arg->names->size; j++) {
+			arg_name = plist_get(arg->names, j);
+			if (!sc(vs(arg_name), vs(field->name_token)))
+				continue;
+
+			are_types_compatible(msgs, arg->type, field->expression);
+			plist_add(e->globs, field->expression);
+
+			if (field->expression->type)
+				free_type(field->expression->type);
+			field->expression->type = copy_type_expr(arg->type);
+
+			free(field);
+			plist_set(fields, i, 0);
+			return 1;
+		}
+	}
+	return 0;
+}
+
+void check_named_fields(struct PList *msgs, struct GlobExpr *e,
+						struct PList *lik_os) {
+	struct PList *fields = e->globs;
+	struct NamedStructField *field;
+	struct Arg *arg, *next_arg;
+	uint32_t i, mem_count = 0;
+	long last_mem_offset = -1;
+
+	e->globs = new_plist(fields->size);
+
+	next_arg = plist_get(lik_os, 0);
+	for (i = DCLR_STRUCT_ARGS; i < lik_os->size; i++) {
+		arg = next_arg;
+
+		if (last_mem_offset != arg->offset) {
+			last_mem_offset = arg->offset;
+			mem_count++;
+		}
+
+		next_arg = i + 1 < lik_os->size ? plist_get(lik_os, i + 1) : 0;
+		if (e->globs->size == mem_count) // skip other mems if mem already found
+			continue;
+
+#define last_arg_of_mem() ((!next_arg) || next_arg->offset != arg->offset)
+		if (!find_field_in_arg(msgs, e, fields, arg) && last_arg_of_mem())
+			plist_add(e->globs,
+					  new_zero_type(arg->type, arg->arg_size, e->tvar));
+	}
+
+	for (i = 0; i < fields->size; i++) {
+		field = plist_get(fields, i);
+		if (field)
+			add_err(CE_EXCESSING_FIELD);
+	}
+	plist_free(fields);
 }
 
 void cmpt_str_ptr(struct PList *msgs, struct TypeExpr *type,

@@ -41,6 +41,9 @@ const char *const TOO_MUCH_CHARS_FOR_THIS_STR =
 	"Слишком много байт для данной строки.";
 const char *const TOO_LESS_CHARS_FOR_THIS_STR =
 	"Слишком мало байт для данной строки.";
+const char *const EXCESSING_FIELD =
+	"Лишнее поле в лике, его место в памяти уже "
+	"возможно занято или в данном лике вообще нет аргумента с таким именем.";
 const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
 const char *const EXPECTED_ARR_OF_LEN = "ожидался массив длиной: ";
 const char *const EXPECTED_STRUCT_OF_LEN = "ожидалось аргументов: ";
@@ -89,6 +92,7 @@ const struct CE_CodeStr cecstrs_errs[] = {
 	{CE_STR_IS_NOT_A_PTR, STR_IS_NOT_A_PTR, 0},
 	{CE_ARR_IS_NOT_A_PTR, ARR_IS_NOT_A_PTR, 0},
 	{CE_UNCOMPUTIBLE_DATA, UNCOMPUTIBLE_DATA, 0},
+	{CE_EXCESSING_FIELD, EXCESSING_FIELD, 0},
 	{CE_CANT_DEFINE_ARR_TYPE, CANT_DEFINE_ARR_TYPE, MAYBE_NOT_USE_VOID_PTR},
 	{CE_CANT_DEFINE_STRUCT_TYPE, CANT_DEFINE_STRUCT_TYPE,
 	 MAYBE_NOT_USE_VOID_PTR},

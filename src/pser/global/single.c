@@ -20,10 +20,8 @@ void global_single_struct(struct Pser *p, struct GlobExpr *e, struct Token *c) {
 
 		goto skip_check_on_is_field;
 		for (; not_ef_and(PAR_T_R, c);) {
-			if (c->code != ID)
-				eet(c, 0, 0);
-			if (pser_next(p)->code != EQU)
-				eet(pser_next(p), 0, 0);
+			expect(c, ID);
+			expect(pser_next(p), EQU);
 		skip_check_on_is_field:
 
 			consume(p); // skip field name ID token
