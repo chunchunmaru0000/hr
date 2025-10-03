@@ -247,7 +247,7 @@ void check_named_fields(struct PList *msgs, struct GlobExpr *e,
 
 	e->globs = new_plist(fields->size);
 
-	next_arg = plist_get(lik_os, 0);
+	next_arg = plist_get(lik_os, DCLR_STRUCT_ARGS);
 	for (i = DCLR_STRUCT_ARGS; i < lik_os->size; i++) {
 		arg = next_arg;
 
@@ -268,8 +268,10 @@ void check_named_fields(struct PList *msgs, struct GlobExpr *e,
 
 	for (i = 0; i < fields->size; i++) {
 		field = plist_get(fields, i);
-		if (field)
-			add_err(CE_EXCESSING_FIELD);
+		if (field) {
+			plist_add(msgs, field->name_token);
+			plist_add(msgs, (void *)CE_EXCESSING_FIELD);
+		}
 	}
 	plist_free(fields);
 }
