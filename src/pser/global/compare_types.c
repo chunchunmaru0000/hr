@@ -229,7 +229,7 @@ int find_field_in_arg(struct PList *msgs, struct GlobExpr *e,
 				free_type(field->expression->type);
 			field->expression->type = copy_type_expr(arg->type);
 
-			// free(field); // TODO: get why it segfaults sometimes
+			free(field);
 			plist_set(fields, i, 0);
 			return 1;
 		}

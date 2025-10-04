@@ -6,7 +6,7 @@
 
 struct PList *new_plist(uint32_t cap_pace) {
 	struct PList *l = malloc(sizeof(struct PList));
-	l->cap_pace = cap_pace;
+	l->cap_pace = cap_pace ? cap_pace : 2;
 	l->cap = cap_pace;
 	l->size = 0;
 	l->st = malloc(cap_pace * sizeof(void *));
@@ -39,10 +39,10 @@ void plist_free_items_free(struct PList *l) {
 }
 
 uint32_t plist_cut(struct PList *l) {
-	l->cap = l->size;
 	if (!l->size)
 		return 0;
-	l->st = realloc(l->st, l->size);
+	l->cap = l->size;
+	l->st = realloc(l->st, l->size * sizeof(void *));
 	return l->size;
 }
 
@@ -123,10 +123,10 @@ uint32_t blist_add(struct BList *l, uc p) {
 }
 
 uint32_t blist_cut(struct BList *l) {
-	l->cap = l->size;
 	if (!l->size)
 		return 0;
-	l->st = realloc(l->st, l->size);
+	l->cap = l->size;
+	l->st = realloc(l->st, l->size * sizeof(uc));
 	return l->size;
 }
 
