@@ -207,7 +207,8 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 			type = arr_type(type);
 		}
 		// compares global types, not returns enum CE_Code, just boolean
-		if (!are_types_equal(type, e->type)) {
+		if (!are_types_equal(type, e->type) &&
+			unsafe_size_of_type(e->type) != unsafe_size_of_type(type)) {
 			plist_add(msgs, e->tvar);
 			plist_add(msgs, (void *)CE_AS_INCOMPATIBLE_TYPE);
 			return;
@@ -218,7 +219,9 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 	// 	// and e here is not CT_GLOBAL
 	// 	if (type->code == TC_ARR && e->code != CT_ARR &&
 	// !is_compile_time_ptr(e))
-	if (type->code == TC_ARR && e->code != CT_ARR) {
+	// TODO: here e->code != CT_STR is strange need more tests to get what
+	// behaviour do i want
+	if (type->code == TC_ARR && e->code != CT_ARR && e->code != CT_STR) {
 		arr_size = (long)arr_len(type);
 
 		arr_err_of_size(msgs, e, arr_size, 1);
