@@ -389,9 +389,11 @@ void eei(struct Inst *, const char *const msg, const char *const sgst);
 void check_global_type_compatibility(struct Pser *p, struct TypeExpr *type,
 									 struct GlobExpr *e);
 
+// ##################################################################
+//						LOCAL EXPRESSION
+// ##################################################################
 struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 							struct GlobExpr *r, struct Token *op);
-
 struct GlobExpr *after_g_expression(struct Pser *p);
 struct GlobExpr *prime_g_expression(struct Pser *p);
 struct GlobExpr *unary_g_expression(struct Pser *p);
@@ -407,3 +409,34 @@ struct GlobExpr *l_and_g_expression(struct Pser *p);
 struct GlobExpr *l_or__g_expression(struct Pser *p);
 struct GlobExpr *trnry_g_expression(struct Pser *p);
 #define global_expression(p) (trnry_g_expression((p)))
+
+// ##################################################################
+//						LOCAL EXPRESSION
+// ##################################################################
+enum LE_Code {
+	LE_INT_LITERAL,
+	LE_REAL_LITERAL,
+	LE_STR_LITERAL,
+	LE_ARR_LITERAL,
+};
+
+struct LocalExpr {
+	enum LE_Code code;
+	
+};
+
+struct LocalExpr *after_l_expression(struct Pser *p);
+struct LocalExpr *prime_l_expression(struct Pser *p);
+struct LocalExpr *unary_l_expression(struct Pser *p);
+struct LocalExpr *mulng_l_expression(struct Pser *p);
+struct LocalExpr *addng_l_expression(struct Pser *p);
+struct LocalExpr *shtng_l_expression(struct Pser *p);
+struct LocalExpr *mlsng_l_expression(struct Pser *p);
+struct LocalExpr *equng_l_expression(struct Pser *p);
+struct LocalExpr *b_and_l_expression(struct Pser *p);
+struct LocalExpr *b_xor_l_expression(struct Pser *p);
+struct LocalExpr *b_or__l_expression(struct Pser *p);
+struct LocalExpr *l_and_l_expression(struct Pser *p);
+struct LocalExpr *l_or__l_expression(struct Pser *p);
+struct LocalExpr *trnry_l_expression(struct Pser *p);
+#define local_expression(g) (trnry_l_expression((g)))
