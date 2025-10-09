@@ -1,4 +1,4 @@
-#include "gner.h"
+#include "../gner.h"
 #include <stdio.h>
 
 uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
