@@ -1,3 +1,6 @@
 #include "../pser.h"
 
-void *expression(struct Pser *p) { return p; }
+struct LocalExpr *local_expression(struct Pser *p) {
+	absorb(p);
+	return 0;
+}

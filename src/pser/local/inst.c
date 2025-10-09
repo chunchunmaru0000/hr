@@ -86,7 +86,8 @@ struct Inst *get_local_inst(struct Pser *p) {
 		if (code != IP_NONE)
 			break;
 	default:
-		eet(c, "ээээ ты че", 0);
+		code = IP_LOCAL_EXPRESSION;
+		plist_add(os, local_expression(p));
 	}
 	// 	expression,
 	//

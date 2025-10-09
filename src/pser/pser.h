@@ -122,7 +122,7 @@ enum IP_Code {
 	IP_FOR_LOOP,
 	IP_WHILE_LOOP,
 
-	IP_EXPRESION,
+	IP_LOCAL_EXPRESSION
 };
 
 struct Defn {
@@ -347,12 +347,13 @@ struct Arg *get_arg_by_mem_index(struct PList *lik_os, uint32_t mem_index);
 struct Arg *get_arg_of_next_offset(struct PList *lik_os, long last_offset);
 struct PList *copy_globs(struct PList *globs);
 void search_error_code(struct Pser *p, struct PList *msgs);
-void *expression(struct Pser *);
 struct GlobExpr *parse_global_expression(struct Pser *p, struct TypeExpr *type);
 void parse_args(struct Pser *p, struct PList *os);
 struct TypeExpr *type_expr(struct Pser *);
 struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,
 					  struct Token *);
+
+struct LocalExpr *local_expression(struct Pser *p);
 
 struct Inst *get_global_inst(struct Pser *p);
 // enum IP_Code inst_pser_define(struct Pser *p, struct PList *os);

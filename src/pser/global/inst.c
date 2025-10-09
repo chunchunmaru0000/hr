@@ -117,7 +117,8 @@ const char *const TOO_MUCH_ARGS_FOR_NOW =
 const char *const SUGGEST_CUT_ARGS_SIZE = "уменьшить количество аргументов";
 const char *const SUGGEST_CHANGE_ARG_TYPE_SIZE = "изменить размер типа";
 const char *const ARR_AS_A_FUN_ARG_IS_PROHIBITED =
-	"Массивы запрещены для передачи в аргументы функции напрямую.";
+	"Массивы запрещены для передачи в аргументы функции напрямую, надо "
+	"использовать указатель.";
 const char *const STRUCT_AS_A_FUN_ARG_IS_PROHIBITED =
 	"Лики запрещены для передачи в аргументы функции напрямую.";
 const char *const SUGGEST_CHANGE_TYPE_TO_A_PTR = "изменить тип на указатель";
