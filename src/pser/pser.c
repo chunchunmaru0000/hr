@@ -37,6 +37,11 @@ struct Inst *new_inst(struct Pser *p, enum IP_Code code, struct PList *os,
 	return i;
 }
 
+void free_inst(struct Inst *in) {
+	plist_free(in->os);
+	free(in);
+}
+
 struct Token *get_pser_token(struct Pser *p, long off) {
 	long i = p->pos + off;
 	return p->ts->size > i ? p->ts->st[i] : p->ts->st[p->ts->size - 1];
@@ -50,10 +55,16 @@ struct Token *next_pser_get(struct Pser *p, long off) {
 }
 
 void parse_block_of_local_inst(struct Pser *p, struct PList *os) {
+	struct Inst *in;
 	match(pser_cur(p), PAR_L);
 
-	while (not_ef_and(PAR_R, pser_cur(p)))
-		plist_add(os, get_local_inst(p));
+	while (not_ef_and(PAR_R, pser_cur(p))) {
+		in = get_local_inst(p);
+		if (in->code == IP_NONE)
+			free_inst(in);
+		else
+			plist_add(os, in);
+	}
 
 	match(pser_cur(p), PAR_R);
 }
@@ -347,8 +358,7 @@ struct PList *pse(struct Pser *p) {
 	struct Inst *i = get_global_inst(p);
 	while (i->code != IP_EOI) {
 		if (i->code == IP_NONE) {
-			plist_free(i->os);
-			free(i);
+			free_inst(i);
 		} else {
 			if (i->code == IP_DECLARE_STRUCT)
 				plist_add(parsed_structs, i);

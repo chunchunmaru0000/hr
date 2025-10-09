@@ -66,6 +66,10 @@ struct Inst *get_local_inst(struct Pser *p) {
 	case EF:
 		code = IP_EOI;
 		break;
+	case COMMA:
+		absorb(p);
+		code = IP_NONE;
+		break;
 	case ID:
 		if (sc(cv, STR_ASM))
 			code = inst_pser_asm(p, os);
