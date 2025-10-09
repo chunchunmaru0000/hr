@@ -18,7 +18,7 @@ cat: ср
 	@-./тест
 
 ср:
-	gcc -o ср some/* tzer/* prep/* pser/*.c pser/**/*.c gner/*.c gner/**/*.c
+	gcc -o ср some/* tzer/* prep/* pser/*.c pser/**/*.c gner/*.c gner/**/**/*.c
 	chmod +x ср
 
 TESTS := ../tests

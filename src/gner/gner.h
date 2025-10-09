@@ -219,3 +219,5 @@ struct LocalVar {
 struct LocalVar *new_local_var(struct Token *, struct Arg *, long);
 void free_and_clear_local_vars(struct Gner *g);
 struct BList *take_label(struct Gner *g, enum L_Code label_code);
+
+void gen_local_expression_Асм_linux_x64(struct Gner *g, struct Inst *in);

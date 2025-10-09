@@ -1,4 +1,4 @@
-#include "../gner.h"
+#include "../../gner.h"
 #include <stdio.h>
 
 uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
@@ -470,7 +470,7 @@ struct BList *lay_down_str_ptr_Асм_Linux_64(struct Gner *g,
 	iprint_gen(SA_LET_64);
 
 	if (!e->from) {
-	add_value_ptr_to_this_e_var:
+	add_value_ptr_to_this_e_var:;
 
 		struct BList *ptr = take_label(g, LC_PTR);
 		struct GlobVar *this_e_var;

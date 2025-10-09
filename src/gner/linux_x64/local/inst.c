@@ -1,4 +1,4 @@
-#include "../gner.h"
+#include "../../gner.h"
 #include <stdio.h>
 
 void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
@@ -92,6 +92,9 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 
 		g->indent_level--;
 		blist_clear_free(string);
+		break;
+	case IP_LOCAL_EXPRESSION:
+		gen_local_expression_Асм_linux_x64(g, in);
 		break;
 	case IP_NONE:
 	default:
