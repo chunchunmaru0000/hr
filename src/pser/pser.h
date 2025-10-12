@@ -414,15 +414,61 @@ struct GlobExpr *trnry_g_expression(struct Pser *p);
 //						LOCAL EXPRESSION
 // ##################################################################
 enum LE_Code {
-	LE_INT_LITERAL,
-	LE_REAL_LITERAL,
-	LE_STR_LITERAL,
-	LE_ARR_LITERAL,
+	LE_PRIMARY_INT,
+	LE_PRIMARY_REAL,
+	LE_PRIMARY_STR,
+	LE_PRIMARY_ARR,
+	LE_PRIMARY_TUPLE,
+	LE_PRIMARY_INDEX,
+	LE_PRIMARY_CALL,
+	LE_PRIMARY_FIELD_OF_PTR,
+	LE_PRIMARY_FIELD,
+	LE_PRIMARY_INC_AFTER,
+	LE_PRIMARY_DEC_AFTER,
+
+	// LE_UNARY_PLUS, just skip cuz does nothing mathematically
+	LE_UNARY_MINUS,
+	LE_UNARY_INC_BEFORE,
+	LE_UNARY_DEC_BEFORE,
+	LE_UNARY_NOT,
+	LE_UNARY_BIT_NOT,
+	LE_UNARY_AMPER,
+	LE_UNARY_ADDR,
+
+	LE_BIN_MUL,
+	LE_BIN_DIV,
+	LE_BIN_MOD,
+
+	LE_BIN_PLUS,
+	LE_BIN_MINUS,
+
+	LE_BIN_SHL,
+	LE_BIN_SHR,
+
+	LE_BIN_LESS,
+	LE_BIN_LESSE,
+	LE_BIN_MORE,
+	LE_BIN_MOREE,
+
+	LE_BIN_EQUALS,
+	LE_BIN_NOT_EQUALS,
+
+	LE_BIN_BIT_AND,
+	LE_BIN_XOR,
+	LE_BIN_BIT_OR,
+	LE_BIN_AND,
+	LE_BIN_OR,
+	LE_BIN_TERRY,
+
+	LE_BIN_ASSIGN,
 };
 
 struct LocalExpr {
 	enum LE_Code code;
-	
+	struct TypeExpr *type;
+
+	struct Token *tvar;
+	struct PList *ops; // list of LocalExpr's or defined by code
 };
 
 struct LocalExpr *after_l_expression(struct Pser *p);
