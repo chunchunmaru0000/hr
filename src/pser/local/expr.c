@@ -5,11 +5,6 @@ struct LocalExpr *local_bin(struct Pser *p, struct LocalExpr *l,
 	return 0;
 }
 
-struct LocalExpr *prime_l_expression(struct Pser *p) {
-	absorb(p);
-	return 0;
-}
-
 struct LocalExpr *unary_l_expression(struct Pser *p) {
 	return prime_l_expression(p);
 }

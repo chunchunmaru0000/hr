@@ -390,7 +390,7 @@ void check_global_type_compatibility(struct Pser *p, struct TypeExpr *type,
 									 struct GlobExpr *e);
 
 // ##################################################################
-//						LOCAL EXPRESSION
+//						GLOBAL EXPRESSION
 // ##################################################################
 struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 							struct GlobExpr *r, struct Token *op);
@@ -414,8 +414,11 @@ struct GlobExpr *trnry_g_expression(struct Pser *p);
 //						LOCAL EXPRESSION
 // ##################################################################
 enum LE_Code {
+	LE_NONE,
+
 	LE_PRIMARY_INT,
 	LE_PRIMARY_REAL,
+	LE_PRIMARY_VAR,
 	LE_PRIMARY_STR,
 	LE_PRIMARY_ARR,
 	LE_PRIMARY_TUPLE,
@@ -471,6 +474,8 @@ struct LocalExpr {
 	struct PList *ops; // list of LocalExpr's or defined by code
 };
 
+struct LocalExpr *local_bin(struct Pser *p, struct LocalExpr *l,
+							struct LocalExpr *r, struct Token *op);
 struct LocalExpr *after_l_expression(struct Pser *p);
 struct LocalExpr *prime_l_expression(struct Pser *p);
 struct LocalExpr *unary_l_expression(struct Pser *p);
