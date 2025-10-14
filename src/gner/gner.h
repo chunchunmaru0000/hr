@@ -71,49 +71,31 @@ struct Gner {
 struct Gner *new_gner(struct Pser *, enum Target, uc);
 void gen(struct Gner *);
 
+#define sa(name, str)                                                          \
+	const char SA_##name[] = str;                                              \
+	const uint32_t SA_##name##_LEN = loa(SA_##name);
+#define sae(name)                                                              \
+	extern const char SA_##name[];                                             \
+	extern const uint32_t SA_##name##_LEN;
 // SA - Str Asm
-extern const char SA_SEGMENT_READ_WRITE[];
-extern const char SA_SEGMENT_READ_EXECUTE[];
-extern const char SA_LABEL_END[];
 
-extern const uint32_t SA_SEGMENT_READ_WRITE_LEN;
-extern const uint32_t SA_SEGMENT_READ_EXECUTE_LEN;
-extern const uint32_t SA_LABEL_END_LEN;
+sae(EQU);
+sae(PUSH_RBP);
+sae(MOV_RBP_RSP);
+sae(MOV_MEM_RBP_OPEN);
+sae(START_COMMENT);
+sae(SUB_RSP);
+sae(LEAVE);
+sae(RET);
+sae(JMP);
+sae(ZERO_TERMINATOR);
+sae(STR_XOR_EAX_EAX);
 
-extern const char SA_EQU[];
-extern const char SA_PUSH_RBP[];
-extern const char SA_MOV_RBP_RSP[];
-extern const char SA_MOV_MEM_RBP_OPEN[];
-extern const char SA_START_COMMENT[];
-extern const char SA_SUB_RSP[];
-extern const char SA_LEAVE[];
-extern const char SA_RET[];
-extern const char SA_JMP[];
-extern const char SA_ZERO_TERMINATOR[];
-
-extern const uint32_t SA_EQU_LEN;
-extern const uint32_t SA_PUSH_RBP_LEN;
-extern const uint32_t SA_MOV_RBP_RSP_LEN;
-extern const uint32_t SA_LEAVE_STACK_FRAME_LEN;
-extern const uint32_t SA_MOV_MEM_RBP_OPEN_LEN;
-extern const uint32_t SA_START_COMMENT_LEN;
-extern const uint32_t SA_SUB_RSP_LEN;
-extern const uint32_t SA_LEAVE_LEN;
-extern const uint32_t SA_RET_LEN;
-extern const uint32_t SA_JMP_LEN;
-extern const uint32_t SA_ZERO_TERMINATOR_LEN;
-
-extern const char SA_LET_8[];
-extern const char SA_LET_16[];
-extern const char SA_LET_32[];
-extern const char SA_LET_64[];
-extern const char SA_REZERV_ZERO[];
-
-extern const uint32_t SA_LET_8_LEN;
-extern const uint32_t SA_LET_16_LEN;
-extern const uint32_t SA_LET_32_LEN;
-extern const uint32_t SA_LET_64_LEN;
-extern const uint32_t SA_REZERV_ZERO_LEN;
+sae(LET_8);
+sae(LET_16);
+sae(LET_32);
+sae(LET_64);
+sae(REZERV_ZERO);
 
 void indent_line(struct Gner *g, struct BList *l);
 // #############################################################################

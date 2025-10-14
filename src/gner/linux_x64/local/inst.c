@@ -3,23 +3,14 @@
 
 void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
 
-const char CHANGE_VAR_NAME_OR_DELETE_VAR[] =
+const char *const CHANGE_VAR_NAME_OR_DELETE_VAR =
 	"изменить имя переменной или удалить ее";
-const char CHANGE_LABEL_NAME_OR_DELETE_LABEL[] =
+const char *const CHANGE_LABEL_NAME_OR_DELETE_LABEL =
 	"изменить имя метки или удалить ее";
-const char REDEFINING_OF_LOCAL_VAR[] = "Переопределение локальной переменной.";
-const char REDEFINING_OF_LOCAL_LABEL[] = "Переопределение локальной метки.";
+const char *const REDEFINING_OF_LOCAL_VAR = "Переопределение локальной переменной.";
+const char *const REDEFINING_OF_LOCAL_LABEL = "Переопределение локальной метки.";
 
-const uint32_t CHANGE_VAR_NAME_OR_DELETE_VAR_LEN =
-	loa(CHANGE_VAR_NAME_OR_DELETE_VAR);
-const uint32_t CHANGE_VAR_NAME_OR_DELETE_LABEL_LEN =
-	loa(CHANGE_LABEL_NAME_OR_DELETE_LABEL);
-
-const uint32_t REDEFINING_OF_LOCAL_VAR_LEN = loa(REDEFINING_OF_LOCAL_VAR);
-const uint32_t REDEFINING_OF_LOCAL_LABEL_LEN = loa(REDEFINING_OF_LOCAL_LABEL);
-
-const char SA_JMP[] = "идти ";
-const uint32_t SA_JMP_LEN = loa(SA_JMP);
+sa(JMP, "идти ");
 
 void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	struct Token *tok, *name, *str;

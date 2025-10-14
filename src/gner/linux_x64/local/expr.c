@@ -1,6 +1,15 @@
 #include "../../gner.h"
 
-void gen_le_int(struct Gner *g, struct LocalExpr *e) {}
+sa(STR_XOR_EAX_EAX, "искл еах еах");
+
+void gen_le_int(struct Gner *g, struct LocalExpr *e) {
+	long num = e->tvar->num;
+
+	if (num == 0) {
+		iprint_fun_text(SA_STR_XOR_EAX_EAX);
+	} else {
+	}
+}
 void gen_le_real(struct Gner *g, struct LocalExpr *e) {}
 void gen_le_var(struct Gner *g, struct LocalExpr *e) {}
 

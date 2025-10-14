@@ -4,33 +4,18 @@
 uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg);
 
-const char SA_SEGMENT_READ_WRITE[] = "участок чит изм\n\n";
-const char SA_SEGMENT_READ_EXECUTE[] = "участок чит исп\n\n";
-const char SA_LABEL_END[] = ":\n";
-
-const uint32_t SA_SEGMENT_READ_WRITE_LEN = loa(SA_SEGMENT_READ_WRITE);
-const uint32_t SA_SEGMENT_READ_EXECUTE_LEN = loa(SA_SEGMENT_READ_EXECUTE);
-const uint32_t SA_LABEL_END_LEN = loa(SA_LABEL_END);
-
-const char SA_EQU[] = "вот ";
-const char SA_PUSH_RBP[] = "толк рбп\n";
-const char SA_MOV_RBP_RSP[] = "быть рбп рсп\n";
-const char SA_MOV_MEM_RBP_OPEN[] = "быть (рбп ";
-const char SA_START_COMMENT[] = "\t; ";
-const char SA_SUB_RSP[] = "минс рсп ";
-const char SA_LEAVE[] = "выйти\n";
-const char SA_RET[] = "возд\n";
-const char SA_ZERO_TERMINATOR[] = " 0\n";
-
-const uint32_t SA_EQU_LEN = loa(SA_EQU);
-const uint32_t SA_PUSH_RBP_LEN = loa(SA_PUSH_RBP);
-const uint32_t SA_MOV_RBP_RSP_LEN = loa(SA_MOV_RBP_RSP);
-const uint32_t SA_MOV_MEM_RBP_OPEN_LEN = loa(SA_MOV_MEM_RBP_OPEN);
-const uint32_t SA_START_COMMENT_LEN = loa(SA_START_COMMENT);
-const uint32_t SA_SUB_RSP_LEN = loa(SA_SUB_RSP);
-const uint32_t SA_LEAVE_LEN = loa(SA_LEAVE);
-const uint32_t SA_RET_LEN = loa(SA_RET);
-const uint32_t SA_ZERO_TERMINATOR_LEN = loa(SA_ZERO_TERMINATOR);
+sa(SEGMENT_READ_WRITE, "участок чит изм\n\n");
+sa(SEGMENT_READ_EXECUTE, "участок чит исп\n\n");
+sa(LABEL_END, ":\n");
+sa(EQU, "вот ");
+sa(PUSH_RBP, "толк рбп\n");
+sa(MOV_RBP_RSP, "быть рбп рсп\n");
+sa(MOV_MEM_RBP_OPEN, "быть (рбп ");
+sa(START_COMMENT, "\t; ");
+sa(SUB_RSP, "минс рсп ");
+sa(LEAVE, "выйти\n");
+sa(RET, "возд\n");
+sa(ZERO_TERMINATOR, " 0\n");
 
 const struct Register regs[] = {
 	{"р8", 3, R_R8, QWORD},	  {"р9", 3, R_R9, QWORD},
@@ -286,20 +271,13 @@ uint32_t put_args_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) 
 	return i;
 }
 
-const char SA_LET_8[] = "пусть байт ";
-const char SA_LET_16[] = "пусть дбайт ";
-const char SA_LET_32[] = "пусть чбайт ";
-const char SA_LET_64[] = "пусть вбайт ";
-const char SA_REZERV_ZERO[] = "запас 0 ";
+sa(LET_8, "пусть байт ");
+sa(LET_16, "пусть дбайт ");
+sa(LET_32, "пусть чбайт ");
+sa(LET_64, "пусть вбайт ");
+sa(REZERV_ZERO, "запас 0 ");
 
-const uint32_t SA_LET_8_LEN = loa(SA_LET_8);
-const uint32_t SA_LET_16_LEN = loa(SA_LET_16);
-const uint32_t SA_LET_32_LEN = loa(SA_LET_32);
-const uint32_t SA_LET_64_LEN = loa(SA_LET_64);
-const uint32_t SA_REZERV_ZERO_LEN = loa(SA_REZERV_ZERO);
-
-struct BList *clear_current_inst_value_labels_to(struct Gner *g,
-												 struct BList *label) {
+void clear_current_inst_value_labels_to(struct Gner *g, struct BList *label) {
 	struct GlobVar *this_e_var;
 	struct BList *freed = 0;
 	uint32_t i;
