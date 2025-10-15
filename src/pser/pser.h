@@ -426,6 +426,7 @@ enum LE_Code {
 	LE_PRIMARY_FIELD,
 	LE_PRIMARY_INC_AFTER,
 	LE_PRIMARY_DEC_AFTER,
+	// TODO: fun call
 
 	// LE_UNARY_PLUS, just skip cuz does nothing mathematically
 	LE_UNARY_MINUS,
@@ -462,6 +463,10 @@ enum LE_Code {
 	LE_BIN_TERRY,
 
 	LE_BIN_ASSIGN,
+	// TODO: also bin thing
+	// ->
+	// -@
+	// |>
 };
 
 struct LocalExpr {

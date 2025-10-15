@@ -17,6 +17,8 @@ struct LEtoT {
 };
 #define leto(t)                                                                \
 	{ LE_BIN_##t, t }
+#define leto_ass(t)                                                            \
+	{ LE_BIN_##t, t##E }
 
 const struct LEtoT lets[] = {
 	leto(MUL),
@@ -39,26 +41,44 @@ const struct LEtoT lets[] = {
 	leto(OR),
 	//{LE_BIN_TERRY, QUEST},
 	{LE_BIN_ASSIGN, EQU},
+	leto_ass(PLUS),
+	leto_ass(MINUS),
+	leto_ass(MUL),
+	leto_ass(DIV),
+	leto_ass(SHL),
+	leto_ass(SHR),
+	leto_ass(BIT_AND),
+	leto_ass(BIT_OR),
+	leto_ass(BIT_XOR),
+	leto_ass(MOD),
+	leto_ass(AND),
+	leto_ass(OR),
+	{LE_BIN_EQUALS, EQUEE},
+	{LE_BIN_NOT_EQUALS, NEQUE},
 };
+
+int find_let(struct LocalExpr *e, enum TCode op_code) {
+	const struct LEtoT *let;
+	uint32_t i;
+
+	for (i = 0, let = lets; i < loa(lets); i++, let++) {
+		if (let->t == op_code) {
+			e->code = let->le;
+			return 1;
+		}
+	}
+	return 0;
+}
 
 struct LocalExpr *local_bin(struct Pser *p, struct LocalExpr *l,
 							struct LocalExpr *r, struct Token *op) {
-	const struct LEtoT *let;
-	uint32_t i;
-	enum TCode op_code = op->code;
-
 	struct LocalExpr *e = new_local_expr(LE_NONE, 0, op, 2);
 
 	plist_add(e->ops, l);
 	plist_add(e->ops, r);
 
-	for (i = 0, let = lets; i < loa(lets); i++, let++) {
-		if (let->t == op_code) {
-			e->code = let->le;
-			return e;
-		}
-	}
-
+	if (find_let(e, op->code))
+		return e;
 	eet(op, "че за op", 0);
 	return 0;
 }
@@ -130,4 +150,27 @@ struct LocalExpr *trnry_l_expression(struct Pser *p) {
 
 	return e;
 }
-bf(assng_l_expression, trnry_l_expression, ops1(EQU));
+struct LocalExpr *asnge_l_expression(struct Pser *p) {
+	struct LocalExpr *l, *r;
+	struct LocalExpr *e = l = trnry_l_expression(p);
+	struct Token *c;
+
+	c = pser_cur(p);
+
+	if (ops4(PLUSE, MINUSE, MULE, DIVE) ||
+		ops4(SHLE, SHRE, BIT_ANDE, BIT_ORE) ||
+		ops4(BIT_XORE, MODE, ANDE, ORE) || ops2(EQUEE, NEQUE)) {
+		consume(p);
+
+		r = local_expression(p);
+		// TODO: r = local_bin(p, copy_local_expr(l), r, c);
+		r = local_bin(p, l, r, c);
+
+		e = new_local_expr(LE_BIN_ASSIGN, 0, c, 2);
+		plist_add(e->ops, l);
+		plist_add(e->ops, r);
+	}
+
+	return e;
+}
+bf(assng_l_expression, asnge_l_expression, ops1(EQU));
