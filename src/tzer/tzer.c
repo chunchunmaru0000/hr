@@ -266,6 +266,20 @@ unsigned char char_in_str(char c, char *str) {
 
 const char *const SHOULD_BE_UNREACHABLE = "ДОЛЖНО БЫТЬ НЕДОСТИЖИМО";
 
+#define vn1(str_view, code) (view = naa(t, (str_view), 1, cp, (code)))
+#define vn2(str_view, code) (view = naa(t, (str_view), 2, cp, (code)))
+#define vn3(str_view, code) (view = naa(t, (str_view), 3, cp, (code)))
+#define ie321(c0, c1, s3, d3, s2, d2, s1, d1)                                  \
+	do {                                                                       \
+		if (n == (c0)) {                                                       \
+			if (nn == (c1))                                                    \
+				vn3((s3), (d3));                                               \
+			else                                                               \
+				vn2((s2), (d2));                                               \
+		} else                                                                 \
+			vn1((s1), (d1));                                                   \
+	} while (0)
+
 enum TCode usable_token(struct Tzer *t, struct Token *token) {
 	struct BList *view;
 	enum TCode code;
@@ -275,140 +289,150 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 
 	switch (c) {
 	case ':':
-		view = naa(t, ":", 1, cp, COLO);
+		vn1(":", COLO);
 		break;
 	case '!':
-		if (n == '=')
-			view = naa(t, "!=", 2, cp, NEQU);
-		else
-			view = naa(t, "!", 1, cp, EXCL);
+		ie321('=', '=', "!==", NEQUE, "!=", NEQU, "!", EXCL);
 		break;
 	case '\\':
-		view = naa(t, "\\", 1, cp, SLASH);
+		vn1("\\", SLASH);
 		break;
 	case '+':
 		if (n == '+')
-			view = naa(t, "++", 2, cp, INC);
+			vn2("++", INC);
 		else if (n == '=')
-			view = naa(t, "+=", 2, cp, PLUSE);
+			vn2("+=", PLUSE);
 		else
-			view = naa(t, "+", 1, cp, PLUS);
+			vn1("+", PLUS);
 		break;
 	case '-':
 		if (n == '>')
-			view = naa(t, "->", 2, cp, THIN_ARROW_R);
+			vn2("->", THIN_ARROW_R);
 		else if (n == '=')
-			view = naa(t, "-=", 2, cp, MINUSE);
+			vn2("-=", MINUSE);
 		else if (n == '-')
-			view = naa(t, "--", 2, cp, DEC);
+			vn2("--", DEC);
 		else
-			view = naa(t, "-", 1, cp, MINUS);
+			vn1("-", MINUS);
 		break;
 	case '*':
 		if (n == '=')
-			view = naa(t, "*=", 2, cp, MULE);
+			vn2("*=", MULE);
 		else
-			view = naa(t, "*", 1, cp, MUL);
+			vn1("*", MUL);
 		break;
 	case '/':
 		if (n == '=')
-			view = naa(t, "/=", 2, cp, DIVE);
+			vn2("/=", DIVE);
 		else if (n == '/')
-			view = naa(t, "//", 2, cp, SEP);
+			vn2("//", SEP);
 		else
-			view = naa(t, "/", 1, cp, DIV);
+			vn1("/", DIV);
 		break;
 	case '=':
-		if (n == '=')
-			view = naa(t, "==", 2, cp, EQUE);
-		else
-			view = naa(t, "=", 1, cp, EQU);
+		ie321('=', '=', "===", EQUEE, "==", EQUE, "=", EQU);
 		break;
 	case '%':
-		view = naa(t, "%", 1, cp, MOD);
+		if (n == '=')
+			vn2("%=", MODE);
+		else
+			vn1("%", MOD);
 		break;
 	case ',':
-		view = naa(t, ",", 1, cp, COMMA);
+		vn1(",", COMMA);
 		break;
 	case '(':
 		if (n == '#')
-			view = naa(t, "(#", 2, cp, SH_L);
+			vn2("(#", SH_L);
 		else
-			view = naa(t, "(", 1, cp, PAR_L);
+			vn1("(", PAR_L);
 		break;
 	case '~':
-		view = naa(t, "~", 1, cp, BIT_NOT);
+		vn1("~", BIT_NOT);
 		break;
 	case ')':
-		view = naa(t, ")", 1, cp, PAR_R);
+		vn1(")", PAR_R);
 		break;
 	case '[':
-		view = naa(t, "[", 1, cp, PAR_C_L);
+		vn1("[", PAR_C_L);
 		break;
 	case ']':
-		view = naa(t, "]", 1, cp, PAR_C_R);
+		vn1("]", PAR_C_R);
 		break;
 	case '?':
-		view = naa(t, "?", 1, cp, QUEST);
+		vn1("?", QUEST);
 		break;
 	case '#':
 		if (n == '+')
-			view = naa(t, "#+", 2, cp, SHPLS);
+			vn2("#+", SHPLS);
 		else if (n == ')')
-			view = naa(t, "#)", 2, cp, SH_R);
+			vn2("#)", SH_R);
 		else if (n == '"')
-			view = naa(t, "#\"", 2, cp, SH_QL);
+			vn2("#\"", SH_QL);
 		else if (n == '|')
-			view = naa(t, "#|", 2, cp, SH_OR);
+			vn2("#|", SH_OR);
 		else
-			view = naa(t, "#", 1, cp, SHARP);
+			vn1("#", SHARP);
 		break;
 	case '"':
 		// if (n == '#')
-		view = naa(t, "\"#", 2, cp, SH_QR);
+		vn2("\"#", SH_QR);
 		break;
 	case '{':
-		view = naa(t, "{", 1, cp, PAR_T_L);
+		vn1("{", PAR_T_L);
 		break;
 	case '}':
-		view = naa(t, "}", 1, cp, PAR_T_R);
+		vn1("}", PAR_T_R);
 		break;
 	case '&':
-		if (n == '&')
-			view = naa(t, "&&", 2, cp, AND);
+		if (n == '&') {
+			if (nn == '=')
+				vn3("&&=", ANDE);
+			else
+				vn2("&&", AND);
+		} else if (n == '=')
+			vn2("&=", BIT_ANDE);
 		else
-			view = naa(t, "&", 1, cp, AMPER);
+			vn1("&", AMPER);
 		break;
 	case '|':
-		if (n == '|')
-			view = naa(t, "||", 2, cp, OR);
+		if (n == '|') {
+			if (nn == '=')
+				vn3("||=", ORE);
+			else
+				vn2("||", OR);
+		} else if (n == '=')
+			vn2("|=", BIT_ORE);
 		else
-			view = naa(t, "|", 1, cp, BIT_OR);
+			vn1("|", BIT_OR);
 		break;
 	case '^':
-		view = naa(t, "^", 1, cp, BIT_XOR);
+		if (n == '=')
+			vn2("^=", BIT_XORE);
+		else
+			vn1("^", BIT_XOR);
 		break;
 	case '>':
 		if (n == '>') {
 			if (nn == '=')
-				view = naa(t, ">>=", 3, cp, SHRE);
+				vn3(">>=", SHRE);
 			else
-				view = naa(t, ">>", 2, cp, SHR);
+				vn2(">>", SHR);
 		} else if (n == '=')
-			view = naa(t, ">=", 2, cp, MOREE);
+			vn2(">=", MOREE);
 		else
-			view = naa(t, ">", 1, cp, MORE);
+			vn1(">", MORE);
 		break;
 	case '<':
 		if (n == '<') {
 			if (nn == '=')
-				view = naa(t, "<<=", 3, cp, SHLE);
+				vn3("<<=", SHLE);
 			else
-				view = naa(t, "<<", 2, cp, SHL);
+				vn2("<<", SHL);
 		} else if (n == '=')
-			view = naa(t, "<=", 2, cp, LESSE);
+			vn2("<=", LESSE);
 		else
-			view = naa(t, "<", 1, cp, LESS);
+			vn1("<", LESS);
 		break;
 	default:
 		ee(t->p, SHOULD_BE_UNREACHABLE);

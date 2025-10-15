@@ -18,7 +18,7 @@ struct LocalExpr *prime_l_expression(struct Pser *p) {
 	else if (c->code == ID)
 		set_e_code_and_absorb(LE_PRIMARY_VAR);
 	else
-		absorb(p);
+		eet(c, "эээ че за выражение", 0);
 
 	return e;
 }

@@ -73,14 +73,21 @@ enum TCode {
 	THIN_ARROW_R, // ->
 	SHLE,		  // <<=
 	SHRE,		  // >>=
-				  // |= &= ^= %= &&= ||= === !==
+	BIT_ANDE,	  // &=
+	BIT_ORE,	  // |=
+	BIT_XORE,	  // ^=
+	MODE,		  // %=
+	ANDE,		  // &&=
+	ORE,		  // ||=
+	EQUEE,		  // ===
+	NEQUE,		  // !==
 
 	SHPLS, // #+
-	SH_L,	// (#
-	SH_R,	// #)
-	SH_QL,	// #"
-	SH_QR,	// "#
-	SH_OR,  // #|
+	SH_L,  // (#
+	SH_R,  // #)
+	SH_QL, // #"
+	SH_QR, // "#
+	SH_OR, // #|
 };
 
 struct Token {
