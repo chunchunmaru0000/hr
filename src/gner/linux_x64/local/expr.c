@@ -1,4 +1,5 @@
 #include "../../gner.h"
+#include <stdio.h>
 
 sa(STR_XOR_EAX_EAX, "искл еах еах");
 
@@ -15,6 +16,7 @@ void gen_le_var(struct Gner *g, struct LocalExpr *e) {}
 
 void (*gen_local_Асм_linux_x64_expressions[])(struct Gner *g,
 											  struct LocalExpr *e) = {
+	0,			 //		LE_NONE
 	gen_le_int,	 // 	LE_PRIMARY_INT,
 	gen_le_real, // 	LE_PRIMARY_REAL,
 	gen_le_var,	 // 	LE_PRIMARY_VAR,
@@ -48,7 +50,7 @@ void (*gen_local_Асм_linux_x64_expressions[])(struct Gner *g,
 	0,			 // 	LE_BIN_EQUALS,
 	0,			 // 	LE_BIN_NOT_EQUALS,
 	0,			 // 	LE_BIN_BIT_AND,
-	0,			 // 	LE_BIN_XOR,
+	0,			 // 	LE_BIN_BIT_XOR,
 	0,			 // 	LE_BIN_BIT_OR,
 	0,			 // 	LE_BIN_AND,
 	0,			 // 	LE_BIN_OR,
@@ -59,8 +61,10 @@ void (*gen_local_Асм_linux_x64_expressions[])(struct Gner *g,
 void gen_local_expression_Асм_linux_x64(struct Gner *g, struct Inst *in) {
 	struct LocalExpr *e = plist_get(in->os, 0);
 
-	if (e->code == LE_NONE)
-		eet(e->tvar, "err:tvar", 0);
+	if (gen_local_Асм_linux_x64_expressions[e->code] == 0) {
+		printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
+		return;
+	}
 
-	gen_local_Асм_linux_x64_expressions[e->code - 1](g, e);
+	gen_local_Асм_linux_x64_expressions[e->code](g, e);
 }

@@ -1,7 +1,65 @@
 #include "../pser.h"
+#include <stdio.h>
+
+struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
+								 struct Token *tvar, uint32_t ops_size) {
+	struct LocalExpr *e = malloc(sizeof(struct LocalExpr));
+	e->code = le_code;
+	e->type = type;
+	e->tvar = tvar;
+	e->ops = new_plist(ops_size);
+	return e;
+}
+
+struct LEtoT {
+	enum LE_Code le;
+	enum TCode t;
+};
+#define leto(t)                                                                \
+	{ LE_BIN_##t, t }
+
+const struct LEtoT lets[] = {
+	leto(MUL),
+	leto(DIV),
+	leto(MOD),
+	leto(PLUS),
+	leto(MINUS),
+	leto(SHL),
+	leto(SHR),
+	leto(LESS),
+	leto(LESSE),
+	leto(MORE),
+	leto(MOREE),
+	{LE_BIN_EQUALS, EQUE},
+	{LE_BIN_NOT_EQUALS, NEQU},
+	{LE_BIN_BIT_AND, AMPER},
+	leto(BIT_XOR),
+	leto(BIT_OR),
+	leto(AND),
+	leto(OR),
+	//{LE_BIN_TERRY, QUEST},
+	{LE_BIN_ASSIGN, EQU},
+};
 
 struct LocalExpr *local_bin(struct Pser *p, struct LocalExpr *l,
 							struct LocalExpr *r, struct Token *op) {
+	const struct LEtoT *let;
+	uint32_t i;
+	enum TCode op_code = op->code;
+
+	struct LocalExpr *e = new_local_expr(LE_NONE, 0, op, 2);
+
+	plist_add(e->ops, l);
+	plist_add(e->ops, r);
+
+	for (i = 0, let = lets; i < loa(lets); i++, let++) {
+		if (let->t == op_code) {
+			e->code = let->le;
+			return e;
+		}
+	}
+
+	eet(op, "че за op", 0);
 	return 0;
 }
 
@@ -48,7 +106,28 @@ bf(b_xor_l_expression, b_and_l_expression, ops1(BIT_XOR));
 bf(b_or__l_expression, b_xor_l_expression, ops1(BIT_OR));
 bf(l_and_l_expression, b_or__l_expression, ops1(AND));
 bf(l_or__l_expression, l_and_l_expression, ops1(OR));
-
 struct LocalExpr *trnry_l_expression(struct Pser *p) {
-	return l_or__l_expression(p);
+	struct LocalExpr * true, *false;
+	struct LocalExpr *e = l_or__l_expression(p), *trnry;
+	struct Token *c;
+
+	c = pser_cur(p);
+
+	if (c->code == QUEST) {
+		consume(p);
+
+		true = local_expression(p);
+		match(pser_cur(p), COLO);
+		false = local_expression(p);
+
+		trnry = new_local_expr(LE_BIN_TERRY, 0, c, 3);
+		plist_add(trnry->ops, e);
+		plist_add(trnry->ops, true);
+		plist_add(trnry->ops, false);
+
+		e = trnry;
+	}
+
+	return e;
 }
+bf(assng_l_expression, trnry_l_expression, ops1(EQU));

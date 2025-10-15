@@ -353,8 +353,6 @@ struct TypeExpr *type_expr(struct Pser *);
 struct Inst *new_inst(struct Pser *, enum IP_Code, struct PList *os,
 					  struct Token *);
 
-struct LocalExpr *local_expression(struct Pser *p);
-
 struct Inst *get_global_inst(struct Pser *p);
 // enum IP_Code inst_pser_define(struct Pser *p, struct PList *os);
 // enum IP_Code inst_pser_include(struct Pser *p, struct PList *os);
@@ -457,7 +455,7 @@ enum LE_Code {
 	LE_BIN_NOT_EQUALS,
 
 	LE_BIN_BIT_AND,
-	LE_BIN_XOR,
+	LE_BIN_BIT_XOR,
 	LE_BIN_BIT_OR,
 	LE_BIN_AND,
 	LE_BIN_OR,
@@ -474,6 +472,8 @@ struct LocalExpr {
 	struct PList *ops; // list of LocalExpr's or defined by code
 };
 
+struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
+								 struct Token *tvar, uint32_t ops_size);
 struct LocalExpr *local_bin(struct Pser *p, struct LocalExpr *l,
 							struct LocalExpr *r, struct Token *op);
 struct LocalExpr *after_l_expression(struct Pser *p);
@@ -490,4 +490,5 @@ struct LocalExpr *b_or__l_expression(struct Pser *p);
 struct LocalExpr *l_and_l_expression(struct Pser *p);
 struct LocalExpr *l_or__l_expression(struct Pser *p);
 struct LocalExpr *trnry_l_expression(struct Pser *p);
-#define local_expression(g) (trnry_l_expression((g)))
+struct LocalExpr *assng_l_expression(struct Pser *p);
+#define local_expression(g) (assng_l_expression((g)))
