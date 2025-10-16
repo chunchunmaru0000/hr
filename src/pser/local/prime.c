@@ -15,6 +15,8 @@ struct LocalExpr *prime_l_expression(struct Pser *p) {
 		set_e_code_and_absorb(LE_PRIMARY_INT);
 	else if (c->code == REAL)
 		set_e_code_and_absorb(LE_PRIMARY_REAL);
+	else if (c->code == STR)
+		set_e_code_and_absorb(LE_PRIMARY_STR);
 	else if (c->code == ID)
 		set_e_code_and_absorb(LE_PRIMARY_VAR);
 	else

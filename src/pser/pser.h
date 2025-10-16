@@ -479,8 +479,8 @@ struct LocalExpr {
 
 struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 								 struct Token *tvar, uint32_t ops_size);
-struct LocalExpr *local_bin(struct Pser *p, struct LocalExpr *l,
-							struct LocalExpr *r, struct Token *op);
+struct LocalExpr *local_bin(struct LocalExpr *l, struct LocalExpr *r,
+							struct Token *op);
 struct LocalExpr *after_l_expression(struct Pser *p);
 struct LocalExpr *prime_l_expression(struct Pser *p);
 struct LocalExpr *unary_l_expression(struct Pser *p);

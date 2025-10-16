@@ -15,6 +15,7 @@ struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 }
 
 struct LocalExpr *copy_local_expr(struct LocalExpr *e) {
+	uint32_t i;
 	struct LocalExpr *copy =
 		new_local_expr(e->code, e->type, e->tvar, e->ops->size);
 
@@ -23,6 +24,12 @@ struct LocalExpr *copy_local_expr(struct LocalExpr *e) {
 		plist_add(copy->ops, copy_local_expr(plist_get(e->ops, 1)));
 		if (e->code == LE_BIN_TERRY)
 			plist_add(copy->ops, copy_local_expr(plist_get(e->ops, 2)));
+	} else if (e->code == LE_AFTER_CALL) {
+		for (i = 0; i < e->ops->size; i++)
+			plist_add(copy->ops, copy_local_expr(plist_get(e->ops, i)));
+	} else if (e->code == LE_AFTER_FIELD_OF_PTR || e->code == LE_AFTER_FIELD) {
+		plist_add(copy->ops, copy_local_expr(plist_get(e->ops, 0)));
+		plist_add(copy->ops, plist_get(e->ops, 1));
 	}
 
 	return copy;
@@ -88,8 +95,8 @@ int find_let(struct LocalExpr *e, enum TCode op_code) {
 	return 0;
 }
 
-struct LocalExpr *local_bin(struct Pser *p, struct LocalExpr *l,
-							struct LocalExpr *r, struct Token *op) {
+struct LocalExpr *local_bin(struct LocalExpr *l, struct LocalExpr *r,
+							struct Token *op) {
 	struct LocalExpr *e = new_local_expr(LE_NONE, 0, op, 2);
 
 	plist_add(e->ops, l);
@@ -110,7 +117,7 @@ struct LocalExpr *local_bin(struct Pser *p, struct LocalExpr *l,
                                                                                \
 			if (cond) {                                                        \
 				consume(p);                                                    \
-				e = local_bin(p, e, prev_fun(p), c);                           \
+				e = local_bin(e, prev_fun(p), c);                              \
 			} else                                                             \
 				break;                                                         \
 		}                                                                      \
@@ -143,7 +150,20 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 			eet(c, FIELD_NAME_CAN_BE_ONLY_ID, 0);
 		plist_add(after->ops, c);
 
-	} else if (ops1(PAR_L)) { // TODO: fun call
+	} else if (ops1(PAR_L)) {
+		after = new_local_expr(LE_AFTER_CALL, 0, c, 2);
+		plist_add(after->ops, e);
+
+		for (c = absorb(p); !ops2(PAR_R, EF);) {
+			plist_add(after->ops, local_expression(p));
+
+			c = pser_cur(p);
+			if (ops1(COMMA))
+				c = absorb(p);
+		}
+		if (ops1(EF))
+			eet(c, "EOF IN after_l_expression fun call", 0);
+		consume(p); // skip ')'
 	}
 
 	if (after)
@@ -201,7 +221,7 @@ struct LocalExpr *asnge_l_expression(struct Pser *p) {
 		consume(p);
 
 		r = local_expression(p);
-		r = local_bin(p, copy_local_expr(l), r, c);
+		r = local_bin(copy_local_expr(l), r, c);
 
 		e = new_local_expr(LE_BIN_ASSIGN, 0, c, 2);
 		plist_add(e->ops, l);
