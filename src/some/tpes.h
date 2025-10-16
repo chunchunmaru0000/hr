@@ -66,21 +66,24 @@ enum TCode {
 	LESSE,	 // <=
 	QUEST,	 // ?
 
-	PLUSE,		  // +=
-	MINUSE,		  // -=
-	MULE,		  // *=
-	DIVE,		  // /=
-	THIN_ARROW_R, // ->
-	SHLE,		  // <<=
-	SHRE,		  // >>=
-	BIT_ANDE,	  // &=
-	BIT_ORE,	  // |=
-	BIT_XORE,	  // ^=
-	MODE,		  // %=
-	ANDE,		  // &&=
-	ORE,		  // ||=
-	EQUEE,		  // ===
-	NEQUE,		  // !==
+	PLUSE,	  // +=
+	MINUSE,	  // -=
+	MULE,	  // *=
+	DIVE,	  // /=
+	SHLE,	  // <<=
+	SHRE,	  // >>=
+	BIT_ANDE, // &=
+	BIT_ORE,  // |=
+	BIT_XORE, // ^=
+	MODE,	  // %=
+	ANDE,	  // &&=
+	ORE,	  // ||=
+	EQUEE,	  // ===
+	NEQUE,	  // !==
+
+	FIELD_ARROW,  // ->
+	SOBAKA_ARROW, // -@
+	PIPE_LINE,	  // |>
 
 	SHPLS, // #+
 	SH_L,  // (#

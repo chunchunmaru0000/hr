@@ -426,7 +426,6 @@ enum LE_Code {
 	LE_PRIMARY_FIELD,
 	LE_PRIMARY_INC_AFTER,
 	LE_PRIMARY_DEC_AFTER,
-	// TODO: fun call
 
 	// LE_UNARY_PLUS, just skip cuz does nothing mathematically
 	LE_UNARY_MINUS,
@@ -463,7 +462,11 @@ enum LE_Code {
 	LE_BIN_TERRY,
 
 	LE_BIN_ASSIGN,
-	// TODO: also bin thing
+	LE_BIN_PIPE_LINE,
+
+	LE_AFTER_CALL,
+	LE_AFTER_FIELD_OF_PTR,
+	LE_AFTER_FIELD,
 	// ->
 	// -@
 	// |>
@@ -496,4 +499,5 @@ struct LocalExpr *l_and_l_expression(struct Pser *p);
 struct LocalExpr *l_or__l_expression(struct Pser *p);
 struct LocalExpr *trnry_l_expression(struct Pser *p);
 struct LocalExpr *assng_l_expression(struct Pser *p);
-#define local_expression(g) (assng_l_expression((g)))
+struct LocalExpr *pipel_l_expression(struct Pser *p);
+#define local_expression(g) (pipel_l_expression((g)))

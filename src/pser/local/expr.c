@@ -1,6 +1,9 @@
 #include "../pser.h"
 #include <stdio.h>
 
+constr FIELD_NAME_CAN_BE_ONLY_ID =
+	"Поле по сути аргумент, а значит его имя может представлять лишь имя.";
+
 struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 								 struct Token *tvar, uint32_t ops_size) {
 	struct LocalExpr *e = malloc(sizeof(struct LocalExpr));
@@ -15,7 +18,7 @@ struct LocalExpr *copy_local_expr(struct LocalExpr *e) {
 	struct LocalExpr *copy =
 		new_local_expr(e->code, e->type, e->tvar, e->ops->size);
 
-	if (e->code >= LE_BIN_MUL && e->code <= LE_BIN_ASSIGN) {
+	if (e->code >= LE_BIN_MUL && e->code <= LE_BIN_PIPE_LINE) {
 		plist_add(copy->ops, copy_local_expr(plist_get(e->ops, 0)));
 		plist_add(copy->ops, copy_local_expr(plist_get(e->ops, 1)));
 		if (e->code == LE_BIN_TERRY)
@@ -55,6 +58,7 @@ const struct LEtoT lets[] = {
 	leto(OR),
 	//{LE_BIN_TERRY, QUEST},
 	{LE_BIN_ASSIGN, EQU},
+	leto(PIPE_LINE),
 	leto_ass(PLUS),
 	leto_ass(MINUS),
 	leto_ass(MUL),
@@ -91,14 +95,9 @@ struct LocalExpr *local_bin(struct Pser *p, struct LocalExpr *l,
 	plist_add(e->ops, l);
 	plist_add(e->ops, r);
 
-	if (find_let(e, op->code))
-		return e;
-	eet(op, "че за op", 0);
-	return 0;
-}
-
-struct LocalExpr *unary_l_expression(struct Pser *p) {
-	return prime_l_expression(p);
+	if (!find_let(e, op->code))
+		eet(op, "че за op", 0);
+	return e;
 }
 
 #define binop(prev_fun, cond)                                                  \
@@ -130,6 +129,31 @@ struct LocalExpr *unary_l_expression(struct Pser *p) {
 #define bf(name, next, ops)                                                    \
 	struct LocalExpr *name(struct Pser *p) { binop(next, ops); }
 
+struct LocalExpr *after_l_expression(struct Pser *p) {
+	struct LocalExpr *e = prime_l_expression(p), *after = 0;
+	struct Token *c = pser_cur(p);
+
+	if (ops2(FIELD_ARROW, SOBAKA_ARROW)) {
+		after = new_local_expr(ops1(FIELD_ARROW) ? LE_AFTER_FIELD_OF_PTR
+												 : LE_AFTER_FIELD,
+							   0, c, 2);
+		plist_add(after->ops, e);
+
+		if ((c = absorb(p))->code != ID)
+			eet(c, FIELD_NAME_CAN_BE_ONLY_ID, 0);
+		plist_add(after->ops, c);
+
+	} else if (ops1(PAR_L)) { // TODO: fun call
+	}
+
+	if (after)
+		e = after;
+
+	return e;
+}
+struct LocalExpr *unary_l_expression(struct Pser *p) {
+	return after_l_expression(p);
+}
 bf(mulng_l_expression, unary_l_expression, ops3(MUL, DIV, MOD));
 bf(addng_l_expression, mulng_l_expression, ops2(PLUS, MINUS));
 bf(shtng_l_expression, addng_l_expression, ops2(SHL, SHR));
@@ -187,3 +211,4 @@ struct LocalExpr *asnge_l_expression(struct Pser *p) {
 	return e;
 }
 bf(assng_l_expression, asnge_l_expression, ops1(EQU));
+bf(pipel_l_expression, assng_l_expression, ops1(PIPE_LINE));

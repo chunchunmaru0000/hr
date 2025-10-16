@@ -56,6 +56,10 @@ void (*gen_local_Асм_linux_x64_expressions[])(struct Gner *g,
 	0,			 // 	LE_BIN_OR,
 	0,			 // 	LE_BIN_TERRY,
 	0,			 // 	LE_BIN_ASSIGN,
+	0,			 // 	LE_BIN_PIPE_LINE,
+	0,			 // 	LE_AFTER_CALL,
+	0,			 // 	LE_AFTER_FIELD_OF_PTR,
+	0,			 // 	LE_AFTER_FIELD,
 };
 
 void gen_local_expression_Асм_linux_x64(struct Gner *g, struct Inst *in) {

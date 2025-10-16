@@ -307,11 +307,13 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 		break;
 	case '-':
 		if (n == '>')
-			vn2("->", THIN_ARROW_R);
+			vn2("->", FIELD_ARROW);
 		else if (n == '=')
 			vn2("-=", MINUSE);
 		else if (n == '-')
 			vn2("--", DEC);
+		else if (n == '@')
+			vn2("-@", SOBAKA_ARROW);
 		else
 			vn1("-", MINUS);
 		break;
@@ -403,6 +405,8 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 				vn2("||", OR);
 		} else if (n == '=')
 			vn2("|=", BIT_ORE);
+		else if (n == '>')
+			vn2("|>", PIPE_LINE);
 		else
 			vn1("|", BIT_OR);
 		break;

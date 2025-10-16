@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #define uc unsigned char
+#define constr const char *const
 #define BYTE 1
 #define WORD 2
 #define DWORD 4
