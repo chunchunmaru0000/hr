@@ -28,6 +28,8 @@ const struct TypeWord TYPE_WORD_PTR = {"ук", TC_PTR, 4};
 const struct TypeWord TYPE_WORD_FUN = {"фц", TC_FUN, 4};
 
 struct TypeExpr *copy_type_expr(struct TypeExpr *type) {
+	if (type == 0)
+		return 0;
 	long i;
 	struct TypeExpr *copy = new_type_expr(TC_VOID), *other;
 

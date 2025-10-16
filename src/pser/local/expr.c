@@ -11,6 +11,20 @@ struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 	return e;
 }
 
+struct LocalExpr *copy_local_expr(struct LocalExpr *e) {
+	struct LocalExpr *copy =
+		new_local_expr(e->code, e->type, e->tvar, e->ops->size);
+
+	if (e->code >= LE_BIN_MUL && e->code <= LE_BIN_ASSIGN) {
+		plist_add(copy->ops, copy_local_expr(plist_get(e->ops, 0)));
+		plist_add(copy->ops, copy_local_expr(plist_get(e->ops, 1)));
+		if (e->code == LE_BIN_TERRY)
+			plist_add(copy->ops, copy_local_expr(plist_get(e->ops, 2)));
+	}
+
+	return copy;
+}
+
 struct LEtoT {
 	enum LE_Code le;
 	enum TCode t;
@@ -163,8 +177,7 @@ struct LocalExpr *asnge_l_expression(struct Pser *p) {
 		consume(p);
 
 		r = local_expression(p);
-		// TODO: r = local_bin(p, copy_local_expr(l), r, c);
-		r = local_bin(p, l, r, c);
+		r = local_bin(p, copy_local_expr(l), r, c);
 
 		e = new_local_expr(LE_BIN_ASSIGN, 0, c, 2);
 		plist_add(e->ops, l);
