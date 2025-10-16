@@ -63,7 +63,7 @@ enum TCode next_line(struct Tzer *t, struct Token *token) {
 	return SLASHN;
 }
 
-const char *const TOO_MUCH_DOTS = "Слишком много точек на одно не целое число";
+constr TOO_MUCH_DOTS = "Слишком много точек на одно не целое число";
 
 enum TCode num_token(struct Tzer *t, struct Token *token) {
 	uc c = cur(t), n;
@@ -264,7 +264,7 @@ unsigned char char_in_str(char c, char *str) {
 	return 0;
 }
 
-const char *const SHOULD_BE_UNREACHABLE = "ДОЛЖНО БЫТЬ НЕДОСТИЖИМО";
+constr SHOULD_BE_UNREACHABLE = "ДОЛЖНО БЫТЬ НЕДОСТИЖИМО";
 
 #define vn1(str_view, code) (view = naa(t, (str_view), 1, cp, (code)))
 #define vn2(str_view, code) (view = naa(t, (str_view), 2, cp, (code)))

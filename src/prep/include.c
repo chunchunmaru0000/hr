@@ -1,15 +1,15 @@
 #include "prep.h"
 #include <stdio.h>
 
-const char *const EXPECTED_STR_AS_AN_INCLUDE_PATH_OR_PAR_L =
+constr EXPECTED_STR_AS_AN_INCLUDE_PATH_OR_PAR_L =
 	"После инструкции препроцессора '#влечь' ожидалась строка содержащая путь "
 	"файла, или открывающая скобка с последующими выражениями путей и "
 	"закрывающей скобкой.";
-const char *const EXPECTED_STR_AS_AN_INCLUDE_PATH =
+constr EXPECTED_STR_AS_AN_INCLUDE_PATH =
 	"После инструкции препроцессора '#влечь' ожидалась строка содержащая путь "
 	"файла.";
-const char *const ALREADY_INCLUDED = "Файл уже однажды включен.";
-const char *const EXPECTED_INCLUDES_CLOSE_PAR =
+constr ALREADY_INCLUDED = "Файл уже однажды включен.";
+constr EXPECTED_INCLUDES_CLOSE_PAR =
 	"Встречен конец файла, а скобка так и не была закрыта.";
 
 struct BList *try_include_path(struct Token *path) {

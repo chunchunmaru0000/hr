@@ -66,17 +66,17 @@ struct Nodes *gen_body(struct Nodes *body, struct PList *args,
 // 						BELOW IS CALL PARSE
 // ####################################################################
 
-const char *const PAR_WASNT_CLOSED = "'(' не была закрыта.";
-const char *const CLOSE_PAR = "закрыть '('";
-const char *const PAR_ARR_WASNT_CLOSED = "'[' не была закрыта.";
-const char *const CLOSE_PAR_ARR = "закрыть '['";
-const char *const PAR_CUR_WASNT_CLOSED = "'{' не была закрыта.";
-const char *const CLOSE_PAR_CUR = "закрыть '{'";
-const char *const NOTHING_TO_CLOSE =
+constr PAR_WASNT_CLOSED = "'(' не была закрыта.";
+constr CLOSE_PAR = "закрыть '('";
+constr PAR_ARR_WASNT_CLOSED = "'[' не была закрыта.";
+constr CLOSE_PAR_ARR = "закрыть '['";
+constr PAR_CUR_WASNT_CLOSED = "'{' не была закрыта.";
+constr CLOSE_PAR_CUR = "закрыть '{'";
+constr NOTHING_TO_CLOSE =
 	"Встречена закрывающая скобка, но не было открывающей.";
-const char *const CANT_HAVE_EMPTY_ARG_YET = "Аргумент не может быть пустым.";
-const char *const NEED_CLOSE_BY_PAR_R = "Аргумент должен был быть закрыт ')'.";
-const char *const NEED_CLOSE_BY_COMMA = "Аргумент должен был быть закрыт ','.";
+constr CANT_HAVE_EMPTY_ARG_YET = "Аргумент не может быть пустым.";
+constr NEED_CLOSE_BY_PAR_R = "Аргумент должен был быть закрыт ')'.";
+constr NEED_CLOSE_BY_COMMA = "Аргумент должен был быть закрыт ','.";
 
 struct BList *last_opened_stack = 0;
 
@@ -137,9 +137,9 @@ struct Nodes *parse_macro_arg_nodes(struct NodeToken **c) {
 	return arg_nodes;
 }
 
-const char *const EXPECTED_PAR_R_AFTER_MACRO_ARGS =
+constr EXPECTED_PAR_R_AFTER_MACRO_ARGS =
 	"Ожидалась ')' после аргументов макро без аргументов.";
-const char *const EXPECTED_COMMA_AFTER_MACRO_ARGS =
+constr EXPECTED_COMMA_AFTER_MACRO_ARGS =
 	"Ожидалась ',' после аргументов макро без аргументов.";
 
 struct PList *parse_macro_args_nodes(struct NodeToken **c,

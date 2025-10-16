@@ -5,18 +5,18 @@ void pre(struct Prep *pr, struct PList *final_tokens);
 void free_prep(struct Prep *pr);
 void replace_token(struct Token *dst, struct Token *src);
 
-const char *const WASNT_EXPECTING_EOF = "Неожиданно встречен конец файла.";
-const char *const WAS_EXPECTING_PREP_INST_WORD =
+constr WASNT_EXPECTING_EOF = "Неожиданно встречен конец файла.";
+constr WAS_EXPECTING_PREP_INST_WORD =
 	"После токена '#' ожидалось одно из ключевых слов препроцессора: "
 	"'вот', 'влечь' или 'се'.";
-const char *const EXPCEPTED_PAR_L_OR_SH_L =
+constr EXPCEPTED_PAR_L_OR_SH_L =
 	"В объявлении макро ожидалось либо '(' для начала аргументов либо '(#' для "
 	"начало текста макро.";
-const char *const EXPECTED_ID_AS_MACRO_ARG =
+constr EXPECTED_ID_AS_MACRO_ARG =
 	"Ожидалось слово в качестве аргумента для макро.";
-const char *const EXPECTED_ID_AS_MACRO_NAME =
+constr EXPECTED_ID_AS_MACRO_NAME =
 	"Ожидалось слово в качестве имени для макро.";
-const char *const SH_QR_CANT_OCCUR_BY_ITSELF =
+constr SH_QR_CANT_OCCUR_BY_ITSELF =
 	"Токен '\"#' не может быть использован отдельно, только в качестве "
 	"закрываюшего токена для '#\"', например: #\"текст текст 123 текст\"#.";
 
@@ -140,7 +140,7 @@ struct NodeToken *next_of_line(struct NodeToken *e, struct NodeToken *n) {
 }
 // Next Of Line
 struct NodeToken *nol_with_err(struct NodeToken *e, struct NodeToken *n,
-							   const char *const err) {
+							   constr err) {
 	if (!n->next)
 		eet(e->token, err, 0);
 	return n->next;
@@ -371,10 +371,10 @@ struct NodeToken *parse_vot(struct Prep *pr, struct NodeToken *c) {
 	return c;
 }
 
-const char *const STR_VOT = "вот";
-const char *const STR_SE = "се";
-const char *const STR_INCLUDE = "влечь";
-const char *const STR_SENTENCE = "буки";
+constr STR_VOT = "вот";
+constr STR_SE = "се";
+constr STR_INCLUDE = "влечь";
+constr STR_SENTENCE = "буки";
 
 // TODO: if redefine then free last one
 struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {

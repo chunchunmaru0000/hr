@@ -9,18 +9,18 @@ void print_spaces(int n) {
 		putchar(' ');
 }
 
-const char *const COLOR_BLACK = "\x1B[30m";
-const char *const COLOR_LIGHT_BLACK = "\033[90m";
-const char *const COLOR_LIGHT_RED = "\x1B[91m";
-const char *const COLOR_RED = "\x1B[31m";
-const char *const COLOR_GREEN = "\x1B[32m";
-const char *const COLOR_YELLOW = "\x1B[33m";
-const char *const COLOR_BLUE = "\x1B[34m";
-const char *const COLOR_PURPLE = "\x1B[35m";
-const char *const COLOR_LIGHT_PURPLE = "\033[95m";
-const char *const COLOR_GAY = "\x1B[36m";
-const char *const COLOR_WHITE = "\x1B[37m";
-const char *const COLOR_RESET = "\x1B[0m";
+constr COLOR_BLACK = "\x1B[30m";
+constr COLOR_LIGHT_BLACK = "\033[90m";
+constr COLOR_LIGHT_RED = "\x1B[91m";
+constr COLOR_RED = "\x1B[31m";
+constr COLOR_GREEN = "\x1B[32m";
+constr COLOR_YELLOW = "\x1B[33m";
+constr COLOR_BLUE = "\x1B[34m";
+constr COLOR_PURPLE = "\x1B[35m";
+constr COLOR_LIGHT_PURPLE = "\033[95m";
+constr COLOR_GAY = "\x1B[36m";
+constr COLOR_WHITE = "\x1B[37m";
+constr COLOR_RESET = "\x1B[0m";
 const int TEXT_TAB_SPACES = 4;
 const char UNDERLINE_CHAR = '~';
 
@@ -75,7 +75,7 @@ const char *get_line_start(struct Pos *p) {
 	return str_start;
 }
 
-void print_source_line(struct Pos *p, const char *const color, char *help) {
+void print_source_line(struct Pos *p, constr color, char *help) {
 	char *help_end, *help_start = help;
 	uint32_t ut8_chars_to_pos = 0, line = p->line - 1;
 	const char *str_start = get_line_start(p);
@@ -124,8 +124,7 @@ void print_source_line(struct Pos *p, const char *const color, char *help) {
 	putchar('\n');
 }
 
-struct ErrorInfo *new_error_info(struct Token *t, const char *const msg,
-								 const char *const sgst) {
+struct ErrorInfo *new_error_info(struct Token *t, constr msg, constr sgst) {
 	struct ErrorInfo *ei = malloc(sizeof(struct ErrorInfo));
 	ei->t = t;
 	ei->msg = msg;
@@ -135,14 +134,14 @@ struct ErrorInfo *new_error_info(struct Token *t, const char *const msg,
 	return ei;
 }
 
-void ee(struct Pos *p, const char *const msg) { // error exit
+void ee(struct Pos *p, constr msg) { // error exit
 	fprintf(stderr, "%s%s:%d:%d %sОШИБКА: %s%s\n", COLOR_WHITE, p->f->path,
 			p->line, p->col, COLOR_RED, msg, COLOR_RESET);
 	print_source_line(p, COLOR_LIGHT_RED, 0);
 	exit(1);
 }
 
-void et(struct Token *t, const char *const msg, const char *const sgst) {
+void et(struct Token *t, constr msg, constr sgst) {
 	char *help;
 	uint32_t token_chars_len, help_len, sgst_len = -1;
 
@@ -172,13 +171,12 @@ void et(struct Token *t, const char *const msg, const char *const sgst) {
 	print_source_line(t->p, COLOR_LIGHT_RED, help);
 }
 
-void eet(struct Token *t, const char *const msg, const char *const sgst) {
+void eet(struct Token *t, constr msg, constr sgst) {
 	et(t, msg, sgst);
 	exit(1);
 }
 
-void eet2(struct Token *t0, struct Token *t1, const char *const msg,
-		  const char *const sgst) {
+void eet2(struct Token *t0, struct Token *t1, constr msg, constr sgst) {
 	et(t0, msg, sgst);
 
 	fprintf(stderr, "%s%s:%d:%d %sПРИЧИНА:\n%5d |", COLOR_WHITE, t1->p->f->path,

@@ -3,17 +3,17 @@
 
 extern struct Token *file_to_include;
 
-extern const char *const COLOR_BLACK;
-extern const char *const COLOR_RED;
-extern const char *const COLOR_LIGHT_RED;
-extern const char *const COLOR_GREEN;
-extern const char *const COLOR_YELLOW;
-extern const char *const COLOR_BLUE;
-extern const char *const COLOR_PURPLE;
-extern const char *const COLOR_LIGHT_PURPLE;
-extern const char *const COLOR_GAY;
-extern const char *const COLOR_WHITE;
-extern const char *const COLOR_RESET;
+extern constr COLOR_BLACK;
+extern constr COLOR_RED;
+extern constr COLOR_LIGHT_RED;
+extern constr COLOR_GREEN;
+extern constr COLOR_YELLOW;
+extern constr COLOR_BLUE;
+extern constr COLOR_PURPLE;
+extern constr COLOR_LIGHT_PURPLE;
+extern constr COLOR_GAY;
+extern constr COLOR_WHITE;
+extern constr COLOR_RESET;
 extern const char UNDERLINE_CHAR;
 #define color_print(c, msg) (printf("%s%s%s", (c), (msg), COLOR_RESET))
 uint32_t get_utf8_chars_to_pos(const char *str, int col);
@@ -40,18 +40,16 @@ struct ErrorInfo {
 	void *extra;
 	enum ExtraType extra_type;
 };
-struct ErrorInfo *new_error_info(struct Token *t, const char *const msg,
-								 const char *const sgst);
+struct ErrorInfo *new_error_info(struct Token *t, constr msg, constr sgst);
 
 struct Tzer *new_tzer(char *);
 struct Token *new_token(struct Tzer *);
 struct PList *tze(struct Tzer *, long);
 void full_free_token(struct Token *t);
 void full_free_token_without_pos(struct Token *t);
-void print_source_line(struct Pos *, const char *const, char *);
-void ee(struct Pos *, const char *const);
-void et(struct Token *t, const char *const msg, const char *const sgst);
-void eet(struct Token *t, const char *const msg, const char *const sgst);
-void eet2(struct Token *t0, struct Token *t1, const char *const msg,
-		  const char *const sgst);
+void print_source_line(struct Pos *, constr, char *);
+void ee(struct Pos *, constr);
+void et(struct Token *t, constr msg, constr sgst);
+void eet(struct Token *t, constr msg, constr sgst);
+void eet2(struct Token *t0, struct Token *t1, constr msg, constr sgst);
 #define etei(ei) (et((ei)->t, (ei)->msg, (ei)->sgst))

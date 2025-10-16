@@ -10,7 +10,7 @@ void ee_token(struct Token *t, char *msg) { // error exit
 }
 
 // print warning
-void pw(struct Token *t, const char *const msg, const char *const sgst) {
+void pw(struct Token *t, constr msg, constr sgst) {
 	if (!NEED_WARN)
 		return;
 
@@ -84,7 +84,7 @@ void etei_with_extra(struct ErrorInfo *info) {
 	blist_clear_free(sgst_list);
 }
 
-void eei(struct Inst *in, const char *const msg, const char *const sgst) {
+void eei(struct Inst *in, constr msg, constr sgst) {
 	eet(in->start_token, msg, sgst);
 }
 

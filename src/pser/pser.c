@@ -69,8 +69,7 @@ void parse_block_of_local_inst(struct Pser *p, struct PList *os) {
 	match(pser_cur(p), PAR_R);
 }
 
-const char *const ARGS_NAMES_OVERLAP =
-	"Аргумент с таким именем уже существует.";
+constr ARGS_NAMES_OVERLAP = "Аргумент с таким именем уже существует.";
 
 void check_list_of_vars_on_name(struct Pser *p, struct Token *name_to_check) {
 	uint32_t i;
@@ -264,57 +263,57 @@ long unsafe_size_of_global_value(struct GlobExpr *e) {
 	return res;
 }
 
-const char *const ERR_WRONG_TOKEN = "Неверное выражение.";
+constr ERR_WRONG_TOKEN = "Неверное выражение.";
 
-const char *const EXPECTED__STR = "Ожидалась строка.";
-const char *const EXPECTED__INT = "Ожидалось целое число.";
-const char *const EXPECTED__FPN = "Ожидалось вещественное число.";
-const char *const EXPECTED__PAR_L = "Ожидалась '(' скобка.";
-const char *const EXPECTED__PAR_R = "Ожидалась ')' скобка.";
-const char *const EXPECTED__PAR_C_L = "Ожидалась '[' скобка.";
-const char *const EXPECTED__PAR_C_R = "Ожидалась ']' скобка.";
-const char *const EXPECTED__EQU = "Ожидался '=' знак равно.";
-const char *const EXPECTED__COLO = "Ожидалось ':'.";
-const char *const EXPECTED__ID = "Ожидалось имя или слово.";
-const char *const EXPECTED__COMMA = "Ожидалась ',' запятая.";
-const char *const EXPECTED__SH_L = "Ожидалось '(#'.";
+constr EXPECTED__STR = "Ожидалась строка.";
+constr EXPECTED__INT = "Ожидалось целое число.";
+constr EXPECTED__FPN = "Ожидалось вещественное число.";
+constr EXPECTED__PAR_L = "Ожидалась '(' скобка.";
+constr EXPECTED__PAR_R = "Ожидалась ')' скобка.";
+constr EXPECTED__PAR_C_L = "Ожидалась '[' скобка.";
+constr EXPECTED__PAR_C_R = "Ожидалась ']' скобка.";
+constr EXPECTED__EQU = "Ожидался '=' знак равно.";
+constr EXPECTED__COLO = "Ожидалось ':'.";
+constr EXPECTED__ID = "Ожидалось имя или слово.";
+constr EXPECTED__COMMA = "Ожидалась ',' запятая.";
+constr EXPECTED__SH_L = "Ожидалось '(#'.";
 
-const char *const SUGGEST__STR = "строка";
-const char *const SUGGEST__PAR_L = "(";
-const char *const SUGGEST__PAR_R = ")";
-const char *const SUGGEST__PAR_C_L = "[";
-const char *const SUGGEST__PAR_C_R = "]";
-const char *const SUGGEST__EQU = "=";
-const char *const SUGGEST__COLO = ":";
-const char *const SUGGEST__ID = "имя";
-const char *const SUGGEST__INT = "целое";
-const char *const SUGGEST__FPN = "вещественное";
-const char *const SUGGEST__COMMA = ",";
-const char *const SUGGEST__SH_L = "(#";
+constr SUGGEST__STR = "строка";
+constr SUGGEST__PAR_L = "(";
+constr SUGGEST__PAR_R = ")";
+constr SUGGEST__PAR_C_L = "[";
+constr SUGGEST__PAR_C_R = "]";
+constr SUGGEST__EQU = "=";
+constr SUGGEST__COLO = ":";
+constr SUGGEST__ID = "имя";
+constr SUGGEST__INT = "целое";
+constr SUGGEST__FPN = "вещественное";
+constr SUGGEST__COMMA = ",";
+constr SUGGEST__SH_L = "(#";
 
-const char *const STR_EOF = "_КОНЕЦ_ФАЙЛА_";
+constr STR_EOF = "_КОНЕЦ_ФАЙЛА_";
 // words
-const char *const STR_LET = "пусть";
-const char *const STR_ASM = "_асм";
-const char *const STR_GOTO = "идти";
-const char *const STR_LOOP = "вечно";
+constr STR_LET = "пусть";
+constr STR_ASM = "_асм";
+constr STR_GOTO = "идти";
+constr STR_LOOP = "вечно";
 
-const char *const STR_FUN = "фц";
-const char *const STR_ENUM = "счет";
-const char *const STR_STRUCT = "лик";
-const char *const STR_AS = "окак";
-const char *const STR_SIZE_OF = "мера";
-const char *const STR_SIZE_OF_VAL = "размера";
+constr STR_FUN = "фц";
+constr STR_ENUM = "счет";
+constr STR_STRUCT = "лик";
+constr STR_AS = "окак";
+constr STR_SIZE_OF = "мера";
+constr STR_SIZE_OF_VAL = "размера";
 
 struct Inst *get_global_inst(struct Pser *p) {
-	struct Token *cur = pser_cur(p), *n;
+	struct Token *cur = pser_cur(p); //, *n;
 	struct PList *os = new_plist(2);
 	char *cv = vs(cur);
 	enum IP_Code code = IP_NONE;
 
 	while (cur->code == SLASHN || cur->code == SEP)
 		cur = absorb(p);
-	n = pser_next(p);
+	// n = pser_next(p);
 
 	// fill *os in funcs
 	switch (cur->code) {

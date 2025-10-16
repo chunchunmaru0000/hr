@@ -1,74 +1,70 @@
 #include "../pser.h"
 #include <stdio.h>
 
-const char *const NUM_INCOMPATIBLE_TYPE =
+constr NUM_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с числовым типом выражения.";
-const char *const STR_INCOMPATIBLE_TYPE =
+constr STR_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с строковым типом выражения.";
-const char *const ARR_SIZES_DO_NOW_MATCH =
+constr ARR_SIZES_DO_NOW_MATCH =
 	"Рамеры типа переменной массива и самого массива не совпадают.";
-const char *const PTR_INCOMPATIBLE_TYPE =
+constr PTR_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с указываемым типом выражения.";
-const char *const FUN_INCOMPATIBLE_TYPE =
+constr FUN_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с функциональным типом выражения.";
-const char *const ARR_INCOMPATIBLE_TYPE =
+constr ARR_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с типом выражения массива.";
-const char *const STRUCT_INCOMPATIBLE_TYPE =
+constr STRUCT_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с типом выражения лика.";
-const char *const ARR_ITEM_INCOMPATIBLE_TYPE =
+constr ARR_ITEM_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с типом выражения значения массива.";
-const char *const ARR_FROM_OTHER_GLOBAL_ARR =
+constr ARR_FROM_OTHER_GLOBAL_ARR =
 	"Нелязя назначать массив от другого массива через его имя, только если "
 	"через указатель.";
-const char *const STRUCT_FROM_OTHER_GLOBAL_STRUCT =
+constr STRUCT_FROM_OTHER_GLOBAL_STRUCT =
 	"Нелязя назначать лик от другого лик через его имя, только если "
 	"через указатель.";
-const char *const AS_INCOMPATIBLE_TYPE =
+constr AS_INCOMPATIBLE_TYPE =
 	"Тип переменной не совместим с приведенным типом выражения.";
-const char *const STRUCT_WASNT_FOUND = "Лик с таким именем не был найден.";
-const char *const INCOMPATIBLE_TYPES =
-	"Типы переменной и выражения несовместимы.";
-const char *const TOO_MUCH_FIELDS_FOR_THIS_STRUCT =
+constr STRUCT_WASNT_FOUND = "Лик с таким именем не был найден.";
+constr INCOMPATIBLE_TYPES = "Типы переменной и выражения несовместимы.";
+constr TOO_MUCH_FIELDS_FOR_THIS_STRUCT =
 	"Слишком много аргументов указано для данной структуры.";
-const char *const TOO_LESS_FIELDS_FOR_THIS_STRUCT =
+constr TOO_LESS_FIELDS_FOR_THIS_STRUCT =
 	"Слишком мало аргументов указано для данной структуры, остальная ее часть "
 	"будет заполнена нулями.";
-const char *const TOO_MUCH_ITEMS_FOR_THIS_ARR =
+constr TOO_MUCH_ITEMS_FOR_THIS_ARR =
 	"Слишком много элементов для массива данного типа.";
-const char *const TOO_LESS_ITEMS_FOR_THIS_ARR =
+constr TOO_LESS_ITEMS_FOR_THIS_ARR =
 	"Слишком мало элементов для массива данного типа.";
-const char *const TOO_MUCH_CHARS_FOR_THIS_STR =
-	"Слишком много байт для данной строки.";
-const char *const TOO_LESS_CHARS_FOR_THIS_STR =
-	"Слишком мало байт для данной строки.";
-const char *const EXCESSING_FIELD =
+constr TOO_MUCH_CHARS_FOR_THIS_STR = "Слишком много байт для данной строки.";
+constr TOO_LESS_CHARS_FOR_THIS_STR = "Слишком мало байт для данной строки.";
+constr EXCESSING_FIELD =
 	"Лишнее поле в лике, его место в памяти уже "
 	"возможно занято или в данном лике вообще нет аргумента с таким именем.";
-const char *const UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
-const char *const EXPECTED_ARR_OF_LEN = "ожидался массив длиной: ";
-const char *const EXPECTED_STRUCT_OF_LEN = "ожидалось аргументов: ";
-const char *const STR_IS_NOT_A_PTR =
+constr UNCOMPUTIBLE_DATA = "Невычислимое выражение.";
+constr EXPECTED_ARR_OF_LEN = "ожидался массив длиной: ";
+constr EXPECTED_STRUCT_OF_LEN = "ожидалось аргументов: ";
+constr STR_IS_NOT_A_PTR =
 	"Строка - не указатель, строка - массив, массив - не указатель, "
 	"но строковые литералы по умолчанию возвращают указатели на себя, чтобы "
 	"получить из них массив надо разыменовать строку вручную, "
 	"например:\n\tпусть с: [ц8] = *\"строка\"";
-const char *const ARR_IS_NOT_A_PTR =
+constr ARR_IS_NOT_A_PTR =
 	"Массив - не указатель, массив - несколько значений одного типа, чтобы "
 	"получить указатель из массива, надо взять его адрес, например:\n\tпусть "
 	"м: *ч64 = &[1 2 3]";
-const char *const CANT_DEFINE_ARR_TYPE =
+constr CANT_DEFINE_ARR_TYPE =
 	"Тип недостаточно явный для определения типа массива.";
-const char *const CANT_DEFINE_STRUCT_TYPE =
+constr CANT_DEFINE_STRUCT_TYPE =
 	"Тип недостаточно явный для определения типа лика.";
-const char *const MAYBE_NOT_USE_VOID_PTR =
-	"может не использовать указатель на тлен";
-const char *const todo_str =
+constr MAYBE_NOT_USE_VOID_PTR = "может не использовать указатель на тлен";
+constr todo_str =
 	"need to do in pser_tpes.c aat the end of the are_types_compatible";
 
 struct CE_CodeStr {
 	enum CE_Code code;
-	const char *const str;
-	const char *const sgst;
+	constr str;
+	constr sgst;
 };
 
 const struct CE_CodeStr cecstrs_errs[] = {

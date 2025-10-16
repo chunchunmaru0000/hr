@@ -3,12 +3,10 @@
 
 void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
 
-const char *const CHANGE_VAR_NAME_OR_DELETE_VAR =
-	"изменить имя переменной или удалить ее";
-const char *const CHANGE_LABEL_NAME_OR_DELETE_LABEL =
-	"изменить имя метки или удалить ее";
-const char *const REDEFINING_OF_LOCAL_VAR = "Переопределение локальной переменной.";
-const char *const REDEFINING_OF_LOCAL_LABEL = "Переопределение локальной метки.";
+constr CHANGE_VAR_NAME_OR_DELETE_VAR = "изменить имя переменной или удалить ее";
+constr CHANGE_LABEL_NAME_OR_DELETE_LABEL = "изменить имя метки или удалить ее";
+constr REDEFINING_OF_LOCAL_VAR = "Переопределение локальной переменной.";
+constr REDEFINING_OF_LOCAL_LABEL = "Переопределение локальной метки.";
 
 sa(JMP, "идти ");
 
@@ -146,12 +144,12 @@ void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 // _е# - если
 // _и# - иначе
 #define LETTER_LEN 3
-const char *const LETTER_LOOP = "_в";
-const char *const LETTER_WHILE = "_п";
-const char *const LETTER_FOR = "_д";
-const char *const LETTER_IF = "_е";
-const char *const LETTER_ELSE = "_и";
-const char *const LETTER_PTR = "_у";
+constr LETTER_LOOP = "_в";
+constr LETTER_WHILE = "_п";
+constr LETTER_FOR = "_д";
+constr LETTER_IF = "_е";
+constr LETTER_ELSE = "_и";
+constr LETTER_PTR = "_у";
 
 struct BList *take_label(struct Gner *g, enum L_Code label_code) {
 	struct BList *label = new_blist(8), *num;

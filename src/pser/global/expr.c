@@ -43,21 +43,21 @@ struct GlobExpr *after_g_expression(struct Pser *p) {
 	return e;
 }
 
-const char *const UNEXPECTED_TOKEN_IN_GLOB_EXPR =
+constr UNEXPECTED_TOKEN_IN_GLOB_EXPR =
 	"Непредвиденное слово для глобального выражения.";
-const char *const GLOBAL_VAR_WAS_NOT_FOUND =
+constr GLOBAL_VAR_WAS_NOT_FOUND =
 	"Глобальная переменная с таким именем не была найдена.";
-const char *const FUN_VAR_DOESNT_HAVE_VALUE =
+constr FUN_VAR_DOESNT_HAVE_VALUE =
 	"Функция как переменная не может иметь значение.";
-const char *const EXPECTED_NUM_FOR_THIS_OP =
+constr EXPECTED_NUM_FOR_THIS_OP =
 	"Для данной операции ожидалось числовое значение.";
-const char *const CANT_TAKE_PTR_FROM_THIS =
+constr CANT_TAKE_PTR_FROM_THIS =
 	"В глобальном выражении адрес можно получить только из: глобальной "
 	"переменной или массива.";
-const char *const CANT_DEREFERENCE_THIS =
+constr CANT_DEREFERENCE_THIS =
 	"Разыменовывать значениние можно только если: это строка для получения "
 	"массива или это указатель на лик для получения значения лика.";
-const char *const BIT_NOT_WORKS_ONLY_WITH_INT =
+constr BIT_NOT_WORKS_ONLY_WITH_INT =
 	"Побитовое не работает только с целыми числами.";
 
 struct GlobExpr *prime_g_expression(struct Pser *p) {

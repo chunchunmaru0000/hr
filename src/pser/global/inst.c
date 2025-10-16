@@ -1,7 +1,7 @@
 #include "../pser.h"
 #include <stdint.h>
 
-const char *const EXPECTED_STR_GLOB_EXPR_AS_ASM_ARG =
+constr EXPECTED_STR_GLOB_EXPR_AS_ASM_ARG =
 	"Глобальная инструкция ассемблера в качестве аргумента принимает только "
 	"выражение строки или указателя на нее.";
 
@@ -21,9 +21,9 @@ enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os) {
 	return IP_ASM;
 }
 
-const char *const ENUM_ITEM_NAME_OVERLAP =
+constr ENUM_ITEM_NAME_OVERLAP =
 	"Значение счета с таким же именем уже существует.";
-const char *const EXPECTED_INT_GLOB_EXPR =
+constr EXPECTED_INT_GLOB_EXPR =
 	"Результатом глобального выражения для значения счета может быть только "
 	"целое число.";
 
@@ -92,40 +92,36 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 	return IP_DECLARE_ENUM;
 }
 
-const char *const TYPES_SIZES_NOT_MATCH =
+constr TYPES_SIZES_NOT_MATCH =
 	"Размеры типов для одного участка памяти должны быть одинаковы.";
-const char *const FUN_SIGNATURES_OVERLAP =
+constr FUN_SIGNATURES_OVERLAP =
 	"Сигнатура данной функции повторяет сигнатуру другой уже объявленной "
 	"функции, даже если типы записаны по разному но равны по смыслу(например "
 	"'*ц8' и 'стр'), их сигнатуры будут равны.";
-const char *const GLOBAL_VARS_NAMES_OVERLAP =
-	"Переменная с таким именем уже существует.";
-const char *const SUGGEST_RENAME_VAR = "изменить имя переменной";
-const char *const SUGGEST_FIX_FUN_SIGNATURES_OVERLAP =
-	"изменить типы аругментов функции";
-const char *const SEVERAL_ARGS_CANT_SHARE_MEM =
+constr GLOBAL_VARS_NAMES_OVERLAP = "Переменная с таким именем уже существует.";
+constr SUGGEST_RENAME_VAR = "изменить имя переменной";
+constr SUGGEST_FIX_FUN_SIGNATURES_OVERLAP = "изменить типы аругментов функции";
+constr SEVERAL_ARGS_CANT_SHARE_MEM =
 	"Несколько аргументов объявленных таким образом не могут иметь синонимы с "
 	"другими типом, так как они принадлежат к разным участкам памяти.";
-const char *const SUGGEST_DELETE_ARGS_OR_COMMA =
-	"удалить аргументы или запятую";
-const char *const COMMA_ARGS_CAN_BE_ONLY_BY_ONE =
+constr SUGGEST_DELETE_ARGS_OR_COMMA = "удалить аргументы или запятую";
+constr COMMA_ARGS_CAN_BE_ONLY_BY_ONE =
 	"Аргументы для одного участка памяти могут быть только по одному, иначе "
 	"это уже не один участок памяти.";
-const char *const TOO_MUCH_ARGS_FOR_NOW =
+constr TOO_MUCH_ARGS_FOR_NOW =
 	"Слишком много аргументов фукнции, на данный момент максимальное "
 	"количество аргуентов функции: 7.";
-const char *const SUGGEST_CUT_ARGS_SIZE = "уменьшить количество аргументов";
-const char *const SUGGEST_CHANGE_ARG_TYPE_SIZE = "изменить размер типа";
-const char *const ARR_AS_A_FUN_ARG_IS_PROHIBITED =
+constr SUGGEST_CUT_ARGS_SIZE = "уменьшить количество аргументов";
+constr SUGGEST_CHANGE_ARG_TYPE_SIZE = "изменить размер типа";
+constr ARR_AS_A_FUN_ARG_IS_PROHIBITED =
 	"Массивы запрещены для передачи в аргументы функции напрямую, надо "
 	"использовать указатель.";
-const char *const STRUCT_AS_A_FUN_ARG_IS_PROHIBITED =
+constr STRUCT_AS_A_FUN_ARG_IS_PROHIBITED =
 	"Лики запрещены для передачи в аргументы функции напрямую.";
-const char *const SUGGEST_CHANGE_TYPE_TO_A_PTR = "изменить тип на указатель";
-const char *const GLOBAL_STRUCTS_NAMES_OVERLAP =
-	"Лик с таким именем уже существует.";
-const char *const SUGGEST_RENAME_STRUCT = "переименовать лик";
-const char *const EXPECTED_COLO_OR_DIV_IN_ARG =
+constr SUGGEST_CHANGE_TYPE_TO_A_PTR = "изменить тип на указатель";
+constr GLOBAL_STRUCTS_NAMES_OVERLAP = "Лик с таким именем уже существует.";
+constr SUGGEST_RENAME_STRUCT = "переименовать лик";
+constr EXPECTED_COLO_OR_DIV_IN_ARG =
 	"В данном месте аргумента ожидалось ':' или '/'.";
 
 struct Arg *new_arg() {

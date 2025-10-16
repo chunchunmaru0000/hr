@@ -7,9 +7,9 @@
 		blist_clear_free((snd));                                               \
 	} while (0)
 
-extern const char *const STRUCT_NAME_WASNT_FOUND;
+extern constr STRUCT_NAME_WASNT_FOUND;
 extern uc NEED_WARN;
-void pw(struct Token *t, const char *const msg, const char *const sgst);
+void pw(struct Token *t, constr msg, constr sgst);
 void etei_with_extra(struct ErrorInfo *info);
 #define MAX_ARGS_ON_REGISTERS 7
 
@@ -19,42 +19,42 @@ void etei_with_extra(struct ErrorInfo *info);
 #define DCLR_STRUCT_MEMS 2
 #define DCLR_STRUCT_ARGS 3
 
-extern const char *const EXPECTED__STR;
-extern const char *const EXPECTED__PAR_L;
-extern const char *const EXPECTED__PAR_R;
-extern const char *const EXPECTED__PAR_C_L;
-extern const char *const EXPECTED__PAR_C_R;
-extern const char *const EXPECTED__EQU;
-extern const char *const EXPECTED__COLO;
-extern const char *const EXPECTED__ID;
-extern const char *const EXPECTED__INT;
-extern const char *const EXPECTED__FPN;
-extern const char *const EXPECTED__COMMA;
-extern const char *const EXPECTED__SH_L;
+extern constr EXPECTED__STR;
+extern constr EXPECTED__PAR_L;
+extern constr EXPECTED__PAR_R;
+extern constr EXPECTED__PAR_C_L;
+extern constr EXPECTED__PAR_C_R;
+extern constr EXPECTED__EQU;
+extern constr EXPECTED__COLO;
+extern constr EXPECTED__ID;
+extern constr EXPECTED__INT;
+extern constr EXPECTED__FPN;
+extern constr EXPECTED__COMMA;
+extern constr EXPECTED__SH_L;
 
-extern const char *const SUGGEST__STR;
-extern const char *const SUGGEST__PAR_L;
-extern const char *const SUGGEST__PAR_R;
-extern const char *const SUGGEST__PAR_C_L;
-extern const char *const SUGGEST__PAR_C_R;
-extern const char *const SUGGEST__EQU;
-extern const char *const SUGGEST__COLO;
-extern const char *const SUGGEST__ID;
-extern const char *const SUGGEST__INT;
-extern const char *const SUGGEST__FPN;
-extern const char *const SUGGEST__COMMA;
-extern const char *const SUGGEST__SH_L;
+extern constr SUGGEST__STR;
+extern constr SUGGEST__PAR_L;
+extern constr SUGGEST__PAR_R;
+extern constr SUGGEST__PAR_C_L;
+extern constr SUGGEST__PAR_C_R;
+extern constr SUGGEST__EQU;
+extern constr SUGGEST__COLO;
+extern constr SUGGEST__ID;
+extern constr SUGGEST__INT;
+extern constr SUGGEST__FPN;
+extern constr SUGGEST__COMMA;
+extern constr SUGGEST__SH_L;
 
-extern const char *const ERR_WRONG_TOKEN;
+extern constr ERR_WRONG_TOKEN;
 
-extern const char *const STR_LET;
-extern const char *const STR_ASM;
-extern const char *const STR_GOTO;
-extern const char *const STR_LOOP;
+extern constr STR_LET;
+extern constr STR_ASM;
+extern constr STR_GOTO;
+extern constr STR_LOOP;
 
-extern const char *const STR_AS;
-extern const char *const STR_SIZE_OF;
-extern const char *const STR_SIZE_OF_VAL;
+extern constr STR_AS;
+extern constr STR_SIZE_OF;
+extern constr STR_SIZE_OF_VAL;
 
 struct Pser {
 	struct Fpfc *f;
@@ -375,7 +375,7 @@ void check_list_of_args_on_name(struct PList *l, uint32_t from_arg,
 void check_list_of_vars_on_name(struct Pser *p, struct Token *name_to_check);
 long unsafe_size_of_global_value(struct GlobExpr *e);
 
-void eei(struct Inst *, const char *const msg, const char *const sgst);
+void eei(struct Inst *, constr msg, constr sgst);
 
 #define is_int_type(t)                                                         \
 	((t)->code == TC_INT8 || (t)->code == TC_INT16 || (t)->code == TC_INT32 || \
@@ -467,9 +467,6 @@ enum LE_Code {
 	LE_AFTER_CALL,
 	LE_AFTER_FIELD_OF_PTR,
 	LE_AFTER_FIELD,
-	// ->
-	// -@
-	// |>
 };
 
 struct LocalExpr {

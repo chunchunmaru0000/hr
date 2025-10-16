@@ -5,10 +5,10 @@
 // 						BELOW IS SENTENCE CALL TRY
 // ####################################################################
 
-const char *const EXPECTED_COMMA_AFTER_SENT_WITH_END_ON_ARG =
+constr EXPECTED_COMMA_AFTER_SENT_WITH_END_ON_ARG =
 	"Если буки кончаются на аргумент, то при вызове таких бук после последнего "
 	"аргумента должна стоять запятая, чтобы ограничивать данный аргумент.";
-const char *const EXPECTED_ARG_CLOSE =
+constr EXPECTED_ARG_CLOSE =
 	"Встречен конец файла во время поиска конца аргумента.";
 
 int cmp_sent_word(struct SentenceWord *w, struct Token *token) {
@@ -189,11 +189,11 @@ int try_apply_sentence(struct Prep *pr, struct NodeToken **cur) {
 // 						BELOW IS SENTENCE PARSE
 // ####################################################################
 
-const char *const EXPECTED_SENT_START_SH_L =
+constr EXPECTED_SENT_START_SH_L =
 	"Ожидались скобки '(#' для начала объявления бук.";
-const char *const EXPECTED_SENT_BODY_SH_L =
+constr EXPECTED_SENT_BODY_SH_L =
 	"Ожидались скобки '(#' для начала объявления тела бук.";
-const char *const EXPECTED_SHARP_AS_CLOSING_ARG =
+constr EXPECTED_SHARP_AS_CLOSING_ARG =
 	"Ожидался символ '#' для закрытия аргумета бук, например: слово #арг# "
 	"слово.";
 /*
@@ -317,11 +317,10 @@ struct Nodes *parse_body(struct NodeToken **start) {
 
 void debug_sent(struct Sentence *sent);
 void assert_sent(struct Sentence *sent, struct NodeToken *name);
-const char *const SENTENCE_CANT_HAVE_LESS_THAN_2_WORDS =
+constr SENTENCE_CANT_HAVE_LESS_THAN_2_WORDS =
 	"Буки не могут иметь в себе менее двух слов, не считая аргументы.";
-const char *const SENTENCE_CANT_START_WITH_ARG =
-	"Буки не могут начинаться с аргумента.";
-const char *const TWO_ARGS_NEED_TO_BE_SEPARATED =
+constr SENTENCE_CANT_START_WITH_ARG = "Буки не могут начинаться с аргумента.";
+constr TWO_ARGS_NEED_TO_BE_SEPARATED =
 	"Два аргумента в буках должны разделяться хотя бы одним словом, так как "
 	"слова являются разграничителями аргументов.";
 

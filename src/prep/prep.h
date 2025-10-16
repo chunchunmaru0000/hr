@@ -8,12 +8,12 @@
 		item = plist_get(items, (count));
 #define foreach_end }
 
-extern const char *const WASNT_EXPECTING_EOF;
-extern const char *const WAS_EXPECTING_PREP_INST_WORD;
-extern const char *const EXPCEPTED_PAR_L_OR_SH_L;
-extern const char *const EXPECTED_ID_AS_MACRO_ARG;
-extern const char *const EXPECTED_ID_AS_MACRO_NAME;
-extern const char *const CANT_HAVE_EMPTY_ARG_YET;
+extern constr WASNT_EXPECTING_EOF;
+extern constr WAS_EXPECTING_PREP_INST_WORD;
+extern constr EXPCEPTED_PAR_L_OR_SH_L;
+extern constr EXPECTED_ID_AS_MACRO_ARG;
+extern constr EXPECTED_ID_AS_MACRO_NAME;
+extern constr CANT_HAVE_EMPTY_ARG_YET;
 
 struct NodeToken {
 	struct Token *token; // value
@@ -81,7 +81,7 @@ struct NodeToken *take_guaranteed_next(struct NodeToken *n);
 #define tgn take_guaranteed_next
 struct NodeToken *next_of_line(struct NodeToken *e, struct NodeToken *n);
 struct NodeToken *nol_with_err(struct NodeToken *e, struct NodeToken *n,
-							   const char *const err);
+							   constr err);
 struct NodeToken *try_apply(struct Prep *pr, struct NodeToken *c);
 #define next_applyed(pr, c) (try_apply((pr), take_guaranteed_next((c))))
 struct Nodes *parse_body(struct NodeToken **start);

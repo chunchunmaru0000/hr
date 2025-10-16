@@ -1,11 +1,11 @@
 #include "../pser.h"
 
-const char *const UNKNOWN_OPERATION = "Неизвестная операция.";
-const char *const INVALID_OPERANDS_TYPES_FOR_THIS_OP =
+constr UNKNOWN_OPERATION = "Неизвестная операция.";
+constr INVALID_OPERANDS_TYPES_FOR_THIS_OP =
 	"Неверные типы поерандов для данной операции.";
-const char *const CANT_MUL_STR_ON_VALUE_LESS_THAN_ZERO =
+constr CANT_MUL_STR_ON_VALUE_LESS_THAN_ZERO =
 	"Строки можно умножать только на целые числа, что больше минус единицы.";
-const char *const DIV_ON_ZERO = "Деление на ноль запрещено.";
+constr DIV_ON_ZERO = "Деление на ноль запрещено.";
 
 // ###########################################################################################
 #define int_fun(word, op) 															 		\

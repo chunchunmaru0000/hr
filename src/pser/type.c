@@ -1,19 +1,19 @@
 #include "pser.h"
 
-const char *const ERR_WRONG_TOKEN_NUM_PAR_C_R =
+constr ERR_WRONG_TOKEN_NUM_PAR_C_R =
 	"Ожидалось целое число или скобка ']'.";
-const char *const WRONG_ARR_SIZE =
+constr WRONG_ARR_SIZE =
 	"Размера массива не может быть меньше -1, -1 значит любой размер.";
-const char *const FUN_TYPE_END_OF_FILE =
+constr FUN_TYPE_END_OF_FILE =
 	"Скобки типа функции не были закрыты и был достигнут конец файла.";
-const char *const NOT_A_TYPE_WORD = "Ожидалось слово типа.";
-const char *const FUN_ZERO_ARGS = "Тип функции не может иметь 0 аргументов.";
-const char *const AMPER_WORKS_ONLY_ON_STRUCTS =
+constr NOT_A_TYPE_WORD = "Ожидалось слово типа.";
+constr FUN_ZERO_ARGS = "Тип функции не может иметь 0 аргументов.";
+constr AMPER_WORKS_ONLY_ON_STRUCTS =
 	"Знак '&' применим только к типу указателя на структуру, например: '&лик "
 	"Чето'.";
-const char *const STRUCT_NAME_WASNT_FOUND =
+constr STRUCT_NAME_WASNT_FOUND =
 	"Имя лика не было найдено в уже объявленных.";
-const char *const SUGGEST_ADD_ARGS = "добавить аргументов";
+constr SUGGEST_ADD_ARGS = "добавить аргументов";
 
 const struct TypeWord TYPE_WORDS[] = {
 	{"ч8", TC_INT8, 3},	   {"ц8", TC_UINT8, 3},	  {"ч16", TC_INT16, 4},
@@ -255,9 +255,9 @@ void free_type(struct TypeExpr *type) {
 	free(type);
 }
 
-const char *const STR_STR_TW = "стр";
-const char *const STR_STRUCT_TW = "лик";
-const char *const STR_ENUM_TW = "счет";
+constr STR_STR_TW = "стр";
+constr STR_STRUCT_TW = "лик";
+constr STR_ENUM_TW = "счет";
 
 struct TypeExpr *new_type_expr(enum TypeCode code) {
 	struct TypeExpr *texpr = malloc(sizeof(struct TypeExpr));

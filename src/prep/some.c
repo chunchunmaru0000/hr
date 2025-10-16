@@ -5,7 +5,8 @@
 //					BELOW IS PREP STRINGIFY
 // #################################################################
 
-const char *const EXPECTED_CLOSING_SH_QR = "Встречсен конец файла во время поиска закрывающего '\"#'";
+constr EXPECTED_CLOSING_SH_QR =
+	"Встречсен конец файла во время поиска закрывающего '\"#'";
 
 struct NodeToken *sh_string(struct NodeToken *c) {
 	struct NodeToken *fst = c, *snd = take_guaranteed_next(c), *lst;
@@ -47,9 +48,9 @@ struct NodeToken *sh_string(struct NodeToken *c) {
 //					BELOW IS PREP TOKENS ADD
 // #################################################################
 
-const char *const TOO_MUCH_TOKENS =
+constr TOO_MUCH_TOKENS =
 	"В результате сложения токенов может быть только один токен.";
-const char *const WAS_TOKENS = "токенов было ";
+constr WAS_TOKENS = "токенов было ";
 
 // 	if (t0->code == STR && t1->code == STR) {
 // 		t0->view->size--;
