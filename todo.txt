@@ -37,20 +37,19 @@ source code comments in assembly, need to get the last token of an instruction a
 when i will have defns as a dictionary then i can do maybe #undef
 
 #######################################################################################
-# 								PIPELINE
+# 								OPTIMIZATIONS
 #######################################################################################
-pipeline operator with tuple expressions, tuples are just bunch of args, its just some
-abstract value, not like struct or array
-() |> f
-(a,) |> f
-(a, b) |> f
+Constant folding
+Constant propagation like for local variable have bool where if its not changed from
+	last constant value then it can take it
+not gonna do Dead code elimination cuz useless in 'implicit language'
+Register allocation with как рег expression, u need to alloc reristers urlesf
 
-value |> f
-
-or just with single value
-
-f a, b,
-a, |> f
+#######################################################################################
+# 								AS IN LOOP
+#######################################################################################
+как register expression in loop defenition
+для с как рсх от 0 до 10 ( ... )
 
 #######################################################################################
 # 			INLINE MACRO OR ANONIMOUS FUNS
