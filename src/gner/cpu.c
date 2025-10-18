@@ -98,6 +98,8 @@ char *const STR_XMM15 = "э15";
                                                                                \
 		family_reg->reg_code = R_##rcn;                                        \
 		family_reg->allocated = 0;                                             \
+		family_reg->is_value_active = 0;                                       \
+		family_reg->active_value = 0;                                          \
 	} while (0)
 #define new_default_family(reg_family, rcn)                                    \
 	do {                                                                       \

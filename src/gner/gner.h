@@ -7,6 +7,9 @@ struct Reg {
 	enum RegCode reg_code;
 	uc size;
 	uc allocated;
+
+	uc is_value_active;
+	long active_value;
 };
 
 struct RegisterFamily {
