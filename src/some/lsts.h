@@ -2,6 +2,11 @@
 #include <stdlib.h>
 
 #define uc unsigned char
+#define u8 unsigned char
+#define u16 unsigned short
+#define u32 unsigned int
+#define u64 unsigned long
+
 #define constr const char *const
 #define BYTE 1
 #define WORD 2

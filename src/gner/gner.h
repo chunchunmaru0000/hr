@@ -1,6 +1,36 @@
 #include "../prep/prep.h"
-#include "cpu.h"
+#include "regs.h"
 #include <stdint.h>
+
+struct Reg {
+	struct BList *name;
+	enum RegCode reg_code;
+	uc size;
+	uc allocated;
+};
+
+struct RegisterFamily {
+	struct Reg *l; // 8 bit Lower
+	struct Reg *h; // 8 bit High
+	struct Reg *x; // 16 bit
+	struct Reg *e; // 32 bit Extended
+	struct Reg *r; // 64 bit
+};
+
+struct CPU {
+	struct RegisterFamily *a;
+	struct RegisterFamily *c;
+	struct RegisterFamily *d;
+	struct RegisterFamily *b;
+	struct RegisterFamily *sp;
+	struct RegisterFamily *bp;
+	struct RegisterFamily *si;
+	struct RegisterFamily *di;
+	struct RegisterFamily *rex[8];
+	struct Reg *xmm[16];
+};
+
+struct CPU *new_cpu();
 
 struct Fggs {
 	uc is_stack_used;
@@ -37,6 +67,7 @@ struct Gner {
 
 	uint32_t pos;
 	struct Inst *current_inst;
+	struct CPU *cpu;
 
 	uint32_t indent_level;
 	long stack_counter;
