@@ -17,6 +17,13 @@ sa(LEAVE, "выйти\n");
 sa(RET, "возд\n");
 sa(ZERO_TERMINATOR, " 0\n");
 
+struct Register {
+	const char *const name;
+	unsigned char len;
+	enum RegCode reg_code;
+	int size;
+};
+
 const struct Register regs[] = {
 	{"р8", 3, R_R8, QWORD},	  {"р9", 3, R_R9, QWORD},
 	{"р10", 3, R_R10, QWORD}, {"р11", 3, R_R11, QWORD},

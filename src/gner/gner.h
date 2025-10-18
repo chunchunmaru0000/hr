@@ -1,5 +1,5 @@
 #include "../prep/prep.h"
-#include "../some/regs.h"
+#include "cpu.h"
 #include <stdint.h>
 
 struct Fggs {
