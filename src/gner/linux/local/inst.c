@@ -1,7 +1,7 @@
 #include "../../gner.h"
 #include <stdio.h>
 
-void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in);
+void put_vars_on_the_stack(struct Gner *g, struct Inst *in);
 
 constr CHANGE_VAR_NAME_OR_DELETE_VAR = "изменить имя переменной или удалить ее";
 constr CHANGE_LABEL_NAME_OR_DELETE_LABEL = "изменить имя метки или удалить ее";
@@ -10,7 +10,7 @@ constr REDEFINING_OF_LOCAL_LABEL = "Переопределение локаль�
 
 sa(JMP, "идти ");
 
-void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
+void gen_local_linux(struct Gner *g, struct Inst *in) {
 	struct Token *tok, *name, *str;
 	struct BList *string;
 	uint32_t i = 0;
@@ -27,7 +27,7 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		// ### os explanation
 		// ... - Arg's
 
-		put_vars_on_the_stack_Асм_Linux_64(g, in);
+		put_vars_on_the_stack(g, in);
 		break;
 	case IP_DECLARE_LABEL:
 		// ### os explanation
@@ -73,7 +73,7 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		g->indent_level++;
 
 		for (i = 0; i < in->os->size; i++)
-			gen_local_Асм_Linux_64(g, plist_get(in->os, i));
+			gen_local_linux(g, plist_get(in->os, i));
 
 		iprint_fun_text(SA_JMP);
 		blat_blist(g->fun_text, string);
@@ -83,7 +83,7 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 		blist_clear_free(string);
 		break;
 	case IP_LOCAL_EXPRESSION:
-		gen_local_expression_Асм_linux_x64(g, in);
+		gen_local_expression_linux(g, in);
 		break;
 	case IP_NONE:
 	default:
@@ -91,7 +91,7 @@ void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in) {
 	}
 }
 
-void put_vars_on_the_stack_Асм_Linux_64(struct Gner *g, struct Inst *in) {
+void put_vars_on_the_stack(struct Gner *g, struct Inst *in) {
 	uint32_t i, j, vars;
 	struct Arg *arg;
 	struct LocalVar *var, *tmp_var;

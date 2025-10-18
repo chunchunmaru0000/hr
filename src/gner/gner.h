@@ -91,6 +91,7 @@ sae(JMP);
 sae(ZERO_TERMINATOR);
 sae(STR_XOR_EAX_EAX);
 
+sae(LABEL_END);
 sae(LET_8);
 sae(LET_16);
 sae(LET_32);
@@ -185,10 +186,10 @@ void indent_line(struct Gner *g, struct BList *l);
 	} while (0);
 
 void write_fun(struct Gner *g);
-void gen_Асм_Linux_64_text(struct Gner *);
+void gen_linux_text(struct Gner *);
 
-void gen_local_Асм_Linux_64(struct Gner *g, struct Inst *in);
-struct BList *gen_glob_expr_Асм_Linux_64(struct Gner *g, struct GlobExpr *e);
+void gen_local_linux(struct Gner *g, struct Inst *in);
+struct BList *gen_glob_expr_linux(struct Gner *g, struct GlobExpr *e);
 
 struct LocalVar {
 	struct Token *name;
@@ -202,4 +203,4 @@ struct LocalVar *new_local_var(struct Token *, struct Arg *, long);
 void free_and_clear_local_vars(struct Gner *g);
 struct BList *take_label(struct Gner *g, enum L_Code label_code);
 
-void gen_local_expression_Асм_linux_x64(struct Gner *g, struct Inst *in);
+void gen_local_expression_linux(struct Gner *g, struct Inst *in);
