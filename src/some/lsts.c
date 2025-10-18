@@ -89,7 +89,7 @@ struct BList *new_blist(uint32_t cap_pace) {
 	return l;
 }
 
-struct BList *blist_from_str(char *str, uint32_t str_len) {
+struct BList *blist_from_str(char *str, u32 str_len) {
 	struct BList *l = malloc(sizeof(struct BList));
 	// 	l->cap_pace = str_len + 1;
 	// 	l->cap = str_len + 1;
@@ -103,6 +103,20 @@ struct BList *blist_from_str(char *str, uint32_t str_len) {
 	l->size = str_len;
 	l->cap = str_len;
 	l->st = (uc *)str;
+	return l;
+}
+
+struct BList *copy_blist_from_str(char *str) {
+	struct BList *l;
+	u32 str_len = strlen(str);
+	char *str_view = malloc(str_len + 1);
+
+	str_view[str_len] = 0;
+	strncpy(str_view, str, str_len);
+
+	l = blist_from_str(str_view, str_len + 1);
+	l->size--;
+
 	return l;
 }
 

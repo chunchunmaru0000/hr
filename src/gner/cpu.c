@@ -87,15 +87,7 @@ char *const STR_XMM15 = "э15";
 #define new_family_reg(family_reg, rcn, rsn, reg_size)                         \
 	do {                                                                       \
 		family_reg = malloc(sizeof(struct Reg));                               \
-                                                                               \
-		str_len = strlen(rsn);                                                 \
-		str_view = malloc(str_len + 1);                                        \
-		str_view[str_len] = 0;                                                 \
-		strncpy(str_view, rsn, str_len);                                       \
-		family_reg->name = blist_from_str(str_view, str_len + 1);              \
-		family_reg->name->size--;                                              \
-		convert_blist_to_blist_from_str(family_reg->name);                     \
-                                                                               \
+		family_reg->name = copy_blist_from_str(rsn);                           \
 		family_reg->reg_code = R_##rcn;                                        \
 		family_reg->allocated = 0;                                             \
 		family_reg->is_value_active = 0;                                       \
@@ -135,9 +127,6 @@ char *const STR_XMM15 = "э15";
 	} while (0)
 
 struct CPU *new_cpu() {
-	u32 str_len;
-	char *str_view;
-
 	struct CPU *cpu = malloc(sizeof(struct CPU));
 
 	new_default_family(a, A);
