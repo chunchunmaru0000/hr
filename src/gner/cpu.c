@@ -82,16 +82,21 @@ char *const STR_XMM13 = "э13";
 char *const STR_XMM14 = "э14";
 char *const STR_XMM15 = "э15";
 
+#define free_reg_family(rf)                                                    \
+	do {                                                                       \
+		(rf)->allocated = 0;                                                   \
+		(rf)->is_value_active = 0;                                             \
+	} while (0)
 // rcn - regster capital name
 // rsn - regster string name
 #define new_family_reg(family_reg, rcn, rsn, reg_size)                         \
 	do {                                                                       \
-		family_reg = malloc(sizeof(struct Reg));                               \
-		family_reg->name = copy_blist_from_str(rsn);                           \
-		family_reg->reg_code = R_##rcn;                                        \
-		family_reg->allocated = 0;                                             \
-		family_reg->is_value_active = 0;                                       \
-		family_reg->active_value = 0;                                          \
+		(family_reg) = malloc(sizeof(struct Reg));                             \
+		(family_reg)->name = copy_blist_from_str((rsn));                       \
+		(family_reg)->reg_code = R_##rcn;                                      \
+		(family_reg)->allocated = 0;                                           \
+		(family_reg)->is_value_active = 0;                                     \
+		(family_reg)->active_value = 0;                                        \
 	} while (0)
 #define new_default_family(reg_family, rcn)                                    \
 	do {                                                                       \
@@ -113,12 +118,12 @@ char *const STR_XMM15 = "э15";
 	} while (0)
 #define new_extended_family(num)                                               \
 	do {                                                                       \
-		cpu->rex[num] = malloc(sizeof(struct RegisterFamily));                 \
-		new_family_reg(cpu->rex[num]->l, R##num##B, STR_R##num##B, BYTE);      \
-		cpu->rex[num]->h = 0;                                                  \
-		new_family_reg(cpu->rex[num]->x, R##num##W, STR_R##num##W, WORD);      \
-		new_family_reg(cpu->rex[num]->e, R##num##D, STR_R##num##D, DWORD);     \
-		new_family_reg(cpu->rex[num]->r, R##num, STR_R##num, QWORD);           \
+		cpu->rex[num - 8] = malloc(sizeof(struct RegisterFamily));             \
+		new_family_reg(cpu->rex[num - 8]->l, R##num##B, STR_R##num##B, BYTE);  \
+		cpu->rex[num - 8]->h = 0;                                              \
+		new_family_reg(cpu->rex[num - 8]->x, R##num##W, STR_R##num##W, WORD);  \
+		new_family_reg(cpu->rex[num - 8]->e, R##num##D, STR_R##num##D, DWORD); \
+		new_family_reg(cpu->rex[num - 8]->r, R##num, STR_R##num, QWORD);       \
 	} while (0)
 #define new_xmm_reg(num)                                                       \
 	do {                                                                       \
@@ -145,6 +150,7 @@ struct CPU *new_cpu() {
 	new_extended_family(13);
 	new_extended_family(14);
 	new_extended_family(15);
+	new_xmm_reg(0);
 	new_xmm_reg(1);
 	new_xmm_reg(2);
 	new_xmm_reg(3);
@@ -161,4 +167,26 @@ struct CPU *new_cpu() {
 	new_xmm_reg(14);
 	new_xmm_reg(15);
 	return cpu;
+}
+
+void free_reg(struct RegisterFamily *reg) {
+	free_reg_family(reg->r);
+	free_reg_family(reg->e);
+	free_reg_family(reg->x);
+	if (reg->h)
+		free_reg_family(reg->h);
+	if (reg->l)
+		free_reg_family(reg->l);
+}
+
+void free_all_regs(struct CPU *cpu) {
+	struct RegisterFamily **regs;
+	struct Reg **xmm_regs;
+	u32 i;
+
+	for (i = 0, regs = (struct RegisterFamily **)cpu; i < 16; i++, regs++)
+		free_reg(*regs);
+
+	for (i = 0, xmm_regs = (struct Reg **)regs; i < 16; i++, xmm_regs++)
+		free_reg_family(*xmm_regs);
 }

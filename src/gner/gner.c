@@ -8,6 +8,7 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 
 	g->is = pse(p);
 	g->cpu = new_cpu();
+	free_all_regs(g->cpu);
 	g->indent_level = 0;
 	g->pos = 0;
 	g->stack_counter = 0;
