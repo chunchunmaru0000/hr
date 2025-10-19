@@ -82,10 +82,10 @@ char *const STR_XMM13 = "э13";
 char *const STR_XMM14 = "э14";
 char *const STR_XMM15 = "э15";
 
-#define free_reg_family(rf)                                                    \
+#define free_reg(reg)                                                          \
 	do {                                                                       \
-		(rf)->allocated = 0;                                                   \
-		(rf)->is_value_active = 0;                                             \
+		(reg)->allocated = 0;                                                  \
+		(reg)->is_value_active = 0;                                            \
 	} while (0)
 // rcn - regster capital name
 // rsn - regster string name
@@ -94,8 +94,7 @@ char *const STR_XMM15 = "э15";
 		(family_reg) = malloc(sizeof(struct Reg));                             \
 		(family_reg)->name = copy_blist_from_str((rsn));                       \
 		(family_reg)->reg_code = R_##rcn;                                      \
-		(family_reg)->allocated = 0;                                           \
-		(family_reg)->is_value_active = 0;                                     \
+		free_reg(family_reg);                                                  \
 		(family_reg)->active_value = 0;                                        \
 	} while (0)
 #define new_default_family(reg_family, rcn)                                    \
@@ -169,24 +168,32 @@ struct CPU *new_cpu() {
 	return cpu;
 }
 
-void free_reg(struct RegisterFamily *reg) {
-	free_reg_family(reg->r);
-	free_reg_family(reg->e);
-	free_reg_family(reg->x);
-	if (reg->h)
-		free_reg_family(reg->h);
-	if (reg->l)
-		free_reg_family(reg->l);
+void free_reg_family(struct RegisterFamily *rf) {
+	free_reg(rf->r);
+	free_reg(rf->e);
+	free_reg(rf->x);
+	if (rf->h)
+		free_reg(rf->h);
+	if (rf->l)
+		free_reg(rf->l);
 }
 
+#define as_rfs(cpu) ((struct RegisterFamily **)(cpu))
+
 void free_all_regs(struct CPU *cpu) {
-	struct RegisterFamily **regs;
+	struct RegisterFamily **rfs;
 	struct Reg **xmm_regs;
 	u32 i;
 
-	for (i = 0, regs = (struct RegisterFamily **)cpu; i < 16; i++, regs++)
-		free_reg(*regs);
+	for (i = 0, rfs = as_rfs(cpu); i < 16; i++, rfs++)
+		free_reg_family(*rfs);
 
-	for (i = 0, xmm_regs = (struct Reg **)regs; i < 16; i++, xmm_regs++)
-		free_reg_family(*xmm_regs);
+	for (i = 0, xmm_regs = (struct Reg **)rfs; i < 16; i++, xmm_regs++)
+		free_reg(*xmm_regs);
+}
+
+struct Reg *try_borrow_basic_reg(struct CPU *cpu) {
+	struct RegisterFamily **rfs = as_rfs(cpu);
+
+	return 0;
 }
