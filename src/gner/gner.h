@@ -37,6 +37,9 @@ struct CPU *new_cpu();
 void free_all_regs(struct CPU *cpu);
 void free_reg(struct RegisterFamily *reg);
 
+struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size);
+void set_value_to_reg(struct Reg *reg, long value);
+
 struct Fggs {
 	uc is_stack_used;
 	uc is_rbx_used;

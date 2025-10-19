@@ -82,6 +82,17 @@ char *const STR_XMM13 = "э13";
 char *const STR_XMM14 = "э14";
 char *const STR_XMM15 = "э15";
 
+int sizeof_reg(enum RegCode code) {
+	if (code >= R_AL && code <= R_R15B)
+		return BYTE;
+	if (code >= R_AX && code <= R_R15W)
+		return WORD;
+	if (code >= R_EAX && code <= R_R15D)
+		return DWORD;
+	if (code >= R_RAX && code <= R_R15)
+		return QWORD;
+	exit(95);
+}
 #define free_reg(reg)                                                          \
 	do {                                                                       \
 		(reg)->allocated = 0;                                                  \
@@ -94,6 +105,7 @@ char *const STR_XMM15 = "э15";
 		(family_reg) = malloc(sizeof(struct Reg));                             \
 		(family_reg)->name = copy_blist_from_str((rsn));                       \
 		(family_reg)->reg_code = R_##rcn;                                      \
+		(family_reg)->size = sizeof_reg(R_##rcn);                              \
 		free_reg(family_reg);                                                  \
 		(family_reg)->active_value = 0;                                        \
 	} while (0)
@@ -179,6 +191,7 @@ void free_reg_family(struct RegisterFamily *rf) {
 }
 
 #define as_rfs(cpu) ((struct RegisterFamily **)(cpu))
+#define r_code(reg) ((reg)->r->reg_code)
 
 void free_all_regs(struct CPU *cpu) {
 	struct RegisterFamily **rfs;
@@ -192,8 +205,42 @@ void free_all_regs(struct CPU *cpu) {
 		free_reg(*xmm_regs);
 }
 
-struct Reg *try_borrow_basic_reg(struct CPU *cpu) {
+struct Reg *try_borrow_basic_reg(struct CPU *cpu, uc of_size) {
 	struct RegisterFamily **rfs = as_rfs(cpu);
+	struct RegisterFamily *rf;
+	u32 i;
+
+	for (i = 0, rfs = as_rfs(cpu); i < 16; i++, rfs++) {
+		rf = *rfs;
+		if (r_code(rf) == R_RBX || r_code(rf) == R_R12)
+			continue;
+
+		if (of_size == BYTE) {
+			if (rf->l && rf->l->size == of_size)
+				return rf->l;
+			if (rf->h && rf->h->size == of_size)
+				return rf->h;
+		} else if (of_size == WORD && rf->x->size == of_size)
+			return rf->x;
+		else if (of_size == DWORD && rf->e->size == of_size)
+			return rf->e;
+		else if (of_size == QWORD && rf->r->size == of_size)
+			return rf->r;
+	}
 
 	return 0;
+}
+
+struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size) {
+	struct Reg *reg = try_borrow_basic_reg(cpu, of_size);
+	if (reg == 0)
+		return 0;
+	reg->allocated = 1;
+	reg->is_value_active = 0;
+	return reg;
+}
+
+void set_value_to_reg(struct Reg *reg, long value) {
+	reg->is_value_active = 1;
+	reg->active_value = value;
 }
