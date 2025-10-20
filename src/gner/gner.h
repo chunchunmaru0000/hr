@@ -38,6 +38,7 @@ void free_all_regs(struct CPU *cpu);
 void free_reg(struct RegisterFamily *reg);
 
 struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size);
+struct Reg *try_borrow_reg(struct Token *place, struct CPU *cpu, uc of_size);
 void set_value_to_reg(struct Reg *reg, long value);
 
 struct Fggs {
@@ -243,3 +244,4 @@ void free_and_clear_local_vars(struct Gner *g);
 struct BList *take_label(struct Gner *g, enum L_Code label_code);
 
 void gen_local_expression_linux(struct Gner *g, struct Inst *in);
+uc get_assignee_size(struct Gner *g, struct LocalExpr *e);

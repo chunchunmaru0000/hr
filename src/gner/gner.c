@@ -8,7 +8,6 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 
 	g->is = pse(p);
 	g->cpu = new_cpu();
-	free_all_regs(g->cpu);
 	g->indent_level = 0;
 	g->pos = 0;
 	g->stack_counter = 0;
@@ -95,4 +94,14 @@ void write_fun(struct Gner *g) {
 void indent_line(struct Gner *g, struct BList *l) {
 	for (uint32_t i = g->indent_level; i; i--)
 		blist_add(l, '\t');
+}
+
+constr TOO_COMPLEX_EXPR = "Не хватило регистров для вычисления выражения.";
+constr MAKE_SIMPLER_EXPR = "разделить выражение на несколько";
+
+struct Reg *try_borrow_reg(struct Token *place, struct CPU *cpu, uc of_size) {
+	struct Reg *reg = borrow_basic_reg(cpu, of_size);
+	if (reg == 0)
+		eet(place, TOO_COMPLEX_EXPR, MAKE_SIMPLER_EXPR);
+	return reg;
 }

@@ -383,7 +383,7 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 	struct PList *args;
 	struct Arg *arg;
 	struct GlobVar *var, *tmp_var;
-	void *global_expr;
+	struct GlobExpr *global_expr;
 	uint32_t i = p->pos, j;
 
 	consume(p); // skip пусть
@@ -406,7 +406,7 @@ enum IP_Code inst_pser_global_let(struct Pser *p, struct PList *os) {
 
 		var->name = plist_get(arg->names, i);
 		var->type = arg->type;
-		var->gvar_size = arg->arg_size;
+		var->gvar_size = size_of_type(p, global_expr->type);
 		get_global_signature(var);
 		var->value = global_expr;
 		var->value_label = 0;
