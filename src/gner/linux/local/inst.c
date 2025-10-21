@@ -21,7 +21,7 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		//   _ - assembly string token
 
 		str = plist_get(in->os, 0);
-		blat_blist(g->fun_text, str->str);
+		blat_fun_text(str->str);
 		break;
 	case IP_LET:
 		// ### os explanation
@@ -44,8 +44,8 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		plist_add(g->local_labels, name);
 
 		indent_line(g, g->fun_text);
-		blat_blist(g->fun_text, g->current_function->signature);
-		blat_blist(g->fun_text, name->view);
+		blat_fun_text(g->current_function->signature);
+		blat_fun_text(name->view);
 		fun_text_add(':');
 		fun_text_add('\n');
 		break;
@@ -56,8 +56,8 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		name = plist_get(in->os, 0);
 
 		iprint_fun_text(SA_JMP);
-		blat_blist(g->fun_text, g->current_function->signature);
-		blat_blist(g->fun_text, name->view);
+		blat_fun_text(g->current_function->signature);
+		blat_fun_text(name->view);
 		fun_text_add('\n');
 		break;
 	case IP_LOOP:
@@ -66,7 +66,7 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 
 		string = take_label(g, LC_LOOP);
 		indent_line(g, g->fun_text);
-		blat_blist(g->fun_text, string);
+		blat_fun_text(string);
 		fun_text_add(':');
 		fun_text_add('\n');
 
@@ -76,7 +76,7 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 			gen_local_linux(g, plist_get(in->os, i));
 
 		iprint_fun_text(SA_JMP);
-		blat_blist(g->fun_text, string);
+		blat_fun_text(string);
 		fun_text_add('\n');
 
 		g->indent_level--;
@@ -116,8 +116,8 @@ void put_vars_on_the_stack(struct Gner *g, struct Inst *in) {
 
 			plist_add(g->local_vars, var);
 
-			iprint_fun_text(SA_EQU);				  // вот
-			blat_blist(g->fun_text, var->name->view); // name
+			iprint_fun_text(SA_EQU);		// вот
+			blat_fun_text(var->name->view); // name
 			fun_text_add(' ');
 			int_add(g->fun_text, g->stack_counter);
 

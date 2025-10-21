@@ -78,7 +78,7 @@ void gen_linux_text(struct Gner *g) {
 			//   _ - assembly string token
 
 			tok = plist_get(in->os, 0);
-			blat_blist(g->text, tok->str);
+			blat_text(tok->str);
 			break;
 		case IP_DECLARE_ENUM:
 			// ### os explanation:
@@ -88,7 +88,7 @@ void gen_linux_text(struct Gner *g) {
 			for (j = 1; j < in->os->size; j++) {
 				defn = plist_get(in->os, j);
 				iprint_bprol(SA_EQU); // вот
-				blat_blist(g->bprol, defn->view);
+				blat_bprol(defn->view);
 				bprol_add('\t');
 				int_add(g->bprol, (long)defn->value);
 				bprol_add('\n');
@@ -130,8 +130,8 @@ void gen_linux_text(struct Gner *g) {
 			// begin stack frame
 			global_var = plist_get(in->os, 0);
 
-			blat_blist(g->fun_prol, global_var->signature); // fun label
-			blat_str_fun_prol(SA_LABEL_END);				// :
+			blat_fun_prol(global_var->signature); // fun label
+			blat_str_fun_prol(SA_LABEL_END);	  // :
 			g->indent_level++;
 			iprint_fun_prol(SA_PUSH_RBP);
 			iprint_fun_prol(SA_MOV_RBP_RSP);
@@ -165,7 +165,7 @@ void gen_linux_text(struct Gner *g) {
 			for (j = 0; j < in->os->size; j++) {
 				global_var = plist_get(in->os, j);
 
-				blat_blist(g->prol, global_var->signature);
+				blat_prol(global_var->signature);
 				blat_str_prol(SA_LABEL_END); // :
 			}
 
@@ -193,10 +193,10 @@ void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {
 	for (uint32_t i = 0; i < arg->names->size; i++) {
 		iprint_bprol(SA_EQU);
 
-		blat_blist(g->bprol, strct->view);
+		blat_bprol(strct->view);
 		name = plist_get(arg->names, i);
 		bprol_add('.');
-		blat_blist(g->bprol, name->view);
+		blat_bprol(name->view);
 
 		bprol_add('\t');
 		int_add(g->bprol, arg->offset);
@@ -240,8 +240,8 @@ uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in) {
 				new_local_var(plist_get(arg->names, j), arg, g->stack_counter);
 			plist_add(g->local_vars, var);
 
-			iprint_fun_prol(SA_EQU);				  // вот
-			blat_blist(g->fun_prol, var->name->view); // name
+			iprint_fun_prol(SA_EQU);		// вот
+			blat_fun_prol(var->name->view); // name
 			fun_prol_add(' ');
 			int_add(g->fun_prol, g->stack_counter);
 			blat_str_fun_prol(SA_START_COMMENT); // \t;
@@ -252,7 +252,7 @@ uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in) {
 		if (arg->offset != last_offset) {
 			// быть (рсп - g->tmp_blist) register
 			iprint_fun_prol(SA_MOV_MEM_RBP_OPEN);
-			blat_blist(g->fun_prol, var->name->view); // name
+			blat_fun_prol(var->name->view); // name
 			fun_prol_add(')');
 			fun_prol_add(' ');
 

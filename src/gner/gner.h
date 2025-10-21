@@ -152,6 +152,8 @@ void indent_line(struct Gner *g, struct BList *l);
 		blat_str_gen(str);                                                     \
 	} while (0)
 #define print_gen(str) (blat_str_gen(str))
+#define gen_add(byte) (blist_add(generated, (byte)))
+#define blat_gen(list) (blat_blist(generated, (list)))
 // #############################################################################
 #define blat_str_bprol(str) (blat(g->bprol, (uc *)(str), (str##_LEN - 1)))
 #define iprint_bprol(str)                                                      \
@@ -160,6 +162,8 @@ void indent_line(struct Gner *g, struct BList *l);
 		blat_str_bprol(str);                                                   \
 	} while (0)
 #define print_bprol(str) (blat_str_bprol(str))
+#define bprol_add(byte) (blist_add(g->bprol, (byte)))
+#define blat_bprol(list) (blat_blist(g->bprol, (list)))
 // #############################################################################
 #define blat_str_prol(str) (blat(g->prol, (uc *)(str), (str##_LEN - 1)))
 #define iprint_prol(str)                                                       \
@@ -168,6 +172,8 @@ void indent_line(struct Gner *g, struct BList *l);
 		blat_str_prol(str);                                                    \
 	} while (0)
 #define print_prol(str) (blat_str_prol(str))
+#define prol_add(byte) (blist_add(g->prol, (byte)))
+#define blat_prol(list) (blat_blist(g->prol, (list)))
 // #############################################################################
 #define blat_str_aprol(str) (blat(g->aprol, (uc *)(str), (str##_LEN - 1)))
 #define iprint_aprol(str)                                                      \
@@ -176,6 +182,8 @@ void indent_line(struct Gner *g, struct BList *l);
 		blat_str_aprol(str);                                                   \
 	} while (0)
 #define print_aprol(str) (blat_str_aprol(str))
+#define aprol_add(byte) (blist_add(g->aprol, (byte)))
+#define blat_aprol(list) (blat_blist(g->aprol, (list)))
 // #############################################################################
 #define blat_str_text(str) (blat(g->text, (uc *)(str), (str##_LEN - 1)))
 #define iprint_text(str)                                                       \
@@ -184,6 +192,8 @@ void indent_line(struct Gner *g, struct BList *l);
 		blat_str_text(str);                                                    \
 	} while (0)
 #define print_text(str) (blat_str_text(str))
+#define text_add(byte) (blist_add(g->text, (byte)))
+#define blat_text(list) (blat_blist(g->text, (list)))
 // #############################################################################
 #define blat_str_fun_prol(str) (blat(g->fun_prol, (uc *)(str), (str##_LEN - 1)))
 #define iprint_fun_prol(str)                                                   \
@@ -192,6 +202,8 @@ void indent_line(struct Gner *g, struct BList *l);
 		blat_str_fun_prol(str);                                                \
 	} while (0)
 #define print_fun_prol(str) (blat_str_fun_prol(str))
+#define fun_prol_add(byte) (blist_add(g->fun_prol, (byte)))
+#define blat_fun_prol(list) (blat_blist(g->fun_prol, (list)))
 // #############################################################################
 #define blat_str_fun_text(str) (blat(g->fun_text, (uc *)(str), (str##_LEN - 1)))
 #define iprint_fun_text(str)                                                   \
@@ -200,16 +212,9 @@ void indent_line(struct Gner *g, struct BList *l);
 		blat_str_fun_text(str);                                                \
 	} while (0)
 #define print_fun_text(str) (blat_str_fun_text(str))
-// #############################################################################
-
-#define bprol_add(byte) (blist_add(g->bprol, (byte)))
-#define prol_add(byte) (blist_add(g->prol, (byte)))
-#define aprol_add(byte) (blist_add(g->aprol, (byte)))
-#define text_add(byte) (blist_add(g->text, (byte)))
-#define gen_add(byte) (blist_add(generated, (byte)))
-
-#define fun_prol_add(byte) (blist_add(g->fun_prol, (byte)))
 #define fun_text_add(byte) (blist_add(g->fun_text, (byte)))
+#define blat_fun_text(list) (blat_blist(g->fun_text, (list)))
+// #############################################################################
 
 #define int_add(list, value)                                                   \
 	do {                                                                       \

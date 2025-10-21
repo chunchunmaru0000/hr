@@ -188,12 +188,12 @@ struct BList *lay_down_str_ptr(struct Gner *g, struct GlobExpr *e) {
 		blat_blist(generated, ptr);
 		gen_add('\n');
 
-		blat_blist(g->aprol, ptr);
+		blat_aprol(ptr);
 		print_aprol(SA_LABEL_END); // :
 
 		aprol_add('\t');
 		print_aprol(SA_LET_8);
-		blat_blist(g->aprol, e->tvar->view);
+		blat_aprol(e->tvar->view);
 		print_aprol(SA_ZERO_TERMINATOR);
 
 	} else if (e->from) {

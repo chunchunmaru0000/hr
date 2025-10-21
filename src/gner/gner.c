@@ -84,8 +84,8 @@ void free_and_clear_local_vars(struct Gner *g) {
 }
 
 void write_fun(struct Gner *g) {
-	blat_blist(g->text, g->fun_prol);
-	blat_blist(g->text, g->fun_text);
+	blat_text(g->fun_prol);
+	blat_text(g->fun_text);
 
 	blist_clear(g->fun_prol);
 	blist_clear(g->fun_text);
