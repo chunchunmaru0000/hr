@@ -26,6 +26,6 @@ uc get_assignee_size(struct Gner *g, struct LocalExpr *e) {
 	if (e->code == LE_PRIMARY_VAR)
 		return get_var_size(g, e);
 
-	eet(e->tvar, "эээээээээ", "");
+//	eet(e->tvar, "эээээээээ", 0);
 	return 0;
 }

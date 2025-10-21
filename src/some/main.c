@@ -3,6 +3,8 @@
 
 uc NEED_WARN = 1;
 
+#define g_write(name) (fwrite(g->name->st, 1, g->name->size, file))
+
 int main() {
 	char *filename = "тест.ср";
 	char *outname = "тест.асм";
@@ -18,10 +20,10 @@ int main() {
 	long bytes =
 		g->bprol->size + g->prol->size + g->aprol->size + g->text->size;
 	FILE *file = fopen(outname, "wb");
-	fwrite(g->bprol->st, 1, g->bprol->size, file);
-	fwrite(g->prol->st, 1, g->prol->size, file);
-	fwrite(g->aprol->st, 1, g->aprol->size, file);
-	fwrite(g->text->st, 1, g->text->size, file);
+	g_write(bprol);
+	g_write(prol);
+	g_write(aprol);
+	g_write(text);
 	fclose(file);
 
 	printf("В файл [%s] записано %ld байт", outname, bytes);
