@@ -138,6 +138,11 @@ sae(LET_32);
 sae(LET_64);
 sae(REZERV_ZERO);
 
+sae(BYTE);
+sae(WORD);
+sae(DWORD);
+sae(QWORD);
+
 void indent_line(struct Gner *g, struct BList *l);
 // #############################################################################
 #define blat_str_gen(str) (blat(generated, (uc *)(str), (str##_LEN - 1)))

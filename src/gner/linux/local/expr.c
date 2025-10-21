@@ -2,6 +2,25 @@
 #include <stdio.h>
 
 sa(STR_XOR_EAX_EAX, "искл еах еах");
+sa(MOV, "быть ");
+sa(PAR_RBP, "(рбп ");
+sa(R_PAR, ") ");
+sa(BYTE, "байт ");
+sa(WORD, "дбайт ");
+sa(DWORD, "чбайт ");
+sa(QWORD, "вбайт ");
+
+struct BList *size_str(uc size) {
+	if (size == BYTE)
+		return copy_blist_from_str((char *)SA_BYTE);
+	if (size == WORD)
+		return copy_blist_from_str((char *)SA_WORD);
+	if (size == DWORD)
+		return copy_blist_from_str((char *)SA_DWORD);
+	if (size == QWORD)
+		return copy_blist_from_str((char *)SA_QWORD);
+	exit(127);
+}
 
 void gen_int(struct Gner *g, struct LocalExpr *e) {
 	long num = e->tvar->num;
@@ -85,16 +104,28 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 	struct Reg *rax, *reg;
 
 	printf("### GEN assignee INFO: assignee->code == %d\n", assignee->code);
-	printf("### GEN assignable INFO: assignable->code == %d\n", assignable->code);
-
-	if (assignee->code == LE_BIN_ASSIGN) {
-		assignable = plist_get(assignee->ops, 0);
-		printf("\t### GEN assignee INFO: assignee->l->code == %d\n", assignee->code);
-		assignable = plist_get(assignee->ops, 1);
-		printf("\t### GEN assignable INFO: assignee->r->code == %d\n", assignable->code);
-	}
+	printf("### GEN assignable INFO: assignable->code == %d\n",
+		   assignable->code);
 
 	uc assignee_size = get_assignee_size(g, assignee);
+
+	if (assignee->code == LE_BIN_ASSIGN) {
+	} else if (assignee->code == LE_PRIMARY_VAR) {
+		if (assignable->code == LE_PRIMARY_INT) {
+			iprint_fun_text(SA_MOV);						  // быть
+			blat_blist(g->fun_text, size_str(assignee_size)); // *байт
+			print_fun_text(SA_PAR_RBP);						  // (рбп
+			blat_blist(g->fun_text, assignee->tvar->view);	  // перем
+			blat_str_fun_text(SA_R_PAR);					  // )
+			int_add(g->fun_text, assignable->tvar->num);	  // число
+			blat_str_fun_text(SA_START_COMMENT);			  // ;
+			hex_int_add(g->fun_text, assignable->tvar->num);  // х число
+			fun_text_add('\n');								  // \n
+		} else if (assignable->code == LE_PRIMARY_REAL) {
+		} else {
+		}
+	}
+
 	// rax = try_borrow_reg(e->tvar, g->cpu, QWORD);
 	//  reg = try_borrow_reg(e->tvar, g->cpu, );
 	//   if (assignable->code == LE_BIN_ASSIGN) {
