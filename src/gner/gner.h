@@ -228,6 +228,11 @@ void indent_line(struct Gner *g, struct BList *l);
 		blat_blist((list), g->tmp_blist);                                      \
 		blist_clear_free(g->tmp_blist);                                        \
 	} while (0);
+#define add_int_with_hex_comm(list, num)                                       \
+	int_add(g->list, (num));                                                   \
+	blat_str_##list(SA_START_COMMENT);                                         \
+	hex_int_add(g->list, (num));                                               \
+	list##_add('\n');
 #define real_add(list, value)                                                  \
 	do {                                                                       \
 		g->tmp_blist = real_to_str((value));                                   \

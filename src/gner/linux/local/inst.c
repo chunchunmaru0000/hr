@@ -119,12 +119,7 @@ void put_vars_on_the_stack(struct Gner *g, struct Inst *in) {
 			iprint_fun_text(SA_EQU);		// вот
 			blat_fun_text(var->name->view); // name
 			fun_text_add(' ');
-			int_add(g->fun_text, g->stack_counter);
-
-			blat_str_fun_text(SA_START_COMMENT);
-			hex_int_add(g->fun_text, g->stack_counter);
-
-			fun_text_add('\n');
+			add_int_with_hex_comm(fun_text, g->stack_counter);
 		}
 
 		last_offset = arg->offset;

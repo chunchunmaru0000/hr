@@ -111,17 +111,22 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 
 	if (assignee->code == LE_BIN_ASSIGN) {
 	} else if (assignee->code == LE_PRIMARY_VAR) {
-		if (assignable->code == LE_PRIMARY_INT) {
-			iprint_fun_text(SA_MOV);						 // быть
-			blat_fun_text(size_str(assignee_size));			 // *байт
-			print_fun_text(SA_PAR_RBP);						 // (рбп
-			blat_fun_text(assignee->tvar->view);			 // перем
-			blat_str_fun_text(SA_R_PAR);					 // )
-			int_add(g->fun_text, assignable->tvar->num);	 // число
-			blat_str_fun_text(SA_START_COMMENT);			 // ;
-			hex_int_add(g->fun_text, assignable->tvar->num); // х число
-			fun_text_add('\n');								 // \n
-		} else if (assignable->code == LE_PRIMARY_REAL) {
+		if (assignable->code == LE_PRIMARY_INT ||
+			assignable->code == LE_PRIMARY_REAL) {
+
+			iprint_fun_text(SA_MOV);				// быть
+			blat_fun_text(size_str(assignee_size)); // *байт
+			print_fun_text(SA_PAR_RBP);				// (рбп
+			blat_fun_text(assignee->tvar->view);	// перем
+			blat_str_fun_text(SA_R_PAR);			// )
+			if (assignable->code == LE_PRIMARY_INT) {
+				add_int_with_hex_comm(fun_text, assignable->tvar->num);
+			} else {
+				// TODO: need to convert to int
+				real_add(g->fun_text, assignable->tvar->real); // число
+				fun_text_add('\n');							   // \n
+			}
+
 		} else {
 		}
 	}

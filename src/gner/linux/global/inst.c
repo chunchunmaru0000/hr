@@ -199,11 +199,7 @@ void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {
 		blat_bprol(name->view);
 
 		bprol_add('\t');
-		int_add(g->bprol, arg->offset);
-		blat_str_bprol(SA_START_COMMENT);
-		hex_int_add(g->bprol, arg->offset);
-
-		bprol_add('\n');
+		add_int_with_hex_comm(bprol, arg->offset);
 	}
 }
 
@@ -243,10 +239,7 @@ uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in) {
 			iprint_fun_prol(SA_EQU);		// вот
 			blat_fun_prol(var->name->view); // name
 			fun_prol_add(' ');
-			int_add(g->fun_prol, g->stack_counter);
-			blat_str_fun_prol(SA_START_COMMENT); // \t;
-			hex_int_add(g->fun_prol, g->stack_counter);
-			fun_prol_add('\n');
+			add_int_with_hex_comm(fun_prol, g->stack_counter);
 		}
 
 		if (arg->offset != last_offset) {
