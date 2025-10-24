@@ -3,6 +3,7 @@
 
 sa(STR_XOR_EAX_EAX, "искл еах еах");
 sa(MOV, "быть ");
+sa(L_PAR, "(");
 sa(PAR_RBP, "(рбп ");
 sa(R_PAR, ") ");
 sa(BYTE, "байт ");
@@ -118,16 +119,23 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 
 	if (assignee->code == LE_BIN_ASSIGN) {
 	} else if (assignee->code == LE_PRIMARY_VAR) {
+		// compare_type_and_expr(assignee_type, e);
+
 		if (assignable->code == LE_PRIMARY_INT ||
 			assignable->code == LE_PRIMARY_REAL) {
 
-			compare_type_and_local_expr(assignee_type, e);
-
 			iprint_fun_text(SA_MOV);				// быть
 			blat_fun_text(size_str(assignee_size)); // *байт
-			print_fun_text(SA_PAR_RBP);				// (рбп
-			blat_fun_text(assignee->tvar->view);	// перем
-			blat_str_fun_text(SA_R_PAR);			// )
+
+			if (lvar) {
+				print_fun_text(SA_PAR_RBP);			 // (рбп
+				blat_fun_text(assignee->tvar->view); // перем
+				blat_str_fun_text(SA_R_PAR);		 // )
+			} else {								 // gvar
+				blat_str_fun_text(SA_L_PAR);		 // (
+				blat_fun_text(gvar->signature);		 // сигнатура
+				blat_str_fun_text(SA_R_PAR);		 // )
+			}
 
 			if (assignable->code == LE_PRIMARY_INT) {
 				add_int_with_hex_comm(fun_text, assignable->tvar->num);
@@ -136,7 +144,6 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 				real_add(g->fun_text, assignable->tvar->real); // число
 				fun_text_add('\n');							   // \n
 			}
-
 		} else {
 		}
 	}

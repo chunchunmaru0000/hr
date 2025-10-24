@@ -261,3 +261,4 @@ struct BList *take_label(struct Gner *g, enum L_Code label_code);
 void gen_local_expression_linux(struct Gner *g, struct Inst *in);
 uc get_assignee_size(struct Gner *g, struct LocalExpr *e, struct GlobVar **gvar,
 					 struct LocalVar **lvar);
+void compare_type_and_expr(struct TypeExpr *type, struct LocalExpr *e);
