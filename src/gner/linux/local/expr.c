@@ -101,24 +101,34 @@ void gen_var(struct Gner *g, struct LocalExpr *e) {}
 void gen_assign(struct Gner *g, struct LocalExpr *e) {
 	struct LocalExpr *assignee = plist_get(e->ops, 0);
 	struct LocalExpr *assignable = plist_get(e->ops, 1);
-	struct Reg *rax, *reg;
+
+	struct GlobVar *gvar = 0;
+	struct LocalVar *lvar = 0;
+	struct TypeExpr *assignee_type = 0;
 
 	printf("### GEN assignee INFO: assignee->code == %d\n", assignee->code);
 	printf("### GEN assignable INFO: assignable->code == %d\n",
 		   assignable->code);
 
-	uc assignee_size = get_assignee_size(g, assignee);
+	uc assignee_size = get_assignee_size(g, assignee, &gvar, &lvar);
+	if (gvar)
+		assignee_type = gvar->type;
+	else if (lvar)
+		assignee_type = lvar->type;
 
 	if (assignee->code == LE_BIN_ASSIGN) {
 	} else if (assignee->code == LE_PRIMARY_VAR) {
 		if (assignable->code == LE_PRIMARY_INT ||
 			assignable->code == LE_PRIMARY_REAL) {
 
+			compare_type_and_local_expr(assignee_type, e);
+
 			iprint_fun_text(SA_MOV);				// быть
 			blat_fun_text(size_str(assignee_size)); // *байт
 			print_fun_text(SA_PAR_RBP);				// (рбп
 			blat_fun_text(assignee->tvar->view);	// перем
 			blat_str_fun_text(SA_R_PAR);			// )
+
 			if (assignable->code == LE_PRIMARY_INT) {
 				add_int_with_hex_comm(fun_text, assignable->tvar->num);
 			} else {

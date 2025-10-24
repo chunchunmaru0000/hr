@@ -382,6 +382,11 @@ void eei(struct Inst *, constr msg, constr sgst);
 	 (t)->code == TC_INT64 || (t)->code == TC_VOID || (t)->code == TC_ENUM ||  \
 	 (t)->code == TC_UINT8 || (t)->code == TC_UINT16 ||                        \
 	 (t)->code == TC_UINT32 || (t)->code == TC_UINT64)
+#define is_num_int_type(t)                                                     \
+	((t)->code == TC_INT8 || (t)->code == TC_INT16 || (t)->code == TC_INT32 || \
+	 (t)->code == TC_INT64 || (t)->code == TC_ENUM || (t)->code == TC_UINT8 || \
+	 (t)->code == TC_UINT16 || (t)->code == TC_UINT32 ||                       \
+	 (t)->code == TC_UINT64)
 #define is_real_type(t) ((t)->code == TC_DOUBLE || (t)->code == TC_FLOAT)
 
 void check_global_type_compatibility(struct Pser *p, struct TypeExpr *type,
