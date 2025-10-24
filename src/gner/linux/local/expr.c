@@ -84,15 +84,20 @@ void (*gen_expressions[])(struct Gner *g, struct LocalExpr *e) = {
 };
 
 void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
-	struct LocalExpr *e = plist_get(in->os, 0);
+	struct LocalExpr *e;
+	u32 i;
 
-	if (gen_expressions[e->code] == 0) {
-		printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
-		return;
+	for (i = 0; i < in->os->size; i++) {
+		e = plist_get(in->os, 0);
+
+		if (gen_expressions[e->code] == 0) {
+			printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
+			return;
+		}
+
+		free_all_regs(g->cpu);
+		gen_expressions[e->code](g, e);
 	}
-
-	free_all_regs(g->cpu);
-	gen_expressions[e->code](g, e);
 }
 
 void gen_real(struct Gner *g, struct LocalExpr *e) {}
