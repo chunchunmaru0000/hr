@@ -119,7 +119,7 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 
 	if (assignee->code == LE_BIN_ASSIGN) {
 	} else if (assignee->code == LE_PRIMARY_VAR) {
-		// compare_type_and_expr(assignee_type, e);
+		compare_type_and_expr(assignee_type, assignable);
 
 		if (assignable->code == LE_PRIMARY_INT ||
 			assignable->code == LE_PRIMARY_REAL) {
@@ -140,7 +140,6 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 			if (assignable->code == LE_PRIMARY_INT) {
 				add_int_with_hex_comm(fun_text, assignable->tvar->num);
 			} else {
-				// TODO: need to convert to int
 				real_add(g->fun_text, assignable->tvar->real); // число
 				fun_text_add('\n');							   // \n
 			}
