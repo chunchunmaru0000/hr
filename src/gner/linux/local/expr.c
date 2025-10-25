@@ -60,6 +60,7 @@ void (*gen_expressions[])(struct Gner *g, struct LocalExpr *e) = {
 	0,			// 	LE_BIN_MUL,
 	0,			// 	LE_BIN_DIV,
 	0,			// 	LE_BIN_MOD,
+	0,			// 	LE_BIN_WHOLE_DIV,
 	0,			// 	LE_BIN_PLUS,
 	0,			// 	LE_BIN_MINUS,
 	0,			// 	LE_BIN_SHL,

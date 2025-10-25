@@ -168,6 +168,27 @@ ret:
 }
 
 // ###########################################################################################
+// whole div
+int_fun(whole_div, /);
+struct GlobExpr *glob_whole_div_two_reals(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num = l->tvar->real;
+	r->tvar->num = r->tvar->real;
+	l->tvar->num /= r->tvar->num;
+	l->code = CT_INT;
+	return l;
+}
+struct GlobExpr *glob_whole_div_real_and_int(struct GlobExpr *l, struct GlobExpr *r) {
+	l->tvar->num = l->tvar->real;
+	l->tvar->num /= r->tvar->num;
+	l->code = CT_INT;
+	return l;
+}
+struct GlobExpr *glob_whole_div_int_and_real(struct GlobExpr *l, struct GlobExpr *r) {
+	r->tvar->num = r->tvar->real;
+	l->tvar->num /= r->tvar->num;
+	return l;
+}
+// ###########################################################################################
 num_fun(add, +)
 num_fun(sub, -)
 num_fun(mul, *)
@@ -265,6 +286,7 @@ struct GlobExpr *global_bin(struct Pser *p, struct GlobExpr *l,
 	else only_nums(LESSE, lesse)
 	else only_nums(MOREE, moree)
 	else only_ints(MOD, mod)
+	else only_nums(WHOLE_DIV, whole_div)
 	else only_ints(AMPER, bit_and)
 	else only_ints(BIT_XOR, bit_xor)
 	else only_ints(BIT_OR, bit_or)

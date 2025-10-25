@@ -48,6 +48,7 @@ const struct LEtoT lets[] = {
 	leto(MUL),
 	leto(DIV),
 	leto(MOD),
+	leto(WHOLE_DIV),
 	leto(PLUS),
 	leto(MINUS),
 	leto(SHL),
@@ -174,7 +175,7 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 struct LocalExpr *unary_l_expression(struct Pser *p) {
 	return after_l_expression(p);
 }
-bf(mulng_l_expression, unary_l_expression, ops3(MUL, DIV, MOD));
+bf(mulng_l_expression, unary_l_expression, ops4(MUL, DIV, MOD, WHOLE_DIV));
 bf(addng_l_expression, mulng_l_expression, ops2(PLUS, MINUS));
 bf(shtng_l_expression, addng_l_expression, ops2(SHL, SHR));
 bf(mlsng_l_expression, shtng_l_expression, ops4(LESS, LESSE, MORE, MOREE));

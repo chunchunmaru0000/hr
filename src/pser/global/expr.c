@@ -358,7 +358,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 #define bf(name, next, ops)                                                    \
 	struct GlobExpr *name(struct Pser *p) { binop(next, ops); }
 
-bf(mulng_g_expression, unary_g_expression, ops3(MUL, DIV, MOD));
+bf(mulng_g_expression, unary_g_expression, ops4(MUL, DIV, MOD, WHOLE_DIV));
 bf(addng_g_expression, mulng_g_expression, ops2(PLUS, MINUS));
 bf(shtng_g_expression, addng_g_expression, ops2(SHL, SHR));
 bf(mlsng_g_expression, shtng_g_expression, ops4(LESS, LESSE, MORE, MOREE));

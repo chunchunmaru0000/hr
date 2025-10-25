@@ -326,6 +326,8 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 	case '/':
 		if (n == '=')
 			vn2("/=", DIVE);
+		else if (n == ':')
+			vn2("/:", WHOLE_DIV);
 		else if (n == '/')
 			vn2("//", SEP);
 		else

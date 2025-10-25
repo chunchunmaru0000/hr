@@ -81,6 +81,7 @@ enum TCode {
 	EQUEE,	  // ===
 	NEQUE,	  // !==
 
+	WHOLE_DIV,	  // /:
 	FIELD_ARROW,  // ->
 	SOBAKA_ARROW, // -@
 	PIPE_LINE,	  // |>
