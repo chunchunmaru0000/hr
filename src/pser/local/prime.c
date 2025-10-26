@@ -8,21 +8,40 @@
 
 struct LocalExpr *prime_l_expression(struct Pser *p) {
 	struct Token *c = pser_cur(p);
+	enum TCode ccode = c->code;
 
-	struct LocalExpr *e = new_local_expr(LE_NONE, 0, c);
+	struct LocalExpr *e = new_local_expr(LE_NONE, 0, c), *tmp_e;
 
-	if (c->code == INT)
+	if (ccode == INT)
 		set_e_code_and_absorb(LE_PRIMARY_INT);
-	else if (c->code == REAL)
+	else if (ccode == REAL)
 		set_e_code_and_absorb(LE_PRIMARY_REAL);
-	else if (c->code == STR)
+	else if (ccode == STR)
 		set_e_code_and_absorb(LE_PRIMARY_STR);
-	else if (c->code == ID)
+	else if (ccode == ID)
 		set_e_code_and_absorb(LE_PRIMARY_VAR);
-	else if (c->code == PAR_L) {
+	else if (ccode == PAR_L) {
 		absorb(p);
-		free(e);
-		e = local_expression(p);
+		tmp_e = local_expression(p);
+		c = pser_cur(p);
+
+		if (c->code == COMMA) {
+			e->code = LE_PRIMARY_TUPLE;
+			e->co.ops = new_plist(2);
+			plist_add(e->co.ops, tmp_e);
+
+			for (; c->code == COMMA; c = pser_cur(p)) {
+				c = absorb(p);
+				if (c->code == PAR_R)
+					break;
+				tmp_e = local_expression(p);
+				plist_add(e->co.ops, tmp_e);
+			}
+		} else {
+			free(e);
+			e = tmp_e;
+		}
+
 		match(pser_cur(p), PAR_R);
 	} else
 		eet(c, "эээ че за выражение", 0);
