@@ -479,16 +479,23 @@ enum LE_Code {
 #define is_REAL_le(e) ((e)->code <= LE_PRIMARY_REAL)
 #define is_num_le(e) (is_INT_le((e)) || is_REAL_le((e)))
 
-struct LocalExpr {
-	enum LE_Code code;
-	struct TypeExpr *type;
-
-	struct Token *tvar;
+union CondOps {
+	struct LocalExpr *cond;
 	struct PList *ops; // list of LocalExpr's or defined by code
 };
 
+struct LocalExpr {
+	enum LE_Code code;
+	struct TypeExpr *type;
+	struct Token *tvar;
+
+	struct LocalExpr *l;
+	struct LocalExpr *r;
+	union CondOps co;
+};
+
 struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
-								 struct Token *tvar, uint32_t ops_size);
+								 struct Token *tvar);
 struct LocalExpr *local_bin(struct LocalExpr *l, struct LocalExpr *r,
 							struct Token *op);
 struct LocalExpr *after_l_expression(struct Pser *p);

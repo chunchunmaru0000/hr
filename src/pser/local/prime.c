@@ -9,7 +9,7 @@
 struct LocalExpr *prime_l_expression(struct Pser *p) {
 	struct Token *c = pser_cur(p);
 
-	struct LocalExpr *e = new_local_expr(LE_NONE, 0, c, 1);
+	struct LocalExpr *e = new_local_expr(LE_NONE, 0, c);
 
 	if (c->code == INT)
 		set_e_code_and_absorb(LE_PRIMARY_INT);

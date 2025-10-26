@@ -5,31 +5,32 @@ constr FIELD_NAME_CAN_BE_ONLY_ID =
 	"Поле по сути аргумент, а значит его имя может представлять лишь имя.";
 
 struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
-								 struct Token *tvar, uint32_t ops_size) {
+								 struct Token *tvar) {
 	struct LocalExpr *e = malloc(sizeof(struct LocalExpr));
 	e->code = le_code;
 	e->type = type;
 	e->tvar = tvar;
-	e->ops = new_plist(ops_size);
+	e->l = 0;
+	e->r = 0;
+	e->co.cond = 0;
 	return e;
 }
 
 struct LocalExpr *copy_local_expr(struct LocalExpr *e) {
 	uint32_t i;
-	struct LocalExpr *copy =
-		new_local_expr(e->code, e->type, e->tvar, e->ops->size);
+	struct LocalExpr *copy = new_local_expr(e->code, e->type, e->tvar);
 
 	if (e->code >= LE_BIN_MUL && e->code <= LE_BIN_PIPE_LINE) {
-		plist_add(copy->ops, copy_local_expr(plist_get(e->ops, 0)));
-		plist_add(copy->ops, copy_local_expr(plist_get(e->ops, 1)));
+		copy->l = copy_local_expr(e->l);
+		copy->r = copy_local_expr(e->r);
 		if (e->code == LE_BIN_TERRY)
-			plist_add(copy->ops, copy_local_expr(plist_get(e->ops, 2)));
+			copy->co.cond = copy_local_expr(e->co.cond);
 	} else if (e->code == LE_AFTER_CALL) {
-		for (i = 0; i < e->ops->size; i++)
-			plist_add(copy->ops, copy_local_expr(plist_get(e->ops, i)));
+		for (i = 0; i < e->co.ops->size; i++)
+			plist_add(copy->co.ops, copy_local_expr(plist_get(e->co.ops, i)));
 	} else if (e->code == LE_AFTER_FIELD_OF_PTR || e->code == LE_AFTER_FIELD) {
-		plist_add(copy->ops, copy_local_expr(plist_get(e->ops, 0)));
-		plist_add(copy->ops, plist_get(e->ops, 1));
+		copy->l = copy_local_expr(e->l);
+		copy->r = e->r;
 	}
 
 	return copy;
@@ -98,10 +99,9 @@ int find_let(struct LocalExpr *e, enum TCode op_code) {
 
 struct LocalExpr *local_bin(struct LocalExpr *l, struct LocalExpr *r,
 							struct Token *op) {
-	struct LocalExpr *e = new_local_expr(LE_NONE, 0, op, 2);
-
-	plist_add(e->ops, l);
-	plist_add(e->ops, r);
+	struct LocalExpr *e = new_local_expr(LE_NONE, 0, op);
+	e->l = l;
+	e->r = r;
 
 	if (!find_let(e, op->code))
 		eet(op, "че за op", 0);
@@ -142,21 +142,21 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 	struct Token *c = pser_cur(p);
 
 	if (ops2(FIELD_ARROW, SOBAKA_ARROW)) {
-		after = new_local_expr(ops1(FIELD_ARROW) ? LE_AFTER_FIELD_OF_PTR
-												 : LE_AFTER_FIELD,
-							   0, c, 2);
-		plist_add(after->ops, e);
+		after = new_local_expr(
+			ops1(FIELD_ARROW) ? LE_AFTER_FIELD_OF_PTR : LE_AFTER_FIELD, 0, c);
+		after->l = e;
 
 		if ((c = absorb(p))->code != ID)
 			eet(c, FIELD_NAME_CAN_BE_ONLY_ID, 0);
-		plist_add(after->ops, c);
+		after->r = (struct LocalExpr *)c;
 
 	} else if (ops1(PAR_L)) {
-		after = new_local_expr(LE_AFTER_CALL, 0, c, 2);
-		plist_add(after->ops, e);
+		after = new_local_expr(LE_AFTER_CALL, 0, c);
+		after->co.ops = new_plist(2);
+		plist_add(after->co.ops, e);
 
 		for (c = absorb(p); !ops2(PAR_R, EF);) {
-			plist_add(after->ops, local_expression(p));
+			plist_add(after->co.ops, local_expression(p));
 
 			c = pser_cur(p);
 			if (ops1(COMMA))
@@ -199,10 +199,10 @@ struct LocalExpr *trnry_l_expression(struct Pser *p) {
 		match(pser_cur(p), COLO);
 		false = local_expression(p);
 
-		trnry = new_local_expr(LE_BIN_TERRY, 0, c, 3);
-		plist_add(trnry->ops, e);
-		plist_add(trnry->ops, true);
-		plist_add(trnry->ops, false);
+		trnry = new_local_expr(LE_BIN_TERRY, 0, c);
+		trnry->co.cond = e;
+		trnry->l = true;
+		trnry->r = false;
 
 		e = trnry;
 	}
@@ -224,9 +224,9 @@ struct LocalExpr *asnge_l_expression(struct Pser *p) {
 		r = local_expression(p);
 		r = local_bin(copy_local_expr(l), r, c);
 
-		e = new_local_expr(LE_BIN_ASSIGN, 0, c, 2);
-		plist_add(e->ops, l);
-		plist_add(e->ops, r);
+		e = new_local_expr(LE_BIN_ASSIGN, 0, c);
+		e->l = l;
+		e->r = r;
 	}
 
 	return e;

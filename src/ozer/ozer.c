@@ -22,7 +22,7 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 	struct LocalExpr *l, *r, *cond;
 
 	if (is_bin_le(e) || e->code == LE_BIN_ASSIGN) {
-		l = plist_get(e->ops, 0), r = plist_get(e->ops, 1);
+		l = e->l, r = e->r;
 		opt_bin_constant_folding(l);
 		opt_bin_constant_folding(r);
 
@@ -53,8 +53,7 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 		}
 
 	} else if (e->code == LE_BIN_TERRY) {
-		cond = plist_get(e->ops, 0);
-		l = plist_get(e->ops, 1), r = plist_get(e->ops, 2);
+		cond = e->co.cond, l = e->l, r = e->r;
 
 		opt_bin_constant_folding(cond);
 		opt_bin_constant_folding(l);

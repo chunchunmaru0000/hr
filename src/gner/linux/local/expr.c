@@ -88,19 +88,19 @@ void print_le(struct LocalExpr *e, int with_n) {
 	if (is_bin_le(e) || e->code == LE_BIN_ASSIGN) {
 
 		printf("(");
-		print_le(plist_get(e->ops, 0), 0);
+		print_le(e->l, 0);
 		printf(" %s ", vs(e->tvar));
-		print_le(plist_get(e->ops, 1), 0);
+		print_le(e->r, 0);
 		printf(")");
 
 	} else if (e->code == LE_BIN_TERRY) {
 
 		printf("{");
-		print_le(plist_get(e->ops, 0), 0);
+		print_le(e->l, 0);
 		printf(" ? ");
-		print_le(plist_get(e->ops, 1), 0);
+		print_le(e->r, 0);
 		printf(" : ");
-		print_le(plist_get(e->ops, 2), 0);
+		print_le(e->co.cond, 0);
 		printf("}");
 
 	} else {
@@ -139,8 +139,8 @@ void gen_real(struct Gner *g, struct LocalExpr *e) {}
 void gen_var(struct Gner *g, struct LocalExpr *e) {}
 
 void gen_assign(struct Gner *g, struct LocalExpr *e) {
-	struct LocalExpr *assignee = plist_get(e->ops, 0);
-	struct LocalExpr *assignable = plist_get(e->ops, 1);
+	struct LocalExpr *assignee = e->l;
+	struct LocalExpr *assignable = e->r;
 
 	struct GlobVar *gvar = 0;
 	struct LocalVar *lvar = 0;
