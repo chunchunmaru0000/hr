@@ -35,8 +35,8 @@ struct NodeToken *sh_string(struct NodeToken *c) {
 	str_token->view->size--; // remove last ' '
 	str_token->str->size--;
 	blist_add(str_token->view, '"');
-	convert_blist_to_blist_from_str(str_token->view);
-	convert_blist_to_blist_from_str(str_token->str);
+	zero_term_blist(str_token->view);
+	zero_term_blist(str_token->str);
 
 	cut_off_inclusive(snd, lst);
 	replace_token(fst->token, str_token);

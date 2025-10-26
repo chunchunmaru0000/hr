@@ -239,7 +239,7 @@ enum TCode str_token(struct Tzer *t, struct Token *token) {
 	strncpy(str_view, t->code + start_pos, str_len);
 	token->view = blist_from_str(str_view, str_len);
 
-	convert_blist_to_blist_from_str(str_str);
+	zero_term_blist(str_str);
 	token->str = str_str;
 	blist_cut(str_str);
 

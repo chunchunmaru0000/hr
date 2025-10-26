@@ -345,8 +345,8 @@ void cmpt_str(struct PList *msgs, struct TypeExpr *type, struct GlobExpr *e) {
 			blist_add(e->tvar->str, 0);
 		}
 		blist_add(e->tvar->view, '"');
-		convert_blist_to_blist_from_str(e->tvar->view);
-		convert_blist_to_blist_from_str(e->tvar->str);
+		zero_term_blist(e->tvar->view);
+		zero_term_blist(e->tvar->str);
 	}
 
 valid_str_as_arr_size:

@@ -120,7 +120,7 @@ struct BList *copy_blist_from_str(char *str) {
 	return l;
 }
 
-void convert_blist_to_blist_from_str(struct BList *l) {
+void zero_term_blist(struct BList *l) {
 	blist_add(l, 0);
 	// l->cap_pace = 0;
 	l->size--;
@@ -206,7 +206,7 @@ void blist_add_set(struct BList *l, uc sz, long *value, size_t n) {
 struct BList *copy_str(struct BList *src) {
 	struct BList *dest = new_blist(32);
 	blat_blist(dest, src);
-	convert_blist_to_blist_from_str(dest);
+	zero_term_blist(dest);
 	return dest;
 }
 

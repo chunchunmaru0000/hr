@@ -38,10 +38,10 @@ struct GlobExpr *glob_add_two_strs(struct GlobExpr *l, struct GlobExpr *r) {
 	blat_blist(l->tvar->view, r->tvar->view); // copy
 	r->tvar->view->st--;					  // restore first " in r
 	r->tvar->view->size++;
-	convert_blist_to_blist_from_str(l->tvar->view);
+	zero_term_blist(l->tvar->view);
 
 	blat_blist(l->tvar->str, r->tvar->str);
-	convert_blist_to_blist_from_str(l->tvar->str);
+	zero_term_blist(l->tvar->str);
 	return l;
 }
 
@@ -52,7 +52,7 @@ struct GlobExpr *glob_add_int_and_str(struct GlobExpr *l, struct GlobExpr *r) {
 	blat_blist(str, num);
 	blat_blist(str, r->tvar->str);
 	l->tvar->str = str;
-	convert_blist_to_blist_from_str(l->tvar->str);
+	zero_term_blist(l->tvar->str);
 
 	str = new_blist(num->size + r->tvar->view->size + 1);
 	blist_add(str, '\"'); // add "
@@ -63,7 +63,7 @@ struct GlobExpr *glob_add_int_and_str(struct GlobExpr *l, struct GlobExpr *r) {
 	r->tvar->view->st--;
 	r->tvar->view->size++;
 	l->tvar->view = str;
-	convert_blist_to_blist_from_str(l->tvar->view);
+	zero_term_blist(l->tvar->view);
 
 	l->code = r->code; // str code
 
@@ -75,12 +75,12 @@ struct GlobExpr *glob_add_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 	struct BList *num = int_to_str(r->tvar->num);
 
 	blat_blist(l->tvar->str, num);
-	convert_blist_to_blist_from_str(l->tvar->str);
+	zero_term_blist(l->tvar->str);
 
 	l->tvar->view->size--; // remove last "
 	blat_blist(l->tvar->view, num);
 	blist_add(l->tvar->view, '"');
-	convert_blist_to_blist_from_str(l->tvar->view);
+	zero_term_blist(l->tvar->view);
 
 	blist_clear_free(num);
 	return l;
@@ -93,7 +93,7 @@ struct GlobExpr *glob_add_real_and_str(struct GlobExpr *l, struct GlobExpr *r) {
 	blat_blist(str, num);
 	blat_blist(str, r->tvar->str);
 	l->tvar->str = str;
-	convert_blist_to_blist_from_str(l->tvar->str);
+	zero_term_blist(l->tvar->str);
 
 	str = new_blist(num->size + r->tvar->view->size + 1);
 	blist_add(str, '\"'); // add "
@@ -104,7 +104,7 @@ struct GlobExpr *glob_add_real_and_str(struct GlobExpr *l, struct GlobExpr *r) {
 	r->tvar->view->st--;
 	r->tvar->view->size++;
 	l->tvar->view = str;
-	convert_blist_to_blist_from_str(l->tvar->view);
+	zero_term_blist(l->tvar->view);
 
 	l->code = r->code; // str code
 
@@ -116,12 +116,12 @@ struct GlobExpr *glob_add_str_and_real(struct GlobExpr *l, struct GlobExpr *r) {
 	struct BList *num = real_to_str(r->tvar->real);
 
 	blat_blist(l->tvar->str, num);
-	convert_blist_to_blist_from_str(l->tvar->str);
+	zero_term_blist(l->tvar->str);
 
 	l->tvar->view->size--; // remove last "
 	blat_blist(l->tvar->view, num);
 	blist_add(l->tvar->view, '"');
-	convert_blist_to_blist_from_str(l->tvar->view);
+	zero_term_blist(l->tvar->view);
 
 	blist_clear_free(num);
 	return l;
@@ -137,10 +137,10 @@ struct GlobExpr *glob_mul_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 		l->tvar->view = new_blist(3);
 		blist_add(l->tvar->view, '"');
 		blist_add(l->tvar->view, '"');
-		convert_blist_to_blist_from_str(l->tvar->view);
+		zero_term_blist(l->tvar->view);
 
 		l->tvar->str = new_blist(2);
-		convert_blist_to_blist_from_str(l->tvar->str);
+		zero_term_blist(l->tvar->str);
 		goto ret;
 	}
 	if (i == 1)
@@ -158,8 +158,8 @@ struct GlobExpr *glob_mul_str_and_int(struct GlobExpr *l, struct GlobExpr *r) {
 		blat_blist(l->tvar->str, str_once);
 	}
 	blist_add(l->tvar->view, '"');
-	convert_blist_to_blist_from_str(l->tvar->view);
-	convert_blist_to_blist_from_str(l->tvar->str);
+	zero_term_blist(l->tvar->view);
+	zero_term_blist(l->tvar->str);
 
 	blist_clear_free(view_once);
 	blist_clear_free(str_once);

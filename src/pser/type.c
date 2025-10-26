@@ -1,7 +1,6 @@
 #include "pser.h"
 
-constr ERR_WRONG_TOKEN_NUM_PAR_C_R =
-	"Ожидалось целое число или скобка ']'.";
+constr ERR_WRONG_TOKEN_NUM_PAR_C_R = "Ожидалось целое число или скобка ']'.";
 constr WRONG_ARR_SIZE =
 	"Размера массива не может быть меньше -1, -1 значит любой размер.";
 constr FUN_TYPE_END_OF_FILE =
@@ -11,8 +10,7 @@ constr FUN_ZERO_ARGS = "Тип функции не может иметь 0 ар�
 constr AMPER_WORKS_ONLY_ON_STRUCTS =
 	"Знак '&' применим только к типу указателя на структуру, например: '&лик "
 	"Чето'.";
-constr STRUCT_NAME_WASNT_FOUND =
-	"Имя лика не было найдено в уже объявленных.";
+constr STRUCT_NAME_WASNT_FOUND = "Имя лика не было найдено в уже объявленных.";
 constr SUGGEST_ADD_ARGS = "добавить аргументов";
 
 const struct TypeWord TYPE_WORDS[] = {
@@ -126,7 +124,7 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 		}
 	}
 
-	// need to do convert_blist_to_blist_from_str after
+	// need to do zero_term_blist after
 	// like in get_global_signature
 	return str;
 }
@@ -172,7 +170,7 @@ skip_add_args:
 	// end fun type part
 	blist_add(signature, '}');
 
-	convert_blist_to_blist_from_str(signature);
+	zero_term_blist(signature);
 	var->signature = signature;
 }
 
@@ -183,7 +181,7 @@ void get_global_signature(struct GlobVar *var) {
 	blist_add(var->signature, '_');
 	add_type_str_to_str(var->signature, var->type);
 
-	convert_blist_to_blist_from_str(var->signature);
+	zero_term_blist(var->signature);
 }
 
 int are_types_equal(struct TypeExpr *t1, struct TypeExpr *t2) {

@@ -52,7 +52,7 @@ enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
 		blist_add(defn->view, '.');				 // .
 		blat_blist(defn->view, c->view);		 // thing name
 
-		convert_blist_to_blist_from_str(defn->view);
+		zero_term_blist(defn->view);
 
 		// check here for identical names in enums items
 		for (i = 0; i < p->enums->size; i++) {

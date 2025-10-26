@@ -189,7 +189,7 @@ struct BList *take_label(struct Gner *g, enum L_Code label_code) {
 	blist_clear_free(num);
 
 	blist_cut(label);
-	convert_blist_to_blist_from_str(label);
+	zero_term_blist(label);
 
 	return label;
 }

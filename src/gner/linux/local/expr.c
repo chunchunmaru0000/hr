@@ -84,12 +84,45 @@ void (*gen_expressions[])(struct Gner *g, struct LocalExpr *e) = {
 	0,			// 	LE_AFTER_FIELD,
 };
 
+void print_le(struct LocalExpr *e, int with_n) {
+	if (is_bin_le(e) || e->code == LE_BIN_ASSIGN) {
+
+		printf("(");
+		print_le(plist_get(e->ops, 0), 0);
+		printf(" %s ", vs(e->tvar));
+		print_le(plist_get(e->ops, 1), 0);
+		printf(")");
+
+	} else if (e->code == LE_BIN_TERRY) {
+
+		printf("{");
+		print_le(plist_get(e->ops, 0), 0);
+		printf(" ? ");
+		print_le(plist_get(e->ops, 1), 0);
+		printf(" : ");
+		print_le(plist_get(e->ops, 2), 0);
+		printf("}");
+
+	} else {
+		printf("%s", vs(e->tvar));
+	}
+
+	if (with_n) {
+		putchar('\n');
+	}
+}
+
 void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 	struct LocalExpr *e;
+	struct PList *es;
 	u32 i;
 
-	for (i = 0; i < in->os->size; i++) {
-		e = plist_get(in->os, 0);
+	es = opt_local_expr(plist_get(in->os, 0));
+
+	for (i = 0; i < es->size; i++) {
+		e = plist_get(es, i);
+
+		print_le(e, 1);
 
 		if (gen_expressions[e->code] == 0) {
 			printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
@@ -113,9 +146,9 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 	struct LocalVar *lvar = 0;
 	struct TypeExpr *assignee_type = 0;
 
-	printf("### GEN assignee INFO: assignee->code == %d\n", assignee->code);
-	printf("### GEN assignable INFO: assignable->code == %d\n",
-		   assignable->code);
+	// printf("### GEN assignee INFO: assignee->code == %d\n", assignee->code);
+	// printf("### GEN assignable INFO: assignable->code == %d\n",
+	// 	   assignable->code);
 
 	uc assignee_size = get_assignee_size(g, assignee, &gvar, &lvar);
 	if (gvar)
