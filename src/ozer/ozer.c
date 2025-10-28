@@ -38,11 +38,12 @@ void add_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
 	}
 	zero_term_blist(e->tvar->view);
 
-	// - TODO:
+	// - TODO: free in this fiel elsewhere
 	// local_expr_free(l);
 	// local_expr_free(r);
 }
 
+// TODO: need to rewrite as loop for speed and mem
 void find_num_in_adds(struct LocalExpr **root_place_in_parrent,
 					  struct LocalExpr **found_num,
 					  struct LocalExpr **found_num_bin_bro,
