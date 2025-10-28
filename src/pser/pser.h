@@ -497,6 +497,7 @@ struct LocalExpr {
 
 struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 								 struct Token *tvar);
+void paste_le(struct LocalExpr *to, struct LocalExpr *from);
 struct LocalExpr *local_bin(struct LocalExpr *l, struct LocalExpr *r,
 							struct Token *op);
 struct LocalExpr *after_l_expression(struct Pser *p);

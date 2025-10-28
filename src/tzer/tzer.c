@@ -574,3 +574,14 @@ void full_free_token(struct Token *t) {
 	free(t->p);
 	free(t);
 }
+
+struct Token *new_tok(struct BList *view, enum TCode code, struct Pos *p) {
+	struct Token *tok = malloc(sizeof(struct Token));
+	tok->view = view;
+	tok->code = code;
+	tok->p = p;
+	tok->num = 0;
+	tok->real = 0;
+	tok->str = 0;
+	return tok;
+}

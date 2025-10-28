@@ -26,6 +26,7 @@ struct Tzer {
 	char *code;
 	uint32_t clen;
 };
+struct Token *new_tok(struct BList *view, enum TCode code, struct Pos *p);
 
 enum ExtraType {
 	ET_NONE,

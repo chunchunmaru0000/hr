@@ -16,6 +16,15 @@ struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 	return e;
 }
 
+void paste_le(struct LocalExpr *to, struct LocalExpr *from) {
+	to->code = from->code;
+	to->type = from->type;
+	to->tvar = from->tvar;
+	to->l = from->l;
+	to->r = from->r;
+	to->co.cond = from->co.cond;
+}
+
 struct LocalExpr *copy_local_expr(struct LocalExpr *e) {
 	uint32_t i;
 	struct LocalExpr *copy = new_local_expr(e->code, e->type, e->tvar);
