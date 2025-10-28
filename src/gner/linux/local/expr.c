@@ -117,7 +117,9 @@ void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 	struct PList *es;
 	u32 i;
 
-	es = opt_local_expr(plist_get(in->os, 0));
+	es =
+	//in->os;
+	opt_local_expr(plist_get(in->os, 0));
 
 	for (i = 0; i < es->size; i++) {
 		e = plist_get(es, i);

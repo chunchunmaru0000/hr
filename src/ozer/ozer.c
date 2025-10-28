@@ -43,6 +43,100 @@ void add_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
 	// local_expr_free(r);
 }
 
+void find_num_in_adds(struct LocalExpr **root_place_in_parrent,
+					  struct LocalExpr **found_num,
+					  struct LocalExpr **found_num_bin_bro,
+					  struct LocalExpr ***found_num_parrent_place) {
+	struct LocalExpr *root = *root_place_in_parrent;
+
+	if (is_num_le(root->l)) {
+		*found_num = root->l;
+		*found_num_bin_bro = root->r;
+		*found_num_parrent_place = root_place_in_parrent;
+		return;
+	}
+	if (is_num_le(root->r)) {
+		*found_num = root->r;
+		*found_num_bin_bro = root->l;
+		*found_num_parrent_place = root_place_in_parrent;
+		return;
+	}
+	if (is_add_le(root->l)) {
+		find_num_in_adds(&root->l, found_num, found_num_bin_bro,
+						 found_num_parrent_place);
+		if (found_num)
+			return;
+	}
+	if (is_add_le(root->l)) {
+		find_num_in_adds(&root->r, found_num, found_num_bin_bro,
+						 found_num_parrent_place);
+		if (found_num)
+			return;
+	}
+
+	*found_num = 0;
+	*found_num_bin_bro = 0;
+	*found_num_parrent_place = 0;
+}
+
+// l is num
+void try_add_num_in_bin(struct LocalExpr *num,
+						struct LocalExpr **root_place_in_parrent) {
+	struct LocalExpr *found_num;
+	struct LocalExpr *found_num_bin_bro;
+	struct LocalExpr **found_num_parrent_place;
+
+	// l I have alredy here
+	// found_num == r->r
+	// add it to l
+	// found_num_bin_bro == r->l
+	// found_num_parrent_place == e->r
+	// found_num_bin_bro becomes found_num_parrent_place
+	loop {
+		find_num_in_adds(root_place_in_parrent, &found_num, &found_num_bin_bro,
+						 &found_num_parrent_place);
+		if (!found_num)
+			break;
+
+		add_l_and_r_to_e(num, found_num, num);
+		*found_num_parrent_place = found_num_bin_bro;
+
+		// free(found_num);
+		// free(found_num_parrent_place); ?
+	}
+
+	// if (is_num_le(root->l)) {
+	// 	add_l_and_r_to_e(num, root->l, num);
+	// 	*root_place_in_parrent = root->r;
+	// 	// free(r->l);
+	// 	// free(r);
+	// } else if (is_num_le(root->r)) {
+	// 	add_l_and_r_to_e(num, root->r, num);
+	// 	root_parrent->r = root->l;
+	// 	// free(r->r);
+	// 	// free(r);
+	// } else if (is_bin_le(root->l) && is_bin_le(root->r)) {
+	// 	if (is_plus_le(root->l) && is_plus_le(root->r)) {
+	// 		try_add_num_in_bin();
+	// 	}
+	// }
+
+	// if (is_num_le(r->l)) {
+	// 	add_l_and_r_to_e(l, r->l, l);
+	// 	e->r = r->r;
+	// 	// free(r->l);
+	// 	// free(r);
+	// } else if (is_num_le(r->r)) {
+	// 	add_l_and_r_to_e(l, r->r, l);
+	// 	e->r = r->l;
+	// 	// free(r->r);
+	// 	// free(r);
+	// } else if (is_bin_le(r->l) && is_bin_le(r->r)) {
+	// 	if (is_plus_le(l) && is_plus_le(r)) {
+	// 	}
+	// }
+}
+
 // 1 + a + 1
 void opt_bin_constant_folding(struct LocalExpr *e) {
 	struct LocalExpr *l, *r, *cond;
@@ -52,29 +146,16 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 		opt_bin_constant_folding(l);
 		opt_bin_constant_folding(r);
 
-		if (is_num_le(l) && is_num_le(r)) {
-			if (e->code == LE_BIN_PLUS) {
+		if (is_add_le(e)) {
+
+			if (is_num_le(l) && is_num_le(r)) {
 				add_l_and_r_to_e(l, r, e);
-			}
-		} else if (is_num_le(l) && is_bin_le(r)) {
-			if (e->code == LE_BIN_PLUS) {
-				if (r->code == LE_BIN_PLUS) {
-					if (is_num_le(r->l)) {
-						add_l_and_r_to_e(l, r->l, l);
-						e->r = r->r;
-						// free(r->l);
-						// free(r);
-					} else if (is_num_le(r->r)) {
-						add_l_and_r_to_e(l, r->r, l);
-						e->r = r->l;
-						// free(r->r);
-						// free(r);
-					}
-				}
-			}
-		} else if (is_bin_le(l) && is_num_le(r)) {
-			if (e->code == LE_BIN_PLUS) {
-				if (l->code == LE_BIN_PLUS) {
+
+			} else if (is_num_le(l) && is_bin_le(r)) {
+				try_add_num_in_bin(l, &e->r);
+
+			} else if (is_bin_le(l) && is_num_le(r)) {
+				if (is_add_le(l)) {
 					if (is_num_le(l->l)) {
 						add_l_and_r_to_e(r, l->l, r);
 						e->l = l->r;
@@ -86,6 +167,10 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 						// free(l->r);
 						// free(l);
 					}
+				}
+
+			} else if (is_bin_le(l) && is_bin_le(r)) {
+				if (is_add_le(l) && is_add_le(r)) {
 				}
 			}
 		}
