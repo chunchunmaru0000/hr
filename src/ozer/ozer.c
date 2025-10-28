@@ -79,6 +79,9 @@ void find_num_in_adds(struct LocalExpr **root_place_in_parrent,
 	*found_num_parrent_place = 0;
 }
 
+#define fnia(root_place)                                                       \
+	(find_num_in_adds((root_place), &found_num, &found_num_bin_bro,            \
+					  &found_num_parrent_place))
 void try_add_num_in_bin(struct LocalExpr *num,
 						struct LocalExpr **root_place_in_parrent) {
 	struct LocalExpr *found_num;
@@ -94,8 +97,8 @@ void try_add_num_in_bin(struct LocalExpr *num,
 	loop {
 		if (!is_add_le(*root_place_in_parrent))
 			break;
-		find_num_in_adds(root_place_in_parrent, &found_num, &found_num_bin_bro,
-						 &found_num_parrent_place);
+		fnia(root_place_in_parrent);
+
 		if (!found_num)
 			break;
 
@@ -107,10 +110,32 @@ void try_add_num_in_bin(struct LocalExpr *num,
 	}
 }
 
+void try_add_bins(struct LocalExpr *e) {
+	struct LocalExpr *found_num;
+	struct LocalExpr *found_num_bin_bro;
+	struct LocalExpr **found_num_parrent_place;
+
+	if (is_add_le(e->l)) {
+		fnia(&e->l);
+		if (found_num) {
+			try_add_num_in_bin(found_num, &e->r);
+			return;
+		}
+	}
+	if (is_add_le(e->r)) {
+		fnia(&e->r);
+		if (found_num) {
+			try_add_num_in_bin(found_num, &e->l);
+			return;
+		}
+	}
+	// free(found_num);
+	// free(found_num_parrent_place); ?
+}
+
 // 1 + a + 1
 void opt_bin_constant_folding(struct LocalExpr *e) {
-	struct LocalExpr *l, *r, *cond, *num;
-	struct Token *op;
+	struct LocalExpr *l, *r, *cond;
 
 	if (is_bin_le(e) || e->code == LE_BIN_ASSIGN) {
 		l = e->l, r = e->r;
@@ -125,21 +150,7 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 			} else if (is_bin_le(l) && is_num_le(r)) {
 				try_add_num_in_bin(r, &e->l);
 			} else if (is_bin_le(l) && is_bin_le(r)) {
-// 				op = new_tok(copy_blist_from_str("+"), PLUS, e->tvar->p);
-// 				num = new_local_expr(LE_PRIMARY_INT, 0, op);
-// 
-// 				try_add_num_in_bin(num, &e->l);
-// 				try_add_num_in_bin(num, &e->r);
-// 
-// 				if ((is_INT_le(num) && num->tvar->num != 0) ||
-// 					(is_REAL_le(num) && num->tvar->real != 0)) {
-// 					num = local_bin(e, num, op);
-// 					paste_le(e, num);
-// 					// same as e = local_bin(num, e, op);
-// 				} else {
-// 					full_free_token_without_pos(op);
-// 					free(num);
-// 				}
+				try_add_bins(e);
 			}
 		}
 	} else if (e->code == LE_BIN_TERRY) {
