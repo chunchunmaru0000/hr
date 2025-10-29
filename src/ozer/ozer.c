@@ -29,7 +29,9 @@ PLUS, MINUS
 [ EQU ]
 [ PIPE_LINE ]
 
-n = a & 0xFFFFFFFF;               // тЖТ n = a (╨╡╤Б╨╗╨╕ a 32-╨▒╨╕╤В╨╜╨╛╨╡)
+need to get gner in ozer
+
+e & 0xFFFFFFFF -> e, but need to prove a to be int32
 e == e -> true, but if e is not fun call
 e != e -> false, but if e is not fun call
 e && true -> bool(e), not works for now, cuz how to do bool()
