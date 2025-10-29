@@ -476,8 +476,8 @@ enum LE_Code {
 };
 #define is_bin_le(e) ((e)->code >= LE_BIN_MUL && (e)->code <= LE_BIN_OR)
 #define is_add_le(e) ((e)->code == LE_BIN_PLUS)
-#define is_INT_le(e) ((e)->code <= LE_PRIMARY_INT)
-#define is_REAL_le(e) ((e)->code <= LE_PRIMARY_REAL)
+#define is_INT_le(e) ((e)->code == LE_PRIMARY_INT)
+#define is_REAL_le(e) ((e)->code == LE_PRIMARY_REAL)
 #define is_num_le(e) (is_INT_le((e)) || is_REAL_le((e)))
 
 union CondOps {
