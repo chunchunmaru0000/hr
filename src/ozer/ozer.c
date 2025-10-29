@@ -1,6 +1,17 @@
 #include "ozer.h"
 #include <stdio.h>
 
+#define cant_on_reals(op_name, op)                                             \
+	constr CANT_##op_name##_ON_REALS =                                         \
+		"Операция '" op "' не применима к вещественным числам.";
+
+cant_on_reals(MOD, "%");
+cant_on_reals(SHL, "<<");
+cant_on_reals(SHR, ">>");
+cant_on_reals(BIT_AND, "&");
+cant_on_reals(BIT_XOR, "^");
+cant_on_reals(BIT_OR, "|");
+
 /*
 MUL, DIV [ MOD, WHOLE_DIV ]
 PLUS, MINUS
@@ -20,30 +31,117 @@ PLUS, MINUS
 e * 0 -> 0
 e / 0 -> ERROR
 e + - 0 -> e
+e && false -> 0
+e || true -> 1
 e * / 1 -> e
 x e + x e -> 2 x e, то есть множители
 делители и типа все другое
 */
 
+#define real_op(op) (e->tvar->real = l->tvar->real op r->tvar->real)
+#define int_op(op) (e->tvar->num = l->tvar->num op r->tvar->num)
+
 void bin_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
 					  struct LocalExpr *e, enum LE_Code op_code) {
-	if (op_code != LE_BIN_PLUS)
-		return;
-
 	if (is_INT_le(l))
 		l->tvar->real = l->tvar->num;
 	if (is_INT_le(r))
 		r->tvar->real = r->tvar->num;
 
 	if (is_REAL_le(l) || is_REAL_le(r)) {
+
+		if (op_code == LE_BIN_MUL)
+			real_op(*);
+		else if (op_code == LE_BIN_DIV)
+			real_op(/);
+		else if (op_code == LE_BIN_MOD)
+			eet(e->tvar, CANT_MOD_ON_REALS, 0);
+		else if (op_code == LE_BIN_WHOLE_DIV) {
+			real_op(/);
+			e->tvar->num = e->tvar->real;
+			goto do_int;
+		} else if (op_code == LE_BIN_PLUS)
+			real_op(+);
+		else if (op_code == LE_BIN_MINUS)
+			real_op(-);
+		else if (op_code == LE_BIN_SHL)
+			eet(e->tvar, CANT_SHL_ON_REALS, 0);
+		else if (op_code == LE_BIN_SHR)
+			eet(e->tvar, CANT_SHR_ON_REALS, 0);
+		else if (op_code == LE_BIN_LESS)
+			real_op(<);
+		else if (op_code == LE_BIN_LESSE)
+			real_op(<=);
+		else if (op_code == LE_BIN_MORE)
+			real_op(>);
+		else if (op_code == LE_BIN_MOREE)
+			real_op(>=);
+		else if (op_code == LE_BIN_EQUALS)
+			real_op(==);
+		else if (op_code == LE_BIN_NOT_EQUALS)
+			real_op(!=);
+		else if (op_code == LE_BIN_BIT_AND)
+			eet(e->tvar, CANT_BIT_AND_ON_REALS, 0);
+		else if (op_code == LE_BIN_BIT_XOR)
+			eet(e->tvar, CANT_BIT_XOR_ON_REALS, 0);
+		else if (op_code == LE_BIN_BIT_OR)
+			eet(e->tvar, CANT_BIT_OR_ON_REALS, 0);
+		else if (op_code == LE_BIN_AND)
+			real_op(&&);
+		else if (op_code == LE_BIN_OR)
+			real_op(||);
+		else
+			eet(e->tvar, "real эээ", 0);
+
 		e->code = LE_PRIMARY_REAL;
-		e->tvar->real = l->tvar->real + r->tvar->real;
-		// free_old_view
+		blist_clear_free(e->tvar->view);
 		e->tvar->view = real_to_str(e->tvar->real);
 	} else {
+
+		if (op_code == LE_BIN_MUL)
+			int_op(*);
+		else if (op_code == LE_BIN_DIV)
+			int_op(/);
+		else if (op_code == LE_BIN_MOD)
+			eet(e->tvar, "TODO: сделать mod для целых", 0);
+		else if (op_code == LE_BIN_WHOLE_DIV)
+			int_op(/);
+		else if (op_code == LE_BIN_PLUS)
+			int_op(+);
+		else if (op_code == LE_BIN_MINUS)
+			int_op(-);
+		else if (op_code == LE_BIN_SHL)
+			int_op(<<);
+		else if (op_code == LE_BIN_SHR)
+			int_op(>>);
+		else if (op_code == LE_BIN_LESS)
+			int_op(<);
+		else if (op_code == LE_BIN_LESSE)
+			int_op(<=);
+		else if (op_code == LE_BIN_MORE)
+			int_op(>);
+		else if (op_code == LE_BIN_MOREE)
+			int_op(>=);
+		else if (op_code == LE_BIN_EQUALS)
+			int_op(==);
+		else if (op_code == LE_BIN_NOT_EQUALS)
+			int_op(!=);
+		else if (op_code == LE_BIN_BIT_AND)
+			int_op(&);
+		else if (op_code == LE_BIN_BIT_XOR)
+			int_op(^);
+		else if (op_code == LE_BIN_BIT_OR)
+			int_op(|);
+		else if (op_code == LE_BIN_AND)
+			int_op(&&);
+		else if (op_code == LE_BIN_OR)
+			int_op(||);
+		else
+			eet(e->tvar, "int эээ", 0);
+
+	do_int:
 		e->code = LE_PRIMARY_INT;
-		e->tvar->num = l->tvar->num + r->tvar->num;
-		// free_old_view
+		blist_clear_free(e->tvar->view);
 		e->tvar->view = int_to_str(e->tvar->num);
 	}
 	zero_term_blist(e->tvar->view);
