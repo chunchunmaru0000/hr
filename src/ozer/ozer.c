@@ -32,6 +32,8 @@ PLUS, MINUS
 n = a & 0xFFFFFFFF;               // тЖТ n = a (╨╡╤Б╨╗╨╕ a 32-╨▒╨╕╤В╨╜╨╛╨╡)
 e == e -> true, but if e is not fun call
 e != e -> false, but if e is not fun call
+e && true -> bool(e), not works for now, cuz how to do bool()
+e <<,>> n^2 -> e *,/ 2^n , but need to prove that e is int
 x e + x e -> 2 x e, то есть множители
 делители и типа все другое
 */
@@ -101,7 +103,7 @@ void bin_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
 		else if (op_code == LE_BIN_DIV)
 			int_op(/);
 		else if (op_code == LE_BIN_MOD)
-			eet(e->tvar, "TODO: сделать mod для целых", 0);
+			int_op(%);
 		else if (op_code == LE_BIN_WHOLE_DIV)
 			int_op(/);
 		else if (op_code == LE_BIN_ADD)
@@ -267,7 +269,8 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 		if (if_opted(MUL, mul) || if_opted(DIV, div) ||
 			if_opted2(ADD, SUB, add_or_sub) ||
 			if_opted2(SHL, SHR, add_or_sub) || if_opted(AND, and) ||
-			if_opted(OR, or) || if_opted(BIT_OR, bit_or))
+			if_opted(OR, or) || if_opted(BIT_OR, bit_or) ||
+			if_opted(BIT_AND, bit_and))
 			return;
 
 	} else if (e->code == LE_BIN_TERRY) {
