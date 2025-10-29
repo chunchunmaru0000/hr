@@ -13,6 +13,7 @@ cant_on_reals(BIT_XOR, "^");
 cant_on_reals(BIT_OR, "|");
 
 /*
+TODO:
 MUL, DIV [ MOD, WHOLE_DIV ]
 PLUS, MINUS
 [ SHL, SHR ]
@@ -28,12 +29,9 @@ PLUS, MINUS
 [ EQU ]
 [ PIPE_LINE ]
 
-e * 0 -> 0
-e / 0 -> ERROR
-e + - 0 -> e
-e && false -> 0
-e || true -> 1
-e * / 1 -> e
+n = a & 0xFFFFFFFF;               // тЖТ n = a (╨╡╤Б╨╗╨╕ a 32-╨▒╨╕╤В╨╜╨╛╨╡)
+e == e -> true, but if e is not fun call
+e != e -> false, but if e is not fun call
 x e + x e -> 2 x e, то есть множители
 делители и типа все другое
 */
@@ -60,9 +58,9 @@ void bin_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
 			real_op(/);
 			e->tvar->num = e->tvar->real;
 			goto do_int;
-		} else if (op_code == LE_BIN_PLUS)
+		} else if (op_code == LE_BIN_ADD)
 			real_op(+);
-		else if (op_code == LE_BIN_MINUS)
+		else if (op_code == LE_BIN_SUB)
 			real_op(-);
 		else if (op_code == LE_BIN_SHL)
 			eet(e->tvar, CANT_SHL_ON_REALS, 0);
@@ -106,9 +104,9 @@ void bin_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
 			eet(e->tvar, "TODO: сделать mod для целых", 0);
 		else if (op_code == LE_BIN_WHOLE_DIV)
 			int_op(/);
-		else if (op_code == LE_BIN_PLUS)
+		else if (op_code == LE_BIN_ADD)
 			int_op(+);
-		else if (op_code == LE_BIN_MINUS)
+		else if (op_code == LE_BIN_SUB)
 			int_op(-);
 		else if (op_code == LE_BIN_SHL)
 			int_op(<<);
@@ -246,7 +244,6 @@ void try_bin_bins(struct LocalExpr *e) {
 	// free(found_num_parrent_place); ?
 }
 
-// 1 + a + 1
 void opt_bin_constant_folding(struct LocalExpr *e) {
 	struct LocalExpr *l, *r, *cond;
 
@@ -266,6 +263,13 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 				try_bin_bins(e);
 			}
 		}
+
+		if (if_opted(MUL, mul) || if_opted(DIV, div) ||
+			if_opted2(ADD, SUB, add_or_sub) ||
+			if_opted2(SHL, SHR, add_or_sub) || if_opted(AND, and) ||
+			if_opted(OR, or) || if_opted(BIT_OR, bit_or))
+			return;
+
 	} else if (e->code == LE_BIN_TERRY) {
 		cond = e->co.cond, l = e->l, r = e->r;
 

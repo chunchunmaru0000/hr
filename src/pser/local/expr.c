@@ -15,7 +15,7 @@ struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 	e->co.cond = 0;
 	return e;
 }
-
+// TODO: check all usages and free where is need
 void paste_le(struct LocalExpr *to, struct LocalExpr *from) {
 	to->code = from->code;
 	to->type = from->type;
@@ -59,8 +59,8 @@ const struct LEtoT lets[] = {
 	leto(DIV),
 	leto(MOD),
 	leto(WHOLE_DIV),
-	leto(PLUS),
-	leto(MINUS),
+	{LE_BIN_ADD, PLUS},
+	{LE_BIN_SUB, MINUS},
 	leto(SHL),
 	leto(SHR),
 	leto(LESS),
@@ -77,8 +77,8 @@ const struct LEtoT lets[] = {
 	//{LE_BIN_TERRY, QUEST},
 	{LE_BIN_ASSIGN, EQU},
 	leto(PIPE_LINE),
-	leto_ass(PLUS),
-	leto_ass(MINUS),
+	{LE_BIN_ADD, PLUSE},
+	{LE_BIN_SUB, MINUSE},
 	leto_ass(MUL),
 	leto_ass(DIV),
 	leto_ass(SHL),

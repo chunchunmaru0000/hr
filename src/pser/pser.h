@@ -446,8 +446,8 @@ enum LE_Code {
 	LE_BIN_MOD = 22,
 	LE_BIN_WHOLE_DIV = 23,
 
-	LE_BIN_PLUS = 24,
-	LE_BIN_MINUS = 25,
+	LE_BIN_ADD = 24,
+	LE_BIN_SUB = 25,
 
 	LE_BIN_SHL = 26,
 	LE_BIN_SHR = 27,
@@ -475,10 +475,15 @@ enum LE_Code {
 	LE_AFTER_FIELD = 44,
 };
 #define is_bin_le(e) ((e)->code >= LE_BIN_MUL && (e)->code <= LE_BIN_OR)
-#define is_add_le(e) ((e)->code == LE_BIN_PLUS)
 #define is_INT_le(e) ((e)->code == LE_PRIMARY_INT)
 #define is_REAL_le(e) ((e)->code == LE_PRIMARY_REAL)
 #define is_num_le(e) (is_INT_le((e)) || is_REAL_le((e)))
+#define is_le_num(e, number)                                                   \
+	(is_INT_le((e)) && (e)->tvar->num == (number)) ||                          \
+		(is_REAL_le((e)) && (e)->tvar->real == (number))
+#define is_le_not_num(e, number)                                               \
+	(is_INT_le((e)) && (e)->tvar->num != (number)) ||                          \
+		(is_REAL_le((e)) && (e)->tvar->real != (number))
 
 union CondOps {
 	struct LocalExpr *cond;

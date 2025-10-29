@@ -26,8 +26,8 @@ constr EXPR_TYPE_NOT_VALID_FOR_TYPE[] = {
 	0,												// LE_BIN_DIV
 	0,												// LE_BIN_MOD
 	0,												// LE_BIN_WHOLE_DIV
-	0,												// LE_BIN_PLUS
-	0,												// LE_BIN_MINUS
+	0,												// LE_BIN_ADD
+	0,												// LE_BIN_SUB
 	0,												// LE_BIN_SHL
 	0,												// LE_BIN_SHR
 	0,												// LE_BIN_LESS
@@ -98,8 +98,8 @@ void (*cmps[])(struct TypeExpr *type, struct LocalExpr *e) = {
 	0,		  // LE_BIN_DIV
 	0,		  // LE_BIN_MOD
 	0,		  // LE_BIN_WHOLE_DIV
-	0,		  // LE_BIN_PLUS
-	0,		  // LE_BIN_MINUS
+	0,		  // LE_BIN_ADD
+	0,		  // LE_BIN_SUB
 	0,		  // LE_BIN_SHL
 	0,		  // LE_BIN_SHR
 	0,		  // LE_BIN_LESS
