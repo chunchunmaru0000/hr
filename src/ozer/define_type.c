@@ -29,6 +29,11 @@
 	LE_AFTER_FIELD = 44,
 */
 
+void define_var_type(struct LocalExpr *e) {
+	struct LocalVar *lvar;
+	struct GlobVar *gvar;
+}
+
 void define_le_type(struct LocalExpr *e) {
 	if (e->type)
 		return;
@@ -49,6 +54,7 @@ void define_le_type(struct LocalExpr *e) {
 	} else if (code == LE_PRIMARY_REAL) {
 		e->type = new_type_expr(TC_DOUBLE);
 	} else if (code == LE_PRIMARY_VAR) {
+		define_var_type(e);
 	} else if (code == LE_PRIMARY_STR || code == LE_PRIMARY_ARR ||
 			   code == LE_PRIMARY_TUPLE) {
 		e->type = 0;

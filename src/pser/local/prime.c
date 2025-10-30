@@ -12,23 +12,24 @@ struct LocalExpr *prime_l_expression(struct Pser *p) {
 
 	struct LocalExpr *e = new_local_expr(LE_NONE, 0, c), *tmp_e;
 
-	if (ccode == INT) {
+	if (ccode == INT)
 		set_e_code_and_absorb(LE_PRIMARY_INT);
-		e->type = new_type_expr(TC_I32);
-	} else if (ccode == REAL) {
+	else if (ccode == REAL)
 		set_e_code_and_absorb(LE_PRIMARY_REAL);
-		e->type = new_type_expr(TC_DOUBLE);
-	} else if (ccode == STR) {
+	else if (ccode == STR)
 		set_e_code_and_absorb(LE_PRIMARY_STR);
-		e->type = new_type_expr(TC_PTR);
-		e->type->data.ptr_target = new_type_expr(TC_U8);
-	} else if (ccode == ID)
+	else if (ccode == ID)
 		set_e_code_and_absorb(LE_PRIMARY_VAR);
 	else if (ccode == PAR_C_L) {
 		absorb(p);
 		e->code = LE_PRIMARY_ARR;
 		e->co.ops = new_plist(2);
-
+		for (c = pser_cur(p); c->code != PAR_C_R;) {
+			plist_add(e->co.ops, local_expression(p));
+			if ((c = pser_cur(p))->code == COMMA)
+				c = absorb(p);
+		}
+		consume(p); // skip ]
 	} else if (ccode == PAR_L) {
 		absorb(p);
 		tmp_e = local_expression(p);
@@ -43,8 +44,7 @@ struct LocalExpr *prime_l_expression(struct Pser *p) {
 				c = absorb(p);
 				if (c->code == PAR_R)
 					break;
-				tmp_e = local_expression(p);
-				plist_add(e->co.ops, tmp_e);
+				plist_add(e->co.ops, local_expression(p));
 			}
 		} else {
 			free(e);
