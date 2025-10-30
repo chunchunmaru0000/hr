@@ -39,13 +39,26 @@ int try_opt_div(struct LocalExpr *e) {
 }
 
 // e +, - 0 -> e
-// e <<, >> 0 -> e
 int try_opt_add_or_sub(struct LocalExpr *e) {
 	int opted = 0;
 	if (is_le_num(e->l, 0))
 		do_opt(paste_le(e, e->r));
 	else if (is_le_num(e->r, 0))
 		do_opt(paste_le(e, e->l));
+	return opted;
+}
+
+// e <<, >> 0 -> e
+int try_opt_shl_or_shr(struct LocalExpr *e) {
+	int opted = 0;
+	if (is_le_num(e->l, 0))
+		do_opt(paste_le(e, e->r));
+	else if (is_le_num(e->r, 0))
+		do_opt(paste_le(e, e->l));
+	else if (is_num_le(e->l))
+		;
+	else if (is_num_le(e->r))
+		;
 	return opted;
 }
 

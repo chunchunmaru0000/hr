@@ -31,13 +31,13 @@ struct BList *lay_down_int(struct Gner *g, struct GlobExpr *e) {
 	struct BList *generated = new_blist(32);
 	enum TypeCode code = e->type->code;
 
-	if (code == TC_INT8 || code == TC_UINT8)
+	if (code == TC_I8 || code == TC_U8)
 		iprint_gen(SA_LET_8);
-	else if (code == TC_INT16 || code == TC_UINT16)
+	else if (code == TC_I16 || code == TC_U16)
 		iprint_gen(SA_LET_16);
-	else if (code == TC_INT32 || code == TC_UINT32 || code == TC_ENUM)
+	else if (code == TC_I32 || code == TC_U32 || code == TC_ENUM)
 		iprint_gen(SA_LET_32);
-	else if (code == TC_INT64 || code == TC_UINT64 || code == TC_VOID)
+	else if (code == TC_I64 || code == TC_U64 || code == TC_VOID)
 		iprint_gen(SA_LET_64);
 	else {
 		printf("#ERR_INFO. e->type->code was %d\n", code);

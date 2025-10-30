@@ -267,6 +267,8 @@ void compare_type_and_expr(struct TypeExpr *type, struct LocalExpr *e);
 // 									OZER
 // ############################################################################
 
+extern struct Gner *ogner;
+void define_le_type(struct LocalExpr *e);
 struct PList *opt_local_expr(struct LocalExpr *e);
 
 int try_opt_mul(struct LocalExpr *e);
@@ -281,3 +283,4 @@ int try_opt_bit_and(struct LocalExpr *e);
 #define if_opted2(cap0, cap1, low)                                             \
 	(((e->code == LE_BIN_##cap0 || e->code == LE_BIN_##cap1) &&                \
 	  try_opt_##low(e)))
+

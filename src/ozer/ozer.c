@@ -32,10 +32,10 @@ PLUS, MINUS
 need to get gner in ozer
 
 e & 0xFFFFFFFF -> e, but need to prove a to be int32
+e <<,>> n^2 -> e *,/ 2^n , but need to prove that e is int
 e == e -> true, but if e is not fun call
 e != e -> false, but if e is not fun call
 e && true -> bool(e), not works for now, cuz how to do bool()
-e <<,>> n^2 -> e *,/ 2^n , but need to prove that e is int
 x e + x e -> 2 x e, то есть множители
 делители и типа все другое
 */
@@ -288,6 +288,7 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 struct PList *opt_local_expr(struct LocalExpr *e) {
 	struct PList *es = new_plist(1);
 
+	define_le_type(e);
 	opt_bin_constant_folding(e);
 	plist_add(es, e);
 

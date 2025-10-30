@@ -144,23 +144,23 @@ struct Inst {
 
 enum TypeCode {
 	// 8
-	TC_INT8,
-	TC_UINT8,
+	TC_I8,
+	TC_U8,
 	// 16
-	TC_INT16,
-	TC_UINT16,
+	TC_I16,
+	TC_U16,
 	// 32
-	TC_INT32, // also enum
-	TC_UINT32,
+	TC_I32, // also enum
+	TC_U32,
 	TC_ENUM,
-	TC_FLOAT,
+	TC_SINGLE,
 	// 64
 	TC_VOID,
 	TC_DOUBLE,
-	TC_INT64,
-	TC_UINT64,
+	TC_I64,
+	TC_U64,
 
-	TC_PTR, // also str str if TC_UINT8 ptr
+	TC_PTR, // also str str if TC_U8 ptr
 	TC_FUN,
 
 	TC_ARR,
@@ -335,12 +335,9 @@ struct GlobVar {
 
 #define types_sizes_do_match(t1, t2)                                           \
 	(((t1) >= TC_VOID && (t2) >= TC_VOID) ||                                   \
-	 ((t1) >= TC_INT32 && (t2) >= TC_INT32 && (t1) < TC_VOID &&                \
-	  (t2) < TC_VOID) ||                                                       \
-	 ((t1) >= TC_INT16 && (t2) >= TC_INT16 && (t1) < TC_INT32 &&               \
-	  (t2) < TC_INT32) ||                                                      \
-	 ((t1) >= TC_INT8 && (t2) >= TC_INT8 && (t1) < TC_INT16 &&                 \
-	  (t2) < TC_INT16))
+	 ((t1) >= TC_I32 && (t2) >= TC_I32 && (t1) < TC_VOID && (t2) < TC_VOID) || \
+	 ((t1) >= TC_I16 && (t2) >= TC_I16 && (t1) < TC_I32 && (t2) < TC_I32) ||   \
+	 ((t1) >= TC_I8 && (t2) >= TC_I8 && (t1) < TC_I16 && (t2) < TC_I16))
 
 #define copy_token(d, s) (memcpy((d), (s), sizeof(struct Token)))
 struct Arg *get_arg_by_mem_index(struct PList *lik_os, uint32_t mem_index);
@@ -378,16 +375,15 @@ long unsafe_size_of_global_value(struct GlobExpr *e);
 void eei(struct Inst *, constr msg, constr sgst);
 
 #define is_int_type(t)                                                         \
-	((t)->code == TC_INT8 || (t)->code == TC_INT16 || (t)->code == TC_INT32 || \
-	 (t)->code == TC_INT64 || (t)->code == TC_VOID || (t)->code == TC_ENUM ||  \
-	 (t)->code == TC_UINT8 || (t)->code == TC_UINT16 ||                        \
-	 (t)->code == TC_UINT32 || (t)->code == TC_UINT64)
+	((t)->code == TC_I8 || (t)->code == TC_I16 || (t)->code == TC_I32 ||       \
+	 (t)->code == TC_I64 || (t)->code == TC_VOID || (t)->code == TC_ENUM ||    \
+	 (t)->code == TC_U8 || (t)->code == TC_U16 || (t)->code == TC_U32 ||       \
+	 (t)->code == TC_U64)
 #define is_num_int_type(t)                                                     \
-	((t)->code == TC_INT8 || (t)->code == TC_INT16 || (t)->code == TC_INT32 || \
-	 (t)->code == TC_INT64 || (t)->code == TC_ENUM || (t)->code == TC_UINT8 || \
-	 (t)->code == TC_UINT16 || (t)->code == TC_UINT32 ||                       \
-	 (t)->code == TC_UINT64)
-#define is_real_type(t) ((t)->code == TC_DOUBLE || (t)->code == TC_FLOAT)
+	((t)->code == TC_I8 || (t)->code == TC_I16 || (t)->code == TC_I32 ||       \
+	 (t)->code == TC_I64 || (t)->code == TC_ENUM || (t)->code == TC_U8 ||      \
+	 (t)->code == TC_U16 || (t)->code == TC_U32 || (t)->code == TC_U64)
+#define is_real_type(t) ((t)->code == TC_DOUBLE || (t)->code == TC_SINGLE)
 
 void check_global_type_compatibility(struct Pser *p, struct TypeExpr *type,
 									 struct GlobExpr *e);

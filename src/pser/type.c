@@ -14,10 +14,10 @@ constr STRUCT_NAME_WASNT_FOUND = "Имя лика не было найдено �
 constr SUGGEST_ADD_ARGS = "добавить аргументов";
 
 const struct TypeWord TYPE_WORDS[] = {
-	{"ч8", TC_INT8, 3},	   {"ц8", TC_UINT8, 3},	  {"ч16", TC_INT16, 4},
-	{"ц16", TC_UINT16, 4}, {"ч32", TC_INT32, 4},  {"ц32", TC_UINT32, 4},
-	{"в32", TC_FLOAT, 4},  {"в64", TC_DOUBLE, 4}, {"ч64", TC_INT64, 4},
-	{"ц64", TC_UINT64, 4}, {"тлен", TC_VOID, 8},
+	{"ч8", TC_I8, 3},	   {"ц8", TC_U8, 3},	  {"ч16", TC_I16, 4},
+	{"ц16", TC_U16, 4},	   {"ч32", TC_I32, 4},	  {"ц32", TC_U32, 4},
+	{"в32", TC_SINGLE, 4}, {"в64", TC_DOUBLE, 4}, {"ч64", TC_I64, 4},
+	{"ц64", TC_U64, 4},	   {"тлен", TC_VOID, 8},
 };
 
 const struct TypeWord TYPE_WORD_STRUCT = {"лик", TC_STRUCT, 6};
@@ -272,7 +272,7 @@ struct TypeExpr *type_expr(struct Pser *p) {
 	if (cur->code == ID) {
 		if (vcs(cur, STR_STR_TW)) {
 			texpr->code = TC_PTR;
-			texpr->data.ptr_target = new_type_expr(TC_UINT8);
+			texpr->data.ptr_target = new_type_expr(TC_U8);
 
 		} else if (1) {
 			if (vcs(cur, STR_STRUCT_TW)) {

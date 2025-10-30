@@ -1,6 +1,7 @@
 #include "../gner/gner.h"
 #include <stdio.h>
 
+struct Gner *ogner;
 uc NEED_WARN = 1;
 
 #define g_write(name) (fwrite(g->name->st, 1, g->name->size, file))
@@ -15,6 +16,7 @@ int main() {
 
 	struct Pser *p = new_pser(f, tokens, filename, 1);
 	struct Gner *g = new_gner(p, T_Асм_Linux_64, 1);
+	ogner = g;
 	gen(g);
 
 	long bytes =

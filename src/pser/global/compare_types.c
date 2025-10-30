@@ -288,8 +288,7 @@ void cmpt_str_ptr(struct PList *msgs, struct TypeExpr *type,
 	}
 
 	char_type = &(struct TypeExpr){
-		TC_PTR,
-		{.ptr_target = &(struct TypeExpr){TC_UINT8, {.ptr_target = 0}}}};
+		TC_PTR, {.ptr_target = &(struct TypeExpr){TC_U8, {.ptr_target = 0}}}};
 
 	if (!are_types_equal(type, char_type)) {
 		plist_add(msgs, e->tvar);
@@ -313,7 +312,7 @@ void cmpt_str(struct PList *msgs, struct TypeExpr *type, struct GlobExpr *e) {
 	}
 
 	// assume uint8 array
-	if (arr_type(type)->code != TC_UINT8) {
+	if (arr_type(type)->code != TC_U8) {
 		plist_add(msgs, e->tvar);
 		plist_add(msgs, (void *)CE_STR_INCOMPATIBLE_TYPE);
 		return;
