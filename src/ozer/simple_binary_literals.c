@@ -1,4 +1,4 @@
-#include "ozer.h"
+#include "../gner/gner.h"
 
 constr LE_DIV_ON_ZERO = "ЭЭЭ ты куда на 0 делишь.";
 

@@ -1,4 +1,4 @@
-#include "ozer.h"
+#include "../gner/gner.h"
 #include <stdio.h>
 
 #define cant_on_reals(op_name, op)                                             \
