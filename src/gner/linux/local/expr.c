@@ -84,24 +84,33 @@ void (*gen_expressions[])(struct Gner *g, struct LocalExpr *e) = {
 	0,			// 	LE_AFTER_FIELD,
 };
 
+#define colored(name, code) ("\x1B[" #code "m")
+constr colours[8] = {
+	colored(RED, 31),	 colored(GREEN, 32),   colored(YELLOW, 33),
+	colored(WH_RED, 91), colored(MAGENTA, 95), colored(CYAN, 36),
+	colored(WHITE, 37),	 colored(WH_BLUE, 96),
+};
+int color_level = 0;
+#define take_color_level() (colours[color_level++ % loa(colours)])
+#define remove_color_level() (colours[--color_level % loa(colours)])
 void print_le(struct LocalExpr *e, int with_n) {
 	if (is_bin_le(e) || e->code == LE_BIN_ASSIGN) {
 
-		printf("(");
+		printf("%s(%s", take_color_level(), COLOR_RESET);
 		print_le(e->l, 0);
 		printf(" %s ", vs(e->tvar));
 		print_le(e->r, 0);
-		printf(")");
+		printf("%s)%s", remove_color_level(), COLOR_RESET);
 
 	} else if (e->code == LE_BIN_TERRY) {
 
-		printf("{");
+		printf("%s{%s", take_color_level(), COLOR_RESET);
 		print_le(e->l, 0);
 		printf(" ? ");
 		print_le(e->r, 0);
 		printf(" : ");
 		print_le(e->co.cond, 0);
-		printf("}");
+		printf("%s}%s", remove_color_level(), COLOR_RESET);
 
 	} else {
 		printf("%s", vs(e->tvar));
@@ -118,8 +127,8 @@ void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 	u32 i;
 
 	es =
-	//in->os;
-	opt_local_expr(plist_get(in->os, 0));
+		// in->os;
+		opt_local_expr(plist_get(in->os, 0));
 
 	for (i = 0; i < es->size; i++) {
 		e = plist_get(es, i);
