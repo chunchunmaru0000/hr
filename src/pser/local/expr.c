@@ -174,6 +174,12 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 		if (ops1(EF))
 			eet(c, "EOF IN after_l_expression fun call", 0);
 		consume(p); // skip ')'
+	} else if (ops1(PAR_C_L)) {
+		consume(p); // skip '['
+		after = new_local_expr(LE_AFTER_INDEX, 0, c);
+		after->l = e;
+		after->r = local_expression(p);
+		match(pser_cur(p), PAR_C_R);
 	}
 
 	if (after)
