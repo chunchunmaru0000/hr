@@ -29,12 +29,13 @@ struct LocalExpr *copy_local_expr(struct LocalExpr *e) {
 	uint32_t i;
 	struct LocalExpr *copy = new_local_expr(e->code, e->type, e->tvar);
 
-	if (e->code >= LE_BIN_MUL && e->code <= LE_BIN_PIPE_LINE) {
+	if (e->code >= LE_BIN_MUL && e->code <= LE_AFTER_PIPE_LINE) {
 		copy->l = copy_local_expr(e->l);
 		copy->r = copy_local_expr(e->r);
 		if (e->code == LE_BIN_TERRY)
 			copy->co.cond = copy_local_expr(e->co.cond);
 	} else if (e->code == LE_AFTER_CALL) {
+		copy->l = copy_local_expr(e->l);
 		for (i = 0; i < e->co.ops->size; i++)
 			plist_add(copy->co.ops, copy_local_expr(plist_get(e->co.ops, i)));
 	} else if (e->code == LE_AFTER_FIELD_OF_PTR || e->code == LE_AFTER_FIELD) {
@@ -76,7 +77,7 @@ const struct LEtoT lets[] = {
 	leto(OR),
 	//{LE_BIN_TERRY, QUEST},
 	{LE_BIN_ASSIGN, EQU},
-	leto(PIPE_LINE),
+	{LE_AFTER_PIPE_LINE, PIPE_LINE},
 	{LE_BIN_ADD, PLUSE},
 	{LE_BIN_SUB, MINUSE},
 	leto_ass(MUL),
@@ -151,6 +152,9 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 	struct Token *c = pser_cur(p);
 
 	if (ops2(FIELD_ARROW, SOBAKA_ARROW)) {
+		// e->l is struct
+		// e->r is token of field name
+
 		after = new_local_expr(
 			ops1(FIELD_ARROW) ? LE_AFTER_FIELD_OF_PTR : LE_AFTER_FIELD, 0, c);
 		after->l = e;
@@ -160,9 +164,12 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 		after->r = (struct LocalExpr *)c;
 
 	} else if (ops1(PAR_L)) {
+		// e->l is valled
+		// e->ops is params
+
 		after = new_local_expr(LE_AFTER_CALL, 0, c);
+		after->l = e;
 		after->co.ops = new_plist(2);
-		plist_add(after->co.ops, e);
 
 		for (c = absorb(p); !ops2(PAR_R, EF);) {
 			plist_add(after->co.ops, local_expression(p));
@@ -175,6 +182,9 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 			eet(c, "EOF IN after_l_expression fun call", 0);
 		consume(p); // skip ')'
 	} else if (ops1(PAR_C_L)) {
+		// e->l is indexer
+		// e->r is index
+
 		consume(p); // skip '['
 		after = new_local_expr(LE_AFTER_INDEX, 0, c);
 		after->l = e;

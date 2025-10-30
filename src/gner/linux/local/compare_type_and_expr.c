@@ -9,12 +9,6 @@ constr EXPR_TYPE_NOT_VALID_FOR_TYPE[] = {
 	0,												// LE_PRIMARY_STR
 	0,												// LE_PRIMARY_ARR
 	0,												// LE_PRIMARY_TUPLE
-	0,												// LE_AFTER_INDEX
-	0,												// LE_PRIMARY_CALL
-	0,												// LE_PRIMARY_FIELD_OF_PTR
-	0,												// LE_PRIMARY_FIELD
-	0,												// LE_PRIMARY_INC_AFTER
-	0,												// LE_PRIMARY_DEC_AFTER
 	0,												// LE_UNARY_MINUS
 	0,												// LE_UNARY_INC_BEFORE
 	0,												// LE_UNARY_DEC_BEFORE
@@ -43,10 +37,13 @@ constr EXPR_TYPE_NOT_VALID_FOR_TYPE[] = {
 	0,												// LE_BIN_OR
 	0,												// LE_BIN_TERRY
 	0,												// LE_BIN_ASSIGN
-	0,												// LE_BIN_PIPE_LINE
-	0,												// LE_AFTER_CALL
-	0,												// LE_AFTER_FIELD_OF_PTR
-	0,												// LE_AFTER_FIELD
+	0,												// LE_AFTER_PIPE_LINE,
+	0,												// LE_AFTER_INDEX,
+	0,												// LE_AFTER_CALL,
+	0,												// LE_AFTER_INC,
+	0,												// LE_AFTER_DEC,
+	0,												// LE_AFTER_FIELD_OF_PTR,
+	0,												// LE_AFTER_FIELD,
 };
 
 void cmp_int(struct TypeExpr *type, struct LocalExpr *e) {
@@ -81,12 +78,6 @@ void (*cmps[])(struct TypeExpr *type, struct LocalExpr *e) = {
 	0,		  // LE_PRIMARY_STR
 	0,		  // LE_PRIMARY_ARR
 	0,		  // LE_PRIMARY_TUPLE
-	0,		  // LE_AFTER_INDEX
-	0,		  // LE_PRIMARY_CALL
-	0,		  // LE_PRIMARY_FIELD_OF_PTR
-	0,		  // LE_PRIMARY_FIELD
-	0,		  // LE_PRIMARY_INC_AFTER
-	0,		  // LE_PRIMARY_DEC_AFTER
 	0,		  // LE_UNARY_MINUS
 	0,		  // LE_UNARY_INC_BEFORE
 	0,		  // LE_UNARY_DEC_BEFORE
@@ -115,10 +106,13 @@ void (*cmps[])(struct TypeExpr *type, struct LocalExpr *e) = {
 	0,		  // LE_BIN_OR
 	0,		  // LE_BIN_TERRY
 	0,		  // LE_BIN_ASSIGN
-	0,		  // LE_BIN_PIPE_LINE
-	0,		  // LE_AFTER_CALL
-	0,		  // LE_AFTER_FIELD_OF_PTR
-	0,		  // LE_AFTER_FIELD
+	0,		  // LE_AFTER_PIPE_LINE,
+	0,		  // LE_AFTER_INDEX,
+	0,		  // LE_AFTER_CALL,
+	0,		  // LE_AFTER_INC,
+	0,		  // LE_AFTER_DEC,
+	0,		  // LE_AFTER_FIELD_OF_PTR,
+	0,		  // LE_AFTER_FIELD,
 };
 void compare_type_and_expr(struct TypeExpr *type, struct LocalExpr *e) {
 	void (*cmp)(struct TypeExpr *type, struct LocalExpr *e) = cmps[e->code];

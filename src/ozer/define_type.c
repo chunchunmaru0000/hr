@@ -13,6 +13,7 @@ void define_le_type(struct LocalExpr *e) {
 		return;
 
 	enum LE_Code code = e->code;
+	u32 i;
 
 	if (is_bin_le(e)) {
 		define_le_type(e->l);
@@ -35,30 +36,27 @@ void define_le_type(struct LocalExpr *e) {
 	} else if (code == LE_AFTER_INDEX) {
 		define_le_type(e->l);
 		define_le_type(e->r);
-
 		if (e->l->type->code != TC_ARR)
 			eet(e->l->tvar, EXPECTED_ARR_TYPE, 0);
 		e->type = copy_type_expr(arr_type(e->l->type));
-		// LE_PRIMARY_CALL = 8,
-		// LE_PRIMARY_FIELD_OF_PTR = 9,
-		// LE_PRIMARY_FIELD = 10,
-		// LE_PRIMARY_INC_AFTER = 11,
-		// LE_PRIMARY_DEC_AFTER = 12,
-		// LE_UNARY_MINUS = 13,
-		// LE_UNARY_INC_BEFORE = 14,
-		// LE_UNARY_DEC_BEFORE = 15,
-		// LE_UNARY_NOT = 16,
-		// LE_UNARY_BIT_NOT = 17,
-		// LE_UNARY_AMPER = 18,
-		// LE_UNARY_ADDR = 19,
+	} else if (code == LE_AFTER_CALL) {
+		define_le_type(e->l);
+		for (i = 0; i < e->co.ops->size; i++)
+			define_le_type(plist_get(e->co.ops, i));
+		e->type = copy_type_expr(arr_type(e->l->type));
+		// LE_AFTER_INC
+		// LE_AFTER_DEC
+		// LE_UNARY_MINUS
+		// LE_UNARY_INC_BEFORE
+		// LE_UNARY_DEC_BEFORE
+		// LE_UNARY_NOT
+		// LE_UNARY_BIT_NOT
+		// LE_UNARY_AMPER
+		// LE_UNARY_ADDR
 	} else if (code == LE_BIN_ASSIGN) {
 
-	} else if (code == LE_BIN_PIPE_LINE) {
-
-	} else if (code == LE_AFTER_CALL) {
+	} else if (code == LE_AFTER_PIPE_LINE) {
 
 	} else if (code == LE_AFTER_FIELD_OF_PTR) {
-
-	} else if (code == LE_AFTER_FIELD) {
 	}
 }
