@@ -30,6 +30,7 @@ void gen_int(struct Gner *g, struct LocalExpr *e) {
 		iprint_fun_text(SA_STR_XOR_EAX_EAX);
 	} else {
 	}
+	fun_text_add('\n');
 }
 
 void gen_real(struct Gner *g, struct LocalExpr *e);
@@ -108,7 +109,11 @@ void print_le(struct LocalExpr *e, int with_n) {
 		printf(" : ");
 		print_le(e->co.cond, 0);
 		printf("%s}%s", remove_color_level(), COLOR_RESET);
-
+	} else if (e->code == LE_AFTER_INDEX) {
+		print_le(e->l, 0);
+		printf("%s[%s", take_color_level(), COLOR_RESET);
+		print_le(e->r, 0);
+		printf("%s]%s", remove_color_level(), COLOR_RESET);
 	} else {
 		printf("%s", vs(e->tvar));
 	}

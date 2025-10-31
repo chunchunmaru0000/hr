@@ -461,7 +461,11 @@ enum LE_Code {
 	LE_AFTER_DEC = 39,
 	LE_AFTER_FIELD_OF_PTR = 40,
 	LE_AFTER_FIELD = 41,
+
+	LE_BOOL = 42,
 };
+// LE Code Equals
+#define lce(c) ((e->code == LE_##c))
 #define is_bin_le(e) ((e)->code >= LE_BIN_MUL && (e)->code <= LE_BIN_OR)
 #define is_INT_le(e) ((e)->code == LE_PRIMARY_INT)
 #define is_REAL_le(e) ((e)->code == LE_PRIMARY_REAL)

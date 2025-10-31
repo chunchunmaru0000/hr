@@ -29,10 +29,10 @@ struct TypeExpr *copy_type_expr(struct TypeExpr *type) {
 	if (type == 0)
 		return 0;
 	long i;
-	struct TypeExpr *copy = new_type_expr(TC_VOID), *other;
+	struct TypeExpr *copy = new_type_expr(type->code), *other;
 
 	if (type->code < TC_PTR) {
-		copy->code = type->code;
+
 	} else if (type->code == TC_PTR) {
 		// * if [[ ptr ]] -> TypeExpr *
 		copy->data.ptr_target = copy_type_expr(type->data.ptr_target);

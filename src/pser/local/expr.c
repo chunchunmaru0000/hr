@@ -25,22 +25,32 @@ void paste_le(struct LocalExpr *to, struct LocalExpr *from) {
 	to->co.cond = from->co.cond;
 }
 
+#define lc_in_range(l, r) ((e->code >= LE_##l && e->code <= LE_##r))
+
 struct LocalExpr *copy_local_expr(struct LocalExpr *e) {
 	uint32_t i;
 	struct LocalExpr *copy = new_local_expr(e->code, e->type, e->tvar);
 
-	if (e->code >= LE_BIN_MUL && e->code <= LE_AFTER_PIPE_LINE) {
+	if (lc_in_range(BIN_MUL, AFTER_PIPE_LINE)) {
+	copy_l_and_r:
 		copy->l = copy_local_expr(e->l);
 		copy->r = copy_local_expr(e->r);
-		if (e->code == LE_BIN_TERRY)
+		if (lce(BIN_TERRY))
 			copy->co.cond = copy_local_expr(e->co.cond);
-	} else if (e->code == LE_AFTER_CALL) {
+
+	} else if (lce(AFTER_CALL)) {
 		copy->l = copy_local_expr(e->l);
 		for (i = 0; i < e->co.ops->size; i++)
 			plist_add(copy->co.ops, copy_local_expr(plist_get(e->co.ops, i)));
-	} else if (e->code == LE_AFTER_FIELD_OF_PTR || e->code == LE_AFTER_FIELD) {
+
+	} else if (lce(AFTER_FIELD_OF_PTR) || lce(AFTER_FIELD)) {
 		copy->l = copy_local_expr(e->l);
 		copy->r = e->r;
+
+	} else if (lce(AFTER_INDEX)) {
+		goto copy_l_and_r;
+	} else if (lce(AFTER_INC) || lce(AFTER_DEC)) {
+		copy->l = copy_local_expr(e->l);
 	}
 
 	return copy;
@@ -162,7 +172,6 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 		if ((c = absorb(p))->code != ID)
 			eet(c, FIELD_NAME_CAN_BE_ONLY_ID, 0);
 		after->r = (struct LocalExpr *)c;
-
 	} else if (ops1(PAR_L)) {
 		// e->l is valled
 		// e->ops is params
@@ -190,11 +199,16 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 		after->l = e;
 		after->r = local_expression(p);
 		match(pser_cur(p), PAR_C_R);
+	} else if (ops2(INC, DEC)) {
+		// e->l is expression
+
+		consume(p); // skip '++' or '--'
+		after = new_local_expr(ops1(INC) ? LE_AFTER_INC : LE_AFTER_DEC, 0, c);
+		after->l = e;
 	}
 
 	if (after)
 		e = after;
-
 	return e;
 }
 struct LocalExpr *unary_l_expression(struct Pser *p) {

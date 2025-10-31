@@ -35,7 +35,7 @@ e & 0xFFFFFFFF -> e, but need to prove a to be int32
 e <<,>> n^2 -> e *,/ 2^n , but need to prove that e is int
 e == e -> true, but if e is not fun call
 e != e -> false, but if e is not fun call
-e && true -> bool(e), not works for now, cuz how to do bool()
+e && true or e || false -> bool(e), not works for now, cuz how to do bool()
 x e + x e -> 2 x e, то есть множители
 делители и типа все другое
 */
@@ -251,7 +251,7 @@ void try_bin_bins(struct LocalExpr *e) {
 void opt_bin_constant_folding(struct LocalExpr *e) {
 	struct LocalExpr *l, *r, *cond;
 
-	if (is_bin_le(e) || e->code == LE_BIN_ASSIGN) {
+	if (is_bin_le(e)) {
 		l = e->l, r = e->r;
 		opt_bin_constant_folding(l);
 		opt_bin_constant_folding(r);
@@ -270,24 +270,25 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 
 		if (if_opted(MUL, mul) || if_opted(DIV, div) ||
 			if_opted2(ADD, SUB, add_or_sub) ||
-			if_opted2(SHL, SHR, add_or_sub) || if_opted(AND, and) ||
+			if_opted2(SHL, SHR, shl_or_shr) || if_opted(AND, and) ||
 			if_opted(OR, or) || if_opted(BIT_OR, bit_or) ||
 			if_opted(BIT_AND, bit_and))
 			return;
 
-	} else if (e->code == LE_BIN_TERRY) {
+	} else if (lce(BIN_TERRY)) {
 		cond = e->co.cond, l = e->l, r = e->r;
 
 		opt_bin_constant_folding(cond);
 		opt_bin_constant_folding(l);
 		opt_bin_constant_folding(r);
-	} else {
+	} else if (lce(BIN_ASSIGN) || lce(AFTER_INDEX)) {
+		opt_bin_constant_folding(e->l);
+		opt_bin_constant_folding(e->r);
 	}
 }
 
 struct PList *opt_local_expr(struct LocalExpr *e) {
 	struct PList *es = new_plist(1);
-
 	define_le_type(e);
 	opt_bin_constant_folding(e);
 	plist_add(es, e);
