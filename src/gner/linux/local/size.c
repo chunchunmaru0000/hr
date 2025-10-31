@@ -21,6 +21,21 @@ struct LocalVar *find_local_Var(struct Gner *g, struct BList *name) {
 	return 0;
 }
 
+struct Inst *find_struct(struct BList *name) {
+	struct Token *token_name;
+	struct Inst *declare_struct_inst;
+	u32 i;
+
+	for (i = 0; i < parsed_structs->size; i++) {
+		declare_struct_inst = plist_get(parsed_structs, i);
+		token_name = plist_get(declare_struct_inst->os, DCLR_STRUCT_NAME);
+
+		if (sc(vs(token_name), bs(name)))
+			return declare_struct_inst;
+	}
+	return 0;
+}
+
 uc get_var_size(struct Gner *g, struct LocalExpr *e, struct GlobVar **gvar,
 				struct LocalVar **lvar) {
 

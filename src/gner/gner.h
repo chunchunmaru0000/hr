@@ -265,6 +265,7 @@ void compare_type_and_expr(struct TypeExpr *type, struct LocalExpr *e);
 
 struct GlobVar *find_glob_Var(struct Gner *g, struct BList *name);
 struct LocalVar *find_local_Var(struct Gner *g, struct BList *name);
+struct Inst *find_struct(struct BList *name);
 
 // ############################################################################
 // 									OZER

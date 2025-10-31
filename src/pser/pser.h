@@ -144,27 +144,27 @@ struct Inst {
 
 enum TypeCode {
 	// 8
-	TC_I8,
-	TC_U8,
+	TC_I8 = 0,
+	TC_U8 = 1,
 	// 16
-	TC_I16,
-	TC_U16,
+	TC_I16 = 2,
+	TC_U16 = 3,
 	// 32
-	TC_I32, // also enum
-	TC_U32,
-	TC_ENUM,
-	TC_SINGLE,
+	TC_I32 = 4, // also enum
+	TC_U32 = 5,
+	TC_ENUM = 6,
+	TC_SINGLE = 7,
 	// 64
-	TC_VOID,
-	TC_DOUBLE,
-	TC_I64,
-	TC_U64,
+	TC_VOID = 8,
+	TC_DOUBLE = 9,
+	TC_I64 = 10,
+	TC_U64 = 11,
 
-	TC_PTR, // also str str if TC_U8 ptr
-	TC_FUN,
+	TC_PTR = 12, // also str str if TC_U8 ptr
+	TC_FUN = 13,
 
-	TC_ARR,
-	TC_STRUCT,
+	TC_ARR = 14,
+	TC_STRUCT = 15,
 };
 
 struct TypeWord {

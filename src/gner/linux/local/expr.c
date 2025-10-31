@@ -93,7 +93,7 @@ int color_level = 0;
 #define remove_color_level() (colours[--color_level % loa(colours)])
 void print_le(struct LocalExpr *e, int with_n) {
 	if (is_bin_le(e) || e->code == LE_BIN_ASSIGN) {
-
+	print_bin:
 		printf("%s(%s", take_color_level(), COLOR_RESET);
 		print_le(e->l, 0);
 		printf(" %s ", vs(e->tvar));
@@ -109,11 +109,14 @@ void print_le(struct LocalExpr *e, int with_n) {
 		printf(" : ");
 		print_le(e->co.cond, 0);
 		printf("%s}%s", remove_color_level(), COLOR_RESET);
-	} else if (e->code == LE_AFTER_INDEX) {
+	} else if (lce(AFTER_INDEX)) {
 		print_le(e->l, 0);
 		printf("%s[%s", take_color_level(), COLOR_RESET);
 		print_le(e->r, 0);
 		printf("%s]%s", remove_color_level(), COLOR_RESET);
+	} else if (lce(AFTER_FIELD_OF_PTR) || lce(AFTER_FIELD)) {
+		print_le(e->l, 0);
+		printf("%s%s", vs(e->tvar), vs((struct Token *)e->r));
 	} else {
 		printf("%s", vs(e->tvar));
 	}

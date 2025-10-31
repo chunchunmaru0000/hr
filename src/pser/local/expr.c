@@ -172,6 +172,7 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 		if ((c = absorb(p))->code != ID)
 			eet(c, FIELD_NAME_CAN_BE_ONLY_ID, 0);
 		after->r = (struct LocalExpr *)c;
+		consume(p);
 	} else if (ops1(PAR_L)) {
 		// e->l is valled
 		// e->ops is params

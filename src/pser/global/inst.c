@@ -239,7 +239,7 @@ void parse_args(struct Pser *p, struct PList *os) {
 }
 
 // ### os explanation:
-//   _ - name
+//   _ - name: struct Token *
 //   _ - size
 //   _ - mems size, usefull cuz u may need to know it, mems are not args
 // ... - fields that are Arg's
