@@ -3,6 +3,15 @@
 
 constr FIELD_NAME_CAN_BE_ONLY_ID =
 	"Поле по сути аргумент, а значит его имя может представлять лишь имя.";
+constr WRONG_DOT_USAGE = "Неправильное использование '.' точки.";
+constr HOW_TO_USE_DOT =
+	"В С точка используется для обращения к полю разыменовнной структуры, "
+	"здесь для этого используется стрелка '-@',\nточка же используется в двух "
+	"случаях:\n"
+	" * для обращения к элементу счета: СЧЕТ.ЭЛЕМЕНТ\n "
+	"* для передачи выражения в качестве первого аргумента при вызове "
+	"функции:\n   проц.освободить(регистр), "
+	"что будет равносильно освободить(проц, регистр)";
 
 struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 								 struct Token *tvar) {
@@ -157,9 +166,11 @@ struct LocalExpr *local_bin(struct LocalExpr *l, struct LocalExpr *r,
 #define bf(name, next, ops)                                                    \
 	struct LocalExpr *name(struct Pser *p) { binop(next, ops); }
 
+// TODO: some(some)[some] is call and arr(2 exprs), not index of call(1 expr)
 struct LocalExpr *after_l_expression(struct Pser *p) {
 	struct LocalExpr *e = prime_l_expression(p), *after = 0;
 	struct Token *c = pser_cur(p);
+	int i;
 
 	if (ops2(FIELD_ARROW, SOBAKA_ARROW)) {
 		// e->l is struct
@@ -206,6 +217,33 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 		consume(p); // skip '++' or '--'
 		after = new_local_expr(ops1(INC) ? LE_AFTER_INC : LE_AFTER_DEC, 0, c);
 		after->l = e;
+	} else if (ops1(DOT)) {
+		consume(p); // slip '.'
+		// - var_expr.some_expr
+		// - some_expr.some_expr
+
+		// + some_expr.expr_call -> call
+		// + var_expr.expr_call -> call
+
+		// + var_expr.var_expr -> enum
+
+		after = after_l_expression(p);
+		if (after->code == LE_PRIMARY_VAR) {
+			if (!lce(PRIMARY_VAR))
+				eet(c, WRONG_DOT_USAGE, HOW_TO_USE_DOT);
+			e->code = LE_AFTER_ENUM;
+			e->l = after;
+
+			after = e; // for if (after) statement below
+		} else if (after->code == LE_AFTER_CALL) {
+			plist_add(after->co.ops, 0);
+			// move all args to right on 1
+			for (i = after->co.ops->size - 1; i >= 0; i--)
+				plist_set(after->co.ops, i + 1, plist_get(after->co.ops, i));
+			// set [0] element to e
+			plist_set(after->co.ops, 0, e);
+		} else
+			eet(c, WRONG_DOT_USAGE, HOW_TO_USE_DOT);
 	}
 
 	if (after)

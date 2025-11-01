@@ -85,6 +85,7 @@ enum TCode {
 	FIELD_ARROW,  // ->
 	SOBAKA_ARROW, // -@
 	PIPE_LINE,	  // |>
+	DOT,		  // .
 
 	SHPLS, // #+
 	SH_L,  // (#

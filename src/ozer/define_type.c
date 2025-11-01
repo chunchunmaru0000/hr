@@ -65,6 +65,7 @@ void define_struct_field_type_type(struct LocalExpr *e) {
 }
 
 void define_call_type(struct LocalExpr *e) {
+	struct LocalExpr *call_arg_e;
 	u32 i;
 
 	define_le_type(e->l);
@@ -74,9 +75,28 @@ void define_call_type(struct LocalExpr *e) {
 	e->type = copy_type_expr(find_return_type(e->l->type));
 
 	// TODO: check args_types and their count
+	// count also can vary in function signature
 	for (i = 0; i < e->co.ops->size; i++) {
-		define_le_type(plist_get(e->co.ops, i));
+		call_arg_e = plist_get(e->co.ops, i);
+		define_le_type(call_arg_e);
 	}
+}
+
+void define_enum(struct LocalExpr *e) {
+	struct Token *enum_item =
+		find_enum_item(ogner->enums, e->tvar->view, e->l->tvar->view);
+	if (enum_item == 0)
+		eet(e->l->tvar, ENUM_ITEM_NOT_FOUND, 0);
+
+	e->code = LE_PRIMARY_INT;
+	e->type = new_type_expr(TC_I32);
+	e->tvar->num = enum_item->num;
+
+	blist_clear_free(e->tvar->view);
+	e->tvar->view = int_to_str(e->tvar->num);
+
+	free(e->l);
+	e->l = 0;
 }
 
 void define_le_type(struct LocalExpr *e) {
@@ -120,6 +140,10 @@ void define_le_type(struct LocalExpr *e) {
 		// LE_UNARY_AMPER
 		// LE_UNARY_ADDR
 	} else if (lce(AFTER_PIPE_LINE)) {
+		define_le_type(e->l);
+		define_le_type(e->r);
+		e->type = copy_type_expr(find_return_type(e->r->type));
+		// TODO: also compare as in define_call_type
 
 	} else if (lce(AFTER_INDEX)) {
 		define_le_type(e->l);
@@ -130,11 +154,11 @@ void define_le_type(struct LocalExpr *e) {
 
 	} else if (lce(AFTER_CALL)) {
 		define_call_type(e);
-
 	} else if (lce(AFTER_INC) || lce(AFTER_DEC)) {
 		e->type = copy_type_expr(e->l->type);
-
 	} else if (lce(AFTER_FIELD_OF_PTR) || lce(AFTER_FIELD)) {
 		define_struct_field_type_type(e);
+	} else if (lce(AFTER_ENUM)) {
+		define_enum(e);
 	}
 }

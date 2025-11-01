@@ -80,6 +80,7 @@ void (*gen_expressions[])(struct Gner *g, struct LocalExpr *e) = {
 	0,			// LE_AFTER_DEC,
 	0,			// LE_AFTER_FIELD_OF_PTR,
 	0,			// LE_AFTER_FIELD,
+	0,			// LE_AFTER_ENUM,
 };
 
 #define colored(name, code) ("\x1B[" #code "m")
@@ -93,7 +94,7 @@ int color_level = 0;
 #define remove_color_level() (colours[--color_level % loa(colours)])
 void print_le(struct LocalExpr *e, int with_n) {
 	if (is_bin_le(e) || e->code == LE_BIN_ASSIGN) {
-	print_bin:
+
 		printf("%s(%s", take_color_level(), COLOR_RESET);
 		print_le(e->l, 0);
 		printf(" %s ", vs(e->tvar));

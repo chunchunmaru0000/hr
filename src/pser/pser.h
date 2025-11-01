@@ -8,6 +8,7 @@
 	} while (0)
 
 extern constr STRUCT_NAME_WASNT_FOUND;
+extern constr ENUM_ITEM_NOT_FOUND;
 extern uc NEED_WARN;
 void pw(struct Token *t, constr msg, constr sgst);
 void etei_with_extra(struct ErrorInfo *info);
@@ -31,6 +32,7 @@ extern constr EXPECTED__INT;
 extern constr EXPECTED__FPN;
 extern constr EXPECTED__COMMA;
 extern constr EXPECTED__SH_L;
+extern constr EXPECTED__DOT;
 
 extern constr SUGGEST__STR;
 extern constr SUGGEST__PAR_L;
@@ -44,6 +46,7 @@ extern constr SUGGEST__INT;
 extern constr SUGGEST__FPN;
 extern constr SUGGEST__COMMA;
 extern constr SUGGEST__SH_L;
+extern constr SUGGEST__DOT;
 
 extern constr ERR_WRONG_TOKEN;
 
@@ -65,7 +68,7 @@ struct Pser {
 	struct PList *errors;
 	struct PList *warns;
 
-	struct PList *enums; // #define's
+	struct PList *enums; // struct Enum's
 
 	struct PList *global_vars; // global variables
 	struct PList *local_vars;
@@ -125,10 +128,12 @@ enum IP_Code {
 	IP_LOCAL_EXPRESSION
 };
 
-struct Defn {
-	struct BList *view;
-	void *value;
+struct Enum {
+	struct Token *enum_name;
+	struct PList *items; // plist of tokens
 };
+struct Token *find_enum_item(struct PList *enums, struct BList *enum_name,
+							 struct BList *item_name);
 
 struct Word {
 	char *view;
@@ -464,8 +469,9 @@ enum LE_Code {
 	LE_AFTER_DEC = 39,
 	LE_AFTER_FIELD_OF_PTR = 40,
 	LE_AFTER_FIELD = 41,
+	LE_AFTER_ENUM = 42,
 
-	LE_BOOL = 42,
+	LE_BOOL = 43,
 };
 // LE Code Equals
 #define lce(c) ((e->code == LE_##c))

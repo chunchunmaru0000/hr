@@ -44,6 +44,7 @@ constr EXPR_TYPE_NOT_VALID_FOR_TYPE[] = {
 	0,												// LE_AFTER_DEC,
 	0,												// LE_AFTER_FIELD_OF_PTR,
 	0,												// LE_AFTER_FIELD,
+	0,												// LE_AFTER_ENUM,
 };
 
 void cmp_int(struct TypeExpr *type, struct LocalExpr *e) {
@@ -113,6 +114,7 @@ void (*cmps[])(struct TypeExpr *type, struct LocalExpr *e) = {
 	0,		  // LE_AFTER_DEC,
 	0,		  // LE_AFTER_FIELD_OF_PTR,
 	0,		  // LE_AFTER_FIELD,
+	0,		  // LE_AFTER_ENUM,
 };
 void compare_type_and_expr(struct TypeExpr *type, struct LocalExpr *e) {
 	void (*cmp)(struct TypeExpr *type, struct LocalExpr *e) = cmps[e->code];

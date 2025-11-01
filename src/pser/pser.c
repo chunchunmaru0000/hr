@@ -277,6 +277,7 @@ constr EXPECTED__COLO = "Ожидалось ':'.";
 constr EXPECTED__ID = "Ожидалось имя или слово.";
 constr EXPECTED__COMMA = "Ожидалась ',' запятая.";
 constr EXPECTED__SH_L = "Ожидалось '(#'.";
+constr EXPECTED__DOT = "Ожидалась '.' точка.";
 
 constr SUGGEST__STR = "строка";
 constr SUGGEST__PAR_L = "(";
@@ -290,6 +291,7 @@ constr SUGGEST__INT = "целое";
 constr SUGGEST__FPN = "вещественное";
 constr SUGGEST__COMMA = ",";
 constr SUGGEST__SH_L = "(#";
+constr SUGGEST__DOT = ".";
 
 constr STR_EOF = "_КОНЕЦ_ФАЙЛА_";
 // words

@@ -67,13 +67,21 @@ struct BList *real_to_str(double num);
 #define loa(arr) (sizeof((arr)) / sizeof((arr)[0]))
 // String Compare
 #define sc(str1, str2) (strcmp((str1), (str2)) == 0)
-// View Compare
-#define vc(t1, t2) (sc((char *)(t1)->view->st, (char *)(t2)->view->st))
-// View Compare String
-#define vcs(t, str) (sc((char *)(t)->view->st, (str)))
 // View String
 #define vs(t) ((char *)(t)->view->st)
+// View Compare
+#define vc(t1, t2) (sc(vs((t1)), vs((t2))))
+// View Compare String
+#define vcs(t, str) (sc(vs((t)), (str)))
 // String String
 #define ss(t) ((char *)(t)->str->st)
 // BList String
 #define bs(l) ((char *)(l)->st)
+
+#define foreach_begin(item, items)                                             \
+	for (i = 0; i < items->size; i++) {                                        \
+		item = plist_get(items, i);
+#define foreach_by(count, item, items)                                         \
+	for ((count) = 0; (count) < items->size; (count)++) {                      \
+		item = plist_get(items, (count));
+#define foreach_end }

@@ -291,6 +291,9 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 	case ':':
 		vn1(":", COLO);
 		break;
+	case '.':
+		vn1(".", DOT);
+		break;
 	case '!':
 		ie321('=', '=', "!==", NEQUE, "!=", NEQU, "!", EXCL);
 		break;
@@ -480,7 +483,7 @@ enum TCode com_token(struct Tzer *t, struct Token *token, uc is_long) {
 	return COM;
 }
 
-char *stop_id = " \r\t\n\"\\;:/+-*=,()[]{}<>&!~|^%?#";
+char *stop_id = " \r\t\n\"\\;:/+-*=,()[]{}<>&!~|^%?#.";
 enum TCode id_token(struct Tzer *t, struct Token *token) {
 	long start_pos = t->pos, id_len = 1;
 	next(t);
@@ -498,7 +501,7 @@ enum TCode id_token(struct Tzer *t, struct Token *token) {
 	return ID;
 }
 
-char *usable_chars = ";:\\/+-*=,()[]{}<>&!~|^%?#";
+char *usable_chars = ";:\\/+-*=,()[]{}<>&!~|^%?#.";
 char *white_space = " \r\t";
 struct Token *new_token(struct Tzer *t) {
 	while (char_in_str(cur(t), white_space))

@@ -1,13 +1,5 @@
 #include "../pser/pser.h"
 
-#define foreach_begin(item, items)                                             \
-	for (i = 0; i < items->size; i++) {                                        \
-		item = plist_get(items, i);
-#define foreach_by(count, item, items)                                         \
-	for ((count) = 0; (count) < items->size; (count)++) {                      \
-		item = plist_get(items, (count));
-#define foreach_end }
-
 extern constr WASNT_EXPECTING_EOF;
 extern constr WAS_EXPECTING_PREP_INST_WORD;
 extern constr EXPCEPTED_PAR_L_OR_SH_L;

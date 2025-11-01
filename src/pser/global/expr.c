@@ -14,26 +14,32 @@ struct GlobExpr *parse_global_expression(struct Pser *p,
 
 struct GlobVar *find_global_var(struct Pser *p, struct BList *name) {
 	struct GlobVar *var;
-	uint32_t i;
+	u32 i;
 
-	for (i = 0; i < p->global_vars->size; i++) {
-		var = plist_get(p->global_vars, i);
-
-		if (sc(vs(var->name), (char *)name->st))
-			return var;
-	}
+	foreach_begin(var, p->global_vars);
+	if (sc(vs(var->name), bs(name)))
+		return var;
+	foreach_end;
 	return 0;
 }
-struct Defn *find_enum_value(struct Pser *p, struct BList *name) {
-	struct Defn *enum_value;
-	uint32_t i;
+struct Token *find_enum_item(struct PList *enums, struct BList *enum_name,
+							 struct BList *item_name) {
+	struct Enum *enum_obj;
+	struct Token *enum_item;
+	u32 i, j;
 
-	for (i = 0; i < p->enums->size; i++) {
-		enum_value = plist_get(p->enums, i);
-
-		if (sc(vs(enum_value), (char *)name->st))
-			return enum_value;
+	foreach_by(i, enum_obj, enums);
+	{
+		if (sc(vs(enum_obj->enum_name), bs(enum_name))) {
+			foreach_by(j, enum_item, enum_obj->items);
+			{
+				if (sc(vs(enum_item), bs(item_name)))
+					return enum_item;
+			}
+			foreach_end;
+		}
 	}
+	foreach_end;
 	return 0;
 }
 
@@ -41,6 +47,24 @@ struct GlobExpr *after_g_expression(struct Pser *p) {
 	struct GlobExpr *e = prime_g_expression(p);
 
 	return e;
+}
+
+constr ENUM_ITEM_NOT_FOUND = "Элемент счета с таким именем не был найден.";
+
+int try_find_enum(struct Pser *p, struct GlobExpr *e, struct Token *c) {
+	struct Token *enum_name = c, *enum_item;
+
+	if (pser_cur(p)->code != DOT)
+		return 0;
+	match((c = absorb(p)), ID);
+
+	if ((enum_item = find_enum_item(p->enums, enum_name->view, c->view)) == 0)
+		eet(c, ENUM_ITEM_NOT_FOUND, 0);
+
+	e->code = CT_INT;
+	copy_token(e->tvar, enum_item);
+
+	return 1;
 }
 
 constr UNEXPECTED_TOKEN_IN_GLOB_EXPR =
@@ -62,7 +86,6 @@ constr BIT_NOT_WORKS_ONLY_WITH_INT =
 
 struct GlobExpr *prime_g_expression(struct Pser *p) {
 	struct GlobVar *other_var;
-	struct Defn *enum_value;
 	struct Token *c = pser_cur(p);
 
 	struct GlobExpr *e = malloc(sizeof(struct GlobExpr));
@@ -86,17 +109,12 @@ struct GlobExpr *prime_g_expression(struct Pser *p) {
 	case ID:
 		consume(p);
 
-		enum_value = find_enum_value(p, c->view);
-		if (enum_value) {
-			e->code = CT_INT;
-			copy_token(e->tvar, c);
-			e->tvar->num = (long)enum_value->value;
+		other_var = find_global_var(p, c->view);
+		if (other_var == 0) {
+			if (try_find_enum(p, e, c) == 0)
+				eet(c, GLOBAL_VAR_WAS_NOT_FOUND, vs(c));
 			break;
 		}
-
-		other_var = find_global_var(p, c->view);
-		if (other_var == 0)
-			eet(c, GLOBAL_VAR_WAS_NOT_FOUND, vs(c));
 
 		e->from = other_var;
 

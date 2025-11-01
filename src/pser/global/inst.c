@@ -21,70 +21,64 @@ enum IP_Code inst_pser_asm(struct Pser *p, struct PList *os) {
 	return IP_ASM;
 }
 
+constr ENUM_NAME_OVERLAP = "Счет с таким же именем уже существует.";
 constr ENUM_ITEM_NAME_OVERLAP =
-	"Значение счета с таким же именем уже существует.";
+	"Элемент данного счета с таким же именем уже существует.";
 constr EXPECTED_INT_GLOB_EXPR =
 	"Результатом глобального выражения для значения счета может быть только "
 	"целое число.";
 
 // ### os explanation:
-//   _ - name
-// ... - defns where name is name and value is num
+//   _ - struct Enum *enum_obj
 enum IP_Code inst_pser_enum(struct Pser *p, struct PList *os) {
-	struct Token *enum_name = absorb(p);
-	expect(enum_name, ID);
-	plist_add(os, enum_name);
-
-	struct Token *c;
 	struct GlobExpr *e;
-	struct Defn *defn, *tmp_defn;
+	struct Token *c, *other_name, *item_name;
 	long counter = 0;
-	uint32_t i;
+	u32 i;
+
+	struct Enum *enum_obj = malloc(sizeof(struct Enum)), *tmp_enum;
+	enum_obj->enum_name = absorb(p);
+	expect(enum_obj->enum_name, ID);
+	enum_obj->items = new_plist(4);
+
+	foreach_begin(tmp_enum, p->enums);
+	if (sc(vs(enum_obj->enum_name), vs(tmp_enum->enum_name)))
+		eet(c, ENUM_NAME_OVERLAP, 0);
+	foreach_end;
+
+	plist_add(os, enum_obj);
+	plist_add(p->enums, enum_obj);
 
 	c = absorb(p);
 	expect(c, PAR_L);
 
 	for (c = absorb(p); not_ef_and(PAR_R, c);) {
 		expect(c, ID);
-		defn = malloc(sizeof(struct Defn));
-		defn->view = new_blist(0);
-		blat_blist(defn->view, enum_name->view); // enum name
-		blist_add(defn->view, '.');				 // .
-		blat_blist(defn->view, c->view);		 // thing name
-
-		zero_term_blist(defn->view);
+		item_name = c;
 
 		// check here for identical names in enums items
-		for (i = 0; i < p->enums->size; i++) {
-			tmp_defn = plist_get(p->enums, i);
+		foreach_begin(other_name, enum_obj->items);
+		if (vc(item_name, other_name))
+			eet(item_name, ENUM_ITEM_NAME_OVERLAP, 0);
+		foreach_end;
+		plist_add(enum_obj->items, item_name);
 
-			if (vc(defn, tmp_defn))
-				eet(c, ENUM_ITEM_NAME_OVERLAP, 0);
-		}
-
-		// word
-		//		,
-		//		)
-		//		expr
 		c = absorb(p);
 		if (c->code == PAR_R || c->code == COMMA) {
-			defn->value = (void *)counter;
+			item_name->num = counter;
 		} else {
 			e = global_expression(p);
 
 			if (e->code != CT_INT)
 				eet(c, EXPECTED_INT_GLOB_EXPR, 0);
-			defn->value = (void *)e->tvar->num;
+			item_name->num = e->tvar->num;
 
 			free_glob_expr(e);
 			c = pser_cur(p);
 		}
-
 		if (c->code == COMMA)
 			c = absorb(p);
 
-		plist_add(p->enums, defn);
-		plist_add(os, defn);
 		counter++;
 	}
 	match(c, PAR_R);

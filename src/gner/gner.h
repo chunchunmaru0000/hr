@@ -84,7 +84,7 @@ struct Gner {
 	struct Lbls *labels;
 
 	struct PList *is;
-	struct PList *enums; // Defn's
+	struct PList *enums; // // struct Enum's
 	struct PList *global_vars;
 	struct PList *local_vars;
 

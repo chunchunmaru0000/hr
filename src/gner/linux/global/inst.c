@@ -61,7 +61,7 @@ void gen_linux_text(struct Gner *g) {
 	struct Inst *in;
 	struct Token *tok, *tok2;
 	struct GlobVar *global_var;
-	struct Defn *defn;
+	struct Enum *enum_obj;
 
 	g->flags->is_data_segment_used = 0;
 
@@ -82,19 +82,20 @@ void gen_linux_text(struct Gner *g) {
 			break;
 		case IP_DECLARE_ENUM:
 			// ### os explanation:
-			//   _ - name
-			// ... - defns where name is name and value is num
+			//   _ - struct Enum *enum_obj
 
-			for (j = 1; j < in->os->size; j++) {
-				defn = plist_get(in->os, j);
-				iprint_bprol(SA_EQU); // вот
-				blat_bprol(defn->view);
-				bprol_add('\t');
-				int_add(g->bprol, (long)defn->value);
-				bprol_add('\n');
+			enum_obj = plist_get(in->os, 0);
+			foreach_by(j, tok, enum_obj->items);
+			{
+				iprint_bprol(SA_EQU);				   // вот
+				blat_bprol(enum_obj->enum_name->view); // enum name
+				bprol_add('.');						   // .
+				blat_bprol(tok->view);				   // item name
+				bprol_add('\t');					   // \t
+				int_add(g->bprol, tok->num);		   // item value
+				bprol_add('\n');					   // \n
 			}
-
-			bprol_add('\n');
+			foreach_end;
 			break;
 		case IP_DECLARE_STRUCT:
 			// ### os explanation:
