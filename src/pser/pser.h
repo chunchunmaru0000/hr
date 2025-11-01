@@ -201,6 +201,9 @@ struct TypeExpr {
 #define arr_type(t) (((struct TypeExpr *)plist_get((t)->data.arr, 0)))
 #define arr_len(t) (plist_get((t)->data.arr, 1))
 #define ptr_targ(t) (((struct TypeExpr *)(t)->data.ptr_target))
+#define fun_args(t) ((struct PList *)((t)->data.args_types))
+#define find_return_type(t)                                                    \
+	((struct TypeExpr *)plist_get(fun_args((t)), fun_args((t))->size - 1))
 
 #define is_void_ptr(t) ((t)->code == TC_PTR && ptr_targ((t))->code == TC_VOID)
 #define is_ptr_type(t) ((t)->code == TC_PTR || (t)->code == TC_FUN)

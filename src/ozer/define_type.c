@@ -9,6 +9,8 @@ constr EXPECTED_STRUCT_TYPE =
 	"Ожидалось выражение типа лика для обращения к его полю.";
 constr FIELD_NOT_FOUND_IN_STRUCT =
 	"В лике не было найдено поле с таким именем.";
+constr EXPECTED_FUN_TYPE =
+	"Ожидалось выражение с типом функции, для её вызова.";
 
 void define_var_type(struct LocalExpr *e) {
 	struct LocalVar *lvar;
@@ -62,6 +64,21 @@ void define_struct_field_type_type(struct LocalExpr *e) {
 	eet(field_name, FIELD_NOT_FOUND_IN_STRUCT, 0);
 }
 
+void define_call_type(struct LocalExpr *e) {
+	u32 i;
+
+	define_le_type(e->l);
+	if (e->l->type == 0 || e->l->type->code != TC_FUN)
+		eet(e->l->tvar, EXPECTED_FUN_TYPE, 0);
+
+	e->type = copy_type_expr(find_return_type(e->l->type));
+
+	// TODO: check args_types and their count
+	for (i = 0; i < e->co.ops->size; i++) {
+		define_le_type(plist_get(e->co.ops, i));
+	}
+}
+
 void define_le_type(struct LocalExpr *e) {
 	if (e->type)
 		return;
@@ -112,10 +129,7 @@ void define_le_type(struct LocalExpr *e) {
 		e->type = copy_type_expr(arr_type(e->l->type));
 
 	} else if (lce(AFTER_CALL)) {
-		define_le_type(e->l);
-		for (i = 0; i < e->co.ops->size; i++)
-			define_le_type(plist_get(e->co.ops, i));
-		e->type = copy_type_expr(arr_type(e->l->type));
+		define_call_type(e);
 
 	} else if (lce(AFTER_INC) || lce(AFTER_DEC)) {
 		e->type = copy_type_expr(e->l->type);
