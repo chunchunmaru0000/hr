@@ -475,6 +475,10 @@ enum LE_Code {
 };
 // LE Code Equals
 #define lce(c) ((e->code == LE_##c))
+#define lcep(c) ((e->code == LE_PRIMARY_##c))
+#define lceb(c) ((e->code == LE_BIN_##c))
+#define lcea(c) ((e->code == LE_AFTER_##c))
+
 #define is_bin_le(e) ((e)->code >= LE_BIN_MUL && (e)->code <= LE_BIN_OR)
 #define is_INT_le(e) ((e)->code == LE_PRIMARY_INT)
 #define is_REAL_le(e) ((e)->code == LE_PRIMARY_REAL)

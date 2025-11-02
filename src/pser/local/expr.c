@@ -24,7 +24,7 @@ struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 	e->co.cond = 0;
 	return e;
 }
-// TODO: check all usages and free where is need
+
 void paste_le(struct LocalExpr *to, struct LocalExpr *from) {
 	to->code = from->code;
 	to->type = from->type;
@@ -49,6 +49,7 @@ struct LocalExpr *copy_local_expr(struct LocalExpr *e) {
 
 	} else if (lce(AFTER_CALL)) {
 		copy->l = copy_local_expr(e->l);
+	copy_ops:
 		for (i = 0; i < e->co.ops->size; i++)
 			plist_add(copy->co.ops, copy_local_expr(plist_get(e->co.ops, i)));
 
@@ -58,8 +59,10 @@ struct LocalExpr *copy_local_expr(struct LocalExpr *e) {
 
 	} else if (lce(AFTER_INDEX)) {
 		goto copy_l_and_r;
-	} else if (lce(AFTER_INC) || lce(AFTER_DEC)) {
+	} else if (lce(AFTER_INC) || lce(AFTER_DEC) || lce(AFTER_ENUM)) {
 		copy->l = copy_local_expr(e->l);
+	} else if (lce(PRIMARY_ARR)) {
+		goto copy_ops;
 	}
 
 	return copy;
@@ -166,11 +169,14 @@ struct LocalExpr *local_bin(struct LocalExpr *l, struct LocalExpr *r,
 #define bf(name, next, ops)                                                    \
 	struct LocalExpr *name(struct Pser *p) { binop(next, ops); }
 
-// TODO: some(some)[some] is call and arr(2 exprs), not index of call(1 expr)
 struct LocalExpr *after_l_expression(struct Pser *p) {
-	struct LocalExpr *e = prime_l_expression(p), *after = 0;
-	struct Token *c = pser_cur(p);
+	struct LocalExpr *e = prime_l_expression(p), *after;
+	struct Token *c;
 	int i;
+
+repeat_after:
+	after = 0;
+	c = pser_cur(p);
 
 	if (ops2(FIELD_ARROW, SOBAKA_ARROW)) {
 		// e->l is struct
@@ -221,14 +227,14 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 		consume(p); // slip '.'
 		// - var_expr.some_expr
 		// - some_expr.some_expr
-
 		// + some_expr.expr_call -> call
 		// + var_expr.expr_call -> call
-
 		// + var_expr.var_expr -> enum
 
 		after = after_l_expression(p);
 		if (after->code == LE_PRIMARY_VAR) {
+			// e->l is var
+
 			if (!lce(PRIMARY_VAR))
 				eet(c, WRONG_DOT_USAGE, HOW_TO_USE_DOT);
 			e->code = LE_AFTER_ENUM;
@@ -246,8 +252,10 @@ struct LocalExpr *after_l_expression(struct Pser *p) {
 			eet(c, WRONG_DOT_USAGE, HOW_TO_USE_DOT);
 	}
 
-	if (after)
+	if (after) {
 		e = after;
+		goto repeat_after;
+	}
 	return e;
 }
 struct LocalExpr *unary_l_expression(struct Pser *p) {

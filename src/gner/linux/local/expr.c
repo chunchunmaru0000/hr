@@ -93,16 +93,15 @@ int color_level = 0;
 #define take_color_level() (colours[color_level++ % loa(colours)])
 #define remove_color_level() (colours[--color_level % loa(colours)])
 void print_le(struct LocalExpr *e, int with_n) {
-	if (is_bin_le(e) || e->code == LE_BIN_ASSIGN) {
+	u32 i;
 
+	if (is_bin_le(e) || lceb(ASSIGN)) {
 		printf("%s(%s", take_color_level(), COLOR_RESET);
 		print_le(e->l, 0);
 		printf(" %s ", vs(e->tvar));
 		print_le(e->r, 0);
 		printf("%s)%s", remove_color_level(), COLOR_RESET);
-
-	} else if (e->code == LE_BIN_TERRY) {
-
+	} else if (lceb(TERRY)) {
 		printf("%s{%s", take_color_level(), COLOR_RESET);
 		print_le(e->l, 0);
 		printf(" ? ");
@@ -110,14 +109,25 @@ void print_le(struct LocalExpr *e, int with_n) {
 		printf(" : ");
 		print_le(e->co.cond, 0);
 		printf("%s}%s", remove_color_level(), COLOR_RESET);
-	} else if (lce(AFTER_INDEX)) {
+	} else if (lcea(INDEX)) {
 		print_le(e->l, 0);
 		printf("%s[%s", take_color_level(), COLOR_RESET);
 		print_le(e->r, 0);
 		printf("%s]%s", remove_color_level(), COLOR_RESET);
-	} else if (lce(AFTER_FIELD_OF_PTR) || lce(AFTER_FIELD)) {
+	} else if (lcea(FIELD_OF_PTR) || lcea(FIELD)) {
 		print_le(e->l, 0);
 		printf("%s%s", vs(e->tvar), vs((struct Token *)e->r));
+	} else if (lcea(CALL)) {
+		print_le(e->l, 0);
+		printf("%s(%s", take_color_level(), COLOR_RESET);
+		if (e->co.ops->size) {
+			for (i = 0; i < e->co.ops->size - 1; i++) {
+				print_le(plist_get(e->co.ops, i), 0);
+				printf(", ");
+			}
+			print_le(plist_get(e->co.ops, i), 0);
+		}
+		printf("%s)%s", remove_color_level(), COLOR_RESET);
 	} else {
 		printf("%s", vs(e->tvar));
 	}
