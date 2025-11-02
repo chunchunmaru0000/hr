@@ -288,3 +288,13 @@ int try_opt_bit_and(struct LocalExpr *e);
 #define if_opted2(cap0, cap1, low)                                             \
 	(((e->code == LE_BIN_##cap0 || e->code == LE_BIN_##cap1) &&                \
 	  try_opt_##low(e)))
+#define update_int_view(e)                                                     \
+	do {                                                                       \
+		blist_clear_free((e)->tvar->view);                                     \
+		(e)->tvar->view = int_to_str((e)->tvar->num);                          \
+	} while (0)
+#define update_real_view(e)                                                    \
+	do {                                                                       \
+		blist_clear_free((e)->tvar->view);                                     \
+		(e)->tvar->view = real_to_str((e)->tvar->real);                        \
+	} while (0)

@@ -383,15 +383,17 @@ long unsafe_size_of_global_value(struct GlobExpr *e);
 
 void eei(struct Inst *, constr msg, constr sgst);
 
+#define is_u_or_i_8(t) (((t)->code == TC_U8 || (t)->code == TC_I8))
+#define is_u_or_i_16(t) (((t)->code == TC_U16 || (t)->code == TC_I16))
+#define is_u_or_i_32(t) (((t)->code == TC_U32 || (t)->code == TC_I32))
+#define is_u_or_i_64(t) (((t)->code == TC_U64 || (t)->code == TC_I64))
+
 #define is_int_type(t)                                                         \
-	((t)->code == TC_I8 || (t)->code == TC_I16 || (t)->code == TC_I32 ||       \
-	 (t)->code == TC_I64 || (t)->code == TC_VOID || (t)->code == TC_ENUM ||    \
-	 (t)->code == TC_U8 || (t)->code == TC_U16 || (t)->code == TC_U32 ||       \
-	 (t)->code == TC_U64)
+	(is_u_or_i_8((t)) || is_u_or_i_16((t)) || is_u_or_i_32((t)) ||             \
+	 is_u_or_i_64((t)) || (t)->code == TC_VOID || (t)->code == TC_ENUM)
 #define is_num_int_type(t)                                                     \
-	((t)->code == TC_I8 || (t)->code == TC_I16 || (t)->code == TC_I32 ||       \
-	 (t)->code == TC_I64 || (t)->code == TC_ENUM || (t)->code == TC_U8 ||      \
-	 (t)->code == TC_U16 || (t)->code == TC_U32 || (t)->code == TC_U64)
+	(is_u_or_i_8((t)) || is_u_or_i_16((t)) || is_u_or_i_32((t)) ||             \
+	 is_u_or_i_64((t)) || (t)->code == TC_ENUM)
 #define is_real_type(t) ((t)->code == TC_DOUBLE || (t)->code == TC_SINGLE)
 #define is_num_type(t) (is_real_type((t)) || is_num_int_type((t)))
 
@@ -485,13 +487,13 @@ enum LE_Code {
 #define is_bin_le(e) ((e)->code >= LE_BIN_MUL && (e)->code <= LE_BIN_OR)
 #define is_INT_le(e) ((e)->code == LE_PRIMARY_INT)
 #define is_REAL_le(e) ((e)->code == LE_PRIMARY_REAL)
-#define is_num_le(e) (is_INT_le((e)) || is_REAL_le((e)))
+#define is_num_le(e) ((is_INT_le((e)) || is_REAL_le((e))))
 #define is_le_num(e, number)                                                   \
-	(is_INT_le((e)) && (e)->tvar->num == (number)) ||                          \
-		(is_REAL_le((e)) && (e)->tvar->real == (number))
+	((is_INT_le((e)) && (e)->tvar->num == (number)) ||                         \
+	 (is_REAL_le((e)) && (e)->tvar->real == (number)))
 #define is_le_not_num(e, number)                                               \
-	(is_INT_le((e)) && (e)->tvar->num != (number)) ||                          \
-		(is_REAL_le((e)) && (e)->tvar->real != (number))
+	((is_INT_le((e)) && (e)->tvar->num != (number)) ||                         \
+	 (is_REAL_le((e)) && (e)->tvar->real != (number)))
 
 union CondOps {
 	struct LocalExpr *cond;

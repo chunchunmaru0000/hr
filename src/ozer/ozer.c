@@ -29,15 +29,10 @@ PLUS, MINUS
 [ EQU ]
 [ PIPE_LINE ]
 
-need to get gner in ozer
-
-e & 0xFFFFFFFF -> e, but need to prove a to be int32
-e <<,>> n^2 -> e *,/ 2^n , but need to prove that e is int
-e == e -> true, but if e is not fun call
-e != e -> false, but if e is not fun call
+e == e -> true, but if e is not fun call or inc or dec
+e != e -> false, but if e is not fun call or inc or dec
 e && true or e || false -> bool(e), not works for now, cuz how to do bool()
-x e + x e -> 2 x e, то есть множители
-делители и типа все другое
+x e + x e -> 2 x e, то есть множители делители и типа все другое
 */
 
 void unary_of_num(struct LocalExpr *e) {}
@@ -98,8 +93,7 @@ void bin_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
 			eet(e->tvar, "real эээ", 0);
 
 		e->code = LE_PRIMARY_REAL;
-		blist_clear_free(e->tvar->view);
-		e->tvar->view = real_to_str(e->tvar->real);
+		update_real_view(e);
 	} else {
 
 		if (op_code == LE_BIN_MUL)
@@ -145,8 +139,7 @@ void bin_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
 
 	do_int:
 		e->code = LE_PRIMARY_INT;
-		blist_clear_free(e->tvar->view);
-		e->tvar->view = int_to_str(e->tvar->num);
+		update_int_view(e);
 	}
 	zero_term_blist(e->tvar->view);
 
