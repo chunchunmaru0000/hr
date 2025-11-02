@@ -10,8 +10,8 @@ constr EXPR_TYPE_NOT_VALID_FOR_TYPE[] = {
 	0,												// LE_PRIMARY_ARR
 	0,												// LE_PRIMARY_TUPLE
 	0,												// LE_UNARY_MINUS
-	0,												// LE_UNARY_INC_BEFORE
-	0,												// LE_UNARY_DEC_BEFORE
+	0,												// LE_UNARY_INC
+	0,												// LE_UNARY_DEC
 	0,												// LE_UNARY_NOT
 	0,												// LE_UNARY_BIT_NOT
 	0,												// LE_UNARY_AMPER
@@ -80,8 +80,8 @@ void (*cmps[])(struct TypeExpr *type, struct LocalExpr *e) = {
 	0,		  // LE_PRIMARY_ARR
 	0,		  // LE_PRIMARY_TUPLE
 	0,		  // LE_UNARY_MINUS
-	0,		  // LE_UNARY_INC_BEFORE
-	0,		  // LE_UNARY_DEC_BEFORE
+	0,		  // LE_UNARY_INC
+	0,		  // LE_UNARY_DEC
 	0,		  // LE_UNARY_NOT
 	0,		  // LE_UNARY_BIT_NOT
 	0,		  // LE_UNARY_AMPER

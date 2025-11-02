@@ -20,8 +20,6 @@ void define_var_type(struct LocalExpr *e) {
 		e->type = copy_type_expr(lvar->type);
 	} else if ((gvar = find_glob_Var(ogner, e->tvar->view))) {
 		e->type = copy_type_expr(gvar->type);
-	} else if (0) {
-		// TODO: find enum
 	} else {
 		eet(e->tvar, "ненененененененене", 0);
 	}
@@ -133,8 +131,8 @@ void define_le_type(struct LocalExpr *e) {
 	} else if (lce(PRIMARY_ARR) || lce(PRIMARY_TUPLE)) {
 		e->type = 0;
 		// LE_UNARY_MINUS
-		// LE_UNARY_INC_BEFORE
-		// LE_UNARY_DEC_BEFORE
+		// LE_UNARY_INC
+		// LE_UNARY_DEC
 		// LE_UNARY_NOT
 		// LE_UNARY_BIT_NOT
 		// LE_UNARY_AMPER

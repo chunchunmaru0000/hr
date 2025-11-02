@@ -46,8 +46,8 @@ void (*gen_expressions[])(struct Gner *g, struct LocalExpr *e) = {
 	0,			// 	LE_PRIMARY_ARR,
 	0,			// 	LE_PRIMARY_TUPLE,
 	0,			// 	LE_UNARY_MINUS,
-	0,			// 	LE_UNARY_INC_BEFORE,
-	0,			// 	LE_UNARY_DEC_BEFORE,
+	0,			// 	LE_UNARY_INC,
+	0,			// 	LE_UNARY_DEC,
 	0,			// 	LE_UNARY_NOT,
 	0,			// 	LE_UNARY_BIT_NOT,
 	0,			// 	LE_UNARY_AMPER,
@@ -128,6 +128,9 @@ void print_le(struct LocalExpr *e, int with_n) {
 			print_le(plist_get(e->co.ops, i), 0);
 		}
 		printf("%s)%s", remove_color_level(), COLOR_RESET);
+	} else if (is_unary(e)) {
+		printf("%s", vs(e->tvar));
+		print_le(e->l, 0);
 	} else {
 		printf("%s", vs(e->tvar));
 	}

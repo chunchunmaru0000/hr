@@ -92,6 +92,7 @@ struct PList *find_lik_os(struct BList *name);
 
 #define consume(p) ((p)->pos++)
 #define pser_cur(p) (get_pser_token((p), 0))
+#define pser_prev(p) (get_pser_token((p), -1))
 #define pser_next(p) (get_pser_token((p), 1))
 #define absorb(p) (next_pser_get((p), 0)) // consume + ret pser_cur
 #define not_ef_and(cd, c) ((c)->code != (cd) && (c)->code != EF)
@@ -432,8 +433,8 @@ enum LE_Code {
 
 	// LE_UNARY_PLUS, just skip cuz does nothing mathematically
 	LE_UNARY_MINUS = 7,
-	LE_UNARY_INC_BEFORE = 8,
-	LE_UNARY_DEC_BEFORE = 9,
+	LE_UNARY_INC = 8,
+	LE_UNARY_DEC = 9,
 	LE_UNARY_NOT = 10,
 	LE_UNARY_BIT_NOT = 11,
 	LE_UNARY_AMPER = 12,
@@ -479,6 +480,7 @@ enum LE_Code {
 #define lceb(c) ((e->code == LE_BIN_##c))
 #define lcea(c) ((e->code == LE_AFTER_##c))
 
+#define is_unary(e) ((e)->code >= LE_UNARY_MINUS && (e)->code <= LE_UNARY_ADDR)
 #define is_bin_le(e) ((e)->code >= LE_BIN_MUL && (e)->code <= LE_BIN_OR)
 #define is_INT_le(e) ((e)->code == LE_PRIMARY_INT)
 #define is_REAL_le(e) ((e)->code == LE_PRIMARY_REAL)

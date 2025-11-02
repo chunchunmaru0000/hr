@@ -57,3 +57,62 @@ struct LocalExpr *prime_l_expression(struct Pser *p) {
 
 	return e;
 }
+
+#define one_token_unary(le_code)                                               \
+	do {                                                                       \
+		consume(p);                                                            \
+		e = after_l_expression(p);                                             \
+		unary = new_local_expr((le_code), 0, c);                               \
+		unary->l = e;                                                          \
+		goto unary_return;                                                     \
+	} while (0)
+
+struct LocalExpr *unary_l_expression(struct Pser *p) {
+	struct Token *c = pser_cur(p), *last_minus;
+	struct LocalExpr *unary, *e;
+	char sign = 1;
+
+	if (c->code == PLUS || c->code == MINUS) {
+		// LE_UNARY_MINUS
+		loop {
+			if (c->code == PLUS) {
+				c = absorb(p);
+				continue;
+			}
+			if (c->code == MINUS) {
+				last_minus = c;
+				c = absorb(p);
+				sign *= -1;
+				continue;
+			}
+			break;
+		}
+		if (sign == 1)
+			goto default_return;
+
+		e = after_l_expression(p);
+		unary = new_local_expr(LE_UNARY_MINUS, 0, last_minus);
+		unary->l = e;
+		goto unary_return;
+
+	} else if (c->code == INC || c->code == DEC) {
+		// LE_UNARY_INC
+		// LE_UNARY_DEC
+		one_token_unary(c->code == INC ? LE_UNARY_INC : LE_UNARY_DEC);
+
+	} else if (c->code == EXCL || c->code == BIT_NOT) {
+		// LE_UNARY_NOT
+		// LE_UNARY_BIT_NOT
+		one_token_unary(c->code == EXCL ? LE_UNARY_NOT : LE_UNARY_BIT_NOT);
+
+	} else if (c->code == MUL || c->code == AMPER) {
+		// LE_UNARY_ADDR
+		// LE_UNARY_AMPER
+		one_token_unary(c->code == MUL ? LE_UNARY_ADDR : LE_UNARY_AMPER);
+	}
+
+default_return:
+	return after_l_expression(p);
+unary_return:
+	return unary;
+}

@@ -258,9 +258,7 @@ repeat_after:
 	}
 	return e;
 }
-struct LocalExpr *unary_l_expression(struct Pser *p) {
-	return after_l_expression(p);
-}
+
 bf(mulng_l_expression, unary_l_expression, ops4(MUL, DIV, MOD, WHOLE_DIV));
 bf(addng_l_expression, mulng_l_expression, ops2(PLUS, MINUS));
 bf(shtng_l_expression, addng_l_expression, ops2(SHL, SHR));

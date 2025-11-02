@@ -172,7 +172,7 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 	type_size = size_of_type(p, type);
 
 	if (is_one_memory && from && (type_size != size_of_type(p, from->type)))
-		eet(get_pser_token((p), -1), TYPES_SIZES_NOT_MATCH,
+		eet(pser_prev(p), TYPES_SIZES_NOT_MATCH,
 			SUGGEST_CHANGE_ARG_TYPE_SIZE);
 	if (!is_one_memory && from)
 		eet(get_pser_token((p), colo_pos - p->pos - 1),
