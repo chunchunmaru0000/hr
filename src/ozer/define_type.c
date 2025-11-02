@@ -1,6 +1,8 @@
 #include "../gner/gner.h"
 #include <stdio.h>
 
+constr INVALID_TYPE_FOR_BIN = "Неверный тип операнда для бинарных операций, с "
+							  "ними вообще только числовые типы используются.";
 constr EXPECTED_ARR_TYPE =
 	"Ожидалось выражение типа массива для обращения к нему по индексу.";
 constr EXPECTED_STRUCT_PTR_TYPE =
@@ -97,6 +99,37 @@ void define_enum(struct LocalExpr *e) {
 	e->l = 0;
 }
 
+enum TypeCode max_code_or_any(enum TypeCode c0, enum TypeCode c1) {
+	enum TypeCode res = c0;
+	if (c0 > c1) {
+		res = c0;
+	} else if (c1 > c0) {
+		res = c1;
+	}
+	return res;
+}
+
+struct TypeExpr *add_types(struct LocalExpr *l, struct LocalExpr *r) {
+	struct TypeExpr *l_type = l->type, *r_type = r->type, *res;
+
+	if (l_type == 0 || !is_num_type(l_type))
+		eet(l->tvar, INVALID_TYPE_FOR_BIN, 0);
+	if (r_type == 0 || !is_num_type(r_type))
+		eet(r->tvar, INVALID_TYPE_FOR_BIN, 0);
+
+	if (is_real_type(l_type)) {
+		if (is_real_type(r_type))
+			res = new_type_expr(max_code_or_any(l_type->code, r_type->code));
+		else
+			res = new_type_expr(l_type->code);
+	} else if (is_real_type(r_type)) {
+		res = new_type_expr(r_type->code);
+	} else { // both are ints or uints
+		res = new_type_expr(max_code_or_any(l_type->code, r_type->code));
+	}
+	return res;
+}
+
 void define_le_type(struct LocalExpr *e) {
 	if (e->type)
 		return;
@@ -106,6 +139,7 @@ void define_le_type(struct LocalExpr *e) {
 	if (is_bin_le(e)) {
 		define_le_type(e->l);
 		define_le_type(e->r);
+		e->type = add_types(e->l, e->r);
 
 	} else if (lce(BIN_TERRY)) {
 		define_le_type(e->l);
@@ -115,6 +149,7 @@ void define_le_type(struct LocalExpr *e) {
 	} else if (lce(BIN_ASSIGN)) {
 		define_le_type(e->l);
 		define_le_type(e->r);
+		e->type = copy_type_expr(e->l->type);
 
 	} else if (lce(PRIMARY_INT)) {
 		e->type = new_type_expr(TC_I32);
@@ -133,7 +168,7 @@ void define_le_type(struct LocalExpr *e) {
 			define_le_type(plist_get(e->co.ops, i));
 		e->type = 0;
 
-	} else if (is_unary(e)) {
+	} else if (is_unary(e) || lce(BOOL)) {
 		define_le_type(e->l);
 		e->type = copy_type_expr(e->l->type);
 

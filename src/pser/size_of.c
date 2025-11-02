@@ -34,8 +34,8 @@ int unsafe_size_of_type(struct TypeExpr *type) {
 
 	return c == TC_STRUCT ? unsafe_size_of_struct(type->data.name)
 		   : c >= TC_VOID ? QWORD
-		   : c >= TC_I32  ? DWORD
-		   : c >= TC_I16  ? WORD
+		   : c >= TC_U32  ? DWORD
+		   : c >= TC_U16  ? WORD
 						  : BYTE;
 }
 
@@ -73,7 +73,7 @@ int size_of_type(struct Pser *p, struct TypeExpr *type) {
 
 	return c == TC_STRUCT ? size_of_struct(p, type->data.name)
 		   : c >= TC_VOID ? QWORD
-		   : c >= TC_I32  ? DWORD
-		   : c >= TC_I16  ? WORD
+		   : c >= TC_U32  ? DWORD
+		   : c >= TC_U16  ? WORD
 						  : BYTE;
 }

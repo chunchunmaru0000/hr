@@ -150,21 +150,21 @@ struct Inst {
 
 enum TypeCode {
 	// 8
-	TC_I8 = 0,
-	TC_U8 = 1,
+	TC_U8 = 0,
+	TC_I8 = 1,
 	// 16
-	TC_I16 = 2,
-	TC_U16 = 3,
+	TC_U16 = 2,
+	TC_I16 = 3,
 	// 32
-	TC_I32 = 4, // also enum
-	TC_U32 = 5,
-	TC_ENUM = 6,
+	TC_U32 = 4,
+	TC_ENUM = 5,
+	TC_I32 = 6, // also enum
 	TC_SINGLE = 7,
 	// 64
 	TC_VOID = 8,
 	TC_DOUBLE = 9,
-	TC_I64 = 10,
-	TC_U64 = 11,
+	TC_U64 = 10,
+	TC_I64 = 11,
 
 	TC_PTR = 12, // also str str if TC_U8 ptr
 	TC_FUN = 13,
@@ -344,9 +344,9 @@ struct GlobVar {
 
 #define types_sizes_do_match(t1, t2)                                           \
 	(((t1) >= TC_VOID && (t2) >= TC_VOID) ||                                   \
-	 ((t1) >= TC_I32 && (t2) >= TC_I32 && (t1) < TC_VOID && (t2) < TC_VOID) || \
-	 ((t1) >= TC_I16 && (t2) >= TC_I16 && (t1) < TC_I32 && (t2) < TC_I32) ||   \
-	 ((t1) >= TC_I8 && (t2) >= TC_I8 && (t1) < TC_I16 && (t2) < TC_I16))
+	 ((t1) >= TC_U32 && (t2) >= TC_U32 && (t1) < TC_VOID && (t2) < TC_VOID) || \
+	 ((t1) >= TC_U16 && (t2) >= TC_U16 && (t1) < TC_U32 && (t2) < TC_U32) ||   \
+	 ((t1) >= TC_U8 && (t2) >= TC_U8 && (t1) < TC_U16 && (t2) < TC_U16))
 
 #define copy_token(d, s) (memcpy((d), (s), sizeof(struct Token)))
 struct Arg *get_arg_by_mem_index(struct PList *lik_os, uint32_t mem_index);
@@ -393,6 +393,7 @@ void eei(struct Inst *, constr msg, constr sgst);
 	 (t)->code == TC_I64 || (t)->code == TC_ENUM || (t)->code == TC_U8 ||      \
 	 (t)->code == TC_U16 || (t)->code == TC_U32 || (t)->code == TC_U64)
 #define is_real_type(t) ((t)->code == TC_DOUBLE || (t)->code == TC_SINGLE)
+#define is_num_type(t) (is_real_type((t)) || is_num_int_type((t)))
 
 void check_global_type_compatibility(struct Pser *p, struct TypeExpr *type,
 									 struct GlobExpr *e);
