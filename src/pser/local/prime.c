@@ -58,13 +58,15 @@ struct LocalExpr *prime_l_expression(struct Pser *p) {
 	return e;
 }
 
-#define one_token_unary(le_code)                                               \
+#define one_token_unary(c_code, le_code)                                       \
 	do {                                                                       \
-		consume(p);                                                            \
-		e = after_l_expression(p);                                             \
-		unary = new_local_expr((le_code), 0, c);                               \
-		unary->l = e;                                                          \
-		goto unary_return;                                                     \
+		if (c->code == (c_code)) {                                             \
+			consume(p);                                                        \
+			e = after_l_expression(p);                                         \
+			unary = new_local_expr((le_code), 0, c);                           \
+			unary->l = e;                                                      \
+			goto unary_return;                                                 \
+		}                                                                      \
 	} while (0)
 
 struct LocalExpr *unary_l_expression(struct Pser *p) {
@@ -94,22 +96,21 @@ struct LocalExpr *unary_l_expression(struct Pser *p) {
 		unary = new_local_expr(LE_UNARY_MINUS, 0, last_minus);
 		unary->l = e;
 		goto unary_return;
-
-	} else if (c->code == INC || c->code == DEC) {
-		// LE_UNARY_INC
-		// LE_UNARY_DEC
-		one_token_unary(c->code == INC ? LE_UNARY_INC : LE_UNARY_DEC);
-
-	} else if (c->code == EXCL || c->code == BIT_NOT) {
-		// LE_UNARY_NOT
-		// LE_UNARY_BIT_NOT
-		one_token_unary(c->code == EXCL ? LE_UNARY_NOT : LE_UNARY_BIT_NOT);
-
-	} else if (c->code == MUL || c->code == AMPER) {
-		// LE_UNARY_ADDR
-		// LE_UNARY_AMPER
-		one_token_unary(c->code == MUL ? LE_UNARY_ADDR : LE_UNARY_AMPER);
 	}
+	// TODO: unary proper parse with optimizations
+
+	// these are hard ones to think
+	one_token_unary(MUL, LE_UNARY_ADDR);
+	one_token_unary(AMPER, LE_UNARY_AMPER);
+
+	// can anigilate itself on itself
+	one_token_unary(BIT_NOT, LE_UNARY_BIT_NOT);
+	// can anigilate itself on itself, but if anigilate then its LE_BOOL
+	one_token_unary(EXCL, LE_UNARY_NOT);
+
+	// these are good
+	one_token_unary(INC, LE_UNARY_INC);
+	one_token_unary(DEC, LE_UNARY_DEC);
 
 default_return:
 	return after_l_expression(p);

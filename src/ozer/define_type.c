@@ -129,19 +129,13 @@ void define_le_type(struct LocalExpr *e) {
 		plist_add(e->type->data.arr, (void *)(i = e->tvar->str->size + 1));
 
 	} else if (lce(PRIMARY_ARR) || lce(PRIMARY_TUPLE)) {
+		for (i = 0; i < e->co.ops->size; i++)
+			define_le_type(plist_get(e->co.ops, i));
 		e->type = 0;
-		// LE_UNARY_MINUS
-		// LE_UNARY_INC
-		// LE_UNARY_DEC
-		// LE_UNARY_NOT
-		// LE_UNARY_BIT_NOT
-		// LE_UNARY_AMPER
-		// LE_UNARY_ADDR
-	} else if (lce(AFTER_PIPE_LINE)) {
+
+	} else if (is_unary(e)) {
 		define_le_type(e->l);
-		define_le_type(e->r);
-		e->type = copy_type_expr(find_return_type(e->r->type));
-		// TODO: also compare as in define_call_type
+		e->type = copy_type_expr(e->l->type);
 
 	} else if (lce(AFTER_INDEX)) {
 		define_le_type(e->l);
@@ -150,8 +144,26 @@ void define_le_type(struct LocalExpr *e) {
 			eet(e->l->tvar, EXPECTED_ARR_TYPE, 0);
 		e->type = copy_type_expr(arr_type(e->l->type));
 
+	} else if (lce(AFTER_PIPE_LINE)) {
+		define_le_type(e->l);
+		define_le_type(e->r);
+
+		e->code = LE_AFTER_CALL;
+		if (e->l->code == LE_PRIMARY_TUPLE) {
+			e->co.ops = e->l->co.ops;
+			free(e->l);
+		} else {
+			e->co.ops = new_plist(1);
+			plist_add(e->co.ops, e->l);
+		}
+		e->l = e->r;
+		e->r = 0;
+		goto define_after_call;
+
 	} else if (lce(AFTER_CALL)) {
+	define_after_call:
 		define_call_type(e);
+
 	} else if (lce(AFTER_INC) || lce(AFTER_DEC)) {
 		e->type = copy_type_expr(e->l->type);
 	} else if (lce(AFTER_FIELD_OF_PTR) || lce(AFTER_FIELD)) {

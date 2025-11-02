@@ -191,7 +191,7 @@ repeat_after:
 		after->r = (struct LocalExpr *)c;
 		consume(p);
 	} else if (ops1(PAR_L)) {
-		// e->l is valled
+		// e->l is called
 		// e->ops is params
 
 		after = new_local_expr(LE_AFTER_CALL, 0, c);

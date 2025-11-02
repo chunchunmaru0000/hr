@@ -40,6 +40,8 @@ x e + x e -> 2 x e, то есть множители
 делители и типа все другое
 */
 
+void unary_of_num(struct LocalExpr *e) {}
+
 #define real_op(op) (e->tvar->real = l->tvar->real op r->tvar->real)
 #define int_op(op) (e->tvar->num = l->tvar->num op r->tvar->num)
 
@@ -284,6 +286,12 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 	} else if (lce(BIN_ASSIGN) || lce(AFTER_INDEX)) {
 		opt_bin_constant_folding(e->l);
 		opt_bin_constant_folding(e->r);
+	} else if (is_unary(e)) {
+		opt_bin_constant_folding(e->l);
+		if (is_num_le(e))
+			unary_of_num(e);
+		else
+			; // opt_unary_tree(e);
 	}
 }
 
