@@ -1,9 +1,9 @@
 #include "../pser.h"
 
-#define set_e_code_and_absorb(code_to_set)                                     \
+#define set_e_code_and_consume(code_to_set)                                    \
 	do {                                                                       \
 		e->code = code_to_set;                                                 \
-		absorb(p);                                                             \
+		consume(p);                                                            \
 	} while (0)
 
 struct LocalExpr *prime_l_expression(struct Pser *p) {
@@ -13,13 +13,13 @@ struct LocalExpr *prime_l_expression(struct Pser *p) {
 	struct LocalExpr *e = new_local_expr(LE_NONE, 0, c), *tmp_e;
 
 	if (ccode == INT)
-		set_e_code_and_absorb(LE_PRIMARY_INT);
+		set_e_code_and_consume(LE_PRIMARY_INT);
 	else if (ccode == REAL)
-		set_e_code_and_absorb(LE_PRIMARY_REAL);
+		set_e_code_and_consume(LE_PRIMARY_REAL);
 	else if (ccode == STR)
-		set_e_code_and_absorb(LE_PRIMARY_STR);
+		set_e_code_and_consume(LE_PRIMARY_STR);
 	else if (ccode == ID)
-		set_e_code_and_absorb(LE_PRIMARY_VAR);
+		set_e_code_and_consume(LE_PRIMARY_VAR);
 	else if (ccode == PAR_C_L) {
 		absorb(p);
 		e->code = LE_PRIMARY_ARR;
@@ -31,7 +31,13 @@ struct LocalExpr *prime_l_expression(struct Pser *p) {
 		}
 		consume(p); // skip ]
 	} else if (ccode == PAR_L) {
-		absorb(p);
+
+		if ((c = absorb(p))->code == PAR_R) {		  // skip '('
+			set_e_code_and_consume(LE_PRIMARY_TUPLE); // skip ')'
+			e->co.ops = new_plist(1);
+			goto return_e;
+		}
+
 		tmp_e = local_expression(p);
 		c = pser_cur(p);
 
@@ -55,6 +61,7 @@ struct LocalExpr *prime_l_expression(struct Pser *p) {
 	} else
 		eet(c, "эээ че за выражение", 0);
 
+return_e:
 	return e;
 }
 
