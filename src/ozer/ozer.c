@@ -160,7 +160,6 @@ void bin_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
 	(find_num_in_adds((root_place), &found_num, &found_num_bin_bro,            \
 					  &found_num_parrent_place, op_code))
 
-// TODO: need to rewrite as loop for speed and mem
 void find_num_in_adds(struct LocalExpr **root_place_in_parrent,
 					  struct LocalExpr **found_num,
 					  struct LocalExpr **found_num_bin_bro,

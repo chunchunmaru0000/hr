@@ -45,12 +45,13 @@ struct BList {
 struct BList *new_blist(uint32_t cap_pace);
 struct BList *blist_from_str(char *str, u32 str_len);
 struct BList *copy_blist_from_str(char *str);
-void zero_term_blist(struct BList *l);
+struct BList *zero_term_blist(struct BList *l);
 uint32_t blist_add(struct BList *, uc);
 uint32_t blist_cut(struct BList *);
 uc blist_get(struct BList *, uint32_t);
 uc blist_set(struct BList *, uint32_t, uc);
 void blat(struct BList *, uc *, uint32_t);
+#define badd_str(l, str) (blat((l), (uc *)(str), strlen((str))))
 #define blat_blist(l, o) (blat((l), (o)->st, (o)->size))
 #define blist_clear(l) ((l)->size = 0)
 void blist_clear_free(struct BList *);

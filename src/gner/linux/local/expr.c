@@ -1,6 +1,7 @@
 #include "../../gner.h"
 #include <stdio.h>
 
+sa(COMM, "; ");
 sa(STR_XOR_EAX_EAX, "искл еах еах");
 sa(MOV, "быть ");
 sa(L_PAR, "(");
@@ -144,8 +145,76 @@ void print_le(struct LocalExpr *e, int with_n) {
 	}
 }
 
+#define just_char(c) (blist_add(out, (c)))
+#define print_tvar(e) (blat_blist(out, (e)->tvar->view))
+#define print_str(str) (badd_str(out, (str)))
+#define print_orher(o)                                                         \
+	do {                                                                       \
+		other = bprint_le((o), 0);                                             \
+		blat_blist(out, other);                                                \
+		blist_clear_free(other);                                               \
+	} while (0)
+
+struct BList *bprint_le(struct LocalExpr *e, int with_n) {
+	struct BList *out = new_blist(64), *other;
+	u32 i;
+
+	if (is_bin_le(e) || lceb(ASSIGN)) {
+		just_char('(');
+		print_orher(e->l);
+		just_char(' ');
+		print_tvar(e);
+		just_char(' ');
+		print_orher(e->r);
+		just_char(')');
+	} else if (lceb(TERRY)) {
+		just_char('{');
+		print_orher(e->l);
+		print_str(" ? ");
+		print_orher(e->r);
+		print_str(" : ");
+		print_orher(e->co.cond);
+		just_char('}');
+	} else if (lcea(INDEX)) {
+		print_orher(e->l);
+		just_char('[');
+		print_orher(e->r);
+		just_char(']');
+	} else if (lcea(FIELD_OF_PTR) || lcea(FIELD)) {
+		print_orher(e->l);
+		print_tvar(e);
+		print_str(vs((struct Token *)e->r));
+	} else if (lcea(CALL)) {
+		print_orher(e->l);
+		just_char('(');
+		if (e->co.ops->size) {
+			for (i = 0; i < e->co.ops->size - 1; i++) {
+				print_orher(plist_get(e->co.ops, i));
+				print_str(", ");
+			}
+			print_le(plist_get(e->co.ops, i), 0);
+		}
+		just_char(')');
+	} else if (lce(BOOL)) {
+		print_str("бул(");
+		print_orher(e->l);
+		just_char(')');
+	} else if (is_unary(e)) {
+		print_tvar(e);
+		print_orher(e->l);
+	} else {
+		print_tvar(e);
+	}
+
+	if (with_n)
+		blist_add(out, '\n');
+
+	return out;
+}
+
 void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 	struct LocalExpr *e;
+	struct BList *expr_view;
 	struct PList *es;
 	u32 i;
 
@@ -156,6 +225,11 @@ void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 	for (i = 0; i < es->size; i++) {
 		e = plist_get(es, i);
 
+		print_fun_text(SA_START_COMMENT);
+		expr_view = zero_term_blist(bprint_le(e, 1));
+		blat_fun_text(expr_view);
+		blist_clear_free(expr_view);
+
 		print_le(e, 1);
 
 		if (gen_expressions[e->code] == 0) {
@@ -164,7 +238,6 @@ void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 		}
 
 		free_all_regs(g->cpu);
-		// TODO: print_le expression in assembly comments
 		gen_expressions[e->code](g, e);
 	}
 }
