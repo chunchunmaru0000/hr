@@ -128,6 +128,10 @@ void print_le(struct LocalExpr *e, int with_n) {
 			print_le(plist_get(e->co.ops, i), 0);
 		}
 		printf("%s)%s", remove_color_level(), COLOR_RESET);
+	} else if (lce(BOOL)) {
+		printf("бул%s(%s", take_color_level(), COLOR_RESET);
+		print_le(e->l, 0);
+		printf("%s)%s", remove_color_level(), COLOR_RESET);
 	} else if (is_unary(e)) {
 		printf("%s", vs(e->tvar));
 		print_le(e->l, 0);
@@ -155,7 +159,7 @@ void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 		print_le(e, 1);
 
 		if (gen_expressions[e->code] == 0) {
-			printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
+		//	printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
 			return;
 		}
 

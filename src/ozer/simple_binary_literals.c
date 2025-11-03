@@ -90,23 +90,37 @@ int try_opt_and(struct LocalExpr *e) {
 // e || true -> true
 // e || false -> bool(e), not works for now, cuz how to do bool()
 int try_opt_or(struct LocalExpr *e) {
+	struct LocalExpr *was_e;
 	int opted = 0;
-	// if (is_le_num(e->l, 0))
-	// 	do_opt(paste_le(e, e->r));
-	// else if (is_le_num(e->r, 0))
-	// 	do_opt(paste_le(e, e->l));
-	// if (opted)
-	// 	return 1;
+
+	if (is_le_num(e->l, 0))
+		do_opt(paste_le(e, e->r)); // e = e->r
+	else if (is_le_num(e->r, 0))
+		do_opt(paste_le(e, e->l)); // e = e->l
+	if (opted) {				   // e -> bool(e)
+		was_e = new_local_expr(LE_NONE, 0, 0);
+		paste_le(was_e, e);
+
+		e->code = LE_BOOL;
+		e->type = new_type_expr(TC_I32);
+		e->l = was_e;
+		e->r = 0;
+		e->co.ops = 0;
+		return 1;
+	}
+
 	if (is_le_not_num(e->l, 0))
 		do_opt(paste_le(e, e->l));
 	else if (is_le_not_num(e->r, 0))
 		do_opt(paste_le(e, e->r));
-
-	if (opted) {
+	if (opted) { // e -> true, true is 1, where e is already num
+		e->code = LE_PRIMARY_INT;
+		e->type->code = TC_I32;
 		e->tvar->num = 1;
-		e->tvar->real = 1;
+		update_int_view(e);
+		return 1;
 	}
-	return opted;
+	return 0;
 }
 
 // e | 0 -> e

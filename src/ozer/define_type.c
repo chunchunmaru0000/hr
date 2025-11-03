@@ -170,7 +170,7 @@ void define_le_type(struct LocalExpr *e) {
 
 	} else if (is_unary(e) || lce(BOOL)) {
 		define_le_type(e->l);
-		e->type = copy_type_expr(e->l->type);
+		e->type = new_type_expr(TC_I32);
 
 	} else if (lce(AFTER_INDEX)) {
 		define_le_type(e->l);

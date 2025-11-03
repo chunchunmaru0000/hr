@@ -29,8 +29,17 @@ PLUS, MINUS
 [ EQU ]
 [ PIPE_LINE ]
 
-e == e -> true, but if e is not fun call or inc or dec
-e != e -> false, but if e is not fun call or inc or dec
+side effects are:
+ * dec, int
+ * fun call
+ * global vars, can ba affected in another thread
+e == e -> true,  but if e is not side effective
+e != e -> false, but if e is not side effective
+e < e  -> false, but if e is not side effective
+e > e  -> false, but if e is not side effective
+e <= e -> true,  but if e is not side effective
+e >= e -> true,  but if e is not side effective
+
 e && true or e || false -> bool(e), not works for now, cuz how to do bool()
 x e + x e -> 2 x e, то есть множители делители и типа все другое
 */
@@ -268,7 +277,7 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 			if_opted2(SHL, SHR, shl_or_shr) || if_opted(AND, and) ||
 			if_opted(OR, or) || if_opted(BIT_OR, bit_or) ||
 			if_opted(BIT_AND, bit_and))
-			return;
+			opt_bin_constant_folding(e);
 
 	} else if (lce(BIN_TERRY)) {
 		cond = e->co.cond, l = e->l, r = e->r;
