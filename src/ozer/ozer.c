@@ -40,7 +40,6 @@ e > e  -> false, but if e is not side effective
 e <= e -> true,  but if e is not side effective
 e >= e -> true,  but if e is not side effective
 
-e && true or e || false -> bool(e), not works for now, cuz how to do bool()
 x e + x e -> 2 x e, то есть множители делители и типа все другое
 */
 

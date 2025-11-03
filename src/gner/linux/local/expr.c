@@ -159,11 +159,12 @@ void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 		print_le(e, 1);
 
 		if (gen_expressions[e->code] == 0) {
-		//	printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
+			//	printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
 			return;
 		}
 
 		free_all_regs(g->cpu);
+		// TODO: print_le expression in assembly comments
 		gen_expressions[e->code](g, e);
 	}
 }

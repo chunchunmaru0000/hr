@@ -1,4 +1,5 @@
 #include "../gner/gner.h"
+// TODO: mem leaks in this file
 
 constr LE_DIV_ON_ZERO = "ЭЭЭ ты куда на 0 делишь.";
 
@@ -77,20 +78,71 @@ int try_opt_shl_or_shr(struct LocalExpr *e) {
 	return opted;
 }
 
-// e && false -> false
-int try_opt_and(struct LocalExpr *e) {
-	int opted = 0;
-	if (is_le_num(e->l, 0)) // 0 is false
-		do_opt(paste_le(e, e->l));
-	else if (is_le_num(e->r, 0)) // 0 is false
-		do_opt(paste_le(e, e->r));
-	return opted;
+void turn_to_bool(struct LocalExpr *e) {
+	if (lce(BOOL))
+		return;
+
+	struct LocalExpr *was_e = new_local_expr(LE_NONE, 0, 0);
+	paste_le(was_e, e);
+
+	e->code = LE_BOOL;
+	e->type = new_type_expr(TC_I32);
+	e->l = was_e;
+	e->r = 0;
+	e->co.ops = 0;
 }
 
-// e || true -> true
-// e || false -> bool(e), not works for now, cuz how to do bool()
-int try_opt_or(struct LocalExpr *e) {
+// bool(e1) || bool(e2) -> e1 || e2
+// bool(e1) && bool(e2) -> e1 && e2
+int check_if_bools(struct LocalExpr *e) {
 	struct LocalExpr *was_e;
+	if (e->l->code == LE_BOOL && e->r->code == LE_BOOL) {
+		was_e = e->l->l;
+		free(e->l);
+		e->l = was_e;
+
+		was_e = e->r->l;
+		free(e->r);
+		e->r = was_e;
+		return 1;
+	}
+	return 0;
+}
+
+// e && false -> false
+// e && true  -> bool(e)
+int try_opt_and(struct LocalExpr *e) {
+	int opted = 0;
+
+	if (is_le_num(e->l, 0))
+		do_opt(paste_le(e, e->l));
+	else if (is_le_num(e->r, 0))
+		do_opt(paste_le(e, e->r));
+	if (opted) { // e -> false
+		e->type->code = TC_I32;
+		if (e->code != LE_PRIMARY_INT) {
+			e->code = LE_PRIMARY_INT;
+			e->tvar->num = 0;
+			update_int_view(e);
+		}
+		return 1;
+	}
+
+	if (is_le_not_num(e->l, 0))
+		do_opt(paste_le(e, e->r)); // e = e->l
+	else if (is_le_not_num(e->r, 0))
+		do_opt(paste_le(e, e->l)); // e = e->r
+	if (opted) {				   // e -> bool(e)
+		turn_to_bool(e);
+		return 1;
+	}
+
+	return check_if_bools(e);
+}
+
+// e || true  -> true
+// e || false -> bool(e)
+int try_opt_or(struct LocalExpr *e) {
 	int opted = 0;
 
 	if (is_le_num(e->l, 0))
@@ -98,14 +150,7 @@ int try_opt_or(struct LocalExpr *e) {
 	else if (is_le_num(e->r, 0))
 		do_opt(paste_le(e, e->l)); // e = e->l
 	if (opted) {				   // e -> bool(e)
-		was_e = new_local_expr(LE_NONE, 0, 0);
-		paste_le(was_e, e);
-
-		e->code = LE_BOOL;
-		e->type = new_type_expr(TC_I32);
-		e->l = was_e;
-		e->r = 0;
-		e->co.ops = 0;
+		turn_to_bool(e);
 		return 1;
 	}
 
@@ -114,13 +159,16 @@ int try_opt_or(struct LocalExpr *e) {
 	else if (is_le_not_num(e->r, 0))
 		do_opt(paste_le(e, e->r));
 	if (opted) { // e -> true, true is 1, where e is already num
-		e->code = LE_PRIMARY_INT;
 		e->type->code = TC_I32;
-		e->tvar->num = 1;
-		update_int_view(e);
+		if (e->code != LE_PRIMARY_INT || e->tvar->num != 1) {
+			e->code = LE_PRIMARY_INT;
+			e->tvar->num = 1;
+			update_int_view(e);
+		}
 		return 1;
 	}
-	return 0;
+
+	return check_if_bools(e);
 }
 
 // e | 0 -> e
