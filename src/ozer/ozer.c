@@ -286,7 +286,7 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 	} else if (lce(BIN_ASSIGN) || lce(AFTER_INDEX)) {
 		opt_bin_constant_folding(e->l);
 		opt_bin_constant_folding(e->r);
-	} else if (is_unary(e)) {
+	} else if (is_unary(e) || lce(BOOL)) {
 		opt_bin_constant_folding(e->l);
 		if (is_num_le(e))
 			unary_of_num(e);

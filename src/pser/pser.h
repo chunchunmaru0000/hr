@@ -480,6 +480,7 @@ enum LE_Code {
 // LE Code Equals
 #define lce(c) ((e->code == LE_##c))
 #define lcep(c) ((e->code == LE_PRIMARY_##c))
+#define lceu(c) ((e->code == LE_UNARY_##c))
 #define lceb(c) ((e->code == LE_BIN_##c))
 #define lcea(c) ((e->code == LE_AFTER_##c))
 

@@ -69,9 +69,24 @@ return_e:
 	do {                                                                       \
 		if (c->code == (c_code)) {                                             \
 			consume(p);                                                        \
-			e = after_l_expression(p);                                         \
+			e = unary_l_expression(p);                                         \
 			unary = new_local_expr((le_code), 0, c);                           \
 			unary->l = e;                                                      \
+			goto unary_return;                                                 \
+		}                                                                      \
+	} while (0)
+#define annihilate_one_on_other(ccode, one, other)                             \
+	do {                                                                       \
+		if (c->code == (ccode)) {                                              \
+			consume(p);                                                        \
+			e = unary_l_expression(p);                                         \
+			if (lceu(one)) {                                                   \
+				unary = e->l;                                                  \
+				free(e);                                                       \
+			} else {                                                           \
+				unary = new_local_expr(LE_UNARY_##other, 0, c);                \
+				unary->l = e;                                                  \
+			}                                                                  \
 			goto unary_return;                                                 \
 		}                                                                      \
 	} while (0)
@@ -97,23 +112,34 @@ struct LocalExpr *unary_l_expression(struct Pser *p) {
 			break;
 		}
 		if (sign == 1)
-			goto default_return;
+			goto unary_expression_return;
 
-		e = after_l_expression(p);
+		e = unary_l_expression(p);
 		unary = new_local_expr(LE_UNARY_MINUS, 0, last_minus);
 		unary->l = e;
 		goto unary_return;
 	}
-	// TODO: unary proper parse with optimizations
+	// these are annihilate one on other, dont care more in here(parser)
+	annihilate_one_on_other(MUL, AMPER, ADDR);
+	annihilate_one_on_other(AMPER, ADDR, AMPER);
 
-	// these are hard ones to think
-	one_token_unary(MUL, LE_UNARY_ADDR);
-	one_token_unary(AMPER, LE_UNARY_AMPER);
+	// can annihilate itself on itself
+	annihilate_one_on_other(BIT_NOT, BIT_NOT, BIT_NOT);
 
-	// can anigilate itself on itself
-	one_token_unary(BIT_NOT, LE_UNARY_BIT_NOT);
-	// can anigilate itself on itself, but if anigilate then its LE_BOOL
-	one_token_unary(EXCL, LE_UNARY_NOT);
+	// can annihilate itself on itself, but if annihilate then its LE_BOOL
+	if (c->code == EXCL) {
+		consume(p);
+		e = unary_l_expression(p);
+		if (lceu(NOT)) {
+			(unary = e)->code = LE_BOOL;
+		} else if (lce(BOOL)) {
+			(unary = e)->code = LE_UNARY_NOT;
+		} else {
+			unary = new_local_expr(LE_UNARY_NOT, 0, c);
+			unary->l = e;
+		}
+		goto unary_return;
+	}
 
 	// these are good
 	one_token_unary(INC, LE_UNARY_INC);
@@ -123,4 +149,6 @@ default_return:
 	return after_l_expression(p);
 unary_return:
 	return unary;
+unary_expression_return:
+	return unary_l_expression(p);
 }

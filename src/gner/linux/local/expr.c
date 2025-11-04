@@ -82,6 +82,7 @@ void (*gen_expressions[])(struct Gner *g, struct LocalExpr *e) = {
 	0,			// LE_AFTER_FIELD_OF_PTR,
 	0,			// LE_AFTER_FIELD,
 	0,			// LE_AFTER_ENUM,
+	0,			// LE_BOOL,
 };
 
 #define colored(name, code) ("\x1B[" #code "m")
@@ -140,9 +141,8 @@ void print_le(struct LocalExpr *e, int with_n) {
 		printf("%s", vs(e->tvar));
 	}
 
-	if (with_n) {
+	if (with_n)
 		putchar('\n');
-	}
 }
 
 #define just_char(c) (blist_add(out, (c)))
@@ -192,7 +192,7 @@ struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 				print_orher(plist_get(e->co.ops, i));
 				print_str(", ");
 			}
-			print_le(plist_get(e->co.ops, i), 0);
+			print_orher(plist_get(e->co.ops, i));
 		}
 		just_char(')');
 	} else if (lce(BOOL)) {
@@ -233,7 +233,7 @@ void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 		print_le(e, 1);
 
 		if (gen_expressions[e->code] == 0) {
-			//	printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
+			// printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
 			return;
 		}
 

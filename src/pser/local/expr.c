@@ -54,6 +54,8 @@ struct LocalExpr *copy_local_expr(struct LocalExpr *e) {
 		copy->l = copy_local_expr(e->l);
 	} else if (lce(PRIMARY_ARR)) {
 		goto copy_ops;
+	} else if (is_unary(e) || lce(BOOL)){
+		copy->l = copy_local_expr(e->l);
 	}
 
 	return copy;
