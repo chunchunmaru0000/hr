@@ -137,6 +137,9 @@ void print_le(struct LocalExpr *e, int with_n) {
 	} else if (is_unary(e)) {
 		printf("%s", vs(e->tvar));
 		print_le(e->l, 0);
+	} else if (lcea(INC) || lcea(DEC)) {
+		print_le(e->l, 0);
+		printf("%s", vs(e->tvar));
 	} else {
 		printf("%s", vs(e->tvar));
 	}
@@ -202,6 +205,9 @@ struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 	} else if (is_unary(e)) {
 		print_tvar(e);
 		print_orher(e->l);
+	} else if (lcea(INC) || lcea(DEC)) {
+		print_orher(e->l);
+		print_tvar(e);
 	} else {
 		print_tvar(e);
 	}

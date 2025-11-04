@@ -26,6 +26,7 @@ struct Tzer *new_tzer(char *filename) {
 		printf("Ошибка при открытии исходного файла, возможно файл "
 			   "отсутствует: %s\n",
 			   filename);
+		exit(1);
 	}
 
 	fseek(file, 0, SEEK_END);

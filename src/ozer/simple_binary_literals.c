@@ -81,6 +81,9 @@ int try_opt_shl_or_shr(struct LocalExpr *e) {
 void turn_to_bool(struct LocalExpr *e) {
 	if (lce(BOOL))
 		return;
+	if (e->type)
+		free_type(e->type);
+	// also free e children
 
 	struct LocalExpr *was_e = new_local_expr(LE_NONE, 0, 0);
 	paste_le(was_e, e);

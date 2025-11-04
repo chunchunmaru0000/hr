@@ -284,6 +284,14 @@ int try_opt_or(struct LocalExpr *e);
 int try_opt_bit_or(struct LocalExpr *e);
 int try_opt_bit_and(struct LocalExpr *e);
 
+void try_bin_bins(struct LocalExpr *e);
+void try_bin_num_in_bin(struct LocalExpr *num,
+						struct LocalExpr **root_place_in_parrent,
+						enum LE_Code op_code);
+void bin_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
+					  struct LocalExpr *e, enum LE_Code op_code);
+void unary_or_bool_of_num(struct LocalExpr *e);
+
 #define if_opted(cap, low) ((e->code == LE_BIN_##cap && try_opt_##low(e)))
 #define if_opted2(cap0, cap1, low)                                             \
 	(((e->code == LE_BIN_##cap0 || e->code == LE_BIN_##cap1) &&                \
@@ -298,3 +306,10 @@ int try_opt_bit_and(struct LocalExpr *e);
 		blist_clear_free((e)->tvar->view);                                     \
 		(e)->tvar->view = real_to_str((e)->tvar->real);                        \
 	} while (0)
+
+#define cant_on_reals(op_name, op)                                             \
+	constr CANT_##op_name##_ON_REALS =                                         \
+		"Операция '" op "' не применима к вещественным числам.";
+#define cant_on_nums(op_name, op)                                              \
+	constr CANT_##op_name##_ON_NUMS =                                          \
+		"Операция '" op "' не применима к числам.";
