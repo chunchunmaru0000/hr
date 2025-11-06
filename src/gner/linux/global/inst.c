@@ -85,15 +85,13 @@ void gen_linux_text(struct Gner *g) {
 			//   _ - struct Enum *enum_obj
 
 			enum_obj = plist_get(in->os, 0);
-			foreach_by(j, tok, enum_obj->items);
-			{
+			foreach_by(j, tok, enum_obj->items) {
 				iprint_bprol(SA_EQU);				   // вот
 				blat_bprol(enum_obj->enum_name->view); // enum name
 				bprol_add('.');						   // .
 				blat_bprol(tok->view);				   // item name
 				bprol_add('\t');					   // \t
-				int_add(g->bprol, tok->num);		   // item value
-				bprol_add('\n');					   // \n
+				add_int_with_hex_comm(bprol, tok->num);
 			}
 			foreach_end;
 			break;
