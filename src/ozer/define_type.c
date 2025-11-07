@@ -23,6 +23,7 @@ void define_var_type(struct LocalExpr *e) {
 		e->type = copy_type_expr(lvar->type);
 	} else if ((gvar = find_glob_Var(ogner, e->tvar->view))) {
 		e->type = copy_type_expr(gvar->type);
+		e->flags |= LEF_SIDE_EFFECTIVE;
 	} else {
 		eet(e->tvar, "ненененененененене", 0);
 	}
@@ -34,7 +35,7 @@ void define_struct_field_type_type(struct LocalExpr *e) {
 	struct Arg *arg;
 	u32 i, j;
 
-	define_le_type(e->l);
+	define_type_and_copy_flags_to_e(e->l);
 
 	if (lce(AFTER_FIELD_OF_PTR)) {
 		if (e->l->type == 0 || e->l->type->code != TC_PTR ||
@@ -69,17 +70,18 @@ void define_call_type(struct LocalExpr *e) {
 	struct LocalExpr *call_arg_e;
 	u32 i;
 
-	define_le_type(e->l);
+	define_type_and_copy_flags_to_e(e->l);
 	if (e->l->type == 0 || e->l->type->code != TC_FUN)
 		eet(e->l->tvar, EXPECTED_FUN_TYPE, 0);
 
 	e->type = copy_type_expr(find_return_type(e->l->type));
+	e->flags |= LEF_SIDE_EFFECTIVE;
 
 	// TODO: check args_types and their count
 	// count also can vary in function signature
 	for (i = 0; i < e->co.ops->size; i++) {
 		call_arg_e = plist_get(e->co.ops, i);
-		define_le_type(call_arg_e);
+		define_type_and_copy_flags_to_e(call_arg_e);
 	}
 }
 
@@ -136,21 +138,23 @@ void define_le_type(struct LocalExpr *e) {
 		return;
 
 	u64 i;
+	struct LocalExpr *other_epxr;
 
 	if (is_bin_le(e)) {
-		define_le_type(e->l);
-		define_le_type(e->r);
+		define_type_and_copy_flags_to_e(e->l);
+		define_type_and_copy_flags_to_e(e->r);
 		e->type = add_types(e->l, e->r);
 
 	} else if (lce(BIN_TERRY)) {
-		define_le_type(e->l);
-		define_le_type(e->r);
-		define_le_type(e->co.cond);
+		define_type_and_copy_flags_to_e(e->l);
+		define_type_and_copy_flags_to_e(e->r);
+		define_type_and_copy_flags_to_e(e->co.cond);
 
 	} else if (lce(BIN_ASSIGN)) {
-		define_le_type(e->l);
-		define_le_type(e->r);
+		define_type_and_copy_flags_to_e(e->l);
+		define_type_and_copy_flags_to_e(e->r);
 		e->type = copy_type_expr(e->l->type);
+		e->flags |= LEF_SIDE_EFFECTIVE;
 
 	} else if (lce(PRIMARY_INT)) {
 		e->type = new_type_expr(TC_I32);
@@ -165,12 +169,14 @@ void define_le_type(struct LocalExpr *e) {
 		plist_add(e->type->data.arr, (void *)(i = e->tvar->str->size + 1));
 
 	} else if (lce(PRIMARY_ARR) || lce(PRIMARY_TUPLE)) {
-		for (i = 0; i < e->co.ops->size; i++)
-			define_le_type(plist_get(e->co.ops, i));
+		for (i = 0; i < e->co.ops->size; i++) {
+			other_epxr = plist_get(e->co.ops, i);
+			define_type_and_copy_flags_to_e(other_epxr);
+		}
 		e->type = 0;
 
 	} else if (is_unary(e) || lce(BOOL)) {
-		define_le_type(e->l);
+		define_type_and_copy_flags_to_e(e->l);
 
 		if (lce(BOOL))
 			e->type = new_type_expr(TC_I32);
@@ -181,19 +187,21 @@ void define_le_type(struct LocalExpr *e) {
 		} else if (lceu(AMPER)) {
 			e->type = new_type_expr(TC_PTR);
 			e->type->data.ptr_target = copy_type_expr(e->l->type);
+		} else if (lceu(INC) || lceu(DEC)) {
+			e->flags |= LEF_SIDE_EFFECTIVE;
 		} else
 			e->type = copy_type_expr(e->l->type);
 
 	} else if (lce(AFTER_INDEX)) {
-		define_le_type(e->l);
-		define_le_type(e->r);
+		define_type_and_copy_flags_to_e(e->l);
+		define_type_and_copy_flags_to_e(e->r);
 		if (e->l->type == 0 || e->l->type->code != TC_ARR)
 			eet(e->l->tvar, EXPECTED_ARR_TYPE, 0);
 		e->type = copy_type_expr(arr_type(e->l->type));
 
 	} else if (lce(AFTER_PIPE_LINE)) {
-		define_le_type(e->l);
-		define_le_type(e->r);
+		define_type_and_copy_flags_to_e(e->l);
+		define_type_and_copy_flags_to_e(e->r);
 
 		e->code = LE_AFTER_CALL;
 		if (e->l->code == LE_PRIMARY_TUPLE) {
@@ -212,6 +220,8 @@ void define_le_type(struct LocalExpr *e) {
 		define_call_type(e);
 
 	} else if (lce(AFTER_INC) || lce(AFTER_DEC)) {
+		define_type_and_copy_flags_to_e(e->l);
+		e->flags |= LEF_SIDE_EFFECTIVE;
 		e->type = copy_type_expr(e->l->type);
 	} else if (lce(AFTER_FIELD_OF_PTR) || lce(AFTER_FIELD)) {
 		define_struct_field_type_type(e);

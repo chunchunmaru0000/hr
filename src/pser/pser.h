@@ -204,6 +204,9 @@ struct TypeExpr {
 	union TypeData data;
 };
 
+#define is_simple_type(t)                                                      \
+	(((t)->code != TC_PTR && (t)->code != TC_FUN && (t)->code != TC_ARR &&      \
+	 (t)->code != TC_STRUCT))
 #define arr_type(t) (((struct TypeExpr *)plist_get((t)->data.arr, 0)))
 #define arr_len(t) (plist_get((t)->data.arr, 1))
 #define ptr_targ(t) (((struct TypeExpr *)(t)->data.ptr_target))
@@ -500,9 +503,13 @@ union CondOps {
 	struct LocalExpr *cond;
 	struct PList *ops; // list of LocalExpr's or defined by code
 };
+enum LE_Flag {
+	LEF_SIDE_EFFECTIVE = 1 << 0,
+};
 
 struct LocalExpr {
 	enum LE_Code code;
+	enum LE_Flag flags;
 	struct TypeExpr *type;
 	struct Token *tvar;
 

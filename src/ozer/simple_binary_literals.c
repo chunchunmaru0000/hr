@@ -78,8 +78,21 @@ int try_opt_shl_or_shr(struct LocalExpr *e) {
 	return opted;
 }
 
+void turn_type_to_i32(struct LocalExpr *e) {
+	if (is_simple_type(e->type))
+		e->type->code = TC_I32;
+	else {
+		free_type(e->type);
+		e->type = new_type_expr(TC_I32);
+	}
+}
+
+#define returns_bool(e)                                                        \
+	(lce(BOOL) || lceb(AND) || lceb(OR) || lceb(MORE) || lceb(LESS) ||         \
+	 lceb(MOREE) || lceb(LESSE) || lceb(EQUALS) || lceb(NOT_EQUALS))
+
 void turn_to_bool(struct LocalExpr *e) {
-	if (lce(BOOL))
+	if (returns_bool(e))
 		return;
 	if (e->type)
 		free_type(e->type);
@@ -122,7 +135,7 @@ int try_opt_and(struct LocalExpr *e) {
 	else if (is_le_num(e->r, 0))
 		do_opt(paste_le(e, e->r));
 	if (opted) { // e -> false
-		e->type->code = TC_I32;
+		turn_type_to_i32(e);
 		if (e->code != LE_PRIMARY_INT) {
 			e->code = LE_PRIMARY_INT;
 			e->tvar->num = 0;
@@ -143,7 +156,7 @@ int try_opt_and(struct LocalExpr *e) {
 	return check_if_bools(e);
 }
 
-// e || true  -> true
+// e || true  -> true TODO: fix cuz e should be not side_effective
 // e || false -> bool(e)
 int try_opt_or(struct LocalExpr *e) {
 	int opted = 0;
@@ -162,7 +175,7 @@ int try_opt_or(struct LocalExpr *e) {
 	else if (is_le_not_num(e->r, 0))
 		do_opt(paste_le(e, e->r));
 	if (opted) { // e -> true, true is 1, where e is already num
-		e->type->code = TC_I32;
+		turn_type_to_i32(e);
 		if (e->code != LE_PRIMARY_INT || e->tvar->num != 1) {
 			e->code = LE_PRIMARY_INT;
 			e->tvar->num = 1;
@@ -214,5 +227,37 @@ int try_opt_bit_and(struct LocalExpr *e) {
 				do_opt(paste_le(e, e->l));
 		}
 	}
+	return opted;
+}
+
+#define both_not_side_effective(l, r)                                          \
+	(((LEF_SIDE_EFFECTIVE & ((l)->flags | (r)->flags)) == 0))
+
+// e < e  -> false, but if e is not side effective
+// e > e  -> false, but if e is not side effective
+int try_opt_more_or_less(struct LocalExpr *e) {
+	int opted = 0;
+	if (both_not_side_effective(e->l, e->r) && lee(e->l, e->r)) {
+		opted = 1;
+		// free_req(e->l, e->r)
+		turn_type_to_i32(e);
+		if (e->code != LE_PRIMARY_INT || e->tvar->num != 0) {
+			e->code = LE_PRIMARY_INT;
+			e->tvar->num = 0;
+			update_int_view(e);
+		}
+	}
+	return opted;
+}
+// e == e -> true,  but if e is not side effective
+// e != e -> false, but if e is not side effective
+int try_opt_eque_or_nequ(struct LocalExpr *e) {
+	int opted = 0;
+	return opted;
+}
+// e <= e -> true,  but if e is not side effective
+// e >= e -> true,  but if e is not side effective
+int try_opt_moree_or_lesse(struct LocalExpr *e) {
+	int opted = 0;
 	return opted;
 }

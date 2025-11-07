@@ -273,7 +273,13 @@ struct Inst *find_struct(struct BList *name);
 
 extern struct Gner *ogner;
 void define_le_type(struct LocalExpr *e);
+#define define_type_and_copy_flags_to_e(expr)                                  \
+	do {                                                                       \
+		define_le_type((expr));                                                \
+		e->flags |= (expr)->flags;                                             \
+	} while (0)
 struct PList *opt_local_expr(struct LocalExpr *e);
+int lee(struct LocalExpr *l, struct LocalExpr *r);
 
 int try_opt_mul(struct LocalExpr *e);
 int try_opt_div(struct LocalExpr *e);
@@ -283,6 +289,9 @@ int try_opt_and(struct LocalExpr *e);
 int try_opt_or(struct LocalExpr *e);
 int try_opt_bit_or(struct LocalExpr *e);
 int try_opt_bit_and(struct LocalExpr *e);
+int try_opt_more_or_less(struct LocalExpr *e);
+int try_opt_eque_or_nequ(struct LocalExpr *e);
+int try_opt_moree_or_lesse(struct LocalExpr *e);
 
 void try_bin_bins(struct LocalExpr *e);
 void try_bin_num_in_bin(struct LocalExpr *num,

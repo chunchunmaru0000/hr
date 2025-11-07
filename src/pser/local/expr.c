@@ -17,6 +17,7 @@ struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 								 struct Token *tvar) {
 	struct LocalExpr *e = malloc(sizeof(struct LocalExpr));
 	e->code = le_code;
+	e->flags = 0;
 	e->type = type;
 	e->tvar = tvar;
 	e->l = 0;
