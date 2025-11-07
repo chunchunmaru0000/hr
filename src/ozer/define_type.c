@@ -13,6 +13,7 @@ constr FIELD_NOT_FOUND_IN_STRUCT =
 	"В лике не было найдено поле с таким именем.";
 constr EXPECTED_FUN_TYPE =
 	"Ожидалось выражение с типом функции, для её вызова.";
+constr EXPECTED_PTR_TYPE = "Ожидалось выражение с типом указателя.";
 
 void define_var_type(struct LocalExpr *e) {
 	struct LocalVar *lvar;
@@ -170,7 +171,18 @@ void define_le_type(struct LocalExpr *e) {
 
 	} else if (is_unary(e) || lce(BOOL)) {
 		define_le_type(e->l);
-		e->type = new_type_expr(TC_I32);
+
+		if (lce(BOOL))
+			e->type = new_type_expr(TC_I32);
+		else if (lceu(ADDR)) {
+			if (e->l->type->code != TC_PTR)
+				eet(e->l->tvar, EXPECTED_PTR_TYPE, 0);
+			e->type = copy_type_expr(e->l->type->data.ptr_target);
+		} else if (lceu(AMPER)) {
+			e->type = new_type_expr(TC_PTR);
+			e->type->data.ptr_target = copy_type_expr(e->l->type);
+		} else
+			e->type = copy_type_expr(e->l->type);
 
 	} else if (lce(AFTER_INDEX)) {
 		define_le_type(e->l);
