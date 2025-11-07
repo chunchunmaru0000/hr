@@ -205,8 +205,8 @@ struct TypeExpr {
 };
 
 #define is_simple_type(t)                                                      \
-	(((t)->code != TC_PTR && (t)->code != TC_FUN && (t)->code != TC_ARR &&      \
-	 (t)->code != TC_STRUCT))
+	(((t)->code != TC_PTR && (t)->code != TC_FUN && (t)->code != TC_ARR &&     \
+	  (t)->code != TC_STRUCT))
 #define arr_type(t) (((struct TypeExpr *)plist_get((t)->data.arr, 0)))
 #define arr_len(t) (plist_get((t)->data.arr, 1))
 #define ptr_targ(t) (((struct TypeExpr *)(t)->data.ptr_target))
@@ -504,8 +504,13 @@ union CondOps {
 	struct PList *ops; // list of LocalExpr's or defined by code
 };
 enum LE_Flag {
-	LEF_SIDE_EFFECTIVE = 1 << 0,
+	LEF_SIDE_EFFECT_GVAR = 1 << 0,
+	LEF_SIDE_EFFECT_MEMCH = 1 << 1, // mem change
+	LEF_SIDE_EFFECT_FUN_CALL = 1 << 2,
 };
+#define LEF_ALL_SIDE_EFFECTS                                                   \
+	(LEF_SIDE_EFFECT_GVAR | LEF_SIDE_EFFECT_MEMCH | LEF_SIDE_EFFECT_FUN_CALL)
+#define have_any_side_effect(e) (((e)->flags & LEF_ALL_SIDE_EFFECTS))
 
 struct LocalExpr {
 	enum LE_Code code;

@@ -23,7 +23,7 @@ void define_var_type(struct LocalExpr *e) {
 		e->type = copy_type_expr(lvar->type);
 	} else if ((gvar = find_glob_Var(ogner, e->tvar->view))) {
 		e->type = copy_type_expr(gvar->type);
-		e->flags |= LEF_SIDE_EFFECTIVE;
+		e->flags |= LEF_SIDE_EFFECT_GVAR;
 	} else {
 		eet(e->tvar, "ненененененененене", 0);
 	}
@@ -75,7 +75,7 @@ void define_call_type(struct LocalExpr *e) {
 		eet(e->l->tvar, EXPECTED_FUN_TYPE, 0);
 
 	e->type = copy_type_expr(find_return_type(e->l->type));
-	e->flags |= LEF_SIDE_EFFECTIVE;
+	e->flags |= LEF_SIDE_EFFECT_FUN_CALL;
 
 	// TODO: check args_types and their count
 	// count also can vary in function signature
@@ -154,7 +154,7 @@ void define_le_type(struct LocalExpr *e) {
 		define_type_and_copy_flags_to_e(e->l);
 		define_type_and_copy_flags_to_e(e->r);
 		e->type = copy_type_expr(e->l->type);
-		e->flags |= LEF_SIDE_EFFECTIVE;
+		e->flags |= LEF_SIDE_EFFECT_MEMCH;
 
 	} else if (lce(PRIMARY_INT)) {
 		e->type = new_type_expr(TC_I32);
@@ -188,7 +188,8 @@ void define_le_type(struct LocalExpr *e) {
 			e->type = new_type_expr(TC_PTR);
 			e->type->data.ptr_target = copy_type_expr(e->l->type);
 		} else if (lceu(INC) || lceu(DEC)) {
-			e->flags |= LEF_SIDE_EFFECTIVE;
+			e->flags |= LEF_SIDE_EFFECT_MEMCH;
+			e->type = copy_type_expr(e->l->type);
 		} else
 			e->type = copy_type_expr(e->l->type);
 
@@ -221,7 +222,7 @@ void define_le_type(struct LocalExpr *e) {
 
 	} else if (lce(AFTER_INC) || lce(AFTER_DEC)) {
 		define_type_and_copy_flags_to_e(e->l);
-		e->flags |= LEF_SIDE_EFFECTIVE;
+		e->flags |= LEF_SIDE_EFFECT_MEMCH;
 		e->type = copy_type_expr(e->l->type);
 	} else if (lce(AFTER_FIELD_OF_PTR) || lce(AFTER_FIELD)) {
 		define_struct_field_type_type(e);

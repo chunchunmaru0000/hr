@@ -1,5 +1,6 @@
 #include "../gner/gner.h"
 // TODO: mem leaks in this file
+// TODO: lazy evaluation opts, where dont care if left is guarants res and right is side effective
 
 constr LE_DIV_ON_ZERO = "ЭЭЭ ты куда на 0 делишь.";
 
@@ -156,7 +157,7 @@ int try_opt_and(struct LocalExpr *e) {
 	return check_if_bools(e);
 }
 
-// e || true  -> true TODO: fix cuz e should be not side_effective
+// e || true  -> true
 // e || false -> bool(e)
 int try_opt_or(struct LocalExpr *e) {
 	int opted = 0;
@@ -172,7 +173,7 @@ int try_opt_or(struct LocalExpr *e) {
 
 	if (is_le_not_num(e->l, 0))
 		do_opt(paste_le(e, e->l));
-	else if (is_le_not_num(e->r, 0))
+	else if (is_le_not_num(e->r, 0) && !have_any_side_effect(e->l))
 		do_opt(paste_le(e, e->r));
 	if (opted) { // e -> true, true is 1, where e is already num
 		turn_type_to_i32(e);
@@ -231,7 +232,7 @@ int try_opt_bit_and(struct LocalExpr *e) {
 }
 
 #define both_not_side_effective(l, r)                                          \
-	(((LEF_SIDE_EFFECTIVE & ((l)->flags | (r)->flags)) == 0))
+	(((LEF_ALL_SIDE_EFFECTS & ((l)->flags | (r)->flags)) == 0))
 
 // e < e  -> false, but if e is not side effective
 // e > e  -> false, but if e is not side effective
@@ -253,11 +254,31 @@ int try_opt_more_or_less(struct LocalExpr *e) {
 // e != e -> false, but if e is not side effective
 int try_opt_eque_or_nequ(struct LocalExpr *e) {
 	int opted = 0;
+	if (both_not_side_effective(e->l, e->r) && lee(e->l, e->r)) {
+		opted = 1;
+		// free_req(e->l, e->r)
+		turn_type_to_i32(e);
+		if (e->code != LE_PRIMARY_INT) {
+			e->tvar->num = lceb(EQUALS);
+			e->code = LE_PRIMARY_INT;
+			update_int_view(e);
+		}
+	}
 	return opted;
 }
 // e <= e -> true,  but if e is not side effective
 // e >= e -> true,  but if e is not side effective
 int try_opt_moree_or_lesse(struct LocalExpr *e) {
 	int opted = 0;
+	if (both_not_side_effective(e->l, e->r) && lee(e->l, e->r)) {
+		opted = 1;
+		// free_req(e->l, e->r)
+		turn_type_to_i32(e);
+		if (e->code != LE_PRIMARY_INT || e->tvar->num != 1) {
+			e->code = LE_PRIMARY_INT;
+			e->tvar->num = 1;
+			update_int_view(e);
+		}
+	}
 	return opted;
 }
