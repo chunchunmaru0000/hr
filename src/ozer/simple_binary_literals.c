@@ -1,6 +1,5 @@
 #include "../gner/gner.h"
 // TODO: mem leaks in this file
-// TODO: lazy evaluation opts, where dont care if left is guarants res and right is side effective
 
 constr LE_DIV_ON_ZERO = "ЭЭЭ ты куда на 0 делишь.";
 
@@ -14,9 +13,9 @@ constr LE_DIV_ON_ZERO = "ЭЭЭ ты куда на 0 делишь.";
 // e * 0 -> 0
 int try_opt_mul(struct LocalExpr *e) {
 	int opted = 0;
-	if (is_le_num(e->l, 0))
+	if (is_le_num(e->l, 0) && have_only_gvar_effect_or_none(e->r))
 		do_opt(paste_le(e, e->l));
-	else if (is_le_num(e->r, 0))
+	else if (is_le_num(e->r, 0) && have_only_gvar_effect_or_none(e->l))
 		do_opt(paste_le(e, e->r));
 	else if (is_le_num(e->l, 1))
 		do_opt(paste_le(e, e->r));
@@ -109,21 +108,22 @@ void turn_to_bool(struct LocalExpr *e) {
 	e->co.ops = 0;
 }
 
-// bool(e1) || bool(e2) -> e1 || e2
-// bool(e1) && bool(e2) -> e1 && e2
+// any part of || or && expression will be already evaluated as bool eventually
 int check_if_bools(struct LocalExpr *e) {
-	struct LocalExpr *was_e;
-	if (e->l->code == LE_BOOL && e->r->code == LE_BOOL) {
-		was_e = e->l->l;
-		free(e->l);
-		e->l = was_e;
-
-		was_e = e->r->l;
-		free(e->r);
-		e->r = was_e;
-		return 1;
+	struct LocalExpr *was_e = 0;
+	if (lceb(AND) || lceb(OR)) {
+		if (e->l->code == LE_BOOL) {
+			was_e = e->l->l;
+			free(e->l);
+			e->l = was_e;
+		}
+		if (e->r->code == LE_BOOL) {
+			was_e = e->r->l;
+			free(e->r);
+			e->r = was_e;
+		}
 	}
-	return 0;
+	return was_e ? 1 : 0;
 }
 
 // e && false -> false
@@ -131,9 +131,9 @@ int check_if_bools(struct LocalExpr *e) {
 int try_opt_and(struct LocalExpr *e) {
 	int opted = 0;
 
-	if (is_le_num(e->l, 0))
+	if (is_le_num(e->l, 0)) // not check sf cuz lazy eval
 		do_opt(paste_le(e, e->l));
-	else if (is_le_num(e->r, 0))
+	else if (is_le_num(e->r, 0) && have_only_gvar_effect_or_none(e->l))
 		do_opt(paste_le(e, e->r));
 	if (opted) { // e -> false
 		turn_type_to_i32(e);
@@ -171,9 +171,9 @@ int try_opt_or(struct LocalExpr *e) {
 		return 1;
 	}
 
-	if (is_le_not_num(e->l, 0))
+	if (is_le_not_num(e->l, 0)) // not check sf cuz lazy eval
 		do_opt(paste_le(e, e->l));
-	else if (is_le_not_num(e->r, 0) && !have_any_side_effect(e->l))
+	else if (is_le_not_num(e->r, 0) && have_only_gvar_effect_or_none(e->l))
 		do_opt(paste_le(e, e->r));
 	if (opted) { // e -> true, true is 1, where e is already num
 		turn_type_to_i32(e);
@@ -206,9 +206,10 @@ int try_opt_bit_or(struct LocalExpr *e) {
 int try_opt_bit_and(struct LocalExpr *e) {
 	int opted = 0;
 	if (is_num_le(e->l)) {
-		if (is_le_num(e->l, 0))
-			do_opt(paste_le(e, e->l));
-		else if (is_le_num(e->l, -1))
+		if (is_le_num(e->l, 0)) {
+			if (have_only_gvar_effect_or_none(e->r))
+				do_opt(paste_le(e, e->l));
+		} else if (is_le_num(e->l, -1))
 			do_opt(paste_le(e, e->r));
 		else if (e->l->type) {
 			if ((is_u_or_i_32(e->l->type) && is_le_num(e->l, 0xFFFFFFFF)) ||
@@ -217,9 +218,10 @@ int try_opt_bit_and(struct LocalExpr *e) {
 				do_opt(paste_le(e, e->r));
 		}
 	} else if (is_num_le(e->r)) {
-		if (is_le_num(e->r, 0))
-			do_opt(paste_le(e, e->r));
-		else if (is_le_num(e->r, -1))
+		if (is_le_num(e->r, 0)) {
+			if (have_only_gvar_effect_or_none(e->l))
+				do_opt(paste_le(e, e->r));
+		} else if (is_le_num(e->r, -1))
 			do_opt(paste_le(e, e->l));
 		else if (e->r->type) {
 			if ((is_u_or_i_32(e->r->type) && is_le_num(e->r, 0xFFFFFFFF)) ||
