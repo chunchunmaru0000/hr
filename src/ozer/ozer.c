@@ -16,18 +16,11 @@ PLUS, MINUS
 [ TERRY ]
 [ EQU ]
 
-side effects are:
- * dec, int
- * fun call
- * global vars, can ba affected in another thread
-e == e -> true,  but if e is not side effective
-e != e -> false, but if e is not side effective
-e < e  -> false, but if e is not side effective
-e > e  -> false, but if e is not side effective
-e <= e -> true,  but if e is not side effective
-e >= e -> true,  but if e is not side effective
-
 x e + x e -> 2 x e, то есть множители делители и типа все другое
+
+Dead code elimination:
+cut everything that is not side effective
+cut e = e
 */
 int lee(struct LocalExpr *l, struct LocalExpr *r) {
 	if (l->code != r->code)
@@ -36,8 +29,15 @@ int lee(struct LocalExpr *l, struct LocalExpr *r) {
 	u64 i;
 	struct LocalExpr *e = l;
 
-	if (is_bin_le(e) || lce(BIN_ASSIGN || lcea(INDEX))) {
-		return lee(l->l, r->l) && lee(l->r, r->r);
+	if (is_bin_le(l) || lce(BIN_ASSIGN || lcea(INDEX))) {
+		if (lceb(ADD) || lceb(MUL) || lceb(BIT_AND) || lceb(BIT_OR) ||
+			lceb(BIT_XOR) || lceb(EQUALS) || lceb(NOT_EQUALS) || lceb(AND) ||
+			lceb(OR)) {
+			// Коммутативные операции - те, где порядок операндов не важен
+			return (lee(l->l, r->l) && lee(l->r, r->r)) ||
+				   (lee(l->l, r->r) && lee(l->r, r->l));
+		} else
+			return lee(l->l, r->l) && lee(l->r, r->r);
 
 	} else if (lce(BIN_TERRY)) {
 		return lee(l->l, r->l) && lee(l->r, r->r) &&
@@ -59,7 +59,7 @@ int lee(struct LocalExpr *l, struct LocalExpr *r) {
 				return 0;
 		return 1;
 
-	} else if (is_unary(e) || lce(BOOL) || lce(AFTER_INC) || lce(AFTER_DEC)) {
+	} else if (is_unary(l) || lce(BOOL) || lce(AFTER_INC) || lce(AFTER_DEC)) {
 		return lee(l->l, r->l);
 
 	} else if (lce(AFTER_CALL)) {

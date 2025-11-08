@@ -504,7 +504,7 @@ union CondOps {
 	struct PList *ops; // list of LocalExpr's or defined by code
 };
 enum LE_Flag {
-	LEF_SIDE_EFFECT_GVAR = 1 << 0,
+	LEF_SIDE_EFFECT_GVAR = 1 << 0,	// can be changed in another thread
 	LEF_SIDE_EFFECT_MEMCH = 1 << 1, // mem change
 	LEF_SIDE_EFFECT_FUN_CALL = 1 << 2,
 };

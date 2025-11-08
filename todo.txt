@@ -52,6 +52,40 @@ Register allocation with как рег expression, u need to alloc reristers url
 для с как рсх от 0 до 10 ( ... )
 
 #######################################################################################
+# 								SYNTAX IDEAS
+#######################################################################################
+// Rust while let
+while let Some(x) = stack.pop() {
+    ...
+}
+// Guard Clauses
+function x y
+  | x > 0     = ...
+  | otherwise = ...
+
+defer
+
+let for match
+switch (opt) {
+    case let .type == OPT_INT, .value as val:
+        use(val);
+        break;
+    case let .type == OPT_STR, .str as s:
+        use_str(s);
+        break;
+}
+
+ZIG
+// Вместо:
+if (open_file() == NULL) return -1;
+if (read_file() < 0) return -1;
+// Могло бы быть:
+try open_file() else return -1;
+try read_file() else return -1;
+// Или даже:
+result = open_file() catch { return -1 };
+
+#######################################################################################
 # 			INLINE MACRO OR ANONIMOUS FUNS
 #######################################################################################
 пусть ( а: ч32 )
