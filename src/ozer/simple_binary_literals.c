@@ -233,9 +233,6 @@ int try_opt_bit_and(struct LocalExpr *e) {
 	return opted;
 }
 
-#define both_not_side_effective(l, r)                                          \
-	(((LEF_ALL_SIDE_EFFECTS & ((l)->flags | (r)->flags)) == 0))
-
 // e < e  -> false, but if e is not side effective
 // e > e  -> false, but if e is not side effective
 int try_opt_more_or_less(struct LocalExpr *e) {

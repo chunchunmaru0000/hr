@@ -487,6 +487,8 @@ enum LE_Code {
 #define lceb(c) ((e->code == LE_BIN_##c))
 #define lcea(c) ((e->code == LE_AFTER_##c))
 
+#define is_primary(e)                                                          \
+	((e)->code >= LE_PRIMARY_INT && (e)->code <= LE_PRIMARY_TUPLE)
 #define is_unary(e) ((e)->code >= LE_UNARY_MINUS && (e)->code <= LE_UNARY_ADDR)
 #define is_bin_le(e) ((e)->code >= LE_BIN_MUL && (e)->code <= LE_BIN_OR)
 #define is_INT_le(e) ((e)->code == LE_PRIMARY_INT)
@@ -513,6 +515,8 @@ enum LE_Flag {
 #define have_any_side_effect(e) (((e)->flags & LEF_ALL_SIDE_EFFECTS))
 #define have_only_gvar_effect_or_none(e)                                       \
 	((have_any_side_effect((e)) <= LEF_SIDE_EFFECT_GVAR))
+#define both_not_side_effective(l, r)                                          \
+	(((LEF_ALL_SIDE_EFFECTS & ((l)->flags | (r)->flags)) == 0))
 
 struct LocalExpr {
 	enum LE_Code code;

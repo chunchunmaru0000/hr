@@ -262,13 +262,15 @@ struct Inst *find_struct(struct BList *name);
 // ############################################################################
 
 extern struct Gner *ogner;
+struct PList *opt_local_expr(struct LocalExpr *e);
+struct PList *eliminate_dead_code_from_le(struct LocalExpr *e);
+
 void define_le_type(struct LocalExpr *e);
 #define define_type_and_copy_flags_to_e(expr)                                  \
 	do {                                                                       \
 		define_le_type((expr));                                                \
 		e->flags |= (expr)->flags;                                             \
 	} while (0)
-struct PList *opt_local_expr(struct LocalExpr *e);
 int lee(struct LocalExpr *l, struct LocalExpr *r);
 
 int try_opt_mul(struct LocalExpr *e);

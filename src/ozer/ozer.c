@@ -119,15 +119,16 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 		if (is_num_le(e->l))
 			unary_or_bool_of_num(e);
 		else
-			; // opt_unary_tree(e);
+			; // TODO: opt_unary_tree(e);
 	}
 }
 
 struct PList *opt_local_expr(struct LocalExpr *e) {
-	struct PList *es = new_plist(1);
+	struct PList *es;
+
 	define_type_and_copy_flags_to_e(e);
 	opt_bin_constant_folding(e);
-	plist_add(es, e);
+	es = eliminate_dead_code_from_le(e);
 
 	return es;
 }
