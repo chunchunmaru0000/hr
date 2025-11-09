@@ -13,6 +13,7 @@ sa(MOV_RBP_RSP, "быть рбп рсп\n");
 sa(MOV_MEM_RBP_OPEN, "быть (рбп ");
 sa(START_COMMENT, "\t; ");
 sa(SUB_RSP, "минс рсп ");
+sa(POP_RBP, "выт рбп\n");
 sa(LEAVE, "выйти\n");
 sa(RET, "возд\n");
 sa(ZERO_TERMINATOR, " 0\n");
@@ -129,20 +130,24 @@ void gen_linux_text(struct Gner *g) {
 			// begin stack frame
 			global_var = plist_get(in->os, 0);
 
-			blat_fun_prol(global_var->signature); // fun label
-			blat_str_fun_prol(SA_LABEL_END);	  // :
+			blat_stack_frame(global_var->signature); // fun label
+			blat_str_stack_frame(SA_LABEL_END);		 // :
 			g->indent_level++;
-			iprint_fun_prol(SA_PUSH_RBP);
-			iprint_fun_prol(SA_MOV_RBP_RSP);
+			iprint_stack_frame(SA_PUSH_RBP);
+			iprint_stack_frame(SA_MOV_RBP_RSP);
 
 			local_i = put_args_on_the_stack(g, in);
 			// function body
 			for (; local_i < in->os->size; local_i++)
 				gen_local_linux(g, plist_get(in->os, local_i));
 			// free stack in return statement
+			if (g->flags->is_stack_used) {
+				iprint_stack_frame(SA_SUB_RSP);
+				add_int_with_hex_comm(stack_frame, -g->stack_counter);
 
-			// leave also does pop rbp so its needed anyway
-			iprint_fun_text(SA_LEAVE);
+				iprint_fun_text(SA_LEAVE);
+			} else
+				iprint_fun_text(SA_POP_RBP);
 			iprint_fun_text(SA_RET);
 			fun_text_add('\n');
 			g->indent_level--;
@@ -235,24 +240,24 @@ uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in) {
 				new_local_var(plist_get(arg->names, j), arg, g->stack_counter);
 			plist_add(g->local_vars, var);
 
-			iprint_fun_prol(SA_EQU);		// вот
-			blat_fun_prol(var->name->view); // name
-			fun_prol_add(' ');
-			add_int_with_hex_comm(fun_prol, g->stack_counter);
+			iprint_after_stack_frame(SA_EQU);		 // вот
+			blat_after_stack_frame(var->name->view); // name
+			after_stack_frame_add(' ');
+			add_int_with_hex_comm(after_stack_frame, g->stack_counter);
 		}
 
 		if (arg->offset != last_offset) {
 			// быть (рсп - g->tmp_blist) register
-			iprint_fun_prol(SA_MOV_MEM_RBP_OPEN);
-			blat_fun_prol(var->name->view); // name
-			fun_prol_add(')');
-			fun_prol_add(' ');
+			iprint_after_stack_frame(SA_MOV_MEM_RBP_OPEN);
+			blat_after_stack_frame(var->name->view); // name
+			after_stack_frame_add(')');
+			after_stack_frame_add(' ');
 
 			// register that is need to put there
 			reg = get_regs_of_size(var->lvar_size, mem_counter);
 
-			blat(g->fun_prol, (uc *)reg->name, reg->len);
-			fun_prol_add('\n');
+			blat(g->after_stack_frame, (uc *)reg->name, reg->len);
+			after_stack_frame_add('\n');
 
 			mem_counter++;
 		}
@@ -261,11 +266,5 @@ uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in) {
 		arg = plist_get(in->os, i);
 	}
 
-	// sub rsp instead of one
-	// if (g->stack_counter) {
-	// 	blat_str_text(STR_ASM_SUB_RSP);
-	// 	num_add(g->text, -g->stack_counter);
-	// 	text_add('\n');
-	// }
 	return i;
 }

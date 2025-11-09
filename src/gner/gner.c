@@ -27,7 +27,8 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 	g->prol = new_blist(128);
 	g->aprol = new_blist(128);
 	g->text = new_blist(128);
-	g->fun_prol = new_blist(128);
+	g->stack_frame = new_blist(128);
+	g->after_stack_frame = new_blist(128);
 	g->fun_text = new_blist(128);
 
 	g->global_vars = p->global_vars;
@@ -84,10 +85,12 @@ void free_and_clear_local_vars(struct Gner *g) {
 }
 
 void write_fun(struct Gner *g) {
-	blat_text(g->fun_prol);
+	blat_text(g->stack_frame);
+	blat_text(g->after_stack_frame);
 	blat_text(g->fun_text);
 
-	blist_clear(g->fun_prol);
+	blist_clear(g->stack_frame);
+	blist_clear(g->after_stack_frame);
 	blist_clear(g->fun_text);
 }
 

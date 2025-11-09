@@ -116,20 +116,14 @@ void put_vars_on_the_stack(struct Gner *g, struct Inst *in) {
 
 			plist_add(g->local_vars, var);
 
-			iprint_fun_text(SA_EQU);		// вот
-			blat_fun_text(var->name->view); // name
-			fun_text_add(' ');
-			add_int_with_hex_comm(fun_text, g->stack_counter);
+			iprint_after_stack_frame(SA_EQU);		 // вот
+			blat_after_stack_frame(var->name->view); // name
+			after_stack_frame_add(' ');
+			add_int_with_hex_comm(after_stack_frame, g->stack_counter);
 		}
 
 		last_offset = arg->offset;
 	}
-
-	// if (stack_was != g->stack_counter) {
-	// 	blat_str_text(STR_ASM_SUB_RSP);
-	// 	num_add(g->text, stack_was - g->stack_counter);
-	// 	text_add('\n');
-	// }
 }
 
 // # - число

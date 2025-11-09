@@ -102,7 +102,8 @@ struct Gner {
 	// main text for all functions text and assemly
 	struct BList *text;
 
-	struct BList *fun_prol; // fun prolog
+	struct BList *stack_frame;
+	struct BList *after_stack_frame;
 	struct BList *fun_text; // fun main text
 
 	struct BList *tmp_blist; // just tmp blist
@@ -144,73 +145,62 @@ sae(DWORD);
 sae(QWORD);
 
 void indent_line(struct Gner *g, struct BList *l);
+
+#define iprint_(str, funs_name, list)                                          \
+	do {                                                                       \
+		indent_line(g, list);                                                  \
+		blat_str_##funs_name(str);                                             \
+	} while (0)
 // #############################################################################
 #define blat_str_gen(str) (blat(generated, (uc *)(str), (str##_LEN - 1)))
-#define iprint_gen(str)                                                        \
-	do {                                                                       \
-		indent_line(g, generated);                                             \
-		blat_str_gen(str);                                                     \
-	} while (0)
+#define iprint_gen(str) iprint_(str, gen, generated)
 #define print_gen(str) (blat_str_gen(str))
 #define gen_add(byte) (blist_add(generated, (byte)))
 #define blat_gen(list) (blat_blist(generated, (list)))
 // #############################################################################
 #define blat_str_bprol(str) (blat(g->bprol, (uc *)(str), (str##_LEN - 1)))
-#define iprint_bprol(str)                                                      \
-	do {                                                                       \
-		indent_line(g, g->bprol);                                              \
-		blat_str_bprol(str);                                                   \
-	} while (0)
+#define iprint_bprol(str) iprint_(str, bprol, g->bprol)
 #define print_bprol(str) (blat_str_bprol(str))
 #define bprol_add(byte) (blist_add(g->bprol, (byte)))
 #define blat_bprol(list) (blat_blist(g->bprol, (list)))
 // #############################################################################
 #define blat_str_prol(str) (blat(g->prol, (uc *)(str), (str##_LEN - 1)))
-#define iprint_prol(str)                                                       \
-	do {                                                                       \
-		indent_line(g, g->prol);                                               \
-		blat_str_prol(str);                                                    \
-	} while (0)
+#define iprint_prol(str) iprint_(str, prol, g->prol)
 #define print_prol(str) (blat_str_prol(str))
 #define prol_add(byte) (blist_add(g->prol, (byte)))
 #define blat_prol(list) (blat_blist(g->prol, (list)))
 // #############################################################################
 #define blat_str_aprol(str) (blat(g->aprol, (uc *)(str), (str##_LEN - 1)))
-#define iprint_aprol(str)                                                      \
-	do {                                                                       \
-		indent_line(g, g->aprol);                                              \
-		blat_str_aprol(str);                                                   \
-	} while (0)
+#define iprint_aprol(str) iprint_(str, aprol, g->aprol)
 #define print_aprol(str) (blat_str_aprol(str))
 #define aprol_add(byte) (blist_add(g->aprol, (byte)))
 #define blat_aprol(list) (blat_blist(g->aprol, (list)))
 // #############################################################################
 #define blat_str_text(str) (blat(g->text, (uc *)(str), (str##_LEN - 1)))
-#define iprint_text(str)                                                       \
-	do {                                                                       \
-		indent_line(g, g->text);                                               \
-		blat_str_text(str);                                                    \
-	} while (0)
+#define iprint_text(str) iprint_(str, text, g->text)
 #define print_text(str) (blat_str_text(str))
 #define text_add(byte) (blist_add(g->text, (byte)))
 #define blat_text(list) (blat_blist(g->text, (list)))
 // #############################################################################
-#define blat_str_fun_prol(str) (blat(g->fun_prol, (uc *)(str), (str##_LEN - 1)))
-#define iprint_fun_prol(str)                                                   \
-	do {                                                                       \
-		indent_line(g, g->fun_prol);                                           \
-		blat_str_fun_prol(str);                                                \
-	} while (0)
-#define print_fun_prol(str) (blat_str_fun_prol(str))
-#define fun_prol_add(byte) (blist_add(g->fun_prol, (byte)))
-#define blat_fun_prol(list) (blat_blist(g->fun_prol, (list)))
+// 								FUN PART
 // #############################################################################
+#define blat_str_stack_frame(str)                                              \
+	(blat(g->stack_frame, (uc *)(str), (str##_LEN - 1)))
+#define iprint_stack_frame(str) iprint_(str, stack_frame, g->stack_frame);
+#define print_stack_frame(str) (blat_str_stack_frame(str))
+#define stack_frame_add(byte) (blist_add(g->stack_frame, (byte)))
+#define blat_stack_frame(list) (blat_blist(g->stack_frame, (list)))
+
+#define blat_str_after_stack_frame(str)                                        \
+	(blat(g->after_stack_frame, (uc *)(str), (str##_LEN - 1)))
+#define iprint_after_stack_frame(str)                                          \
+	iprint_(str, after_stack_frame, g->after_stack_frame)
+#define print_after_stack_frame(str) (blat_str_after_stack_frame(str))
+#define after_stack_frame_add(byte) (blist_add(g->after_stack_frame, (byte)))
+#define blat_after_stack_frame(list) (blat_blist(g->after_stack_frame, (list)))
+
 #define blat_str_fun_text(str) (blat(g->fun_text, (uc *)(str), (str##_LEN - 1)))
-#define iprint_fun_text(str)                                                   \
-	do {                                                                       \
-		indent_line(g, g->fun_text);                                           \
-		blat_str_fun_text(str);                                                \
-	} while (0)
+#define iprint_fun_text(str) iprint_(str, fun_text, g->fun_text)
 #define print_fun_text(str) (blat_str_fun_text(str))
 #define fun_text_add(byte) (blist_add(g->fun_text, (byte)))
 #define blat_fun_text(list) (blat_blist(g->fun_text, (list)))
