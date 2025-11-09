@@ -18,9 +18,8 @@ PLUS, MINUS
 
 x e + x e -> 2 x e, то есть множители делители и типа все другое
 
-Dead code elimination:
-cut everything that is not side effective
-cut e = e
+Constant propagation like for local variable have bool where if its not changed
+from last constant value then it can take it
 */
 int lee(struct LocalExpr *l, struct LocalExpr *r) {
 	if (l->code != r->code)

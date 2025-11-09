@@ -14,6 +14,7 @@ void try_cut_even_when_side_effects(struct PList *es, struct LocalExpr *e) {
 
 void cut(struct PList *es, struct LocalExpr *e) {
 	if (causes_side_effects(e)) {
+	when_side_effects:
 		try_cut_even_when_side_effects(es, e);
 	} else if (is_primary(e)) {
 		;
@@ -23,6 +24,9 @@ void cut(struct PList *es, struct LocalExpr *e) {
 		cut(es, e->l);
 		cut(es, e->r);
 	} else if (lceb(TERRY)) {
+		if (causes_side_effects(e->l) || causes_side_effects(e->r))
+			goto when_side_effects;
+
 		cut(es, e->l);
 		cut(es, e->r);
 		cut(es, e->co.cond);
