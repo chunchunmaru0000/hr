@@ -259,19 +259,23 @@ void compare_type_and_expr(struct TypeExpr *type, struct LocalExpr *e);
 struct GlobVar *find_glob_Var(struct Gner *g, struct BList *name);
 struct LocalVar *find_local_Var(struct Gner *g, struct BList *name);
 struct Inst *find_struct(struct BList *name);
+struct BList *size_str(uc size);
 
-void gen_inc(struct Gner *g, struct LocalExpr *inced);
-void gen_dec(struct Gner *g, struct LocalExpr *deced);
+void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
 
 #define let_lvar_gvar struct LocalVar *lvar, struct GlobVar *gvar
+#define declare_lvar_gvar                                                      \
+	struct LocalVar *lvar = 0;                                                 \
+	struct GlobVar *gvar = 0;
+#define lvar_gvar_type() (lvar ? lvar->type : gvar->type)
+
 void var_(struct Gner *g, let_lvar_gvar);
 void mov_var_(struct Gner *g, let_lvar_gvar);
-void add_var_(struct Gner *g, let_lvar_gvar);
-void sub_var_(struct Gner *g, let_lvar_gvar);
 
 // ############################################################################
 // 									OZER
 // ############################################################################
+extern constr EXPECTED_PTR_TYPE;
 
 extern struct Gner *ogner;
 struct PList *opt_local_expr(struct LocalExpr *e);

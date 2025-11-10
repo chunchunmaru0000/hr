@@ -195,10 +195,8 @@ void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 		free_all_regs(g->cpu);
 		if (lceb(ASSIGN))
 			gen_assign(g, e);
-		else if (lceu(INC) || lcea(INC))
-			gen_inc(g, e->l);
-		else if (lceu(DEC) || lcea(DEC))
-			gen_dec(g, e->l);
+		else if (lceu(INC) || lcea(INC) || lceu(DEC) || lcea(DEC))
+			gen_dec_inc(g, e->l, lceu(INC) || lcea(INC));
 		// else if (lcea(CALL))
 		// 	gen_call(g, e);
 		// else if (lceb(TERRY))
@@ -235,8 +233,7 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 	struct LocalExpr *assignee = e->l;
 	struct LocalExpr *assignable = e->r;
 
-	struct GlobVar *gvar = 0;
-	struct LocalVar *lvar = 0;
+	declare_lvar_gvar;
 	struct TypeExpr *assignee_type = 0;
 	uc assignee_size = 0;
 
@@ -244,11 +241,12 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 	// printf("### GEN assignable INFO: assignable->code == %d\n",
 	// 	   assignable->code);
 
-	assignee_size = get_assignee_size(g, assignee, &gvar, &lvar);
-	assignee_type = gvar ? gvar->type : lvar ? lvar->type : 0;
-
 	if (lceeb(assignee, ASSIGN)) {
 	} else if (lceep(assignee, VAR)) {
+		// assignee_size =
+		get_assignee_size(g, assignee, &gvar, &lvar);
+		assignee_type = lvar_gvar_type();
+
 		compare_type_and_expr(assignee_type, assignable);
 
 		if (lceep(assignable, INT) || lceep(assignable, REAL)) {

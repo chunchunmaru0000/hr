@@ -50,10 +50,10 @@ uc get_var_size(struct Gner *g, struct LocalExpr *e, struct GlobVar **gvar,
 
 uc get_assignee_size(struct Gner *g, struct LocalExpr *e, struct GlobVar **gvar,
 					 struct LocalVar **lvar) {
-	if (e->code == LE_PRIMARY_VAR)
+	if (lcep(VAR))
 		return get_var_size(g, e, gvar, lvar);
 
-	// printf("get_assignee_size e->code = %d\n", e->code);
-	//  eet(e->tvar, "эээээээээ", 0);
+	printf("get_assignee_size e->code = %d\n", e->code);
+	eet(e->tvar, "эээээээээ", 0);
 	return 0;
 }
