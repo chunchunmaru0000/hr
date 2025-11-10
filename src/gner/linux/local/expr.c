@@ -1,9 +1,12 @@
 #include "../../gner.h"
 #include <stdio.h>
 
+sa(MOV, "быть ");
+sa(ADD, "плюс ");
+sa(SUB, "минс ");
+
 sa(COMM, "; ");
 sa(STR_XOR_EAX_EAX, "искл еах еах");
-sa(MOV, "быть ");
 sa(L_PAR, "(");
 sa(PAR_RBP, "(рбп ");
 sa(R_PAR, ") ");
@@ -37,53 +40,6 @@ void gen_int(struct Gner *g, struct LocalExpr *e) {
 void gen_real(struct Gner *g, struct LocalExpr *e);
 void gen_var(struct Gner *g, struct LocalExpr *e);
 void gen_assign(struct Gner *g, struct LocalExpr *e);
-
-void (*gen_expressions[])(struct Gner *g, struct LocalExpr *e) = {
-	0,			//		LE_NONE
-	gen_int,	// 	LE_PRIMARY_INT,
-	gen_real,	// 	LE_PRIMARY_REAL,
-	gen_var,	// 	LE_PRIMARY_VAR,
-	0,			// 	LE_PRIMARY_STR,
-	0,			// 	LE_PRIMARY_ARR,
-	0,			// 	LE_PRIMARY_TUPLE,
-	0,			// 	LE_UNARY_MINUS,
-	0,			// 	LE_UNARY_INC,
-	0,			// 	LE_UNARY_DEC,
-	0,			// 	LE_UNARY_NOT,
-	0,			// 	LE_UNARY_BIT_NOT,
-	0,			// 	LE_UNARY_AMPER,
-	0,			// 	LE_UNARY_ADDR,
-	0,			// 	LE_BIN_MUL,
-	0,			// 	LE_BIN_DIV,
-	0,			// 	LE_BIN_MOD,
-	0,			// 	LE_BIN_WHOLE_DIV,
-	0,			// 	LE_BIN_ADD,
-	0,			// 	LE_BIN_SUB,
-	0,			// 	LE_BIN_SHL,
-	0,			// 	LE_BIN_SHR,
-	0,			// 	LE_BIN_LESS,
-	0,			// 	LE_BIN_LESSE,
-	0,			// 	LE_BIN_MORE,
-	0,			// 	LE_BIN_MOREE,
-	0,			// 	LE_BIN_EQUALS,
-	0,			// 	LE_BIN_NOT_EQUALS,
-	0,			// 	LE_BIN_BIT_AND,
-	0,			// 	LE_BIN_BIT_XOR,
-	0,			// 	LE_BIN_BIT_OR,
-	0,			// 	LE_BIN_AND,
-	0,			// 	LE_BIN_OR,
-	0,			// 	LE_BIN_TERRY,
-	gen_assign, // 	LE_BIN_ASSIGN,
-	0,			// LE_AFTER_PIPE_LINE,
-	0,			// LE_AFTER_INDEX,
-	0,			// LE_AFTER_CALL,
-	0,			// LE_AFTER_INC,
-	0,			// LE_AFTER_DEC,
-	0,			// LE_AFTER_FIELD_OF_PTR,
-	0,			// LE_AFTER_FIELD,
-	0,			// LE_AFTER_ENUM,
-	0,			// LE_BOOL,
-};
 
 #define colored(name, code) ("\x1B[" #code "m")
 constr colours[8] = {
@@ -224,9 +180,7 @@ void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 	struct PList *es;
 	u32 i;
 
-	es =
-		// in->os;
-		opt_local_expr(plist_get(in->os, 0));
+	es = opt_local_expr(plist_get(in->os, 0));
 
 	for (i = 0; i < es->size; i++) {
 		e = plist_get(es, i);
@@ -238,19 +192,44 @@ void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 
 		print_le(e, 1);
 
-		if (gen_expressions[e->code] == 0) {
-			// printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
-			return;
-		}
-
 		free_all_regs(g->cpu);
-		gen_expressions[e->code](g, e);
+		if (lceb(ASSIGN))
+			gen_assign(g, e);
+		else if (lceu(INC) || lcea(INC))
+			gen_inc(g, e->l);
+		else if (lceu(DEC) || lcea(DEC))
+			gen_dec(g, e->l);
+		// else if (lcea(CALL))
+		// 	gen_call(g, e);
+		// else if (lceb(TERRY))
+		//	gen_terry(g, e);
+		// else
+		// 	exit(159);
+		// printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
 	}
 }
 
 void gen_real(struct Gner *g, struct LocalExpr *e) {}
 
 void gen_var(struct Gner *g, struct LocalExpr *e) {}
+
+void var_(struct Gner *g, let_lvar_gvar) {
+	if (lvar) {
+		blat_fun_text(size_str(lvar->lvar_size)); // *байт
+		print_fun_text(SA_PAR_RBP);				  // (рбп
+		blat_fun_text(lvar->name->view);		  // перем
+		blat_str_fun_text(SA_R_PAR);			  // )
+	} else {									  // gvar
+		blat_fun_text(size_str(gvar->gvar_size)); // *байт
+		blat_str_fun_text(SA_L_PAR);			  // (\
+		blat_fun_text(gvar->signature);			  // сигнатура
+		blat_str_fun_text(SA_R_PAR);			  // )
+	}
+}
+void mov_var_(struct Gner *g, let_lvar_gvar) {
+	iprint_fun_text(SA_MOV); // быть
+	var_(g, lvar, gvar);
+}
 
 void gen_assign(struct Gner *g, struct LocalExpr *e) {
 	struct LocalExpr *assignee = e->l;
@@ -259,36 +238,21 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 	struct GlobVar *gvar = 0;
 	struct LocalVar *lvar = 0;
 	struct TypeExpr *assignee_type = 0;
+	uc assignee_size = 0;
 
 	// printf("### GEN assignee INFO: assignee->code == %d\n", assignee->code);
 	// printf("### GEN assignable INFO: assignable->code == %d\n",
 	// 	   assignable->code);
 
-	uc assignee_size = get_assignee_size(g, assignee, &gvar, &lvar);
-	if (gvar)
-		assignee_type = gvar->type;
-	else if (lvar)
-		assignee_type = lvar->type;
+	assignee_size = get_assignee_size(g, assignee, &gvar, &lvar);
+	assignee_type = gvar ? gvar->type : lvar ? lvar->type : 0;
 
-	if (assignee->code == LE_BIN_ASSIGN) {
-	} else if (assignee->code == LE_PRIMARY_VAR) {
+	if (lceeb(assignee, ASSIGN)) {
+	} else if (lceep(assignee, VAR)) {
 		compare_type_and_expr(assignee_type, assignable);
 
-		if (assignable->code == LE_PRIMARY_INT ||
-			assignable->code == LE_PRIMARY_REAL) {
-
-			iprint_fun_text(SA_MOV);				// быть
-			blat_fun_text(size_str(assignee_size)); // *байт
-
-			if (lvar) {
-				print_fun_text(SA_PAR_RBP);			 // (рбп
-				blat_fun_text(assignee->tvar->view); // перем
-				blat_str_fun_text(SA_R_PAR);		 // )
-			} else {								 // gvar
-				blat_str_fun_text(SA_L_PAR);		 // (
-				blat_fun_text(gvar->signature);		 // сигнатура
-				blat_str_fun_text(SA_R_PAR);		 // )
-			}
+		if (lceep(assignable, INT) || lceep(assignable, REAL)) {
+			mov_var_(g, lvar, gvar);
 
 			if (assignable->code == LE_PRIMARY_INT) {
 				add_int_with_hex_comm(fun_text, assignable->tvar->num);

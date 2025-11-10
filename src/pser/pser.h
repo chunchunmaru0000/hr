@@ -486,6 +486,11 @@ enum LE_Code {
 #define lceu(c) ((e->code == LE_UNARY_##c))
 #define lceb(c) ((e->code == LE_BIN_##c))
 #define lcea(c) ((e->code == LE_AFTER_##c))
+#define lcee(e, c) (((e)->code == LE_##c))
+#define lceep(e, c) (((e)->code == LE_PRIMARY_##c))
+#define lceeu(e, c) (((e)->code == LE_UNARY_##c))
+#define lceeb(e, c) (((e)->code == LE_BIN_##c))
+#define lceea(e, c) (((e)->code == LE_AFTER_##c))
 
 #define is_primary(e)                                                          \
 	((e)->code >= LE_PRIMARY_INT && (e)->code <= LE_PRIMARY_TUPLE)
