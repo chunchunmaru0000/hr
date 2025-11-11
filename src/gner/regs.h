@@ -1,15 +1,6 @@
 enum RegCode {
 	R_NONE,
 
-	R_ES,
-	R_CS,
-	R_SS,
-	R_DS,
-	R_FS,
-	R_GS,
-	R_LDTR,
-	R_TR,
-
 	R_AL,
 	R_CL,
 	R_DL,
@@ -27,8 +18,6 @@ enum RegCode {
 	R_R14B,
 	R_R15B,
 
-	R_IP,
-	R_FLAGS,
 	R_AX,
 	R_CX,
 	R_DX,
@@ -46,8 +35,6 @@ enum RegCode {
 	R_R14W,
 	R_R15W,
 
-	R_EIP,
-	R_EFLAGS,
 	R_EAX,
 	R_ECX,
 	R_EDX,
@@ -65,8 +52,6 @@ enum RegCode {
 	R_R14D,
 	R_R15D,
 
-	R_RIP,
-	R_RFLAGS,
 	R_RAX,
 	R_RCX,
 	R_RDX,

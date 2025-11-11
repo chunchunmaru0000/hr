@@ -36,6 +36,7 @@ struct CPU {
 struct CPU *new_cpu();
 void free_all_regs(struct CPU *cpu);
 void free_reg(struct RegisterFamily *reg);
+struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code);
 
 struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size);
 struct Reg *try_borrow_reg(struct Token *place, struct CPU *cpu, uc of_size);
@@ -291,6 +292,8 @@ void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
 #define lvar_gvar_type() (lvar ? lvar->type : gvar->type)
 
 void var_(struct Gner *g, let_lvar_gvar);
+void sib_(struct Gner *g, uc size, enum RegCode base, uc scale,
+		  enum RegCode index, long disp, uc is_disp_blist);
 void mov_var_(struct Gner *g, let_lvar_gvar);
 
 // ############################################################################
