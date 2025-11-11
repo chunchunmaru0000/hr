@@ -219,7 +219,7 @@ void var_(struct Gner *g, let_lvar_gvar) {
 		blat_str_fun_text(SA_R_PAR);			  // )
 	} else {									  // gvar
 		blat_fun_text(size_str(gvar->gvar_size)); // *байт
-		blat_str_fun_text(SA_L_PAR);			  // (\
+		blat_str_fun_text(SA_L_PAR);			  // (
 		blat_fun_text(gvar->signature);			  // сигнатура
 		blat_str_fun_text(SA_R_PAR);			  // )
 	}

@@ -108,6 +108,7 @@ struct Gner {
 
 	struct BList *tmp_blist; // just tmp blist
 };
+#define Gg struct Gner *g
 
 struct Gner *new_gner(struct Pser *, enum Target, uc);
 void gen(struct Gner *);

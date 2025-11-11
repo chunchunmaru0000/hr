@@ -1,6 +1,9 @@
 #include "../pser.h"
 #include <stdio.h>
 
+// TODO: let a: *int = 0,
+// here 0 is err cuz cant even just cast num to ptr
+
 struct GlobExpr *parse_global_expression(struct Pser *p,
 										 struct TypeExpr *type) {
 	struct GlobExpr *e = global_expression(p);

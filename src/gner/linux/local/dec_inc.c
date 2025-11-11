@@ -1,8 +1,13 @@
 #include "../../gner.h"
 
+#define Lvar struct LocalExpr *var
+
 sa(MOV_RAX, "быть рах ");
 sa(RAX, "рах ");
 sa(OFF_RAX, "(рах) ")
+
+	constr ALLOWANCE_OF_INDEXATION =
+		"Индексация разрешена только по массивам и указателям.";
 
 #define let_lvar_gvar_inc let_lvar_gvar, uc is_inc
 #define add_or_sub                                                             \
@@ -13,7 +18,7 @@ sa(OFF_RAX, "(рах) ")
 			iprint_fun_text(SA_SUB);                                           \
 	} while (0)
 
-	long add_of_type(struct Token *tvar, struct TypeExpr *type) {
+long add_of_type(struct Token *tvar, struct TypeExpr *type) {
 	if (is_int_type(type))
 		return 1;
 	if (type->code == TC_PTR)
@@ -24,7 +29,7 @@ sa(OFF_RAX, "(рах) ")
 }
 
 // var[++ / --]
-void var_dec_int(struct Gner *g, struct LocalExpr *var, uc is_inc) {
+void var_indec(Gg, Lvar, uc is_inc) {
 	declare_lvar_gvar;
 	get_assignee_size(g, var, &gvar, &lvar);
 
@@ -34,7 +39,7 @@ void var_dec_int(struct Gner *g, struct LocalExpr *var, uc is_inc) {
 }
 
 // (*var)[++ / --]
-void ___var_ptr(struct Gner *g, struct LocalExpr *var, uc is_inc) {
+void var_ptr_indec(Gg, Lvar, uc is_inc) {
 	declare_lvar_gvar;
 	get_assignee_size(g, var, &gvar, &lvar);
 
@@ -60,7 +65,41 @@ void ___var_ptr(struct Gner *g, struct LocalExpr *var, uc is_inc) {
 	add_int_with_hex_comm(fun_text, aot);
 }
 
-void ___any(struct Gner *g, uc is_inc) {
+// // var[.*]++
+void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
+	Lvar = e->l;
+	struct LocalExpr *index = e->r;
+	declare_lvar_gvar;
+	get_assignee_size(g, var, &gvar, &lvar);
+
+	// ; vs is var size
+	if (var->type->code == TC_ARR) {
+		if (lceep(index, INT)) {
+			// lea rax, [rbp index]
+			// add vs[rax var], int
+
+			// add vs[rbp var+index], int
+
+		} else {
+			// mov     rax, isize [rbp index]
+			// add     arr_item_size [arr_item_size rax rbp var], int
+		}
+	} else if (var->type->code == TC_PTR) {
+		if (lceep(index, INT)) {
+			// mov     rax, QWORD [rbp var]
+			// add 	   vsize [rax + vsize * index], int
+
+		} else {
+			// mov     rax, isize [rbp index]
+			// lea 	   rax, [vsize rax] 		// rax is
+			// add     rax, qword [rbp var] 	// qword cuz index from ptr
+			// add     vsize [rax], int
+		}
+	} else
+		eet(e->tvar, ALLOWANCE_OF_INDEXATION, 0);
+}
+
+void any_indec(Gg, uc is_inc) {
 	// addr = gen_left_side_addr(g, inced);
 	add_or_sub;
 	// blat_fun_text(inced_addr->name);
@@ -69,18 +108,21 @@ void ___any(struct Gner *g, uc is_inc) {
 	fun_text_add('\n');
 }
 
-void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc) {
+void gen_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 
 	if (lcep(VAR)) {
 		// var[++ / --]
-		var_dec_int(g, e, is_inc);
+		var_indec(g, e, is_inc);
 
 	} else if (lceu(ADDR) && lceep(e->l, VAR)) {
 		// *var[++ / --]
-		___var_ptr(g, e->l, is_inc);
+		var_ptr_indec(g, e->l, is_inc);
 
-	} else if (lcea(INDEX) && lceep(e->l, VAR)) {
+	} else if (lcea(INDEX) && lceep(e->l, VAR) &&
+			   (lceep(e->r, VAR) || lceep(e->r, INT))) {
 		// var[.*]++
+		var_index_indec(g, e, is_inc);
+
 	} else if ((lcea(FIELD_OF_PTR) || lcea(FIELD)) && lceep(e->l, VAR)) {
 		// var-[> / @]field++
 	} else if (lceu(ADDR) && lceeb(e->l, ADD) &&
@@ -88,5 +130,5 @@ void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc) {
 				(lceep(e->l->r, VAR) && lceep(e->l->l, INT)))) {
 		// *([var + int / int + var])
 	} else
-		___any(g, is_inc);
+		any_indec(g, is_inc);
 }
