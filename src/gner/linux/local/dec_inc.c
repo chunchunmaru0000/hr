@@ -1,13 +1,13 @@
 #include "../../gner.h"
 
 #define Lvar struct LocalExpr *var
+#define Lv struct LocalVar *
+#define Gv struct GlobVar *
+#define Le struct LocalExpr *
+#define inced uc is_inc
 
-sa(MOV_RAX, "быть рах ");
-sa(RAX, "рах ");
-sa(OFF_RAX, "(рах) ")
-
-	constr ALLOWANCE_OF_INDEXATION =
-		"Индексация разрешена только по массивам и указателям.";
+constr ALLOWANCE_OF_INDEXATION =
+	"Индексация разрешена только по массивам и указателям.";
 
 #define let_lvar_gvar_inc let_lvar_gvar, uc is_inc
 #define add_or_sub                                                             \
@@ -49,7 +49,7 @@ void var_ptr_indec(Gg, Lvar, uc is_inc) {
 	type_for_add = type_for_add->data.ptr_target;
 
 	//	   mov	   rdx, var_ptr	// rdx is var value which is ptr
-	iprint_fun_text(SA_MOV_RAX);
+	isprint_ft(MOV_RAX);
 	var_(g, lvar, gvar);
 	g->fun_text->size--; // remove space after var_
 	fun_text_add('\n');
@@ -61,32 +61,124 @@ void var_ptr_indec(Gg, Lvar, uc is_inc) {
 	else // means ptr to ptr
 		blat_fun_text(size_str(QWORD));
 
-	print_fun_text(SA_OFF_RAX);
+	sprint_ft(OFF_RAX);
 	add_int_with_hex_comm(fun_text, aot);
 }
+
+void lv_li_indec(Gg, Lv lvar, Lv li, inced) {
+	struct BList *arr_item_size = size_str(lvar->lvar_size);
+	// mov     rax, isize [rbp index]
+	isprint_ft(MOV_RAX);			  // mov rax,
+	blat_ft(size_str(li->lvar_size)); // isize
+	sprint_ft(PAR_RBP);				  // (rbp
+	blat_ft(li->name->view);		  // index
+	sprint_ft(R_PAR);				  // )
+	// add     arr_item_size [arr_item_size rax rbp var], int
+	add_or_sub;						 // add / sub
+	blat_ft(arr_item_size);			 // arr_item_size
+	sprint_ft(L_PAR);				 // (
+	blat_ft(arr_item_size);			 // arr_item_size
+	sprint_ft(RAX);					 // rax
+	sprint_ft(RBP);					 // rbp
+	blat_fun_text(lvar->name->view); // var
+}
+void lv_gi_indec(Gg, Lv lvar, Gv gi, inced) {}
+void gv_li_indec(Gg, Gv gvar, Lv li, inced) {}
+void gv_gi_indec(Gg, Gv gvar, Gv gi, inced) {}
+
+void lv_ii_indec(Gg, Lv lvar, Le i, inced) {
+	// lea rax, [rbp index]
+	// add vs[rax var], int
+	// #####################
+	// add vs[rbp var+index], int
+}
+void gv_ii_indec(Gg, Gv gvar, Le i, inced) {}
 
 // // var[.*]++
 void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 	Lvar = e->l;
-	struct LocalExpr *index = e->r;
+	Le index = e->r;
 	declare_lvar_gvar;
+	void *lgvar;
 	get_assignee_size(g, var, &gvar, &lvar);
+
+	if (var->type->code == TC_ARR) {
+		if (lceep(index, VAR)) {
+			if (lvar) {
+				lgvar = lvar, lvar = 0, gvar = 0;
+				get_assignee_size(g, index, &gvar, &lvar);
+				lvar ? lv_li_indec(g, lgvar, lvar, is_inc)
+					 : lv_gi_indec(g, lgvar, gvar, is_inc);
+			} else {
+				lgvar = gvar, lvar = 0, gvar = 0;
+				get_assignee_size(g, index, &gvar, &lvar);
+				lvar ? gv_li_indec(g, lgvar, lvar, is_inc)
+					 : gv_gi_indec(g, lgvar, gvar, is_inc);
+			}
+		} else {
+			if (lvar) {
+				lgvar = lvar, lvar = 0, gvar = 0;
+				lv_ii_indec(g, lgvar, index, is_inc);
+			} else {
+				lgvar = gvar, lvar = 0, gvar = 0;
+				gv_ii_indec(g, lgvar, index, is_inc);
+			}
+		}
+	} else {
+		if (lceep(index, VAR)) {
+			if (lvar) {
+				lgvar = lvar, lvar = 0, gvar = 0;
+				get_assignee_size(g, index, &gvar, &lvar);
+				lvar ? lv_li_indec(g, lgvar, lvar, is_inc)
+					 : lv_gi_indec(g, lgvar, gvar, is_inc);
+			} else {
+				lgvar = gvar, lvar = 0, gvar = 0;
+				get_assignee_size(g, index, &gvar, &lvar);
+				lvar ? gv_li_indec(g, lgvar, lvar, is_inc)
+					 : gv_gi_indec(g, lgvar, gvar, is_inc);
+			}
+		} else {
+			if (lvar) {
+				lgvar = lvar, lvar = 0, gvar = 0;
+				lv_ii_indec(g, lgvar, index, is_inc);
+			} else {
+				lgvar = gvar, lvar = 0, gvar = 0;
+				gv_ii_indec(g, lgvar, index, is_inc);
+			}
+		}
+	}
+
+	if (var->type->code == TC_ARR) {
+	}
 
 	// ; vs is var size
 	if (var->type->code == TC_ARR) {
-		if (lceep(index, INT)) {
-			// lea rax, [rbp index]
-			// add vs[rax var], int
+		if (lvar) {
+			if (lceep(index, INT)) {
+				// lea rax, [rbp index]
+				// add vs[rax var], int
 
-			// add vs[rbp var+index], int
+				// add vs[rbp var+index], int
 
+			} else {
+				// mov     rax, isize [rbp index]
+				// add     arr_item_size [arr_item_size rax rbp var], int
+			}
 		} else {
-			// mov     rax, isize [rbp index]
-			// add     arr_item_size [arr_item_size rax rbp var], int
+			if (lceep(index, INT)) {
+				// mov rax, var
+				// add vs[rax index], int
+
+				// add vs[var+index], int
+
+			} else {
+				// mov     rax, isize [rbp index]
+				// add     arr_item_size [arr_item_size rax rbp var], int
+			}
 		}
 	} else if (var->type->code == TC_PTR) {
 		if (lceep(index, INT)) {
-			// mov     rax, QWORD [rbp var]
+			// mov     rax, vsize [rbp var]
 			// add 	   vsize [rax + vsize * index], int
 
 		} else {
@@ -109,7 +201,6 @@ void any_indec(Gg, uc is_inc) {
 }
 
 void gen_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
-
 	if (lcep(VAR)) {
 		// var[++ / --]
 		var_indec(g, e, is_inc);

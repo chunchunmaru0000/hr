@@ -119,34 +119,46 @@ void gen(struct Gner *);
 #define sae(name)                                                              \
 	extern const char SA_##name[];                                             \
 	extern const uint32_t SA_##name##_LEN;
-// SA - Str Asm
 
-sae(EQU);
-sae(PUSH_RBP);
-sae(MOV_RBP_RSP);
-sae(MOV_MEM_RBP_OPEN);
-sae(START_COMMENT);
-sae(SUB_RSP);
-sae(ZERO_TERMINATOR);
-sae(STR_XOR_EAX_EAX);
-
-sae(LEAVE);
-sae(RET);
-sae(JMP);
-sae(ADD);
-sae(SUB);
-
-sae(LABEL_END);
+// #############################################################################
+// 									SA - Str Asm
+// #############################################################################
 sae(LET_8);
 sae(LET_16);
 sae(LET_32);
 sae(LET_64);
+sae(RAX);
+sae(RBP);
 sae(REZERV_ZERO);
-
+sae(SEGMENT_READ_WRITE);
+sae(SEGMENT_READ_EXECUTE);
+sae(LABEL_END);
+sae(ZERO_TERMINATOR);
+sae(START_COMMENT);
+sae(EQU);
+sae(COMM);
+sae(PUSH_RBP);
+sae(MOV_RBP_RSP);
+sae(MOV_MEM_RBP_OPEN);
+sae(SUB_RSP);
+sae(POP_RBP);
+sae(LEAVE);
+sae(RET);
+sae(STR_XOR_EAX_EAX);
+sae(MOV_RAX);
 sae(BYTE);
 sae(WORD);
 sae(DWORD);
 sae(QWORD);
+sae(MOV);
+sae(ADD);
+sae(SUB);
+sae(L_PAR);
+sae(R_PAR);
+sae(PAR_RBP);
+sae(OFF_RAX);
+sae(JMP);
+// #############################################################################
 
 void indent_line(struct Gner *g, struct BList *l);
 
@@ -208,6 +220,14 @@ void indent_line(struct Gner *g, struct BList *l);
 #define print_fun_text(str) (blat_str_fun_text(str))
 #define fun_text_add(byte) (blist_add(g->fun_text, (byte)))
 #define blat_fun_text(list) (blat_blist(g->fun_text, (list)))
+
+#define blat_str_ft(str) (blat(g->fun_text, (uc *)(str), (str##_LEN - 1)))
+#define iprint_ft(str) iprint_(str, fun_text, g->fun_text)
+#define isprint_ft(str) iprint_(SA_##str, fun_text, g->fun_text)
+#define print_ft(str) (blat_str_fun_text(str))
+#define sprint_ft(str) (blat_str_fun_text(SA_##str))
+#define ft_add(byte) (blist_add(g->fun_text, (byte)))
+#define blat_ft(list) (blat_blist(g->fun_text, (list)))
 // #############################################################################
 
 #define int_add(list, value)                                                   \

@@ -1,20 +1,6 @@
 #include "../../gner.h"
 #include <stdio.h>
 
-sa(MOV, "быть ");
-sa(ADD, "плюс ");
-sa(SUB, "минс ");
-
-sa(COMM, "; ");
-sa(STR_XOR_EAX_EAX, "искл еах еах");
-sa(L_PAR, "(");
-sa(PAR_RBP, "(рбп ");
-sa(R_PAR, ") ");
-sa(BYTE, "байт ");
-sa(WORD, "дбайт ");
-sa(DWORD, "чбайт ");
-sa(QWORD, "вбайт ");
-
 struct BList *size_str(uc size) {
 	if (size == BYTE)
 		return copy_blist_from_str((char *)SA_BYTE);

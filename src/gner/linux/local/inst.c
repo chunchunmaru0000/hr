@@ -8,8 +8,6 @@ constr CHANGE_LABEL_NAME_OR_DELETE_LABEL = "изменить имя метки �
 constr REDEFINING_OF_LOCAL_VAR = "Переопределение локальной переменной.";
 constr REDEFINING_OF_LOCAL_LABEL = "Переопределение локальной метки.";
 
-sa(JMP, "идти ");
-
 void gen_local_linux(struct Gner *g, struct Inst *in) {
 	struct Token *tok, *name, *str;
 	struct BList *string;

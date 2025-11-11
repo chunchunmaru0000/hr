@@ -1,12 +1,6 @@
 #include "../../gner.h"
 #include <stdio.h>
 
-sa(LET_8, "пусть байт ");
-sa(LET_16, "пусть дбайт ");
-sa(LET_32, "пусть чбайт ");
-sa(LET_64, "пусть вбайт ");
-sa(REZERV_ZERO, "запас 0 ");
-
 void clear_current_inst_value_labels_to(struct Gner *g, struct BList *label) {
 	struct GlobVar *this_e_var;
 	struct BList *freed = 0;

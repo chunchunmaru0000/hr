@@ -4,19 +4,19 @@
 uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in);
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg);
 
-sa(SEGMENT_READ_WRITE, "участок чит изм\n\n");
-sa(SEGMENT_READ_EXECUTE, "участок чит исп\n\n");
-sa(LABEL_END, ":\n");
-sa(EQU, "вот ");
-sa(PUSH_RBP, "толк рбп\n");
-sa(MOV_RBP_RSP, "быть рбп рсп\n");
-sa(MOV_MEM_RBP_OPEN, "быть (рбп ");
-sa(START_COMMENT, "\t; ");
-sa(SUB_RSP, "минс рсп ");
-sa(POP_RBP, "выт рбп\n");
-sa(LEAVE, "выйти\n");
-sa(RET, "возд\n");
-sa(ZERO_TERMINATOR, " 0\n");
+// sa(SEGMENT_READ_WRITE, "участок чит изм\n\n");
+// sa(SEGMENT_READ_EXECUTE, "участок чит исп\n\n");
+// sa(LABEL_END, ":\n");
+// sa(EQU, "вот ");
+// sa(PUSH_RBP, "толк рбп\n");
+// sa(MOV_RBP_RSP, "быть рбп рсп\n");
+// sa(MOV_MEM_RBP_OPEN, "быть (рбп ");
+// sa(START_COMMENT, "\t; ");
+// sa(SUB_RSP, "минс рсп ");
+// sa(POP_RBP, "выт рбп\n");
+// sa(LEAVE, "выйти\n");
+// sa(RET, "возд\n");
+// sa(ZERO_TERMINATOR, " 0\n");
 
 struct Register {
 	const char *const name;
