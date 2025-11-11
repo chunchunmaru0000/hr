@@ -67,55 +67,69 @@ void var_ptr_indec(Gg, Lvar, uc is_inc) {
 	add_int_with_hex_comm(fun_text, aot);
 }
 
-#define size_pl(size)                                                          \
-	blat_ft(size_str((size)));                                                 \
-	sprint_ft(L_PAR);
-#define mov_isize_pl(size)                                                     \
+#define mov_rax_li                                                             \
 	isprint_ft(MOV_RAX);                                                       \
-	size_pl((size))
-#define blat_pr(list)                                                          \
-	blat_ft((list));                                                           \
-	sprint_ft(R_PAR);
-#define blat_pl(list)                                                          \
-	blat_ft((list));                                                           \
-	sprint_ft(L_PAR);
-void add_ais_rbp_ais_rax_var_unit(Gg, Lv lvar, uc arr_item_size, U, inced) {
-	long disp = (long)lvar->name->view;
-
+	var_(g, li, 0);                                                            \
 	g->fun_text->size--, ft_add('\n');
-	// add     arr_item_size [rbp arr_item_size * rax var], int
-	add_or_sub; // add/sub
-	sib_(g, arr_item_size, R_RBP, arr_item_size, R_RAX, disp, 1);
-	add_int_with_hex_comm(fun_text, unit); // int
-}
+#define mov_rax_gi                                                             \
+	isprint_ft(MOV_RAX);                                                       \
+	var_(g, 0, gi);                                                            \
+	g->fun_text->size--, ft_add('\n');
+#define ads(base, scale, disp)                                                 \
+	add_or_sub;                                                                \
+	sib_(g, item_size, (base), (scale), R_RAX, (long)(disp), 1);               \
+	add_int_with_hex_comm(fun_text, unit);
+
 void lv_li_indec(Gg, Lv lvar, Lv li, U, inced) {
-	uc arr_item_size = unsafe_size_of_type(arr_type(lvar->type));
-	//  mov     rax, isize [rbp index]
-	isprint_ft(MOV_RAX); // mov rax,
-	var_(g, li, 0);		 // isize (index)
-	// add     arr_item_size [rbp arr_item_size * rax var], int
-	add_ais_rbp_ais_rax_var_unit(g, lvar, arr_item_size, unit, is_inc);
+	uc item_size = unsafe_size_of_type(arr_type(lvar->type));
+	// mov     rax, isize [rbp index]
+	// add     item_size [rbp item_size * rax lvar], int
+	mov_rax_li;
+	ads(R_RBP, item_size, lvar->name->view);
 }
 void lv_gi_indec(Gg, Lv lvar, Gv gi, U, inced) {
-	uc arr_item_size = unsafe_size_of_type(arr_type(lvar->type));
-	// mov    rax, isize [index]
-	isprint_ft(MOV_RAX); // mov rax,
-	var_(g, 0, gi);		 // isize (index)
-	// add     arr_item_size [rbp arr_item_size * rax var], int
-	add_ais_rbp_ais_rax_var_unit(g, lvar, arr_item_size, unit, is_inc);
+	uc item_size = unsafe_size_of_type(arr_type(lvar->type));
+	// mov     rax, isize [index]
+	// add     item_size [rbp item_size * rax lvar], int
+	mov_rax_gi;
+	ads(R_RBP, item_size, lvar->name->view);
 }
-void gv_li_indec(Gg, Gv gvar, Lv li, U, inced) {}
-void gv_gi_indec(Gg, Gv gvar, Gv gi, U, inced) {}
-
+void gv_li_indec(Gg, Gv gvar, Lv li, U, inced) {
+	uc item_size = unsafe_size_of_type(arr_type(gvar->type));
+	// mov     rax, isize [rbp index]
+	// add     item_size [item_size * rax gvar], int
+	mov_rax_li;
+	ads(0, item_size, gvar->signature);
+}
+void gv_gi_indec(Gg, Gv gvar, Gv gi, U, inced) {
+	uc item_size = unsafe_size_of_type(arr_type(gvar->type));
+	// mov     rax, isize [rbp index]
+	// add     item_size [item_size * rax gvar], int
+	mov_rax_gi;
+	ads(0, item_size, gvar->signature);
+}
 void lv_ii_indec(Gg, Lv lvar, Le i, U, inced) {
-	// lea rax, [rbp index]
-	// add vs[rax var], int
-	// #####################
-	// add vs[rbp var+index], int
+	uc item_size = unsafe_size_of_type(arr_type(lvar->type));
+	// mov rax, index * item_size
+	// add item_size [rax rbp lvar], int
+	isprint_ft(MOV_RAX);
+	add_int_with_hex_comm(fun_text, i->tvar->num * item_size);
+	ads(R_RBP, 1, lvar->name->view);
+	// ##################### TODO: in assembly compiler
+	// add item_size [rbp lvar+index*item_size], int
 }
-void gv_ii_indec(Gg, Gv gvar, Le i, U, inced) {}
+void gv_ii_indec(Gg, Gv gvar, Le i, U, inced) {
+	uc item_size = unsafe_size_of_type(arr_type(gvar->type));
+	// mov rax, index * item_size
+	// add item_size [rax gvar], int
+	isprint_ft(MOV_RAX);
+	add_int_with_hex_comm(fun_text, i->tvar->num * item_size);
+	ads(0, 1, gvar->signature);
+	// ##################### TO DO: in assembly compiler
+	// add item_size [gvar+index*item_size], int
+}
 
-// // var[.*]++
+// var[var or int][++ / --]
 void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 	Lvar = e->l;
 	Le index = e->r;
@@ -214,15 +228,11 @@ void gen_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 
 	} else if (lcea(INDEX) && lceep(e->l, VAR) &&
 			   (lceep(e->r, VAR) || lceep(e->r, INT))) {
-		// var[.*]++
+		// var[var or int][++ / --]
 		var_index_indec(g, e, is_inc);
 
 	} else if ((lcea(FIELD_OF_PTR) || lcea(FIELD)) && lceep(e->l, VAR)) {
-		// var-[> / @]field++
-	} else if (lceu(ADDR) && lceeb(e->l, ADD) &&
-			   ((lceep(e->l->l, VAR) && lceep(e->l->r, INT)) ||
-				(lceep(e->l->r, VAR) && lceep(e->l->l, INT)))) {
-		// *([var + int / int + var])
+		// var-[> / @]field[++ / --]
 	} else
 		any_indec(g, is_inc);
 }

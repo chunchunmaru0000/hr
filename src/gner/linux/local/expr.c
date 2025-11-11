@@ -219,11 +219,14 @@ void sib_(struct Gner *g, uc size, enum RegCode base, uc scale,
 		blat_ft(just_get_reg(g->cpu, base)->name);
 		ft_add(' ');
 	}
-	if (scale) {
+	if (scale > 1) {
 		int_add(g->fun_text, scale);
 		ft_add(' ');
 		if (!index)
 			exit(166);
+		blat_ft(just_get_reg(g->cpu, index)->name);
+		ft_add(' ');
+	} else if (index) {
 		blat_ft(just_get_reg(g->cpu, index)->name);
 		ft_add(' ');
 	}
