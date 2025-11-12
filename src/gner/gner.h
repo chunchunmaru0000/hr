@@ -159,6 +159,7 @@ sae(R_PAR);
 sae(PAR_RBP);
 sae(OFF_RAX);
 sae(JMP);
+sae(LEA);
 // #############################################################################
 
 void indent_line(struct Gner *g, struct BList *l);
@@ -292,8 +293,11 @@ void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
 #define lvar_gvar_type() (lvar ? lvar->type : gvar->type)
 
 void var_(struct Gner *g, let_lvar_gvar);
-void sib_(struct Gner *g, uc size, enum RegCode base, uc scale,
-		  enum RegCode index, long disp, uc is_disp_blist);
+#define reg_(reg) blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add(' ')
+void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
+		 enum RegCode index, long disp, uc is_disp_blist);
+#define sib_(size, base, scale, index, disp, is_disp_bl)                       \
+	sib(g, (size), (base), (scale), (index), (disp), (is_disp_bl)), ft_add(' ')
 void mov_var_(struct Gner *g, let_lvar_gvar);
 void mov_reg_(Gg, enum RegCode reg);
 void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar);
@@ -356,3 +360,4 @@ void unary_or_bool_of_num(struct LocalExpr *e);
 #define cant_on_nums(op_name, op)                                              \
 	constr CANT_##op_name##_ON_NUMS =                                          \
 		"Операция '" op "' не применима к числам.";
+extern constr ALLOWANCE_OF_INDEXATION;

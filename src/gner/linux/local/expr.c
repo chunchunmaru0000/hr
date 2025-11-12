@@ -210,25 +210,25 @@ void var_(struct Gner *g, let_lvar_gvar) {
 		blat_str_fun_text(SA_R_PAR);			  // )
 	}
 }
-void sib_(struct Gner *g, uc size, enum RegCode base, uc scale,
-		  enum RegCode index, long disp, uc is_disp_blist) {
+void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
+		 enum RegCode index, long disp, uc is_disp_blist) {
 
 	blat_fun_text(size_str(size));
-	sprint_ft(L_PAR); // (
+	ft_add('(');
 	if (base) {
-		blat_ft(just_get_reg(g->cpu, base)->name);
-		ft_add(' ');
+		reg_(base);
 	}
 	if (scale > 1) {
 		int_add(g->fun_text, scale);
 		ft_add(' ');
 		if (!index)
 			exit(166);
-		blat_ft(just_get_reg(g->cpu, index)->name);
-		ft_add(' ');
+		goto write_index;
 	} else if (index) {
+	write_index:
 		blat_ft(just_get_reg(g->cpu, index)->name);
-		ft_add(' ');
+		if (disp)
+			ft_add(' ');
 	}
 	if (disp) {
 		if (is_disp_blist)
@@ -236,7 +236,7 @@ void sib_(struct Gner *g, uc size, enum RegCode base, uc scale,
 		else
 			int_add(g->fun_text, disp);
 	}
-	sprint_ft(R_PAR); // )
+	ft_add(')');
 }
 void mov_var_(Gg, let_lvar_gvar) {
 	iprint_fun_text(SA_MOV);
@@ -244,7 +244,7 @@ void mov_var_(Gg, let_lvar_gvar) {
 }
 void mov_reg_(Gg, enum RegCode reg) {
 	iprint_fun_text(SA_MOV);
-	blat_ft(just_get_reg(g->cpu, reg)->name), ft_add(' ');
+	reg_(reg);
 }
 void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar) {
 	mov_reg_(g, reg);

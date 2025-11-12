@@ -1,4 +1,5 @@
 #include "../../gner.h"
+#include <stdio.h>
 
 #define Lvar struct LocalExpr *var
 #define Lv struct LocalVar *
@@ -48,13 +49,10 @@ void var_ptr_indec(Gg, Lvar, uc is_inc) {
 	struct TypeExpr *type_for_add = lvar_gvar_type();
 	if (type_for_add->code != TC_PTR)
 		eet(var->tvar, EXPECTED_PTR_TYPE, 0);
-	type_for_add = type_for_add->data.ptr_target;
+	type_for_add = ptr_targ(type_for_add);
 
 	//	   mov	   rdx, var_ptr	// rdx is var value which is ptr
-	isprint_ft(MOV_RAX);
-	var_(g, lvar, gvar);
-	g->fun_text->size--; // remove space after var_
-	fun_text_add('\n');
+	mov_reg_var(g, R_RAX, lvar, gvar);
 	//     add/sub size_of_add_of_type [rax], int
 	long aot = add_of_type(var->tvar, type_for_add);
 	add_or_sub;
@@ -84,22 +82,17 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 		unit_type = arr_type(var->type);
 		unit = add_of_type(var->tvar, unit_type);
 
-		if (lvar) {
-			item_size = unsafe_size_of_type(arr_type(lvar->type));
-			base = R_RBP;
-		} else {
-			item_size = unsafe_size_of_type(arr_type(gvar->type));
-			base = 0;
-		}
+		item_size = unsafe_size_of_type(unit_type);
+		base = lvar ? R_RBP : 0;
 
 		if (lceep(index, VAR)) {
 			disp_str = lvar ? lvar->name->view : gvar->signature;
-			lvar = 0, gvar = 0, get_assignee_size(g, index, &gvar, &lvar);
 
+			lvar = 0, gvar = 0, get_assignee_size(g, index, &gvar, &lvar);
 			mov_reg_var(g, R_RAX, lvar, gvar);
 
 			add_or_sub;
-			sib_(g, item_size, base, item_size, R_RAX, (long)(disp_str), 1);
+			sib_(item_size, base, item_size, R_RAX, (long)(disp_str), 1);
 			add_int_with_hex_comm(fun_text, unit);
 		} else {
 			if (gvar) {
@@ -109,16 +102,51 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 				add_int_with_hex_comm(fun_text, index->tvar->num * item_size);
 
 				add_or_sub;
-				sib_(g, item_size, base, 1, R_RAX, (long)gvar->signature, 1);
+				sib_(item_size, base, 1, R_RAX, (long)gvar->signature, 1);
 			} else {
 				add_or_sub;
-				sib_(g, item_size, base, 1, 0,
+				sib_(item_size, base, 1, 0,
 					 lvar->stack_pointer + index->tvar->num * item_size, 0);
 			}
 			add_int_with_hex_comm(fun_text, unit);
 		}
-	} else {
-	}
+	} else if (var->type->code == TC_PTR) {
+		unit_type = ptr_targ(var->type);
+		unit = add_of_type(var->tvar, unit_type);
+
+		item_size = unsafe_size_of_type(unit_type);
+		base = lvar ? R_RBP : 0;
+
+		// TODO:
+		// movsx   rax, WORD [rbp-22]        		 ; индекс
+		// mov     rdx, QWORD [rbp-48]       		 ; указатель на массив
+		// add     item_size [rdx + rax*item_size], 1
+
+		if (lceep(index, VAR)) {
+			disp_str = lvar ? lvar->name->view : gvar->signature;
+
+			lvar = 0, gvar = 0, get_assignee_size(g, index, &gvar, &lvar);
+			mov_reg_var(g, R_RAX, lvar, gvar);
+
+			// lea 	   rax, qword [vsize rax] 	// rax is index
+			isprint_ft(LEA);
+			reg_(R_RAX);
+			sib(g, QWORD, 0, item_size, R_RAX, 0, 0), ft_add('\n');
+			// add     rax, qword [rbp var] 	// qword cuz index from ptr
+			isprint_ft(ADD);
+			reg_(R_RAX);
+			sib(g, QWORD, base, 0, 0, (long)disp_str, 1), ft_add('\n');
+			// add     item_size [rax], int
+			isprint_ft(ADD);
+			sib_(item_size, R_RAX, 0, 0, 0, 0);
+			add_int_with_hex_comm(fun_text, unit);
+
+		} else {
+			// mov     rax, vsize [rbp var]
+			// add 	   vsize [rax + vsize * index], int
+		}
+	} else
+		eet(e->tvar, ALLOWANCE_OF_INDEXATION, 0);
 
 	// ; vs is var size
 	if (var->type->code == TC_ARR) {

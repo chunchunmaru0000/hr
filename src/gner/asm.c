@@ -34,6 +34,7 @@ sa(QWORD, "вбайт ");
 sa(MOV, "быть ");
 sa(ADD, "плюс ");
 sa(SUB, "минс ");
+sa(LEA, "задр ");
 
 sa(L_PAR, "(");
 sa(R_PAR, ") ");

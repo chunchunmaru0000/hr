@@ -3,8 +3,6 @@
 
 constr INVALID_TYPE_FOR_BIN = "Неверный тип операнда для бинарных операций, с "
 							  "ними вообще только числовые типы используются.";
-constr EXPECTED_ARR_TYPE =
-	"Ожидалось выражение типа массива для обращения к нему по индексу.";
 constr EXPECTED_STRUCT_PTR_TYPE =
 	"Ожидалось выражение типа указателя на лик для обращения к его полю.";
 constr EXPECTED_STRUCT_TYPE =
@@ -196,9 +194,12 @@ void define_le_type(struct LocalExpr *e) {
 	} else if (lce(AFTER_INDEX)) {
 		define_type_and_copy_flags_to_e(e->l);
 		define_type_and_copy_flags_to_e(e->r);
-		if (e->l->type == 0 || e->l->type->code != TC_ARR)
-			eet(e->l->tvar, EXPECTED_ARR_TYPE, 0);
-		e->type = copy_type_expr(arr_type(e->l->type));
+		if (e->l->type == 0 ||
+			(e->l->type->code != TC_ARR && e->l->type->code != TC_PTR))
+			eet(e->l->tvar, ALLOWANCE_OF_INDEXATION, 0);
+		e->type = e->l->type->code == TC_ARR
+					  ? copy_type_expr(arr_type(e->l->type))
+					  : copy_type_expr(ptr_targ(e->l->type));
 
 	} else if (lce(AFTER_PIPE_LINE)) {
 		define_type_and_copy_flags_to_e(e->l);
