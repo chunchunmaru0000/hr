@@ -46,6 +46,14 @@ not gonna do Dead code elimination cuz useless in 'implicit language'
 Register allocation with как рег expression, u need to alloc reristers urlesf
 
 #######################################################################################
+# 								PREPROCESSOR
+#######################################################################################
+#буки (# целых #~1 число# раз#|раза ведать #слова# . #) (##)
+
+defined number of tokens in argument, such argument may be not separated by
+other tokens
+
+#######################################################################################
 # 								AS IN LOOP
 #######################################################################################
 как register expression in loop defenition
