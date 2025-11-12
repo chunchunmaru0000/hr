@@ -110,13 +110,11 @@ void gv_gi_indec(Gg, Gv gvar, Gv gi, U, inced) {
 }
 void lv_ii_indec(Gg, Lv lvar, Le i, U, inced) {
 	uc item_size = unsafe_size_of_type(arr_type(lvar->type));
-	// mov rax, index * item_size
-	// add item_size [rax rbp lvar], int
-	isprint_ft(MOV_RAX);
-	add_int_with_hex_comm(fun_text, i->tvar->num * item_size);
-	ads(R_RBP, 1, lvar->name->view);
-	// ##################### TODO: in assembly compiler
 	// add item_size [rbp lvar+index*item_size], int
+	add_or_sub;
+	sib_(g, item_size, R_RBP, 1, 0,
+		 lvar->stack_pointer + i->tvar->num * item_size, 0);
+	add_int_with_hex_comm(fun_text, unit);
 }
 void gv_ii_indec(Gg, Gv gvar, Le i, U, inced) {
 	uc item_size = unsafe_size_of_type(arr_type(gvar->type));
@@ -125,7 +123,7 @@ void gv_ii_indec(Gg, Gv gvar, Le i, U, inced) {
 	isprint_ft(MOV_RAX);
 	add_int_with_hex_comm(fun_text, i->tvar->num * item_size);
 	ads(0, 1, gvar->signature);
-	// ##################### TO DO: in assembly compiler
+	// ##################### TODO: in assembly compiler
 	// add item_size [gvar+index*item_size], int
 }
 
