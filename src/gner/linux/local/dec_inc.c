@@ -117,6 +117,7 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 
 		item_size = unsafe_size_of_type(unit_type);
 		base = lvar ? R_RBP : 0;
+
 		if (lceep(index, VAR)) {
 			if ((second_reg = borrow_basic_reg(g->cpu, QWORD))) {
 				mov_reg_var(g, second_reg->reg_code, lvar, gvar);
@@ -124,7 +125,7 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 				lvar = 0, gvar = 0, get_assignee_size(g, index, &gvar, &lvar);
 				mov_reg_var(g, R_RAX, lvar, gvar);
 
-				isprint_ft(ADD);
+				add_or_sub;
 				sib_(item_size, second_reg->reg_code, item_size, R_RAX, 0, 0);
 				add_int_with_hex_comm(fun_text, unit);
 
@@ -146,52 +147,15 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 			reg_(R_RAX);
 			sib(g, QWORD, base, 0, 0, (long)disp_str, 1), ft_add('\n');
 			// add     item_size [rax], int
-			isprint_ft(ADD);
+			add_or_sub;
 			sib_(item_size, R_RAX, 0, 0, 0, 0);
 			add_int_with_hex_comm(fun_text, unit);
 
 		} else {
-			// mov     rax, vsize [rbp var]
-			// add 	   vsize [rax + vsize * index], int
-		}
-	} else
-		eet(e->tvar, ALLOWANCE_OF_INDEXATION, 0);
-
-	// ; vs is var size
-	if (var->type->code == TC_ARR) {
-		if (lvar) {
-			if (lceep(index, INT)) {
-				// lea rax, [rbp index]
-				// add vs[rax var], int
-
-				// add vs[rbp var+index], int
-
-			} else {
-				// mov     rax, isize [rbp index]
-				// add     arr_item_size [arr_item_size rax rbp var], int
-			}
-		} else {
-			if (lceep(index, INT)) {
-				// mov rax, var
-				// add vs[rax index], int
-
-				// add vs[var+index], int
-
-			} else {
-				// mov     rax, isize [rbp index]
-				// add     arr_item_size [arr_item_size rax rbp var], int
-			}
-		}
-	} else if (var->type->code == TC_PTR) {
-		if (lceep(index, INT)) {
-			// mov     rax, vsize [rbp var]
-			// add 	   vsize [rax + vsize * index], int
-
-		} else {
-			// mov     rax, isize [rbp index]
-			// lea 	   rax, [vsize rax] 		// rax is
-			// add     rax, qword [rbp var] 	// qword cuz index from ptr
-			// add     vsize [rax], int
+			mov_reg_var(g, R_RAX, lvar, gvar);
+			add_or_sub;
+			sib_(item_size, R_RAX, 0, 0, index->tvar->num * item_size, 0);
+			add_int_with_hex_comm(fun_text, unit);
 		}
 	} else
 		eet(e->tvar, ALLOWANCE_OF_INDEXATION, 0);
