@@ -10,6 +10,7 @@ struct Reg {
 
 	uc is_value_active;
 	long active_value;
+	struct RegisterFamily *rf;
 };
 
 struct RegisterFamily {
@@ -35,7 +36,7 @@ struct CPU {
 
 struct CPU *new_cpu();
 void free_all_regs(struct CPU *cpu);
-void free_reg(struct RegisterFamily *reg);
+void free_reg_family(struct RegisterFamily *rf);
 struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code);
 
 struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size);

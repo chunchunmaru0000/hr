@@ -100,7 +100,7 @@ char *const STR_XMM15 = "э15";
 	} while (0)
 // rcn - regster capital name
 // rsn - regster string name
-#define new_family_reg(family_reg, rcn, rsn, reg_size)                         \
+#define new_family_reg(family_reg, rcn, rsn, reg_size, rfm)                    \
 	do {                                                                       \
 		(family_reg) = malloc(sizeof(struct Reg));                             \
 		(family_reg)->name = copy_blist_from_str((rsn));                       \
@@ -108,38 +108,43 @@ char *const STR_XMM15 = "э15";
 		(family_reg)->size = (reg_size);                                       \
 		free_reg(family_reg);                                                  \
 		(family_reg)->active_value = 0;                                        \
+		(family_reg)->rf = (rfm);                                              \
 	} while (0)
-#define new_default_family(reg_family, rcn)                                    \
+#define new_default_family(rf, rcn)                                            \
 	do {                                                                       \
-		cpu->reg_family = malloc(sizeof(struct RegisterFamily));               \
-		new_family_reg(cpu->reg_family->l, rcn##L, STR_##rcn##L, BYTE);        \
-		new_family_reg(cpu->reg_family->h, rcn##H, STR_##rcn##H, BYTE);        \
-		new_family_reg(cpu->reg_family->x, rcn##X, STR_##rcn##X, WORD);        \
-		new_family_reg(cpu->reg_family->e, E##rcn##X, STR_E##rcn##X, DWORD);   \
-		new_family_reg(cpu->reg_family->r, R##rcn##X, STR_R##rcn##X, QWORD);   \
+		cpu->rf = malloc(sizeof(struct RegisterFamily));                       \
+		new_family_reg(cpu->rf->l, rcn##L, STR_##rcn##L, BYTE, cpu->rf);       \
+		new_family_reg(cpu->rf->h, rcn##H, STR_##rcn##H, BYTE, cpu->rf);       \
+		new_family_reg(cpu->rf->x, rcn##X, STR_##rcn##X, WORD, cpu->rf);       \
+		new_family_reg(cpu->rf->e, E##rcn##X, STR_E##rcn##X, DWORD, cpu->rf);  \
+		new_family_reg(cpu->rf->r, R##rcn##X, STR_R##rcn##X, QWORD, cpu->rf);  \
 	} while (0)
-#define new_short_family(reg_family, rcn)                                      \
+#define new_short_family(rf, rcn)                                              \
 	do {                                                                       \
-		cpu->reg_family = malloc(sizeof(struct RegisterFamily));               \
-		cpu->reg_family->l = 0;                                                \
-		cpu->reg_family->h = 0;                                                \
-		new_family_reg(cpu->reg_family->x, rcn, STR_##rcn, WORD);              \
-		new_family_reg(cpu->reg_family->e, E##rcn, STR_E##rcn, DWORD);         \
-		new_family_reg(cpu->reg_family->r, R##rcn, STR_R##rcn, QWORD);         \
+		cpu->rf = malloc(sizeof(struct RegisterFamily));                       \
+		cpu->rf->l = 0;                                                        \
+		cpu->rf->h = 0;                                                        \
+		new_family_reg(cpu->rf->x, rcn, STR_##rcn, WORD, cpu->rf);             \
+		new_family_reg(cpu->rf->e, E##rcn, STR_E##rcn, DWORD, cpu->rf);        \
+		new_family_reg(cpu->rf->r, R##rcn, STR_R##rcn, QWORD, cpu->rf);        \
 	} while (0)
 #define new_extended_family(num)                                               \
 	do {                                                                       \
 		cpu->rex[num - 8] = malloc(sizeof(struct RegisterFamily));             \
-		new_family_reg(cpu->rex[num - 8]->l, R##num##B, STR_R##num##B, BYTE);  \
+		new_family_reg(cpu->rex[num - 8]->l, R##num##B, STR_R##num##B, BYTE,   \
+					   cpu->rex[num - 8]);                                     \
 		cpu->rex[num - 8]->h = 0;                                              \
-		new_family_reg(cpu->rex[num - 8]->x, R##num##W, STR_R##num##W, WORD);  \
-		new_family_reg(cpu->rex[num - 8]->e, R##num##D, STR_R##num##D, DWORD); \
-		new_family_reg(cpu->rex[num - 8]->r, R##num, STR_R##num, QWORD);       \
+		new_family_reg(cpu->rex[num - 8]->x, R##num##W, STR_R##num##W, WORD,   \
+					   cpu->rex[num - 8]);                                     \
+		new_family_reg(cpu->rex[num - 8]->e, R##num##D, STR_R##num##D, DWORD,  \
+					   cpu->rex[num - 8]);                                     \
+		new_family_reg(cpu->rex[num - 8]->r, R##num, STR_R##num, QWORD,        \
+					   cpu->rex[num - 8]);                                     \
 	} while (0)
 #define new_xmm_reg(num)                                                       \
 	do {                                                                       \
 		cpu->xmm[num] = malloc(sizeof(struct Reg));                            \
-		new_family_reg(cpu->xmm[num], XMM##num, STR_XMM##num, XWORD);          \
+		new_family_reg(cpu->xmm[num], XMM##num, STR_XMM##num, XWORD, 0);       \
 	} while (0)
 
 struct CPU *new_cpu() {
@@ -215,7 +220,9 @@ void free_all_regs(struct CPU *cpu) {
 		alloc_reg((rf)->r);                                                    \
 		alloc_reg((rf)->e);                                                    \
 		alloc_reg((rf)->x);                                                    \
-		alloc_reg((rf)->h);                                                    \
+		if ((rf)->h)                                                           \
+			alloc_reg((rf)->h);                                                \
+			if ((rf)->l)\
 		alloc_reg((rf)->l);                                                    \
 	} while (0)
 
@@ -226,7 +233,8 @@ struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size) {
 
 	for (i = 0, rfs = as_rfs(cpu); i < 16; i++, rfs++) {
 		rf = *rfs;
-		if (r_code(rf) == R_RBX || r_code(rf) == R_R12)
+		if (r_code(rf) == R_RAX || r_code(rf) == R_RBX || r_code(rf) == R_RBP ||
+			r_code(rf) == R_RSP || r_code(rf) == R_R12)
 			continue;
 
 		if (of_size == BYTE) {

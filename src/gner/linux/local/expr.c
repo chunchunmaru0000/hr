@@ -178,7 +178,6 @@ void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
 
 		print_le(e, 1);
 
-		free_all_regs(g->cpu);
 		if (lceb(ASSIGN))
 			gen_assign(g, e);
 		else if (lceu(INC) || lcea(INC) || lceu(DEC) || lcea(DEC))

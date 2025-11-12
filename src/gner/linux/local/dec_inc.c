@@ -69,6 +69,7 @@ void var_ptr_indec(Gg, Lvar, uc is_inc) {
 void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 	Lvar = e->l;
 	Le index = e->r;
+	struct Reg *second_reg;
 	declare_lvar_gvar;
 	get_assignee_size(g, var, &gvar, &lvar);
 
@@ -116,13 +117,21 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 
 		item_size = unsafe_size_of_type(unit_type);
 		base = lvar ? R_RBP : 0;
-
-		// TODO:
-		// movsx   rax, WORD [rbp-22]        		 ; индекс
-		// mov     rdx, QWORD [rbp-48]       		 ; указатель на массив
-		// add     item_size [rdx + rax*item_size], 1
-
 		if (lceep(index, VAR)) {
+			if ((second_reg = borrow_basic_reg(g->cpu, QWORD))) {
+				mov_reg_var(g, second_reg->reg_code, lvar, gvar);
+
+				lvar = 0, gvar = 0, get_assignee_size(g, index, &gvar, &lvar);
+				mov_reg_var(g, R_RAX, lvar, gvar);
+
+				isprint_ft(ADD);
+				sib_(item_size, second_reg->reg_code, item_size, R_RAX, 0, 0);
+				add_int_with_hex_comm(fun_text, unit);
+
+				free_reg_family(second_reg->rf);
+				return;
+			}
+
 			disp_str = lvar ? lvar->name->view : gvar->signature;
 
 			lvar = 0, gvar = 0, get_assignee_size(g, index, &gvar, &lvar);
