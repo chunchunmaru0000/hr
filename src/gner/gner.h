@@ -295,6 +295,8 @@ void var_(struct Gner *g, let_lvar_gvar);
 void sib_(struct Gner *g, uc size, enum RegCode base, uc scale,
 		  enum RegCode index, long disp, uc is_disp_blist);
 void mov_var_(struct Gner *g, let_lvar_gvar);
+void mov_reg_(Gg, enum RegCode reg);
+void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar);
 
 // ############################################################################
 // 									OZER

@@ -238,9 +238,18 @@ void sib_(struct Gner *g, uc size, enum RegCode base, uc scale,
 	}
 	sprint_ft(R_PAR); // )
 }
-void mov_var_(struct Gner *g, let_lvar_gvar) {
-	iprint_fun_text(SA_MOV); // быть
+void mov_var_(Gg, let_lvar_gvar) {
+	iprint_fun_text(SA_MOV);
 	var_(g, lvar, gvar);
+}
+void mov_reg_(Gg, enum RegCode reg) {
+	iprint_fun_text(SA_MOV);
+	blat_ft(just_get_reg(g->cpu, reg)->name), ft_add(' ');
+}
+void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar) {
+	mov_reg_(g, reg);
+	var_(g, lvar, gvar);
+	g->fun_text->size--, ft_add('\n');
 }
 
 void gen_assign(struct Gner *g, struct LocalExpr *e) {
