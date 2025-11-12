@@ -302,6 +302,9 @@ void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 void mov_var_(struct Gner *g, let_lvar_gvar);
 void mov_reg_(Gg, enum RegCode reg);
 void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar);
+#define op_reg_(op, reg)                                                        \
+	isprint_ft(op);                                                          \
+	reg_((reg));
 
 // ############################################################################
 // 									OZER

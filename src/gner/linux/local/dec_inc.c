@@ -139,12 +139,10 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 			mov_reg_var(g, R_RAX, lvar, gvar);
 
 			// lea 	   rax, qword [vsize rax] 	// rax is index
-			isprint_ft(LEA);
-			reg_(R_RAX);
+			op_reg_(LEA, R_RAX);
 			sib(g, QWORD, 0, item_size, R_RAX, 0, 0), ft_add('\n');
 			// add     rax, qword [rbp var] 	// qword cuz index from ptr
-			isprint_ft(ADD);
-			reg_(R_RAX);
+			op_reg_(ADD, R_RAX);
 			sib(g, QWORD, base, 0, 0, (long)disp_str, 1), ft_add('\n');
 			// add     item_size [rax], int
 			add_or_sub;
@@ -161,7 +159,44 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 		eet(e->tvar, ALLOWANCE_OF_INDEXATION, 0);
 }
 
-void any_indec(Gg, uc is_inc) {
+// var-[> / @]field[++ / --]
+void var_field_indec(Gg, struct LocalExpr *e, uc is_inc) {
+	// from define_struct_field_type_type
+	struct Arg *feld = (struct Arg *)e->tvar->num;
+	struct LocalExpr *var = e->l;
+
+	struct TypeExpr *unit_type = feld->type;
+	long unit = add_of_type(var->tvar, unit_type);
+	int unit_size = feld->arg_size;
+
+	declare_lvar_gvar;
+	get_assignee_size(g, var, &gvar, &lvar);
+
+	if (lcea(FIELD)) {
+		if (lvar) {
+			// add unit_size [rbp lvar+offset], unit
+			add_or_sub;
+			sib_(unit_size, R_RBP, 0, 0, lvar->stack_pointer + feld->offset, 0);
+		} else {
+			// ##################### TODO: in assembly compiler
+			// add unit_size [gvar+offset], unit
+			op_reg_(MOV, R_RAX);
+			blat_ft(gvar->signature), ft_add('\n');
+			add_or_sub;
+			sib_(unit_size, R_RAX, 0, 0, feld->offset, 0);
+		}
+		add_int_with_hex_comm(fun_text, unit);
+	} else {
+		// mov     rax, qword [var]
+		// add     unit_size [rax + offset], unit
+		mov_reg_var(g, R_RAX, lvar, gvar);
+		add_or_sub;
+		sib_(unit_size, R_RAX, 0, 0, feld->offset, 0);
+		add_int_with_hex_comm(fun_text, unit);
+	}
+}
+
+void any_indec(Gg, struct LocalExpr *e, uc is_inc) {
 	// addr = gen_left_side_addr(g, inced);
 	add_or_sub;
 	// blat_fun_text(inced_addr->name);
@@ -186,6 +221,8 @@ void gen_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 
 	} else if ((lcea(FIELD_OF_PTR) || lcea(FIELD)) && lceep(e->l, VAR)) {
 		// var-[> / @]field[++ / --]
+		var_field_indec(g, e, is_inc);
+
 	} else
-		any_indec(g, is_inc);
+		any_indec(g, e, is_inc);
 }

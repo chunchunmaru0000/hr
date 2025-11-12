@@ -55,6 +55,8 @@ void define_struct_field_type_type(struct LocalExpr *e) {
 			arg_field_name = plist_get(arg->names, j);
 
 			if (sc(vs(field_name), vs(arg_field_name))) {
+				// REMEMBER: when field e->tvar->num = (long)arg;
+				e->tvar->num = (long)arg;
 				e->type = copy_type_expr(arg->type);
 				return;
 			}
