@@ -96,19 +96,11 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 			sib_(item_size, base, item_size, R_RAX, (long)(disp_str), 1);
 			add_int_with_hex_comm(fun_text, unit);
 		} else {
-			if (gvar) {
-				// ##################### TODO: in assembly compiler
-				// add item_size [gvar+index*item_size], int
-				mov_reg_(g, R_RAX);
-				add_int_with_hex_comm(fun_text, index->tvar->num * item_size);
-
-				add_or_sub;
-				sib_(item_size, base, 1, R_RAX, (long)gvar->signature, 1);
-			} else {
-				add_or_sub;
-				sib_(item_size, base, 1, 0,
-					 lvar->stack_pointer + index->tvar->num * item_size, 0);
-			}
+			disp_str = int_to_str(index->tvar->num * item_size);
+			blist_add(disp_str, '+');
+			blat_blist(disp_str, gvar ? gvar->signature : lvar->name->view);
+			add_or_sub;
+			sib_(item_size, base, 0, 0, (long)disp_str, 1);
 			add_int_with_hex_comm(fun_text, unit);
 		}
 	} else if (var->type->code == TC_PTR) {
@@ -178,12 +170,12 @@ void var_field_indec(Gg, struct LocalExpr *e, uc is_inc) {
 			add_or_sub;
 			sib_(unit_size, R_RBP, 0, 0, lvar->stack_pointer + feld->offset, 0);
 		} else {
-			// ##################### TODO: in assembly compiler
 			// add unit_size [gvar+offset], unit
-			op_reg_(MOV, R_RAX);
-			blat_ft(gvar->signature), ft_add('\n');
+			struct BList *disp = int_to_str(feld->offset);
+			blist_add(disp, '+');
+			blat_blist(disp, gvar->signature);
 			add_or_sub;
-			sib_(unit_size, R_RAX, 0, 0, feld->offset, 0);
+			sib_(unit_size, 0, 0, 0, (long)disp, 1);
 		}
 		add_int_with_hex_comm(fun_text, unit);
 	} else {
