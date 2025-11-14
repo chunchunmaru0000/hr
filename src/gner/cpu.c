@@ -222,8 +222,8 @@ void free_all_regs(struct CPU *cpu) {
 		alloc_reg((rf)->x);                                                    \
 		if ((rf)->h)                                                           \
 			alloc_reg((rf)->h);                                                \
-			if ((rf)->l)\
-		alloc_reg((rf)->l);                                                    \
+		if ((rf)->l)                                                           \
+			alloc_reg((rf)->l);                                                \
 	} while (0)
 
 struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size) {
@@ -233,8 +233,8 @@ struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size) {
 
 	for (i = 0, rfs = as_rfs(cpu); i < 16; i++, rfs++) {
 		rf = *rfs;
-		if (r_code(rf) == R_RAX || r_code(rf) == R_RBX || r_code(rf) == R_RBP ||
-			r_code(rf) == R_RSP || r_code(rf) == R_R12)
+		if (/*r_code(rf) == R_RAX ||*/ r_code(rf) == R_RBX ||
+			r_code(rf) == R_RBP || r_code(rf) == R_RSP || r_code(rf) == R_R12)
 			continue;
 
 		if (of_size == BYTE) {

@@ -43,39 +43,29 @@ void var_indec(Gg, Lvar, uc is_inc) {
 
 // (*var)[++ / --]
 void var_ptr_indec(Gg, Lvar, uc is_inc) {
-	declare_lvar_gvar;
-	get_assignee_size(g, var, &gvar, &lvar);
+	struct TypeExpr *unit_type = ptr_targ(var->type);
+	int unit = add_of_type(var->tvar, unit_type);
+	int unit_size = unsafe_size_of_type(unit_type);
 
-	struct TypeExpr *type_for_add = lvar_gvar_type();
-	if (type_for_add->code != TC_PTR)
-		eet(var->tvar, EXPECTED_PTR_TYPE, 0);
-	type_for_add = ptr_targ(type_for_add);
+	struct Reg *reg = gen_to_reg(g, var, QWORD);
 
-	//	   mov	   rdx, var_ptr	// rdx is var value which is ptr
-	mov_reg_var(g, R_RAX, lvar, gvar);
-	//     add/sub size_of_add_of_type [rax], int
-	long aot = add_of_type(var->tvar, type_for_add);
 	add_or_sub;
-	if (aot == 1) // means ptr to value
-		blat_fun_text(size_str(unsafe_size_of_type(type_for_add)));
-	else // means ptr to ptr
-		blat_fun_text(size_str(QWORD));
-
-	sprint_ft(OFF_RAX);
-	add_int_with_hex_comm(fun_text, aot);
+	sib_(unit_size, 0, 0, reg->reg_code, 0, 0);
+	add_int_with_hex_comm(fun_text, unit);
+	free_reg_family(reg->rf);
 }
 
 // var[var or int][++ / --]
 void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 	Lvar = e->l;
 	Le index = e->r;
-	struct Reg *second_reg;
+	struct Reg *index_reg = 0, *var_reg = 0;
 	declare_lvar_gvar;
 	get_assignee_size(g, var, &gvar, &lvar);
 
 	struct TypeExpr *unit_type;
 	long unit;
-	uc item_size;
+	int item_size;
 	struct BList *disp_str;
 	enum RegCode base;
 
@@ -86,23 +76,23 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 		item_size = unsafe_size_of_type(unit_type);
 		base = lvar ? R_RBP : 0;
 
-		if (lceep(index, VAR)) {
-			disp_str = lvar ? lvar->name->view : gvar->signature;
-
-			lvar = 0, gvar = 0, get_assignee_size(g, index, &gvar, &lvar);
-			mov_reg_var(g, R_RAX, lvar, gvar);
-
-			add_or_sub;
-			sib_(item_size, base, item_size, R_RAX, (long)(disp_str), 1);
-			add_int_with_hex_comm(fun_text, unit);
-		} else {
+		if (lceep(index, INT)) {
 			disp_str = int_to_str(index->tvar->num * item_size);
 			blist_add(disp_str, '+');
 			blat_blist(disp_str, gvar ? gvar->signature : lvar->name->view);
 			add_or_sub;
 			sib_(item_size, base, 0, 0, (long)disp_str, 1);
-			add_int_with_hex_comm(fun_text, unit);
+
+			blist_clear_free(disp_str);
+		} else {
+			index_reg = gen_to_reg(g, index, QWORD);
+
+			disp_str = lvar ? lvar->name->view : gvar->signature;
+			add_or_sub;
+			sib_(item_size, base, item_size, index_reg->rf->r->reg_code,
+				 (long)disp_str, 1);
 		}
+
 	} else if (var->type->code == TC_PTR) {
 		unit_type = ptr_targ(var->type);
 		unit = add_of_type(var->tvar, unit_type);
@@ -110,45 +100,45 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 		item_size = unsafe_size_of_type(unit_type);
 		base = lvar ? R_RBP : 0;
 
-		if (lceep(index, VAR)) {
-			if ((second_reg = borrow_basic_reg(g->cpu, QWORD))) {
-				mov_reg_var(g, second_reg->reg_code, lvar, gvar);
-
-				lvar = 0, gvar = 0, get_assignee_size(g, index, &gvar, &lvar);
-				mov_reg_var(g, R_RAX, lvar, gvar);
-
-				add_or_sub;
-				sib_(item_size, second_reg->reg_code, item_size, R_RAX, 0, 0);
-				add_int_with_hex_comm(fun_text, unit);
-
-				free_reg_family(second_reg->rf);
-				return;
-			}
-
-			disp_str = lvar ? lvar->name->view : gvar->signature;
-
-			lvar = 0, gvar = 0, get_assignee_size(g, index, &gvar, &lvar);
-			mov_reg_var(g, R_RAX, lvar, gvar);
-
-			// lea 	   rax, qword [vsize rax] 	// rax is index
-			op_reg_(LEA, R_RAX);
-			sib(g, QWORD, 0, item_size, R_RAX, 0, 0), ft_add('\n');
-			// add     rax, qword [rbp var] 	// qword cuz index from ptr
-			op_reg_(ADD, R_RAX);
-			sib(g, QWORD, base, 0, 0, (long)disp_str, 1), ft_add('\n');
-			// add     item_size [rax], int
+		if (lceep(index, INT)) {
+			var_reg = gen_to_reg(g, var, QWORD);
 			add_or_sub;
-			sib_(item_size, R_RAX, 0, 0, 0, 0);
-			add_int_with_hex_comm(fun_text, unit);
+			sib_(item_size, var_reg->reg_code, 0, 0,
+				 index->tvar->num * item_size, 0);
 
 		} else {
-			mov_reg_var(g, R_RAX, lvar, gvar);
-			add_or_sub;
-			sib_(item_size, R_RAX, 0, 0, index->tvar->num * item_size, 0);
-			add_int_with_hex_comm(fun_text, unit);
+			if ((var_reg = borrow_basic_reg(g->cpu, QWORD))) {
+				mov_reg_var(g, var_reg->reg_code, lvar, gvar);
+				index_reg = gen_to_reg(g, index, QWORD);
+				add_or_sub;
+				sib_(item_size, var_reg->reg_code, item_size,
+					 index_reg->reg_code, 0, 0);
+			} else {
+				disp_str = lvar ? lvar->name->view : gvar->signature;
+
+				index_reg = gen_to_reg(g, index, QWORD);
+
+				// lea 	   rax, qword [vsize rax] 	// rax is index
+				op_reg_(LEA, index_reg->reg_code);
+				sib(g, QWORD, 0, item_size, index_reg->reg_code, 0, 0),
+					ft_add('\n');
+				// add     rax, qword [rbp var] 	// qword cuz index from ptr
+				op_reg_(ADD, index_reg->reg_code);
+				sib(g, QWORD, base, 0, 0, (long)disp_str, 1), ft_add('\n');
+				// add     item_size [rax], int
+				add_or_sub;
+				sib_(item_size, index_reg->reg_code, 0, 0, 0, 0);
+			}
 		}
 	} else
 		eet(e->tvar, ALLOWANCE_OF_INDEXATION, 0);
+
+	add_int_with_hex_comm(fun_text, unit);
+
+	if (var_reg)
+		free_reg_family(var_reg->rf);
+	if (index_reg)
+		free_reg_family(index_reg->rf);
 }
 
 // var-[> / @]field[++ / --]
@@ -156,15 +146,16 @@ void var_field_indec(Gg, struct LocalExpr *e, uc is_inc) {
 	// from define_struct_field_type_type
 	struct Arg *feld = (struct Arg *)e->tvar->num;
 	struct LocalExpr *var = e->l;
+	struct Reg *var_reg = 0;
 
 	struct TypeExpr *unit_type = feld->type;
 	long unit = add_of_type(var->tvar, unit_type);
 	int unit_size = feld->arg_size;
 
-	declare_lvar_gvar;
-	get_assignee_size(g, var, &gvar, &lvar);
-
 	if (lcea(FIELD)) {
+		declare_lvar_gvar;
+		get_assignee_size(g, var, &gvar, &lvar);
+
 		if (lvar) {
 			// add unit_size [rbp lvar+offset], unit
 			add_or_sub;
@@ -176,16 +167,19 @@ void var_field_indec(Gg, struct LocalExpr *e, uc is_inc) {
 			blat_blist(disp, gvar->signature);
 			add_or_sub;
 			sib_(unit_size, 0, 0, 0, (long)disp, 1);
+
+			blist_clear_free(disp);
 		}
-		add_int_with_hex_comm(fun_text, unit);
 	} else {
-		// mov     rax, qword [var]
 		// add     unit_size [rax + offset], unit
-		mov_reg_var(g, R_RAX, lvar, gvar);
+		var_reg = gen_to_reg(g, var, QWORD);
 		add_or_sub;
-		sib_(unit_size, R_RAX, 0, 0, feld->offset, 0);
-		add_int_with_hex_comm(fun_text, unit);
+		sib_(unit_size, var_reg->reg_code, 0, 0, feld->offset, 0);
 	}
+
+	add_int_with_hex_comm(fun_text, unit);
+	if (var_reg)
+		free_reg_family(var_reg->rf);
 }
 
 void any_indec(Gg, struct LocalExpr *e, uc is_inc) {
@@ -206,8 +200,7 @@ void gen_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 		// *var[++ / --]
 		var_ptr_indec(g, e->l, is_inc);
 
-	} else if (lcea(INDEX) && lceep(e->l, VAR) &&
-			   (lceep(e->r, VAR) || lceep(e->r, INT))) {
+	} else if (lcea(INDEX) && lceep(e->l, VAR)) {
 		// var[var or int][++ / --]
 		var_index_indec(g, e, is_inc);
 

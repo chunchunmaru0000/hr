@@ -285,6 +285,7 @@ struct LocalVar *find_local_Var(struct Gner *g, struct BList *name);
 struct Inst *find_struct(struct BList *name);
 struct BList *size_str(uc size);
 
+struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size);
 void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
 
 #define let_lvar_gvar struct LocalVar *lvar, struct GlobVar *gvar
@@ -302,8 +303,8 @@ void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 void mov_var_(struct Gner *g, let_lvar_gvar);
 void mov_reg_(Gg, enum RegCode reg);
 void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar);
-#define op_reg_(op, reg)                                                        \
-	isprint_ft(op);                                                          \
+#define op_reg_(op, reg)                                                       \
+	isprint_ft(op);                                                            \
 	reg_((reg));
 
 // ############################################################################
