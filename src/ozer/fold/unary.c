@@ -23,8 +23,10 @@ cant_on_nums(ADDR, "*");
 void unary_or_bool_of_num(struct LocalExpr *e) {
 	struct LocalExpr *num = e->l, *was_e;
 
-	if (!is_num_le(num))
+	if (!is_num_le(num)) {
+		opt_bin_constant_folding(e);
 		return;
+	}
 
 	if (lce(BOOL)) {
 		num->tvar->num = is_le_num(num, 0) ? 0 : 1;

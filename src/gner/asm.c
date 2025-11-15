@@ -32,11 +32,19 @@ sa(WORD, "дбайт ");
 sa(DWORD, "чбайт ");
 sa(QWORD, "вбайт ");
 sa(MOV, "быть ");
-sa(ADD, "плюс ");
-sa(SUB, "минс ");
 sa(LEA, "задр ");
+sa(MUL, "зумн ");	  // LE_BIN_MUL
+sa(DIV, "здел ");	  // LE_BIN_DIV
+sa(ADD, "плюс ");	  // LE_BIN_ADD
+sa(SUB, "минс ");	  // LE_BIN_SUB
+sa(SHL, "сдвл ");	  // LE_BIN_SHL
+sa(SHR, "сдвп ");	  // LE_BIN_SHR
+sa(BIT_AND, "и ");	  // LE_BIN_BIT_AND
+sa(BIT_XOR, "искл "); // LE_BIN_BIT_XOR
+sa(BIT_OR, "или ");	  // LE_BIN_BIT_OR
 
 sa(L_PAR, "(");
 sa(R_PAR, ") ");
 sa(PAR_RBP, "(рбп ");
-sa(OFF_RAX, "(рах) ") sa(JMP, "идти ");
+sa(OFF_RAX, "(рах) ");
+sa(JMP, "идти ");

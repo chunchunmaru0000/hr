@@ -191,6 +191,7 @@ void any_indec(Gg, struct LocalExpr *e, uc is_inc) {
 	fun_text_add('\n');
 }
 
+// TODO: when do index and if index is bin with num then add this num to disp
 void gen_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 	if (lcep(VAR)) {
 		// var[++ / --]

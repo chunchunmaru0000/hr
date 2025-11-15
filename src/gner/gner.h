@@ -153,14 +153,22 @@ sae(WORD);
 sae(DWORD);
 sae(QWORD);
 sae(MOV);
-sae(ADD);
-sae(SUB);
 sae(L_PAR);
 sae(R_PAR);
 sae(PAR_RBP);
 sae(OFF_RAX);
 sae(JMP);
 sae(LEA);
+sae(MUL);
+sae(DIV);
+sae(ADD);
+sae(SUB);
+sae(SHL);
+sae(SHR);
+sae(BIT_AND);
+sae(BIT_XOR);
+sae(BIT_OR);
+
 // #############################################################################
 
 void indent_line(struct Gner *g, struct BList *l);
@@ -342,6 +350,7 @@ void try_bin_num_in_bin(struct LocalExpr *num,
 						enum LE_Code op_code);
 void bin_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
 					  struct LocalExpr *e, enum LE_Code op_code);
+void opt_bin_constant_folding(struct LocalExpr *e);
 void unary_or_bool_of_num(struct LocalExpr *e);
 
 #define if_opted(cap, low) ((e->code == LE_BIN_##cap && try_opt_##low(e)))

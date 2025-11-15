@@ -17,6 +17,7 @@ PLUS, MINUS
 [ EQU ]
 
 x e + x e -> 2 x e, то есть множители делители и типа все другое
+((a + b) + (c + d)) -> (a + (b + (c + d)))
 
 Constant propagation like for local variable have bool where if its not changed
 from last constant value then it can take it
@@ -110,10 +111,10 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 		opt_bin_constant_folding(cond);
 		opt_bin_constant_folding(l);
 		opt_bin_constant_folding(r);
-	} else if (lce(BIN_ASSIGN) || lce(AFTER_INDEX)) {
+	} else if (lceb(ASSIGN) || lcea(INDEX)) {
 		opt_bin_constant_folding(e->l);
 		opt_bin_constant_folding(e->r);
-	} else if (is_unary(e) || lce(BOOL)) {
+	} else if (is_unary(e) || lce(BOOL) || lcea(INC) || lcea(DEC)) {
 		opt_bin_constant_folding(e->l);
 		if (is_num_le(e->l))
 			unary_or_bool_of_num(e);
