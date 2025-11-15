@@ -35,9 +35,11 @@ struct CPU {
 };
 
 struct CPU *new_cpu();
+struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code);
+
 void free_all_regs(struct CPU *cpu);
 void free_reg_family(struct RegisterFamily *rf);
-struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code);
+void free_byte_reg(struct Reg *r);
 
 struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size);
 struct Reg *try_borrow_reg(struct Token *place, struct CPU *cpu, uc of_size);
@@ -168,6 +170,11 @@ sae(SHR);
 sae(BIT_AND);
 sae(BIT_XOR);
 sae(BIT_OR);
+sae(NEG);
+sae(NOT);
+sae(SETE);
+sae(SETNE);
+sae(CMP);
 
 // #############################################################################
 
@@ -304,6 +311,7 @@ void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
 
 void var_(struct Gner *g, let_lvar_gvar);
 #define reg_(reg) blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add(' ')
+#define reg_enter(reg) blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add('\n')
 void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 		 enum RegCode index, long disp, uc is_disp_blist);
 #define sib_(size, base, scale, index, disp, is_disp_bl)                       \
@@ -314,6 +322,7 @@ void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar);
 #define op_reg_(op, reg)                                                       \
 	isprint_ft(op);                                                            \
 	reg_((reg));
+struct Reg* cmp_with_int(Gg, struct LocalExpr *e, long num);
 
 // ############################################################################
 // 									OZER

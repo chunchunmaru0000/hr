@@ -42,6 +42,11 @@ sa(SHR, "сдвп ");	  // LE_BIN_SHR
 sa(BIT_AND, "и ");	  // LE_BIN_BIT_AND
 sa(BIT_XOR, "искл "); // LE_BIN_BIT_XOR
 sa(BIT_OR, "или ");	  // LE_BIN_BIT_OR
+sa(NEG, "нег ");
+sa(NOT, "не ");
+sa(SETE, "уст0 ");
+sa(SETNE, "устн0 ");
+sa(CMP, "срав ");
 
 sa(L_PAR, "(");
 sa(R_PAR, ") ");

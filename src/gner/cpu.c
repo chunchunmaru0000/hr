@@ -195,6 +195,20 @@ void free_reg_family(struct RegisterFamily *rf) {
 		free_reg(rf->l);
 }
 
+void free_byte_reg(struct Reg *r) {
+	struct RegisterFamily *rf = r->rf;
+	if (r == rf->h)
+		free_reg(rf->h);
+	else if (r == rf->l)
+		free_reg(rf->l);
+
+	if ((rf->h && rf->h->allocated) || (rf->l && rf->l->allocated))
+		return;
+	free_reg(rf->e);
+	free_reg(rf->x);
+	free_reg(rf->r);
+}
+
 #define as_rfs(cpu) ((struct RegisterFamily **)(cpu))
 #define r_code(reg) ((reg)->r->reg_code)
 

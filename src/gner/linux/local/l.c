@@ -1,4 +1,5 @@
 #include "../../gner.h"
+#include <stdio.h>
 
 #define cbe(bin) (code == LE_BIN_##bin)
 #define str_len_be(code) ((str = SA_##code, len = SA_##code##_LEN))
@@ -32,6 +33,39 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		mov_reg_var(g, reg->reg_code, lvar, gvar);
 	} else
 		exit(145);
+	return reg;
+}
+struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+	struct Reg *reg = 0, *byte;
+
+	if (lceu(MINUS)) {
+		reg = gen_to_reg(g, e->l, reg_size);
+		isprint_ft(NEG);
+		reg_enter(reg->reg_code);
+	} else if (lceu(INC)) {
+	} else if (lceu(DEC)) {
+	} else if (lceu(NOT) || lce(BOOL)) {
+		byte = try_borrow_reg(e->tvar, g->cpu, BYTE);
+		reg = cmp_with_int(g, e->l, 0);
+
+		if (lce(BOOL))
+			isprint_ft(SETNE);
+		else
+			isprint_ft(SETE);
+		reg_enter(byte->reg_code);
+
+		mov_reg_(g, reg->reg_code);
+		reg_enter(byte->reg_code);
+
+		free_byte_reg(byte);
+	} else if (lceu(BIT_NOT)) {
+		reg = gen_to_reg(g, e->l, reg_size);
+		isprint_ft(NOT);
+		reg_enter(reg->reg_code);
+	} else if (lceu(AMPER)) {
+	} else if (lceu(ADDR)) {
+	} else
+		exit(158);
 
 	return reg;
 }
@@ -66,7 +100,7 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		reg_(r1->reg_code);
 		if (lceb(MUL))
 			reg_(r1->reg_code);
-		reg_(r2->reg_code), g->fun_text->size--, ft_add('\n');
+		reg_enter(r2->reg_code);
 
 		free_reg_family(r2->rf);
 		return r1;
@@ -80,8 +114,12 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 
 	if (is_primary(e))
 		res_reg = prime_to_reg(g, e, reg_size);
+	else if (is_unary(e) || lce(BOOL))
+		res_reg = unary_to_reg(g, e, reg_size);
 	else if (is_bin_le(e))
 		res_reg = bin_to_reg(g, e, reg_size);
+	else
+		exit(152);
 
 	return res_reg;
 }

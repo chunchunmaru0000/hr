@@ -192,6 +192,7 @@ void any_indec(Gg, struct LocalExpr *e, uc is_inc) {
 }
 
 // TODO: when do index and if index is bin with num then add this num to disp
+// TODO: dont allow SINGLE and DOUBLE expr type as an index
 void gen_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 	if (lcep(VAR)) {
 		// var[++ / --]
