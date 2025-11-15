@@ -4,20 +4,6 @@
 uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in);
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg);
 
-// sa(SEGMENT_READ_WRITE, "участок чит изм\n\n");
-// sa(SEGMENT_READ_EXECUTE, "участок чит исп\n\n");
-// sa(LABEL_END, ":\n");
-// sa(EQU, "вот ");
-// sa(PUSH_RBP, "толк рбп\n");
-// sa(MOV_RBP_RSP, "быть рбп рсп\n");
-// sa(MOV_MEM_RBP_OPEN, "быть (рбп ");
-// sa(START_COMMENT, "\t; ");
-// sa(SUB_RSP, "минс рсп ");
-// sa(POP_RBP, "выт рбп\n");
-// sa(LEAVE, "выйти\n");
-// sa(RET, "возд\n");
-// sa(ZERO_TERMINATOR, " 0\n");
-
 struct Register {
 	const char *const name;
 	unsigned char len;
@@ -25,36 +11,29 @@ struct Register {
 	int size;
 };
 
-const struct Register regs[] = {
-	{"р8", 3, R_R8, QWORD},	  {"р9", 3, R_R9, QWORD},
-	{"р10", 3, R_R10, QWORD}, {"р11", 3, R_R11, QWORD},
-	{"р12", 3, R_R12, QWORD}, {"р13", 3, R_R13, QWORD},
-	{"р14", 3, R_R14, QWORD}, {"р15", 3, R_R15, QWORD},
-};
-
 const struct Register argument_regs_BYTE[7] = {
+	{"си", 4, R_SI, WORD},	  {"ди", 4, R_DI, WORD},
 	{"б8", 3, R_R8B, BYTE},	  {"б9", 3, R_R9B, BYTE},
 	{"б10", 4, R_R10B, BYTE}, {"б11", 4, R_R11B, BYTE},
-	{"б13", 4, R_R13B, BYTE}, {"б14", 4, R_R14B, BYTE},
-	{"б15", 4, R_R15B, BYTE},
+	{"б12", 4, R_R12B, BYTE},
 };
 const struct Register argument_regs_WORD[7] = {
+	{"си", 4, R_SI, WORD},	  {"ди", 4, R_DI, WORD},
 	{"д8", 3, R_R8W, WORD},	  {"д9", 3, R_R9W, WORD},
 	{"д10", 4, R_R10W, WORD}, {"д11", 4, R_R11W, WORD},
-	{"д13", 4, R_R13W, WORD}, {"д14", 4, R_R14W, WORD},
-	{"д15", 4, R_R15W, WORD},
+	{"д12", 4, R_R12W, WORD},
 };
 const struct Register argument_regs_DWORD[7] = {
+	{"еси", 6, R_ESI, DWORD},  {"еди", 6, R_EDI, DWORD},
 	{"е8", 3, R_R8D, DWORD},   {"е9", 3, R_R9D, DWORD},
 	{"е10", 4, R_R10D, DWORD}, {"е11", 4, R_R11D, DWORD},
-	{"е13", 4, R_R13D, DWORD}, {"е14", 4, R_R14D, DWORD},
-	{"е15", 4, R_R15D, DWORD},
+	{"е12", 4, R_R12D, DWORD},
 };
 const struct Register argument_regs_QWORD[7] = {
+	{"рси", 6, R_RSI, QWORD}, {"рди", 6, R_RDI, QWORD},
 	{"р8", 3, R_R8, QWORD},	  {"р9", 3, R_R9, QWORD},
 	{"р10", 4, R_R10, QWORD}, {"р11", 4, R_R11, QWORD},
-	{"р13", 4, R_R13, QWORD}, {"р14", 4, R_R14, QWORD},
-	{"р15", 4, R_R15, QWORD},
+	{"р12", 4, R_R12, QWORD},
 };
 
 void gen_linux_text(struct Gner *g) {
@@ -207,7 +186,7 @@ void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {
 	}
 }
 
-// фц взять_регстры_размера(размер:ч32) [лик Регистр 7]
+// фц взять_регстры_размера(размер:ч32) *[лик Регистр 7]
 const struct Register *get_regs_of_size(int size_of_var, int i) {
 	switch (size_of_var) {
 	case BYTE:
@@ -233,7 +212,10 @@ uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in) {
 
 	for (i = 2; arg; i++) {
 		if (arg->offset != last_offset)
-			g->stack_counter -= arg->arg_size;
+			// TODO: decide it 1 byte loss is not important
+			g->stack_counter -= mem_counter > 2			? arg->arg_size
+								: arg->arg_size == BYTE ? WORD
+														: arg->arg_size;
 
 		for (j = 0; j < arg->names->size; j++) {
 			var =
