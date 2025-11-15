@@ -28,15 +28,45 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	declare_lvar_gvar;
 
 	if (lcep(VAR)) {
-		reg = try_borrow_reg(e->tvar, g->cpu, reg_size);
+		reg = try_borrow_reg(e->tvar, g, reg_size);
 		get_assignee_size(g, e, &gvar, &lvar);
 		mov_reg_var(g, reg->reg_code, lvar, gvar);
 	} else
 		exit(145);
 	return reg;
 }
+
+struct Reg *dereference(Gg, struct LocalExpr *e) {
+	struct Reg *reg = 0;
+	declare_lvar_gvar;
+
+	// local var, arr(not ptr), field(not ptr)
+	// global var, arr(not ptr), field(not ptr)
+
+	if (lcep(VAR)) {
+		get_assignee_size(g, e, &gvar, &lvar);
+		reg = try_borrow_reg(e->tvar, g, QWORD);
+
+		if (lvar) {
+			isprint_ft(LEA);
+			reg_(reg->reg_code);
+			sib(g, QWORD, R_RBP, 0, 0, (long)lvar->name->view, 1);
+		} else {
+			mov_reg_(g, reg->reg_code);
+			blat_ft(gvar->signature);
+		}
+		ft_add('\n');
+	}
+
+	if (reg == 0)
+		exit(159);
+	return reg;
+}
+
 struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *reg = 0, *byte;
+
+	int unit_size;
 
 	if (lceu(MINUS)) {
 		reg = gen_to_reg(g, e->l, reg_size);
@@ -45,7 +75,7 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	} else if (lceu(INC)) {
 	} else if (lceu(DEC)) {
 	} else if (lceu(NOT) || lce(BOOL)) {
-		byte = try_borrow_reg(e->tvar, g->cpu, BYTE);
+		byte = try_borrow_reg(e->tvar, g, BYTE);
 		reg = cmp_with_int(g, e->l, 0);
 
 		if (lce(BOOL))
@@ -63,10 +93,16 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		isprint_ft(NOT);
 		reg_enter(reg->reg_code);
 	} else if (lceu(AMPER)) {
+		reg = dereference(g, e->l);
 	} else if (lceu(ADDR)) {
-	} else
-		exit(158);
+		unit_size = unsafe_size_of_type(e->type);
+		reg = gen_to_reg(g, e->l, 0); // QWORD by itself
+		mov_reg_(g, reg->reg_code);
+		sib(g, unit_size, 0, 0, reg->reg_code, 0, 0), ft_add('\n');
+	}
 
+	if (reg == 0)
+		exit(158);
 	return reg;
 }
 

@@ -42,13 +42,15 @@ void free_reg_family(struct RegisterFamily *rf);
 void free_byte_reg(struct Reg *r);
 
 struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size);
-struct Reg *try_borrow_reg(struct Token *place, struct CPU *cpu, uc of_size);
 void set_value_to_reg(struct Reg *reg, long value);
 
 struct Fggs {
 	uc is_stack_used;
-	uc is_rbx_used;
-	uc is_r12_used;
+
+	uc is_r13_used;
+	uc is_r14_used;
+	uc is_r15_used;
+	uc need_save_args_on_stack_count;
 	// arguments only in registers, can be only done if there is no other args
 	// in the function and no stack usage
 	uc is_args_in_regs;
@@ -112,9 +114,11 @@ struct Gner {
 
 	struct BList *tmp_blist; // just tmp blist
 };
+struct Reg *try_borrow_reg(struct Token *place, struct Gner *g, uc of_size);
 #define Gg struct Gner *g
 
 struct Gner *new_gner(struct Pser *, enum Target, uc);
+void reset_flags(struct Gner *g);
 void gen(struct Gner *);
 
 #define sa(name, str)                                                          \
@@ -322,7 +326,7 @@ void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar);
 #define op_reg_(op, reg)                                                       \
 	isprint_ft(op);                                                            \
 	reg_((reg));
-struct Reg* cmp_with_int(Gg, struct LocalExpr *e, long num);
+struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 
 // ############################################################################
 // 									OZER

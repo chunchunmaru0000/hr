@@ -45,6 +45,17 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 	return g;
 }
 
+void reset_flags(struct Gner *g) {
+	struct Fggs *f = g->flags;
+	f->is_stack_used = 0;
+	f->is_r13_used = 0;
+	f->is_r14_used = 0;
+	f->is_r15_used = 0;
+	f->need_save_args_on_stack_count = 0;
+	f->is_args_in_regs = 1;
+	f->is_data_segment_used = 0;
+}
+
 void gen(struct Gner *g) {
 	switch (g->t) {
 	case T_Асм_Linux_64:
@@ -102,9 +113,25 @@ void indent_line(struct Gner *g, struct BList *l) {
 constr TOO_COMPLEX_EXPR = "Не хватило регистров для вычисления выражения.";
 constr MAKE_SIMPLER_EXPR = "разделить выражение на несколько";
 
-struct Reg *try_borrow_reg(struct Token *place, struct CPU *cpu, uc of_size) {
-	struct Reg *reg = borrow_basic_reg(cpu, of_size);
+#define rc(r, reg) ((r)->reg_code == R_##reg)
+#define is_r13(r)                                                              \
+	(rc((r), R13) || rc((r), R13D) || rc((r), R13W) || rc((r), R13B))
+#define is_r14(r)                                                              \
+	(rc((r), R14) || rc((r), R14D) || rc((r), R14W) || rc((r), R14B))
+#define is_r15(r)                                                              \
+	(rc((r), R15) || rc((r), R15D) || rc((r), R15W) || rc((r), R15B))
+
+struct Reg *try_borrow_reg(struct Token *place, Gg, uc of_size) {
+	struct Reg *reg = borrow_basic_reg(g->cpu, of_size);
+
 	if (reg == 0)
 		eet(place, TOO_COMPLEX_EXPR, MAKE_SIMPLER_EXPR);
+	if (is_r13(reg))
+		g->flags->is_r13_used = 1;
+	else if (is_r14(reg))
+		g->flags->is_r14_used = 1;
+	else if (is_r15(reg))
+		g->flags->is_r15_used = 1;
+
 	return reg;
 }

@@ -102,10 +102,7 @@ void gen_linux_text(struct Gner *g) {
 			plist_clear(g->local_labels);
 			g->current_function = plist_get(in->os, 0);
 			// reset flags
-			g->flags->is_stack_used = 0;
-			g->flags->is_rbx_used = 0;
-			g->flags->is_r12_used = 0;
-			g->flags->is_args_in_regs = 1;
+			reset_flags(g);
 			// begin stack frame
 			global_var = plist_get(in->os, 0);
 
