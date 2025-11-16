@@ -81,7 +81,7 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		blist_clear_free(string);
 		break;
 	case IP_LOCAL_EXPRESSION:
-		gen_local_expression_linux(g, in);
+		gen_local_expr_inst_linux(g, in);
 		break;
 	case IP_NONE:
 	default:

@@ -135,3 +135,10 @@ struct Reg *try_borrow_reg(struct Token *place, Gg, uc of_size) {
 
 	return reg;
 }
+
+struct Reg *try_borrow_xmm_reg(struct Token *place, Gg) {
+	struct Reg *reg = borrow_xmm_reg(g->cpu);
+	if (reg == 0)
+		eet(place, TOO_COMPLEX_EXPR, MAKE_SIMPLER_EXPR);
+	return reg;
+}

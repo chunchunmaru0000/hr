@@ -290,18 +290,29 @@ void set_value_to_reg(struct Reg *reg, long value) {
 	reg->active_value = value;
 }
 
+struct Reg *borrow_xmm_reg(struct CPU *cpu) {
+	struct Reg **xmms = cpu->xmm;
+	struct Reg *xmm;
+	u32 i;
+	for (i = 0, xmms = cpu->xmm; i < 16; i++, xmms++)
+		if (!(xmm = *xmms)->allocated) {
+			xmm->allocated = 1;
+			return xmm;
+		}
+	return 0;
+}
+
 #define is_r8h(c) ((c) >= R_AH && (c) <= R_BH)
 #define is_r8(c) ((c) >= R_AL && (c) <= R_R15B)
 #define is_r16(c) ((c) >= R_AX && (c) <= R_R15W)
 #define is_r32(c) ((c) >= R_EAX && (c) <= R_R15D)
 #define is_r64(c) ((c) >= R_RAX && (c) <= R_R15)
 #define is_r64(c) ((c) >= R_RAX && (c) <= R_R15)
-#define is_xmm(c) ((c) >= R_XMM0 && (c) <= R_XMM15)
 
 struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code) {
 	struct RegisterFamily *rf;
 
-	if (!is_xmm(code)) {
+	if (code < R_XMM0) {
 		rf = as_rfs(cpu)[(code - 1) % 16];
 		return is_r64(code)	  ? rf->r
 			   : is_r32(code) ? rf->e

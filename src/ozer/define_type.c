@@ -173,7 +173,7 @@ void define_le_type(struct LocalExpr *e) {
 			other_epxr = plist_get(e->co.ops, i);
 			define_type_and_copy_flags_to_e(other_epxr);
 		}
-		e->type = 0;
+		e->type = i ? copy_type_expr(other_epxr->type) : 0;
 
 	} else if (is_unary(e) || lce(BOOL)) {
 		define_type_and_copy_flags_to_e(e->l);
@@ -210,6 +210,8 @@ void define_le_type(struct LocalExpr *e) {
 		e->code = LE_AFTER_CALL;
 		if (e->l->code == LE_PRIMARY_TUPLE) {
 			e->co.ops = e->l->co.ops;
+			if (e->l->type)
+				free_type(e->l->type);
 			free(e->l);
 		} else {
 			e->co.ops = new_plist(1);

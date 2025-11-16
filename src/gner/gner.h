@@ -42,6 +42,8 @@ void free_reg_family(struct RegisterFamily *rf);
 void free_byte_reg(struct Reg *r);
 
 struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size);
+struct Reg *borrow_xmm_reg(struct CPU *cpu);
+#define is_xmm(reg) ((reg)->reg_code >= R_XMM0)
 void set_value_to_reg(struct Reg *reg, long value);
 
 struct Fggs {
@@ -115,6 +117,7 @@ struct Gner {
 	struct BList *tmp_blist; // just tmp blist
 };
 struct Reg *try_borrow_reg(struct Token *place, struct Gner *g, uc of_size);
+struct Reg *try_borrow_xmm_reg(struct Token *place, struct Gner *g);
 #define Gg struct Gner *g
 
 struct Gner *new_gner(struct Pser *, enum Target, uc);
@@ -294,7 +297,8 @@ struct LocalVar *new_local_var(struct Token *, struct Arg *, long);
 void free_and_clear_local_vars(struct Gner *g);
 struct BList *take_label(struct Gner *g, enum L_Code label_code);
 
-void gen_local_expression_linux(struct Gner *g, struct Inst *in);
+void gen_local_expr_linux(Gg, struct LocalExpr *e);
+void gen_local_expr_inst_linux(struct Gner *g, struct Inst *in);
 uc get_assignee_size(struct Gner *g, struct LocalExpr *e, struct GlobVar **gvar,
 					 struct LocalVar **lvar);
 void compare_type_and_expr(struct TypeExpr *type, struct LocalExpr *e);

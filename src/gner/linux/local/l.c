@@ -23,6 +23,26 @@ void iprint_op(Gg, enum LE_Code code) {
 // local var, arr(not ptr), field(not ptr)
 // global var, arr(not ptr), field(not ptr)
 
+struct Reg *tuple_to_reg(Gg, struct PList *tuple, int reg_size) {
+	// struct LocalExpr *other;
+	// struct PList *es;
+	// struct Reg *reg = 0;
+	// u32 i, j;
+	//	if (!tuple->size)
+	exit(146);
+	// 	for (i = 0; i < tuple->size - 1; i++) {
+	// 		other = plist_get(tuple, i);
+	// 		es = opt_local_expr(other);
+	//
+	// 		for (j = 0; j < es->size; j++) {
+	// 			other = plist_get(es, j);
+	// 			gen_local_expr_linux(g, other);
+	// 		}
+	// 	}
+	// 	other = plist_get(tuple, tuple->size - 1);
+	// 	reg = gen_to_reg(g, other, reg_size);
+}
+
 struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *reg = 0;
 	declare_lvar_gvar;
@@ -31,6 +51,8 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		reg = try_borrow_reg(e->tvar, g, reg_size);
 		get_assignee_size(g, e, &gvar, &lvar);
 		mov_reg_var(g, reg->reg_code, lvar, gvar);
+	} else if (lcep(TUPLE)) {
+		reg = tuple_to_reg(g, e->co.ops, reg_size);
 	} else
 		exit(145);
 	return reg;
@@ -105,7 +127,16 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		exit(158);
 	return reg;
 }
-
+/*
+TODO:
+(a + b):
+	- mov reg, a
+	- mov reg, b
+	- add reg, reg
+	+ mov reg, a
+	+ add reg, b
+opt mul to shift if possible
+*/
 struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *r1 = 0, *r2 = 0;
 	struct LocalExpr *l = e->l, *r = e->r;

@@ -160,35 +160,38 @@ struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 	return out;
 }
 
-void gen_local_expression_linux(struct Gner *g, struct Inst *in) {
-	struct LocalExpr *e;
+void gen_local_expr_linux(Gg, struct LocalExpr *e) {
 	struct BList *expr_view;
+
+	print_fun_text(SA_START_COMMENT);
+	expr_view = zero_term_blist(bprint_le(e, 1));
+	blat_fun_text(expr_view);
+	blist_clear_free(expr_view);
+
+	print_le(e, 1);
+
+	if (lceb(ASSIGN))
+		gen_assign(g, e);
+	else if (lceu(INC) || lcea(INC) || lceu(DEC) || lcea(DEC))
+		gen_dec_inc(g, e->l, lceu(INC) || lcea(INC));
+	// else if (lcea(CALL))
+	// 	gen_call(g, e);
+	// else if (lceb(TERRY))
+	//	gen_terry(g, e);
+	else
+		// 	exit(159);
+		printf("### NOT GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
+}
+
+void gen_local_expr_inst_linux(struct Gner *g, struct Inst *in) {
+	struct LocalExpr *e;
 	struct PList *es;
 	u32 i;
 
 	es = opt_local_expr(plist_get(in->os, 0));
-
 	for (i = 0; i < es->size; i++) {
 		e = plist_get(es, i);
-
-		print_fun_text(SA_START_COMMENT);
-		expr_view = zero_term_blist(bprint_le(e, 1));
-		blat_fun_text(expr_view);
-		blist_clear_free(expr_view);
-
-		print_le(e, 1);
-
-		if (lceb(ASSIGN))
-			gen_assign(g, e);
-		else if (lceu(INC) || lcea(INC) || lceu(DEC) || lcea(DEC))
-			gen_dec_inc(g, e->l, lceu(INC) || lcea(INC));
-		// else if (lcea(CALL))
-		// 	gen_call(g, e);
-		// else if (lceb(TERRY))
-		//	gen_terry(g, e);
-		// else
-		// 	exit(159);
-		// printf("### GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
+		gen_local_expr_linux(g, e);
 	}
 }
 
