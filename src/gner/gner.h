@@ -300,6 +300,12 @@ struct BList *take_label(struct Gner *g, enum L_Code label_code);
 void gen_local_expr_linux(Gg, struct LocalExpr *e);
 void gen_tuple_of(Gg, struct LocalExpr *e);
 void merge_tuple_of_to(struct LocalExpr *of, struct LocalExpr *to);
+#define paste_with_tuple_merge(to, from)                                       \
+	merge_tuple_of_to((to), (from));                                           \
+	paste_le((to), (from));
+#define paste_with_tuple_merge_of(to, from, of)                                \
+	merge_tuple_of_to((of), (from));                                           \
+	paste_le((to), (from))
 void gen_local_expr_inst_linux(struct Gner *g, struct Inst *in);
 uc get_assignee_size(struct Gner *g, struct LocalExpr *e, struct GlobVar **gvar,
 					 struct LocalVar **lvar);

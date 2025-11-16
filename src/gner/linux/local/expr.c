@@ -39,6 +39,14 @@ int color_level = 0;
 void print_le(struct LocalExpr *e, int with_n) {
 	u32 i;
 
+	if (e->tuple) {
+		printf("%s(%s", take_color_level(), COLOR_RESET);
+		for (i = 0; i < e->tuple->size; i++) {
+			print_le(plist_get(e->tuple, i), 0);
+			printf(", ");
+		}
+	}
+
 	if (is_bin_le(e) || lceb(ASSIGN)) {
 		printf("%s(%s", take_color_level(), COLOR_RESET);
 		print_le(e->l, 0);
@@ -86,6 +94,8 @@ void print_le(struct LocalExpr *e, int with_n) {
 		printf("%s", vs(e->tvar));
 	}
 
+	if (e->tuple)
+		printf("%s)%s", remove_color_level(), COLOR_RESET);
 	if (with_n)
 		putchar('\n');
 }
@@ -103,6 +113,14 @@ void print_le(struct LocalExpr *e, int with_n) {
 struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 	struct BList *out = new_blist(64), *other;
 	u32 i;
+
+	if (e->tuple) {
+		just_char('(');
+		for (i = 0; i < e->tuple->size; i++) {
+			print_orher(plist_get(e->tuple, i));
+			print_str(", ");
+		}
+	}
 
 	if (is_bin_le(e) || lceb(ASSIGN)) {
 		just_char('(');
@@ -154,6 +172,8 @@ struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 		print_tvar(e);
 	}
 
+	if (e->tuple)
+		just_char(')');
 	if (with_n)
 		blist_add(out, '\n');
 

@@ -14,13 +14,13 @@ constr LE_DIV_ON_ZERO = "ЭЭЭ ты куда на 0 делишь.";
 int try_opt_mul(struct LocalExpr *e) {
 	int opted = 0;
 	if (is_le_num(e->l, 0) && have_only_gvar_effect_or_none(e->r))
-		do_opt(paste_le(e, e->l));
+		do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
 	else if (is_le_num(e->r, 0) && have_only_gvar_effect_or_none(e->l))
-		do_opt(paste_le(e, e->r));
+		do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 	else if (is_le_num(e->l, 1))
-		do_opt(paste_le(e, e->r));
+		do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 	else if (is_le_num(e->r, 1))
-		do_opt(paste_le(e, e->l));
+		do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
 	return opted;
 }
 
@@ -33,9 +33,9 @@ int try_opt_div(struct LocalExpr *e) {
 	else if (is_le_num(e->r, 0))
 		eet(e->l->tvar, LE_DIV_ON_ZERO, 0);
 	else if (is_le_num(e->l, 1))
-		do_opt(paste_le(e, e->r));
+		do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 	else if (is_le_num(e->r, 1))
-		do_opt(paste_le(e, e->l));
+		do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
 	return opted;
 }
 
@@ -43,9 +43,9 @@ int try_opt_div(struct LocalExpr *e) {
 int try_opt_add_or_sub(struct LocalExpr *e) {
 	int opted = 0;
 	if (is_le_num(e->l, 0))
-		do_opt(paste_le(e, e->r));
+		do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 	else if (is_le_num(e->r, 0))
-		do_opt(paste_le(e, e->l));
+		do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
 	return opted;
 }
 
@@ -55,11 +55,11 @@ int try_opt_shl_or_shr(struct LocalExpr *e) {
 	int opted = 0;
 	if (is_INT_le(e->l)) {
 		if (e->l->tvar->num == 0)
-			do_opt(paste_le(e, e->r));
+			do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 
 	} else if (is_INT_le(e->r)) {
 		if (e->r->tvar->num == 0)
-			do_opt(paste_le(e, e->l));
+			do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
 
 		else if (e->l->type && is_int_type(e->l->type)) {
 			blist_clear_free(e->tvar->view);
@@ -131,10 +131,10 @@ int check_if_bools(struct LocalExpr *e) {
 int try_opt_and(struct LocalExpr *e) {
 	int opted = 0;
 
-	if (is_le_num(e->l, 0)) // not check sf cuz lazy eval
-		do_opt(paste_le(e, e->l));
+	if (is_le_num(e->l, 0))		   // not check sf cuz lazy eval
+		do_opt(paste_le(e, e->l)); // not merge tuple too
 	else if (is_le_num(e->r, 0) && have_only_gvar_effect_or_none(e->l))
-		do_opt(paste_le(e, e->r));
+		do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 	if (opted) { // e -> false
 		turn_type_to_i32(e);
 		if (e->code != LE_PRIMARY_INT) {
@@ -146,10 +146,10 @@ int try_opt_and(struct LocalExpr *e) {
 	}
 
 	if (is_le_not_num(e->l, 0))
-		do_opt(paste_le(e, e->r)); // e = e->l
+		do_opt(paste_with_tuple_merge_of(e, e->r, e->l)); // e = e->l
 	else if (is_le_not_num(e->r, 0))
-		do_opt(paste_le(e, e->l)); // e = e->r
-	if (opted) {				   // e -> bool(e)
+		do_opt(paste_with_tuple_merge_of(e, e->l, e->r)); // e = e->r
+	if (opted) {										  // e -> bool(e)
 		turn_to_bool(e);
 		return 1;
 	}
@@ -163,18 +163,18 @@ int try_opt_or(struct LocalExpr *e) {
 	int opted = 0;
 
 	if (is_le_num(e->l, 0))
-		do_opt(paste_le(e, e->r)); // e = e->r
+		do_opt(paste_with_tuple_merge_of(e, e->r, e->l)); // e = e->r
 	else if (is_le_num(e->r, 0))
-		do_opt(paste_le(e, e->l)); // e = e->l
-	if (opted) {				   // e -> bool(e)
+		do_opt(paste_with_tuple_merge_of(e, e->l, e->r)); // e = e->l
+	if (opted) {										  // e -> bool(e)
 		turn_to_bool(e);
 		return 1;
 	}
 
-	if (is_le_not_num(e->l, 0)) // not check sf cuz lazy eval
-		do_opt(paste_le(e, e->l));
+	if (is_le_not_num(e->l, 0))	   // not check sf cuz lazy eval
+		do_opt(paste_le(e, e->l)); // not merge tuple too
 	else if (is_le_not_num(e->r, 0) && have_only_gvar_effect_or_none(e->l))
-		do_opt(paste_le(e, e->r));
+		do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 	if (opted) { // e -> true, true is 1, where e is already num
 		turn_type_to_i32(e);
 		if (e->code != LE_PRIMARY_INT || e->tvar->num != 1) {
@@ -192,9 +192,9 @@ int try_opt_or(struct LocalExpr *e) {
 int try_opt_bit_or(struct LocalExpr *e) {
 	int opted = 0;
 	if (is_le_num(e->l, 0))
-		do_opt(paste_le(e, e->r));
+		do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 	else if (is_le_num(e->r, 0))
-		do_opt(paste_le(e, e->l));
+		do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
 	return opted;
 }
 
@@ -208,26 +208,26 @@ int try_opt_bit_and(struct LocalExpr *e) {
 	if (is_num_le(e->l)) {
 		if (is_le_num(e->l, 0)) {
 			if (have_only_gvar_effect_or_none(e->r))
-				do_opt(paste_le(e, e->l));
+				do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
 		} else if (is_le_num(e->l, -1))
-			do_opt(paste_le(e, e->r));
+			do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 		else if (e->l->type) {
 			if ((is_u_or_i_32(e->l->type) && is_le_num(e->l, 0xFFFFFFFF)) ||
 				(is_u_or_i_16(e->l->type) && is_le_num(e->l, 0xFFFF)) ||
 				(is_u_or_i_8(e->l->type) && is_le_num(e->l, 0xFF)))
-				do_opt(paste_le(e, e->r));
+				do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 		}
 	} else if (is_num_le(e->r)) {
 		if (is_le_num(e->r, 0)) {
 			if (have_only_gvar_effect_or_none(e->l))
-				do_opt(paste_le(e, e->r));
+				do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 		} else if (is_le_num(e->r, -1))
-			do_opt(paste_le(e, e->l));
+			do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
 		else if (e->r->type) {
 			if ((is_u_or_i_32(e->r->type) && is_le_num(e->r, 0xFFFFFFFF)) ||
 				(is_u_or_i_16(e->r->type) && is_le_num(e->r, 0xFFFF)) ||
 				(is_u_or_i_8(e->r->type) && is_le_num(e->r, 0xFF)))
-				do_opt(paste_le(e, e->l));
+				do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
 		}
 	}
 	return opted;
