@@ -77,6 +77,7 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 		base = lvar ? R_RBP : 0;
 
 		if (lceep(index, INT)) {
+			gen_tuple_of(g, index);
 			disp_str = int_to_str(index->tvar->num * item_size);
 			blist_add(disp_str, '+');
 			blat_blist(disp_str, gvar ? gvar->signature : lvar->name->view);
@@ -101,6 +102,7 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 		base = lvar ? R_RBP : 0;
 
 		if (lceep(index, INT)) {
+			gen_tuple_of(g, index);
 			var_reg = gen_to_reg(g, var, QWORD);
 			add_or_sub;
 			sib_(item_size, var_reg->reg_code, 0, 0,

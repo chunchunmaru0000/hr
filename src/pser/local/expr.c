@@ -23,6 +23,7 @@ struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 	e->l = 0;
 	e->r = 0;
 	e->co.cond = 0;
+	e->tuple = 0;
 	return e;
 }
 

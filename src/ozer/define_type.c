@@ -12,6 +12,8 @@ constr FIELD_NOT_FOUND_IN_STRUCT =
 constr EXPECTED_FUN_TYPE =
 	"Ожидалось выражение с типом функции, для её вызова.";
 constr EXPECTED_PTR_TYPE = "Ожидалось выражение с типом указателя.";
+constr USELESS_EMPTY_TUPLE =
+	"Пустая связка выражений не имеет смысла, и вычислена быть не может.";
 
 void define_var_type(struct LocalExpr *e) {
 	struct LocalVar *lvar;
@@ -168,12 +170,29 @@ void define_le_type(struct LocalExpr *e) {
 		plist_add(e->type->data.arr, new_type_expr(TC_U8));
 		plist_add(e->type->data.arr, (void *)(i = e->tvar->str->size + 1));
 
-	} else if (lce(PRIMARY_ARR) || lce(PRIMARY_TUPLE)) {
+	} else if (lce(PRIMARY_ARR)) {
 		for (i = 0; i < e->co.ops->size; i++) {
 			other_epxr = plist_get(e->co.ops, i);
 			define_type_and_copy_flags_to_e(other_epxr);
 		}
-		e->type = i ? copy_type_expr(other_epxr->type) : 0;
+		e->type = 0;
+
+	} else if (lcep(TUPLE)) {
+		if (e->co.ops->size == 0)
+			eet(e->tvar, USELESS_EMPTY_TUPLE, 0);
+		// define type only for last as it will be used as expr,
+		// and other exprs of yuple will be opted and compiled later
+		other_epxr = plist_get(e->co.ops, e->co.ops->size - 1);
+		define_type_and_copy_flags_to_e(other_epxr);
+		// replace e and set tuple to it
+		if (other_epxr->tuple)
+			plat_plist(other_epxr->tuple, e->co.ops);
+		else
+			other_epxr->tuple = e->co.ops;
+		paste_le(e, other_epxr);
+		// remove other_epxr from tuple
+		free(other_epxr);
+		e->tuple->size--;
 
 	} else if (is_unary(e) || lce(BOOL)) {
 		define_type_and_copy_flags_to_e(e->l);
@@ -204,14 +223,11 @@ void define_le_type(struct LocalExpr *e) {
 					  : copy_type_expr(ptr_targ(e->l->type));
 
 	} else if (lce(AFTER_PIPE_LINE)) {
-		define_type_and_copy_flags_to_e(e->l);
 		define_type_and_copy_flags_to_e(e->r);
 
 		e->code = LE_AFTER_CALL;
 		if (e->l->code == LE_PRIMARY_TUPLE) {
 			e->co.ops = e->l->co.ops;
-			if (e->l->type)
-				free_type(e->l->type);
 			free(e->l);
 		} else {
 			e->co.ops = new_plist(1);

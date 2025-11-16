@@ -34,6 +34,8 @@ void plist_re(struct PList *l);
 void plist_clear_items_free(struct PList *);
 void plist_free_items_free(struct PList *);
 #define p_last(l) (plist_get((l), (l)->size - 1))
+void plat(struct PList *, void **, uint32_t);
+#define plat_plist(l, o) (plat((l), (o)->st, (o)->size))
 
 struct BList {
 	uc *st; // start

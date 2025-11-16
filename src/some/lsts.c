@@ -80,6 +80,17 @@ void *plist_set(struct PList *l, uint32_t i, void *p) {
 	return old;
 }
 
+void plat(struct PList *l, void **s, u32 t) {
+	if (t <= 0)
+		return;
+	if (l->cap < l->size + t) {
+		l->cap = l->size + t + l->cap_pace;
+		l->st = realloc(l->st, l->cap * sizeof(void *));
+	}
+	memcpy(l->st + l->size, s, t * sizeof(void *));
+	l->size += t;
+}
+
 struct BList *new_blist(uint32_t cap_pace) {
 	struct BList *l = malloc(sizeof(struct BList));
 	l->cap_pace = cap_pace ? cap_pace : 2;
@@ -157,11 +168,11 @@ uc blist_set(struct BList *l, uint32_t i, uc p) {
 void blat(struct BList *l, uc *s, uint32_t t) {
 	if (t <= 0)
 		return;
-	if (l->cap < l->size + t) {
+	if (l->cap < l->size + t * sizeof(uc)) {
 		l->cap = l->size + t + l->cap_pace;
 		l->st = realloc(l->st, l->cap * sizeof(uc));
 	}
-	memcpy(l->st + l->size, s, t);
+	memcpy(l->st + l->size, s, t * sizeof(uc));
 	l->size += t;
 }
 

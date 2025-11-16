@@ -34,15 +34,13 @@ void cut(struct PList *es, struct LocalExpr *e) {
 }
 
 struct PList *eliminate_dead_code_from_le(struct LocalExpr *e) {
-	struct PList *es = new_plist(1), *item_es;
-	u32 i, j;
+	struct PList *es = new_plist(1);
+	u32 i;
 
 	if (lcep(TUPLE))
 		for (i = 0; i < e->co.ops->size; i++) {
-			item_es = eliminate_dead_code_from_le(plist_get(e->co.ops, i));
-			// TODO: plat_plist
-			for (j = 0; j < item_es->size; j++)
-				plist_add(es, plist_get(item_es, j));
+			plat_plist(es,
+					   eliminate_dead_code_from_le(plist_get(e->co.ops, i)));
 		}
 	else if (causes_side_effects(e))
 		try_cut_even_when_side_effects(es, e);

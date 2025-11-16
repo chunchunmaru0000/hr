@@ -23,26 +23,6 @@ void iprint_op(Gg, enum LE_Code code) {
 // local var, arr(not ptr), field(not ptr)
 // global var, arr(not ptr), field(not ptr)
 
-struct Reg *tuple_to_reg(Gg, struct PList *tuple, int reg_size) {
-	// struct LocalExpr *other;
-	// struct PList *es;
-	// struct Reg *reg = 0;
-	// u32 i, j;
-	//	if (!tuple->size)
-	exit(146);
-	// 	for (i = 0; i < tuple->size - 1; i++) {
-	// 		other = plist_get(tuple, i);
-	// 		es = opt_local_expr(other);
-	//
-	// 		for (j = 0; j < es->size; j++) {
-	// 			other = plist_get(es, j);
-	// 			gen_local_expr_linux(g, other);
-	// 		}
-	// 	}
-	// 	other = plist_get(tuple, tuple->size - 1);
-	// 	reg = gen_to_reg(g, other, reg_size);
-}
-
 struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *reg = 0;
 	declare_lvar_gvar;
@@ -51,8 +31,6 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		reg = try_borrow_reg(e->tvar, g, reg_size);
 		get_assignee_size(g, e, &gvar, &lvar);
 		mov_reg_var(g, reg->reg_code, lvar, gvar);
-	} else if (lcep(TUPLE)) {
-		reg = tuple_to_reg(g, e->co.ops, reg_size);
 	} else
 		exit(145);
 	return reg;
@@ -87,7 +65,6 @@ struct Reg *dereference(Gg, struct LocalExpr *e) {
 
 struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *reg = 0, *byte;
-
 	int unit_size;
 
 	if (lceu(MINUS)) {
@@ -147,6 +124,7 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 	if ((is_num_le(l) ? (num = l, not_num = r) : 0) ||
 		(is_num_le(r) ? (num = r, not_num = l) : 0)) {
+		gen_tuple_of(g, num);
 
 		r1 = gen_to_reg(g, not_num, reg_size);
 		iprint_op(g, e->code);
@@ -178,6 +156,8 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 	int reg_size = of_size ? of_size : unsafe_size_of_type(e->type);
 	struct Reg *res_reg;
+
+	gen_tuple_of(g, e);
 
 	if (is_primary(e))
 		res_reg = prime_to_reg(g, e, reg_size);

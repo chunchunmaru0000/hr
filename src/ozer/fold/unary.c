@@ -54,6 +54,7 @@ void unary_or_bool_of_num(struct LocalExpr *e) {
 	else
 		update_real_view(num);
 
+	merge_tuple_of_to(e, num);
 	// save num
 	was_e = num;
 	// paste num, so that e is equal to num, but its 2 mems

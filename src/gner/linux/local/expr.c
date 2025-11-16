@@ -162,8 +162,10 @@ struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 
 void gen_local_expr_linux(Gg, struct LocalExpr *e) {
 	struct BList *expr_view;
+	// if e wa cut from other then e can have a tuple
+	gen_tuple_of(g, e);
 
-	print_fun_text(SA_START_COMMENT);
+	indent_line(g, g->fun_text), ft_add(';'), ft_add(' ');
 	expr_view = zero_term_blist(bprint_le(e, 1));
 	blat_fun_text(expr_view);
 	blist_clear_free(expr_view);
@@ -193,6 +195,32 @@ void gen_local_expr_inst_linux(struct Gner *g, struct Inst *in) {
 		e = plist_get(es, i);
 		gen_local_expr_linux(g, e);
 	}
+}
+
+void gen_tuple_of(Gg, struct LocalExpr *e) {
+	if (!e->tuple)
+		return;
+	u32 i, j;
+	struct PList *es;
+
+	g->indent_level++;
+	for (i = 0; i < e->tuple->size; i++) {
+		es = opt_local_expr(plist_get(e->tuple, i));
+
+		for (j = 0; j < es->size; j++)
+			gen_local_expr_linux(g, plist_get(es, j));
+	}
+	g->indent_level--;
+}
+
+void merge_tuple_of_to(struct LocalExpr *of, struct LocalExpr *to) {
+	if (!of->tuple)
+		return;
+	if (!to->tuple) {
+		to->tuple = of->tuple;
+		return;
+	}
+	plat_plist(to->tuple, of->tuple);
 }
 
 void gen_real(struct Gner *g, struct LocalExpr *e) {}

@@ -113,6 +113,10 @@ void bin_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
 		update_int_view(e);
 	}
 	zero_term_blist(e->tvar->view);
+	if (e != l)
+		merge_tuple_of_to(l, e);
+	if (e != r)
+		merge_tuple_of_to(r, e);
 
 	// - TODO: free in this fiel elsewhere
 	// local_expr_free(l);

@@ -532,6 +532,7 @@ struct LocalExpr {
 	struct LocalExpr *l;
 	struct LocalExpr *r;
 	union CondOps co;
+	struct PList *tuple; // list of struct LocalExpr*'s
 };
 
 #define paste_le(to, from) (memcpy((to), (from), sizeof(struct LocalExpr)))
