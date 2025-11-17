@@ -86,3 +86,10 @@ enum RegCode {
 	R_XMM14,
 	R_XMM15,
 };
+
+#define is_r8h(c) ((c) >= R_AH && (c) <= R_BH)
+#define is_r8(c) ((c) >= R_AL && (c) <= R_R15B)
+#define is_r16(c) ((c) >= R_AX && (c) <= R_R15W)
+#define is_r32(c) ((c) >= R_EAX && (c) <= R_R15D)
+#define is_r64(c) ((c) >= R_RAX && (c) <= R_R15)
+#define is_r64(c) ((c) >= R_RAX && (c) <= R_R15)

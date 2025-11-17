@@ -204,6 +204,8 @@ struct TypeExpr {
 	union TypeData data;
 };
 
+#define is_ss(t) ((t)->code == TC_SINGLE)
+#define is_sd(t) ((t)->code == TC_DOUBLE)
 #define is_simple_type(t)                                                      \
 	(((t)->code != TC_PTR && (t)->code != TC_FUN && (t)->code != TC_ARR &&     \
 	  (t)->code != TC_STRUCT))

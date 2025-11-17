@@ -19,6 +19,22 @@ void iprint_op(Gg, enum LE_Code code) {
 	indent_line(g, g->fun_text);
 	blat(g->fun_text, (uc *)str, len - 1);
 }
+void iprint_xmm_op(Gg, enum LE_Code code, uc is_ss) {
+	const char *str;
+	u32 len;
+	cbe(MUL)	   ? str_len_be(MUL)
+	: cbe(DIV)	   ? str_len_be(DIV)
+	: cbe(ADD)	   ? str_len_be(ADD)
+	: cbe(SUB)	   ? str_len_be(SUB)
+	: cbe(SHL)	   ? str_len_be(SHL)
+	: cbe(SHR)	   ? str_len_be(SHR)
+	: cbe(BIT_AND) ? str_len_be(BIT_AND)
+	: cbe(BIT_XOR) ? str_len_be(BIT_XOR)
+	: cbe(BIT_OR)  ? str_len_be(BIT_OR)
+				   : exit(155);
+	indent_line(g, g->fun_text);
+	blat(g->fun_text, (uc *)str, len - 1);
+}
 
 // local var, arr(not ptr), field(not ptr)
 // global var, arr(not ptr), field(not ptr)
@@ -29,10 +45,16 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	declare_lvar_gvar;
 
 	if (lcep(VAR)) {
-		reg = try_borrow_reg(e->tvar, g, reg_size);
 		get_assignee_size(g, e, &gvar, &lvar);
-		mov_reg_var(g, reg->reg_code, lvar, gvar);
 
+		if (is_real_type(e->type)) {
+			reg = try_borrow_xmm_reg(e->tvar, g);
+			mov_xmm_reg_(reg->reg_code);
+			var_(g, lvar, gvar), g->fun_text->size--, ft_add('\n');
+		} else {
+			reg = try_borrow_reg(e->tvar, g, reg_size);
+			mov_reg_var(g, reg->reg_code, lvar, gvar);
+		}
 	} else if (lcep(REAL)) {
 		unit_size = e->type->code == TC_SINGLE ? DWORD : QWORD;
 
@@ -43,7 +65,7 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 		xmm = try_borrow_xmm_reg(e->tvar, g);
 		mov_xmm_reg_(xmm->reg_code);
-		sib(g, unit_size, 0, 0, reg->rf->r->reg_code, 0, 0), ft_add('\n');
+		reg_enter(reg->reg_code);
 
 		free_reg_family(reg->rf);
 		reg = xmm;
@@ -121,6 +143,48 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		exit(158);
 	return reg;
 }
+
+#define ss_or_sd                                                               \
+	if (to_ss)                                                                 \
+		isprint_ft(CVTSI2SS);                                                  \
+	else                                                                       \
+		isprint_ft(CVTSI2SD);
+
+// TODO: pxor
+struct Reg *cvt_to_xmm(Gg, struct LocalExpr *not_xmm_e, struct Reg *not_xmm,
+					   uc to_ss) {
+	struct Reg *xmm = try_borrow_xmm_reg(not_xmm_e->tvar, g);
+
+	ss_or_sd;
+	reg_(xmm->reg_code);
+	reg_enter(not_xmm->reg_code);
+
+	free_reg_family(not_xmm->rf);
+	return xmm;
+}
+
+struct Reg *xmm_bin_to_reg(Gg, struct LocalExpr *e, struct Reg *r1,
+						   struct Reg *r2) {
+	uc is_ss = is_ss(e->type);
+
+	if (!is_xmm(r1))
+		r1 = cvt_to_xmm(g, e->l, r1, is_ss);
+	if (!is_xmm(r2))
+		r2 = cvt_to_xmm(g, e->r, r2, is_ss);
+	if (!is_ss) {
+		if (is_ss(e->l->type))
+			cvt_ss_to_sd(r1->reg_code);
+		if (is_ss(e->r->type))
+			cvt_ss_to_sd(r2->reg_code);
+	}
+
+	iprint_xmm_op(g, e->code, is_ss);
+	reg_(r1->reg_code);
+	reg_enter(r2->reg_code);
+
+	free_reg(r2);
+	return r1;
+}
 /*
 TODO:
 (a + b):
@@ -135,7 +199,6 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *r1 = 0, *r2 = 0;
 	struct LocalExpr *l = e->l, *r = e->r;
 	struct LocalExpr *num, *not_num;
-	struct Reg *xmm, *not_xmm;
 
 	if (is_num_le(l) && is_num_le(r))
 		exit(156);
@@ -156,11 +219,8 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		r1 = gen_to_reg(g, l, reg_size);
 		r2 = gen_to_reg(g, r, reg_size);
 
-		if (is_xmm(r1) && is_xmm(r2))
-			return xmm_bin_to_reg(g, r1, r2);
-		if ((is_xmm(r1) ? (xmm = r1, not_xmm = r2) : 0) ||
-			(is_xmm(r2) ? (xmm = r2, not_xmm = r1) : 0))
-			return xmm_bin_to_reg(g, xmm, convert_to_xmm(not_xmm));
+		if (is_real_type(e->type))
+			return xmm_bin_to_reg(g, e, r1, r2);
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);
@@ -178,6 +238,7 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 	int reg_size = of_size ? of_size : unsafe_size_of_type(e->type);
 	struct Reg *res_reg;
 
+	// TODO: use gen_tuple_of whenever is need
 	gen_tuple_of(g, e);
 
 	if (is_primary(e))

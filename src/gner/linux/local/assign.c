@@ -5,14 +5,17 @@ void assign_to_var(Gg, struct LocalExpr *e) {
 	struct LocalExpr *assignable = e->r;
 	struct Reg *reg;
 
+	gen_tuple_of(g, var);
 	declare_lvar_gvar;
 	get_assignee_size(g, var, &gvar, &lvar);
 
 	if (lceep(assignable, INT)) {
+		gen_tuple_of(g, assignable);
 		mov_var_(g, lvar, gvar);
 		add_int_with_hex_comm(fun_text, assignable->tvar->num);
 
 	} else if (lceep(assignable, REAL)) {
+		gen_tuple_of(g, assignable);
 		mov_var_(g, lvar, gvar);
 		real_add(g->fun_text, assignable->tvar->real);
 		ft_add('\n');
@@ -20,7 +23,11 @@ void assign_to_var(Gg, struct LocalExpr *e) {
 		reg = gen_to_reg(g, assignable, 0);
 		mov_var_(g, lvar, gvar);
 		reg_enter(reg->reg_code);
-		free_reg_family(reg->rf);
+
+		if (is_xmm(reg))
+			free_reg(reg);
+		else
+			free_reg_family(reg->rf);
 	}
 }
 

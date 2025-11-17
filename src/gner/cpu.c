@@ -82,22 +82,6 @@ char *const STR_XMM13 = "э13";
 char *const STR_XMM14 = "э14";
 char *const STR_XMM15 = "э15";
 
-// int sizeof_reg(enum RegCode code) {
-// 	if (code >= R_AL && code <= R_R15B)
-// 		return BYTE;
-// 	if (code >= R_AX && code <= R_R15W)
-// 		return WORD;
-// 	if (code >= R_EAX && code <= R_R15D)
-// 		return DWORD;
-// 	if (code >= R_RAX && code <= R_R15)
-// 		return QWORD;
-// 	exit(94);
-// }
-#define free_reg(reg)                                                          \
-	do {                                                                       \
-		(reg)->allocated = 0;                                                  \
-		(reg)->is_value_active = 0;                                            \
-	} while (0)
 // rcn - regster capital name
 // rsn - regster string name
 #define new_family_reg(family_reg, rcn, rsn, reg_size, rfm)                    \
@@ -301,13 +285,6 @@ struct Reg *borrow_xmm_reg(struct CPU *cpu) {
 		}
 	return 0;
 }
-
-#define is_r8h(c) ((c) >= R_AH && (c) <= R_BH)
-#define is_r8(c) ((c) >= R_AL && (c) <= R_R15B)
-#define is_r16(c) ((c) >= R_AX && (c) <= R_R15W)
-#define is_r32(c) ((c) >= R_EAX && (c) <= R_R15D)
-#define is_r64(c) ((c) >= R_RAX && (c) <= R_R15)
-#define is_r64(c) ((c) >= R_RAX && (c) <= R_R15)
 
 struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code) {
 	struct RegisterFamily *rf;

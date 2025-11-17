@@ -34,6 +34,12 @@ struct CPU {
 	struct Reg *xmm[16];
 };
 
+#define free_reg(reg)                                                          \
+	do {                                                                       \
+		(reg)->allocated = 0;                                                  \
+		(reg)->is_value_active = 0;                                            \
+	} while (0)
+
 struct CPU *new_cpu();
 struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code);
 
@@ -183,6 +189,9 @@ sae(SETE);
 sae(SETNE);
 sae(CMP);
 sae(MOV_XMM);
+sae(CVTSI2SS);
+sae(CVTSI2SD);
+sae(CVTSS2SD);
 
 // #############################################################################
 
@@ -343,6 +352,12 @@ struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 #define mov_xmm_reg_(reg)                                                      \
 	isprint_ft(MOV_XMM);                                                       \
 	reg_(reg);
+#define cvt_ss_to_sd(rcode)                                                    \
+	do {                                                                       \
+		isprint_ft(CVTSS2SD);                                                  \
+		reg_((rcode));                                                         \
+		reg_enter((rcode));                                                    \
+	} while (0)
 
 // ############################################################################
 // 									OZER

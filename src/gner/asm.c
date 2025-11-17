@@ -48,6 +48,9 @@ sa(SETE, "уст0 ");
 sa(SETNE, "устн0 ");
 sa(CMP, "срав ");
 sa(MOV_XMM, "бытьэ ");
+sa(CVTSI2SS, "пресч2со ");
+sa(CVTSI2SD, "пресч2сд ");
+sa(CVTSS2SD, "пресо2сд ");
 
 sa(L_PAR, "(");
 sa(R_PAR, ") ");
