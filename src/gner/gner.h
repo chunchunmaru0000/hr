@@ -182,6 +182,7 @@ sae(NOT);
 sae(SETE);
 sae(SETNE);
 sae(CMP);
+sae(MOV_XMM);
 
 // #############################################################################
 
@@ -339,6 +340,9 @@ void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar);
 	isprint_ft(op);                                                            \
 	reg_((reg));
 struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
+#define mov_xmm_reg_(reg)                                                      \
+	isprint_ft(MOV_XMM);                                                       \
+	reg_(reg);
 
 // ############################################################################
 // 									OZER

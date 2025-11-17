@@ -24,13 +24,30 @@ void iprint_op(Gg, enum LE_Code code) {
 // global var, arr(not ptr), field(not ptr)
 
 struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
-	struct Reg *reg = 0;
+	struct Reg *reg = 0, *xmm;
+	int unit_size;
 	declare_lvar_gvar;
 
 	if (lcep(VAR)) {
 		reg = try_borrow_reg(e->tvar, g, reg_size);
 		get_assignee_size(g, e, &gvar, &lvar);
 		mov_reg_var(g, reg->reg_code, lvar, gvar);
+
+	} else if (lcep(REAL)) {
+		unit_size = e->type->code == TC_SINGLE ? DWORD : QWORD;
+
+		reg = try_borrow_reg(e->tvar, g, unit_size);
+		mov_reg_(g, reg->reg_code);
+		real_add(g->fun_text, e->tvar->real);
+		ft_add('\n');
+
+		xmm = try_borrow_xmm_reg(e->tvar, g);
+		mov_xmm_reg_(xmm->reg_code);
+		sib(g, unit_size, 0, 0, reg->rf->r->reg_code, 0, 0), ft_add('\n');
+
+		free_reg_family(reg->rf);
+		reg = xmm;
+
 	} else
 		exit(145);
 	return reg;
@@ -118,12 +135,13 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *r1 = 0, *r2 = 0;
 	struct LocalExpr *l = e->l, *r = e->r;
 	struct LocalExpr *num, *not_num;
+	struct Reg *xmm, *not_xmm;
 
 	if (is_num_le(l) && is_num_le(r))
 		exit(156);
 
-	if ((is_num_le(l) ? (num = l, not_num = r) : 0) ||
-		(is_num_le(r) ? (num = r, not_num = l) : 0)) {
+	if ((lceep(l, INT) ? (num = l, not_num = r) : 0) ||
+		(lceep(r, INT) ? (num = r, not_num = l) : 0)) {
 		gen_tuple_of(g, num);
 
 		r1 = gen_to_reg(g, not_num, reg_size);
@@ -132,14 +150,17 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		if (lceb(MUL))
 			reg_(r1->reg_code);
 
-		if (lceep(num, REAL))
-			num->tvar->num = num->tvar->real;
 		add_int_with_hex_comm(fun_text, num->tvar->num);
-
 		return r1;
 	} else {
 		r1 = gen_to_reg(g, l, reg_size);
 		r2 = gen_to_reg(g, r, reg_size);
+
+		if (is_xmm(r1) && is_xmm(r2))
+			return xmm_bin_to_reg(g, r1, r2);
+		if ((is_xmm(r1) ? (xmm = r1, not_xmm = r2) : 0) ||
+			(is_xmm(r2) ? (xmm = r2, not_xmm = r1) : 0))
+			return xmm_bin_to_reg(g, xmm, convert_to_xmm(not_xmm));
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);

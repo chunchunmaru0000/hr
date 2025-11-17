@@ -47,6 +47,7 @@ sa(NOT, "не ");
 sa(SETE, "уст0 ");
 sa(SETNE, "устн0 ");
 sa(CMP, "срав ");
+sa(MOV_XMM, "бытьэ ");
 
 sa(L_PAR, "(");
 sa(R_PAR, ") ");

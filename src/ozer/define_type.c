@@ -14,6 +14,8 @@ constr EXPECTED_FUN_TYPE =
 constr EXPECTED_PTR_TYPE = "Ожидалось выражение с типом указателя.";
 constr USELESS_EMPTY_TUPLE =
 	"Пустая связка выражений не имеет смысла, и вычислена быть не может.";
+constr INDEX_SHOULD_BE_OF_INT_TYPE_ONLY =
+	"Индекс может быть только типа целого числа.";
 
 void define_var_type(struct LocalExpr *e) {
 	struct LocalVar *lvar;
@@ -221,6 +223,8 @@ void define_le_type(struct LocalExpr *e) {
 		e->type = e->l->type->code == TC_ARR
 					  ? copy_type_expr(arr_type(e->l->type))
 					  : copy_type_expr(ptr_targ(e->l->type));
+		if (!is_int_type(e->r->type))
+			eet(e->r->tvar, INDEX_SHOULD_BE_OF_INT_TYPE_ONLY, 0);
 
 	} else if (lce(AFTER_PIPE_LINE)) {
 		define_type_and_copy_flags_to_e(e->r);
