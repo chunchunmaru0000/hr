@@ -352,6 +352,11 @@ struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 #define mov_xmm_reg_(reg)                                                      \
 	isprint_ft(MOV_XMM);                                                       \
 	reg_(reg);
+#define mov_xmm_var_(g, lvar, gvar)                                            \
+	do {                                                                       \
+		isprint_ft(MOV_XMM);                                                   \
+		var_((g), (lvar), (gvar));                                             \
+	} while (0)
 #define cvt_ss_to_sd(rcode)                                                    \
 	do {                                                                       \
 		isprint_ft(CVTSS2SD);                                                  \

@@ -21,13 +21,16 @@ void assign_to_var(Gg, struct LocalExpr *e) {
 		ft_add('\n');
 	} else {
 		reg = gen_to_reg(g, assignable, 0);
-		mov_var_(g, lvar, gvar);
-		reg_enter(reg->reg_code);
 
-		if (is_xmm(reg))
+		if (is_xmm(reg)) {
+			mov_xmm_var_(g, lvar, gvar);
+			reg_enter(reg->reg_code);
 			free_reg(reg);
-		else
+		} else {
+			mov_var_(g, lvar, gvar);
+			reg_enter(reg->reg_code);
 			free_reg_family(reg->rf);
+		}
 	}
 }
 
