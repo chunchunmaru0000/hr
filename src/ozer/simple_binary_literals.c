@@ -78,12 +78,12 @@ int try_opt_shl_or_shr(struct LocalExpr *e) {
 	return opted;
 }
 
-void turn_type_to_i32(struct LocalExpr *e) {
+void turn_type_to_simple(struct LocalExpr *e, enum TypeCode simple_code) {
 	if (is_simple_type(e->type))
-		e->type->code = TC_I32;
+		e->type->code = simple_code;
 	else {
 		free_type(e->type);
-		e->type = new_type_expr(TC_I32);
+		e->type = new_type_expr(simple_code);
 	}
 }
 
@@ -136,7 +136,7 @@ int try_opt_and(struct LocalExpr *e) {
 	else if (is_le_num(e->r, 0) && have_only_gvar_effect_or_none(e->l))
 		do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 	if (opted) { // e -> false
-		turn_type_to_i32(e);
+		turn_type_to_simple(e, TC_I32);
 		if (e->code != LE_PRIMARY_INT) {
 			e->code = LE_PRIMARY_INT;
 			e->tvar->num = 0;
@@ -176,7 +176,7 @@ int try_opt_or(struct LocalExpr *e) {
 	else if (is_le_not_num(e->r, 0) && have_only_gvar_effect_or_none(e->l))
 		do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
 	if (opted) { // e -> true, true is 1, where e is already num
-		turn_type_to_i32(e);
+		turn_type_to_simple(e, TC_I32);
 		if (e->code != LE_PRIMARY_INT || e->tvar->num != 1) {
 			e->code = LE_PRIMARY_INT;
 			e->tvar->num = 1;
@@ -240,7 +240,7 @@ int try_opt_more_or_less(struct LocalExpr *e) {
 	if (both_not_side_effective(e->l, e->r) && lee(e->l, e->r)) {
 		opted = 1;
 		// free_req(e->l, e->r)
-		turn_type_to_i32(e);
+		turn_type_to_simple(e, TC_I32);
 		if (e->code != LE_PRIMARY_INT || e->tvar->num != 0) {
 			e->code = LE_PRIMARY_INT;
 			e->tvar->num = 0;
@@ -256,7 +256,7 @@ int try_opt_eque_or_nequ(struct LocalExpr *e) {
 	if (both_not_side_effective(e->l, e->r) && lee(e->l, e->r)) {
 		opted = 1;
 		// free_req(e->l, e->r)
-		turn_type_to_i32(e);
+		turn_type_to_simple(e, TC_I32);
 		if (e->code != LE_PRIMARY_INT) {
 			e->tvar->num = lceb(EQUALS);
 			e->code = LE_PRIMARY_INT;
@@ -272,7 +272,7 @@ int try_opt_moree_or_lesse(struct LocalExpr *e) {
 	if (both_not_side_effective(e->l, e->r) && lee(e->l, e->r)) {
 		opted = 1;
 		// free_req(e->l, e->r)
-		turn_type_to_i32(e);
+		turn_type_to_simple(e, TC_I32);
 		if (e->code != LE_PRIMARY_INT || e->tvar->num != 1) {
 			e->code = LE_PRIMARY_INT;
 			e->tvar->num = 1;

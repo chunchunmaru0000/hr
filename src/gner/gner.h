@@ -140,58 +140,24 @@ void gen(struct Gner *);
 // #############################################################################
 // 									SA - Str Asm
 // #############################################################################
-sae(LET_8);
-sae(LET_16);
-sae(LET_32);
-sae(LET_64);
-sae(RAX);
-sae(RBP);
-sae(REZERV_ZERO);
-sae(SEGMENT_READ_WRITE);
-sae(SEGMENT_READ_EXECUTE);
-sae(LABEL_END);
-sae(ZERO_TERMINATOR);
-sae(START_COMMENT);
-sae(EQU);
-sae(COMM);
-sae(PUSH_RBP);
-sae(MOV_RBP_RSP);
-sae(MOV_MEM_RBP_OPEN);
-sae(SUB_RSP);
-sae(POP_RBP);
-sae(LEAVE);
-sae(RET);
-sae(STR_XOR_EAX_EAX);
-sae(MOV_RAX);
-sae(BYTE);
-sae(WORD);
-sae(DWORD);
-sae(QWORD);
-sae(MOV);
-sae(L_PAR);
-sae(R_PAR);
-sae(PAR_RBP);
-sae(OFF_RAX);
-sae(JMP);
-sae(LEA);
-sae(MUL);
-sae(DIV);
-sae(ADD);
-sae(SUB);
-sae(SHL);
-sae(SHR);
-sae(BIT_AND);
-sae(BIT_XOR);
-sae(BIT_OR);
-sae(NEG);
-sae(NOT);
-sae(SETE);
-sae(SETNE);
-sae(CMP);
-sae(MOV_XMM);
-sae(CVTSI2SS);
-sae(CVTSI2SD);
-sae(CVTSS2SD);
+sae(LET_8) sae(LET_16) sae(LET_32) sae(LET_64) sae(RAX) sae(RBP)
+	sae(REZERV_ZERO) sae(SEGMENT_READ_WRITE) sae(SEGMENT_READ_EXECUTE) sae(
+		LABEL_END) sae(ZERO_TERMINATOR) sae(START_COMMENT) sae(EQU) sae(COMM)
+		sae(PUSH_RBP) sae(MOV_RBP_RSP) sae(MOV_MEM_RBP_OPEN) sae(SUB_RSP) sae(
+			POP_RBP) sae(LEAVE) sae(RET) sae(STR_XOR_EAX_EAX) sae(MOV_RAX)
+			sae(BYTE) sae(WORD) sae(DWORD) sae(QWORD) sae(MOV) sae(L_PAR)
+				sae(R_PAR) sae(PAR_RBP) sae(OFF_RAX) sae(JMP) sae(LEA) sae(MUL)
+					sae(DIV) sae(ADD) sae(SUB) sae(SHL) sae(SHR) sae(BIT_AND)
+						sae(BIT_XOR) sae(BIT_OR) sae(NEG) sae(NOT) sae(SETE)
+							sae(SETNE) sae(CMP) sae(MOV_XMM) sae(CVTSI2SS)
+								sae(CVTSI2SD) sae(CVTSS2SD) sae(MUL_SS)
+									sae(DIV_SS) sae(ADD_SS) sae(SUB_SS)
+										sae(BIT_AND_PS) sae(BIT_XOR_PS)
+											sae(BIT_OR_PS) sae(MUL_SD)
+												sae(DIV_SD) sae(ADD_SD)
+													sae(SUB_SD) sae(BIT_AND_PD)
+														sae(BIT_XOR_PD)
+															sae(BIT_OR_PD);
 
 // #############################################################################
 
@@ -380,6 +346,7 @@ void define_le_type(struct LocalExpr *e);
 		e->flags |= (expr)->flags;                                             \
 	} while (0)
 int lee(struct LocalExpr *l, struct LocalExpr *r);
+void turn_type_to_simple(struct LocalExpr *e, enum TypeCode simple_code);
 
 int try_opt_mul(struct LocalExpr *e);
 int try_opt_div(struct LocalExpr *e);

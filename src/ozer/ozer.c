@@ -76,6 +76,8 @@ int lee(struct LocalExpr *l, struct LocalExpr *r) {
 	return 1;
 }
 
+// TODO: (a = ((x * 10) / 9))
+// TODO: 10 / x / (100 / x) -> (a = ((0 / x) / x)) is invalid
 void opt_bin_constant_folding(struct LocalExpr *e) {
 	struct LocalExpr *l, *r, *cond;
 
@@ -84,16 +86,22 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 		opt_bin_constant_folding(l);
 		opt_bin_constant_folding(r);
 
-		if (is_bin_le(e)) {
-			if (is_num_le(l) && is_num_le(r)) {
-				bin_l_and_r_to_e(l, r, e, e->code);
-			} else if (is_num_le(l) && is_bin_le(r)) {
-				try_bin_num_in_bin(l, &e->r, e->code);
-			} else if (is_bin_le(l) && is_num_le(r)) {
-				try_bin_num_in_bin(r, &e->l, e->code);
-			} else if (is_bin_le(l) && is_bin_le(r)) {
-				try_bin_bins(e);
-			}
+		if (is_num_le(r) && lceb(SUB)) {
+			e->code = LE_BIN_ADD;
+			if (lceep(r, INT))
+				r->tvar->num = -r->tvar->num;
+			else
+				r->tvar->real = -r->tvar->real;
+		}
+
+		if (is_num_le(l) && is_num_le(r)) {
+			bin_l_and_r_to_e(l, r, e, e->code);
+		} else if (is_num_le(l) && is_bin_le(r)) {
+			try_bin_num_in_bin(l, &e->r, e->code);
+		} else if (is_bin_le(l) && is_num_le(r)) {
+			try_bin_num_in_bin(r, &e->l, e->code);
+		} else if (is_bin_le(l) && is_bin_le(r)) {
+			try_bin_bins(e);
 		}
 
 		if (if_opted(MUL, mul) || if_opted(DIV, div) ||

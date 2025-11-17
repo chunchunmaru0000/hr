@@ -53,6 +53,7 @@ void unary_or_bool_of_num(struct LocalExpr *e) {
 		update_int_view(num);
 	else
 		update_real_view(num);
+	zero_term_blist(num->tvar->view);
 
 	// merge_tuple_of_to(e, num);
 	//  save num

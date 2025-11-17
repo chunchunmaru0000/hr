@@ -3,6 +3,7 @@
 
 #define cbe(bin) (code == LE_BIN_##bin)
 #define str_len_be(code) ((str = SA_##code, len = SA_##code##_LEN))
+// TODO: div not works so simple
 void iprint_op(Gg, enum LE_Code code) {
 	const char *str;
 	u32 len;
@@ -19,19 +20,40 @@ void iprint_op(Gg, enum LE_Code code) {
 	indent_line(g, g->fun_text);
 	blat(g->fun_text, (uc *)str, len - 1);
 }
+
+// cmpeqss/cmpeqsd    ; равно ==
+// cmpneqss/cmpneqsd  ; не равно !=
+// cmpltss/cmpltsd    ; меньше <
+// cmpless/cmplesd    ; меньше или равно <=
+// cmpgtss/cmpgtsd    ; больше >
+// cmpgess/cmpgesd    ; больше или равно >=
+
+// maxss/maxsd    ; максимум
+// minss/minsd    ; минимум
+// sqrtss/sqrtsd   ; квадратный корень
 void iprint_xmm_op(Gg, enum LE_Code code, uc is_ss) {
 	const char *str;
 	u32 len;
-	cbe(MUL)	   ? str_len_be(MUL)
-	: cbe(DIV)	   ? str_len_be(DIV)
-	: cbe(ADD)	   ? str_len_be(ADD)
-	: cbe(SUB)	   ? str_len_be(SUB)
-	: cbe(SHL)	   ? str_len_be(SHL)
-	: cbe(SHR)	   ? str_len_be(SHR)
-	: cbe(BIT_AND) ? str_len_be(BIT_AND)
-	: cbe(BIT_XOR) ? str_len_be(BIT_XOR)
-	: cbe(BIT_OR)  ? str_len_be(BIT_OR)
-				   : exit(155);
+
+	if (is_ss) {
+		cbe(MUL)	   ? str_len_be(MUL_SS)
+		: cbe(DIV)	   ? str_len_be(DIV_SS)
+		: cbe(ADD)	   ? str_len_be(ADD_SS)
+		: cbe(SUB)	   ? str_len_be(SUB_SS)
+		: cbe(BIT_AND) ? str_len_be(BIT_AND_PS)
+		: cbe(BIT_XOR) ? str_len_be(BIT_XOR_PS)
+		: cbe(BIT_OR)  ? str_len_be(BIT_OR_PS)
+					   : exit(162);
+	} else {
+		cbe(MUL)	   ? str_len_be(MUL_SD)
+		: cbe(DIV)	   ? str_len_be(DIV_SD)
+		: cbe(ADD)	   ? str_len_be(ADD_SD)
+		: cbe(SUB)	   ? str_len_be(SUB_SD)
+		: cbe(BIT_AND) ? str_len_be(BIT_AND_PD)
+		: cbe(BIT_XOR) ? str_len_be(BIT_XOR_PD)
+		: cbe(BIT_OR)  ? str_len_be(BIT_OR_PD)
+					   : exit(163);
+	}
 	indent_line(g, g->fun_text);
 	blat(g->fun_text, (uc *)str, len - 1);
 }
@@ -187,12 +209,12 @@ struct Reg *xmm_bin_to_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 }
 /*
 TODO:
-(a + b):
+(a + var):
 	- mov reg, a
-	- mov reg, b
+	- mov reg, var
 	- add reg, reg
 	+ mov reg, a
-	+ add reg, b
+	+ add reg, var
 opt mul to shift if possible
 */
 struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
@@ -206,8 +228,16 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	if ((lceep(l, INT) ? (num = l, not_num = r) : 0) ||
 		(lceep(r, INT) ? (num = r, not_num = l) : 0)) {
 		gen_tuple_of(g, num);
-
 		r1 = gen_to_reg(g, not_num, reg_size);
+
+		if (is_real_type(e->type)) {
+			num->code = LE_PRIMARY_REAL;
+			num->tvar->real = num->tvar->num;
+			turn_type_to_simple(num, e->type->code);
+			r2 = prime_to_reg(g, num, 0);
+			return xmm_bin_to_reg(g, e, r1, r2);
+		}
+
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);
 		if (lceb(MUL))

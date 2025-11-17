@@ -52,6 +52,21 @@ sa(CVTSI2SS, "пресч2со ");
 sa(CVTSI2SD, "пресч2сд ");
 sa(CVTSS2SD, "пресо2сд ");
 
+sa(MUL_SS, "умнсо ");
+sa(DIV_SS, "делсо ");
+sa(ADD_SS, "плюссо ");
+sa(SUB_SS, "минссо ");
+sa(BIT_AND_PS, "иуо ");
+sa(BIT_XOR_PS, "илиуо ");
+sa(BIT_OR_PS, "исклуо ");
+sa(MUL_SD, "умнсд ");
+sa(DIV_SD, "делсд ");
+sa(ADD_SD, "плюссд ");
+sa(SUB_SD, "минссд ");
+sa(BIT_AND_PD, "иуд ");
+sa(BIT_XOR_PD, "илиуд ");
+sa(BIT_OR_PD, "исклуд ");
+
 sa(L_PAR, "(");
 sa(R_PAR, ") ");
 sa(PAR_RBP, "(рбп ");
