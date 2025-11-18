@@ -88,10 +88,14 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 
 		if (is_num_le(r) && lceb(SUB)) {
 			e->code = LE_BIN_ADD;
-			if (lceep(r, INT))
+			blist_set(e->tvar->view, 0, '+');
+			if (lceep(r, INT)) {
 				r->tvar->num = -r->tvar->num;
-			else
+				update_int_view(r);
+			} else {
 				r->tvar->real = -r->tvar->real;
+				update_real_view(r);
+			}
 		}
 
 		if (is_num_le(l) && is_num_le(r)) {
