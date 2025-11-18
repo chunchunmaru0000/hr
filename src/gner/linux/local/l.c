@@ -7,8 +7,8 @@
 void iprint_op(Gg, enum LE_Code code) {
 	const char *str;
 	u32 len;
-	cbe(MUL)	   ? str_len_be(MUL)
-	: cbe(DIV)	   ? str_len_be(DIV)
+	cbe(MUL)	   ? str_len_be(IMUL)
+	: cbe(DIV)	   ? str_len_be(IDIV)
 	: cbe(ADD)	   ? str_len_be(ADD)
 	: cbe(SUB)	   ? str_len_be(SUB)
 	: cbe(SHL)	   ? str_len_be(SHL)
@@ -252,10 +252,11 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		if (is_real_type(e->type))
 			return xmm_bin_to_reg(g, e, r1, r2);
 
+		if (lceb(DIV))
+			return div_on_reg(g, e, r1, r2);
+
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);
-		if (lceb(MUL))
-			reg_(r1->reg_code);
 		reg_enter(r2->reg_code);
 
 		free_reg_family(r2->rf);

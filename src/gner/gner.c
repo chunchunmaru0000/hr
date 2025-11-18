@@ -142,3 +142,25 @@ struct Reg *try_borrow_xmm_reg(struct Token *place, Gg) {
 		eet(place, TOO_COMPLEX_EXPR, MAKE_SIMPLER_EXPR);
 	return reg;
 }
+
+struct Reg *try_alloc_reg(struct Token *tvar, struct RegisterFamily *rf,
+						  int size) {
+	struct Reg *reg = alloc_reg_of_size(rf, size);
+	if (!reg)
+		eet(tvar, "wrong reg alloc", 0);
+	rf->r->allocated = 1;
+	rf->e->allocated = 1;
+	rf->x->allocated = 1;
+	if (size > BYTE) {
+		if (rf->h)
+			rf->h->allocated = 1;
+		if (rf->l)
+			rf->l->allocated = 1;
+	} else {
+		if (reg == rf->h)
+			rf->h->allocated = 1;
+		else
+			rf->l->allocated = 1;
+	}
+	return reg;
+}

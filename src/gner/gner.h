@@ -51,6 +51,7 @@ struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size);
 struct Reg *borrow_xmm_reg(struct CPU *cpu);
 #define is_xmm(reg) ((reg)->reg_code >= R_XMM0)
 void set_value_to_reg(struct Reg *reg, long value);
+struct Reg *alloc_reg_of_size(struct RegisterFamily *rf, int size);
 
 struct Fggs {
 	uc is_stack_used;
@@ -124,6 +125,12 @@ struct Gner {
 };
 struct Reg *try_borrow_reg(struct Token *place, struct Gner *g, uc of_size);
 struct Reg *try_borrow_xmm_reg(struct Token *place, struct Gner *g);
+#define DO_XCHG 0
+#define DO_MOV 1
+void swap_basic_regs(struct Gner *g, struct RegisterFamily *rf1,
+					 struct RegisterFamily *rf2, int do_mov);
+struct Reg *try_alloc_reg(struct Token *tvar, struct RegisterFamily *rf,
+						  int size);
 #define Gg struct Gner *g
 
 struct Gner *new_gner(struct Pser *, enum Target, uc);
@@ -146,8 +153,8 @@ sae(LET_8) sae(LET_16) sae(LET_32) sae(LET_64) sae(RAX) sae(RBP)
 		sae(PUSH_RBP) sae(MOV_RBP_RSP) sae(MOV_MEM_RBP_OPEN) sae(SUB_RSP) sae(
 			POP_RBP) sae(LEAVE) sae(RET) sae(STR_XOR_EAX_EAX) sae(MOV_RAX)
 			sae(BYTE) sae(WORD) sae(DWORD) sae(QWORD) sae(MOV) sae(L_PAR)
-				sae(R_PAR) sae(PAR_RBP) sae(OFF_RAX) sae(JMP) sae(LEA) sae(MUL)
-					sae(DIV) sae(ADD) sae(SUB) sae(SHL) sae(SHR) sae(BIT_AND)
+				sae(R_PAR) sae(PAR_RBP) sae(OFF_RAX) sae(JMP) sae(LEA) sae(IMUL)
+					sae(IDIV) sae(ADD) sae(SUB) sae(SHL) sae(SHR) sae(BIT_AND)
 						sae(BIT_XOR) sae(BIT_OR) sae(NEG) sae(NOT) sae(SETE)
 							sae(SETNE) sae(CMP) sae(MOV_XMM) sae(CVTSI2SS)
 								sae(CVTSI2SD) sae(CVTSS2SD) sae(MUL_SS)
@@ -158,6 +165,7 @@ sae(LET_8) sae(LET_16) sae(LET_32) sae(LET_64) sae(RAX) sae(RBP)
 													sae(SUB_SD) sae(BIT_AND_PD)
 														sae(BIT_XOR_PD)
 															sae(BIT_OR_PD);
+sae(XCHG);
 
 // #############################################################################
 
@@ -294,6 +302,10 @@ struct BList *size_str(uc size);
 
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size);
 void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
+
+struct Reg *div_on_int(Gg, struct LocalExpr *e);
+struct Reg *div_on_mem(Gg, struct LocalExpr *e);
+struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1, struct Reg *r2);
 
 #define let_lvar_gvar struct LocalVar *lvar, struct GlobVar *gvar
 #define declare_lvar_gvar                                                      \

@@ -33,8 +33,8 @@ sa(DWORD, "чбайт ");
 sa(QWORD, "вбайт ");
 sa(MOV, "быть ");
 sa(LEA, "задр ");
-sa(MUL, "зумн ");	  // LE_BIN_MUL
-sa(DIV, "здел ");	  // LE_BIN_DIV
+sa(IMUL, "зумн ");	  // LE_BIN_MUL
+sa(IDIV, "здел ");	  // LE_BIN_DIV
 sa(ADD, "плюс ");	  // LE_BIN_ADD
 sa(SUB, "минс ");	  // LE_BIN_SUB
 sa(SHL, "сдвл ");	  // LE_BIN_SHL
@@ -51,6 +51,7 @@ sa(MOV_XMM, "бытьэ ");
 sa(CVTSI2SS, "пресч2со ");
 sa(CVTSI2SD, "пресч2сд ");
 sa(CVTSS2SD, "пресо2сд ");
+sa(XCHG, "обмн ");
 
 sa(MUL_SS, "умнсо ");
 sa(DIV_SS, "делсо ");

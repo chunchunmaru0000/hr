@@ -269,6 +269,26 @@ struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size) {
 	return 0;
 }
 
+struct Reg *alloc_reg_of_size(struct RegisterFamily *rf, int size) {
+	struct Reg *res_reg = 0;
+	if (rf->r->allocated)
+		goto ret;
+	if (size == QWORD)
+		res_reg = rf->r;
+	else if (size == DWORD)
+		res_reg = rf->e;
+	else if (size == WORD)
+		res_reg = rf->x;
+	else if (size == BYTE) {
+		if (rf->l && !rf->l->allocated)
+			res_reg = rf->l;
+		else if (rf->h && !rf->h->allocated)
+			res_reg = rf->h;
+	}
+ret:
+	return res_reg;
+}
+
 void set_value_to_reg(struct Reg *reg, long value) {
 	reg->is_value_active = 1;
 	reg->active_value = value;
@@ -299,4 +319,61 @@ struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code) {
 							  : rf->x;
 	}
 	return cpu->xmm[code - R_XMM0];
+}
+
+#define xchg_reg_reg(r1, r2)                                                   \
+	do {                                                                       \
+		memcpy(tmp_reg, (r1), sizeof(struct Reg));                             \
+		memcpy((r1), (r2), sizeof(struct Reg));                                \
+		memcpy((r2), tmp_reg, sizeof(struct Reg));                             \
+		(r1)->rf = rf2;                                                        \
+		(r2)->rf = rf1;                                                        \
+	} while (0)
+
+void swap_basic_regs(Gg, struct RegisterFamily *rf1, struct RegisterFamily *rf2,
+					 int do_mov) {
+	struct RegisterFamily tmp_rf_mem, *tmp_rf = &tmp_rf_mem;
+	struct Reg tmp_reg_mem, *tmp_reg = &tmp_reg_mem;
+
+	if (rf1 == rf2)
+		exit(167);
+	if (rf1->h && !rf2->h && rf1->h->allocated)
+		exit(168);
+	if (rf2->h && !rf1->h && rf2->h->allocated)
+		exit(169);
+
+	xchg_reg_reg(rf1->r, rf2->r);
+	xchg_reg_reg(rf1->e, rf2->e);
+	xchg_reg_reg(rf1->x, rf2->x);
+	if (rf1->h && rf2->h)
+		xchg_reg_reg(rf1->h, rf2->h);
+	if (rf1->l && rf2->l)
+		xchg_reg_reg(rf1->l, rf2->l);
+
+	memcpy(tmp_rf, rf1, sizeof(struct RegisterFamily));
+	memcpy(rf1, rf2, sizeof(struct RegisterFamily));
+	memcpy(rf2, tmp_rf, sizeof(struct RegisterFamily));
+
+	struct RegisterFamily **rf1_place = 0, **rf2_place = 0;
+	struct RegisterFamily **rfs;
+	u32 i;
+
+	for (i = 0, rfs = as_rfs(g->cpu); i < 16; i++, rfs++) {
+		if (*rfs == rf1)
+			rf1_place = rfs;
+		else if (*rfs == rf2)
+			rf2_place = rfs;
+		if (rf1_place && rf2_place)
+			break;
+	}
+	*rf1_place = rf2;
+	*rf2_place = rf1;
+
+	if (do_mov == DO_MOV) {
+		isprint_ft(MOV);
+	} else {
+		isprint_ft(XCHG);
+	}
+	reg_(rf1->r->reg_code);
+	reg_enter(rf2->r->reg_code);
 }

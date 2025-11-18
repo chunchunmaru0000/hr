@@ -93,3 +93,5 @@ enum RegCode {
 #define is_r32(c) ((c) >= R_EAX && (c) <= R_R15D)
 #define is_r64(c) ((c) >= R_RAX && (c) <= R_R15)
 #define is_r64(c) ((c) >= R_RAX && (c) <= R_R15)
+#define is_rAX(c) ((((c) - R_NONE) % 16 == R_AL - R_NONE))
+#define is_rDX(c) ((((c) - R_NONE) % 16 == R_DL - R_NONE))
