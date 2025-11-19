@@ -1,4 +1,5 @@
 #include "gner.h"
+#include <stdio.h>
 #include <stdlib.h>
 
 char *const STR_AL = "ал";
@@ -326,8 +327,6 @@ struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code) {
 		memcpy(tmp_reg, (r1), sizeof(struct Reg));                             \
 		memcpy((r1), (r2), sizeof(struct Reg));                                \
 		memcpy((r2), tmp_reg, sizeof(struct Reg));                             \
-		(r1)->rf = rf2;                                                        \
-		(r2)->rf = rf1;                                                        \
 	} while (0)
 
 void swap_basic_regs(Gg, struct RegisterFamily *rf1, struct RegisterFamily *rf2,
@@ -337,9 +336,9 @@ void swap_basic_regs(Gg, struct RegisterFamily *rf1, struct RegisterFamily *rf2,
 
 	if (rf1 == rf2)
 		exit(167);
-	if (rf1->h && !rf2->h && rf1->h->allocated)
+	if (rf1->h && !rf2->h && rf1->h->allocated && !rf1->l->allocated)
 		exit(168);
-	if (rf2->h && !rf1->h && rf2->h->allocated)
+	if (rf2->h && !rf1->h && rf2->h->allocated && !rf2->l->allocated)
 		exit(169);
 
 	xchg_reg_reg(rf1->r, rf2->r);
@@ -354,26 +353,11 @@ void swap_basic_regs(Gg, struct RegisterFamily *rf1, struct RegisterFamily *rf2,
 	memcpy(rf1, rf2, sizeof(struct RegisterFamily));
 	memcpy(rf2, tmp_rf, sizeof(struct RegisterFamily));
 
-	struct RegisterFamily **rf1_place = 0, **rf2_place = 0;
-	struct RegisterFamily **rfs;
-	u32 i;
-
-	for (i = 0, rfs = as_rfs(g->cpu); i < 16; i++, rfs++) {
-		if (*rfs == rf1)
-			rf1_place = rfs;
-		else if (*rfs == rf2)
-			rf2_place = rfs;
-		if (rf1_place && rf2_place)
-			break;
-	}
-	*rf1_place = rf2;
-	*rf2_place = rf1;
-
 	if (do_mov == DO_MOV) {
 		isprint_ft(MOV);
 	} else {
 		isprint_ft(XCHG);
 	}
-	reg_(rf1->r->reg_code);
-	reg_enter(rf2->r->reg_code);
+	reg_(rf2->r->reg_code);
+	reg_enter(rf1->r->reg_code);
 }
