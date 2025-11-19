@@ -227,6 +227,7 @@ void define_le_type(struct LocalExpr *e) {
 			eet(e->r->tvar, INDEX_SHOULD_BE_OF_INT_TYPE_ONLY, 0);
 
 	} else if (lce(AFTER_PIPE_LINE)) {
+		// TODO: (1, 2) |> x ? fa : fb
 		define_type_and_copy_flags_to_e(e->r);
 
 		e->code = LE_AFTER_CALL;

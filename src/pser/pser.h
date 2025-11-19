@@ -206,6 +206,8 @@ struct TypeExpr {
 
 #define is_ss(t) ((t)->code == TC_SINGLE)
 #define is_sd(t) ((t)->code == TC_DOUBLE)
+#define is_u_type(c)                                                           \
+	(((c) == TC_U32 || (c) == TC_U8 || (c) == TC_U64 || (c) == TC_U16))
 #define is_simple_type(t)                                                      \
 	(((t)->code != TC_PTR && (t)->code != TC_FUN && (t)->code != TC_ARR &&     \
 	  (t)->code != TC_STRUCT))

@@ -222,8 +222,9 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	if (is_num_le(l) && is_num_le(r))
 		exit(156);
 
-	if ((lceep(l, INT) && is_commut(e->code) ? (num = l, not_num = r) : 0) ||
-		(lceep(r, INT) ? (num = r, not_num = l) : 0)) {
+	if (lceep(l, INT) && is_commut(e->code) ? (num = l, not_num = r)
+		: lceep(r, INT)						? (num = r, not_num = l)
+											: 0) {
 	int_or_var:
 		gen_tuple_of(g, num);
 		r1 = gen_to_reg(g, not_num, reg_size);
@@ -239,8 +240,8 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 			return xmm_bin_to_reg(g, e, r1, r2);
 		}
 		if (lceb(DIV))
-			return lceep(l, INT) ? div_on_int(g, e, r1, num)
-								 : div_on_mem(g, e, r1, num);
+			return lceep(num, INT) ? div_on_int(g, e, r1)
+								   : div_on_mem(g, e, r1);
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);
@@ -256,9 +257,9 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		}
 		return r1;
 	} else {
-		if ((lceep(l, VAR) && is_commut(e->code) ? (num = l, not_num = r)
-												 : 0) ||
-			(lceep(r, VAR) ? (num = r, not_num = l) : 0))
+		if (lceep(l, VAR) && is_commut(e->code) ? (num = l, not_num = r)
+			: lceep(r, VAR)						? (num = r, not_num = l)
+												: 0)
 			goto int_or_var;
 
 		r1 = gen_to_reg(g, l, reg_size);

@@ -165,7 +165,8 @@ sae(LET_8) sae(LET_16) sae(LET_32) sae(LET_64) sae(RAX) sae(RBP)
 													sae(SUB_SD) sae(BIT_AND_PD)
 														sae(BIT_XOR_PD)
 															sae(BIT_OR_PD);
-sae(XCHG);
+sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
+	sae(SAR1);
 
 // #############################################################################
 
@@ -303,10 +304,8 @@ struct BList *size_str(uc size);
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size);
 void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
 
-struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1,
-					   struct LocalExpr *num);
-struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1,
-					   struct LocalExpr *mem);
+struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
+struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1, struct Reg *r2);
 
 #define let_lvar_gvar struct LocalVar *lvar, struct GlobVar *gvar
@@ -329,6 +328,13 @@ void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar);
 #define op_reg_(op, reg)                                                       \
 	isprint_ft(op);                                                            \
 	reg_((reg));
+#define op_reg_enter(op, reg)                                                  \
+	isprint_ft(op);                                                            \
+	reg_enter((reg));
+#define op_reg_reg(op, r1, r2)                                                 \
+	isprint_ft(op);                                                            \
+	reg_((r1)->reg_code);                                                      \
+	reg_enter((r2)->reg_code);
 struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 #define mov_xmm_reg_(reg)                                                      \
 	isprint_ft(MOV_XMM);                                                       \
@@ -389,6 +395,7 @@ void unary_or_bool_of_num(struct LocalExpr *e);
 	(((op) == LE_BIN_DIV || (op) == LE_BIN_SUB || (op) == LE_BIN_MOD ||        \
 	  (op) == LE_BIN_SHL || (op) == LE_BIN_SHR))
 #define is_commut(op) ((!is_non_commut((op))))
+#define is_pow_of_two(x) (((x) & ((x) - 1)) == 0)
 
 #define if_opted(cap, low) ((e->code == LE_BIN_##cap && try_opt_##low(e)))
 #define if_opted2(cap0, cap1, low)                                             \

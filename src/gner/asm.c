@@ -52,6 +52,14 @@ sa(CVTSI2SS, "пресч2со ");
 sa(CVTSI2SD, "пресч2сд ");
 sa(CVTSS2SD, "пресо2сд ");
 sa(XCHG, "обмн ");
+sa(SAL, "сдал ");
+sa(SAR, "сдап ");
+sa(SAL1, "сдал1 ");
+sa(SAR1, "сдап1 ");
+sa(SHL1, "сдвл1 ");
+sa(SHR1, "сдвп1 ");
+sa(TEST, "проб ");
+sa(CMOVS, "сбытьз ");
 
 sa(MUL_SS, "умнсо ");
 sa(DIV_SS, "делсо ");
