@@ -1,9 +1,8 @@
 #include "../../gner.h"
 #include <stdio.h>
 
-struct Reg *div_on_int(Gg, struct LocalExpr *e) {}
-
-struct Reg *div_on_mem(Gg, struct LocalExpr *e) {}
+struct Reg *div_on_mem_or_int(Gg, struct LocalExpr *e, struct Reg *r1,
+							  struct LocalExpr *num_or_mem) {exit(133);}
 
 struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 					   struct Reg *r2) {
@@ -31,6 +30,7 @@ struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 		rDX = try_alloc_reg(e->tvar, g->cpu->d, r2->size);
 	}
 
+	// TODO: proper size
 	// CBW
 	// CWDE
 	// CDQE

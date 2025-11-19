@@ -3,12 +3,11 @@
 
 #define cbe(bin) (code == LE_BIN_##bin)
 #define str_len_be(code) ((str = SA_##code, len = SA_##code##_LEN))
-// TODO: div not works so simple
+
 void iprint_op(Gg, enum LE_Code code) {
 	const char *str;
 	u32 len;
 	cbe(MUL)	   ? str_len_be(IMUL)
-	: cbe(DIV)	   ? str_len_be(IDIV)
 	: cbe(ADD)	   ? str_len_be(ADD)
 	: cbe(SUB)	   ? str_len_be(SUB)
 	: cbe(SHL)	   ? str_len_be(SHL)
@@ -208,14 +207,7 @@ struct Reg *xmm_bin_to_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 	return r1;
 }
 /*
-TODO:
-(a + var):
-	- mov reg, a
-	- mov reg, var
-	- add reg, reg
-	+ mov reg, a
-	+ add reg, var
-opt mul to shift if possible
+TODO: opt mul to shift if possible
 */
 struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *r1 = 0, *r2 = 0;
@@ -227,25 +219,41 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 	if ((lceep(l, INT) ? (num = l, not_num = r) : 0) ||
 		(lceep(r, INT) ? (num = r, not_num = l) : 0)) {
+	int_or_var:
 		gen_tuple_of(g, num);
 		r1 = gen_to_reg(g, not_num, reg_size);
 
 		if (is_real_type(e->type)) {
-			num->code = LE_PRIMARY_REAL;
-			num->tvar->real = num->tvar->num;
-			turn_type_to_simple(num, e->type->code);
-			r2 = prime_to_reg(g, num, 0);
+			if (lceep(num, INT)) {
+				num->code = LE_PRIMARY_REAL;
+				num->tvar->real = num->tvar->num;
+				turn_type_to_simple(num, e->type->code);
+				r2 = prime_to_reg(g, num, 0);
+			} else
+				r2 = prime_to_reg(g, num, reg_size);
 			return xmm_bin_to_reg(g, e, r1, r2);
 		}
+		if (lceb(DIV))
+			return div_on_mem_or_int(g, e, r1, num);
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);
 		if (lceb(MUL))
 			reg_(r1->reg_code);
 
-		add_int_with_hex_comm(fun_text, num->tvar->num);
+		if (lceep(num, VAR)) {
+			declare_lvar_gvar;
+			get_assignee_size(g, num, &gvar, &lvar);
+			var_(g, lvar, gvar), g->fun_text->size--, ft_add('\n');
+		} else {
+			add_int_with_hex_comm(fun_text, num->tvar->num);
+		}
 		return r1;
 	} else {
+		if ((lceep(l, VAR) ? (num = l, not_num = r) : 0) ||
+			(lceep(r, VAR) ? (num = r, not_num = l) : 0))
+			goto int_or_var;
+
 		r1 = gen_to_reg(g, l, reg_size);
 		r2 = gen_to_reg(g, r, reg_size);
 

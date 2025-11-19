@@ -77,7 +77,8 @@ int lee(struct LocalExpr *l, struct LocalExpr *r) {
 }
 
 // TODO: (a = ((x * 10) / 9))
-// TODO: 10 / x / (100 / x) -> (a = ((0 / x) / x)) is invalid
+// e + - e -> e - e
+// e - - e -> e + e
 void opt_bin_constant_folding(struct LocalExpr *e) {
 	struct LocalExpr *l, *r, *cond;
 

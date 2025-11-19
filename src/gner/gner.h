@@ -303,8 +303,8 @@ struct BList *size_str(uc size);
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size);
 void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
 
-struct Reg *div_on_int(Gg, struct LocalExpr *e);
-struct Reg *div_on_mem(Gg, struct LocalExpr *e);
+struct Reg *div_on_mem_or_int(Gg, struct LocalExpr *e, struct Reg *r1,
+							  struct LocalExpr *num_or_mem);
 struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1, struct Reg *r2);
 
 #define let_lvar_gvar struct LocalVar *lvar, struct GlobVar *gvar
