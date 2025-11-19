@@ -298,6 +298,5 @@ void mov_reg_(Gg, enum RegCode reg) {
 }
 void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar) {
 	mov_reg_(g, reg);
-	var_(g, lvar, gvar);
-	g->fun_text->size--, ft_add('\n');
+	var_enter(lvar, gvar);
 }

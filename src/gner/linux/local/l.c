@@ -71,7 +71,7 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		if (is_real_type(e->type)) {
 			reg = try_borrow_xmm_reg(e->tvar, g);
 			mov_xmm_reg_(reg->reg_code);
-			var_(g, lvar, gvar), g->fun_text->size--, ft_add('\n');
+			var_enter(lvar, gvar);
 		} else {
 			reg = try_borrow_reg(e->tvar, g, reg_size);
 			mov_reg_var(g, reg->reg_code, lvar, gvar);
@@ -90,6 +90,11 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 		free_reg_family(reg->rf);
 		reg = xmm;
+
+	} else if (lcep(INT)) {
+		reg = try_borrow_reg(e->tvar, g, reg_size);
+		mov_reg_(g, reg->reg_code);
+		add_int_with_hex_comm(fun_text, e->tvar->num);
 
 	} else
 		exit(145);
@@ -217,7 +222,7 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	if (is_num_le(l) && is_num_le(r))
 		exit(156);
 
-	if ((lceep(l, INT) ? (num = l, not_num = r) : 0) ||
+	if ((lceep(l, INT) && is_commut(e->code) ? (num = l, not_num = r) : 0) ||
 		(lceep(r, INT) ? (num = r, not_num = l) : 0)) {
 	int_or_var:
 		gen_tuple_of(g, num);
@@ -234,7 +239,8 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 			return xmm_bin_to_reg(g, e, r1, r2);
 		}
 		if (lceb(DIV))
-			return div_on_mem_or_int(g, e, r1, num);
+			return lceep(l, INT) ? div_on_int(g, e, r1, num)
+								 : div_on_mem(g, e, r1, num);
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);
@@ -244,13 +250,14 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		if (lceep(num, VAR)) {
 			declare_lvar_gvar;
 			get_assignee_size(g, num, &gvar, &lvar);
-			var_(g, lvar, gvar), g->fun_text->size--, ft_add('\n');
+			var_enter(lvar, gvar);
 		} else {
 			add_int_with_hex_comm(fun_text, num->tvar->num);
 		}
 		return r1;
 	} else {
-		if ((lceep(l, VAR) ? (num = l, not_num = r) : 0) ||
+		if ((lceep(l, VAR) && is_commut(e->code) ? (num = l, not_num = r)
+												 : 0) ||
 			(lceep(r, VAR) ? (num = r, not_num = l) : 0))
 			goto int_or_var;
 

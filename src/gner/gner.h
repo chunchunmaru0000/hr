@@ -303,8 +303,10 @@ struct BList *size_str(uc size);
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size);
 void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
 
-struct Reg *div_on_mem_or_int(Gg, struct LocalExpr *e, struct Reg *r1,
-							  struct LocalExpr *num_or_mem);
+struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1,
+					   struct LocalExpr *num);
+struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1,
+					   struct LocalExpr *mem);
 struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1, struct Reg *r2);
 
 #define let_lvar_gvar struct LocalVar *lvar, struct GlobVar *gvar
@@ -314,6 +316,7 @@ struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1, struct Reg *r2);
 #define lvar_gvar_type() (lvar ? lvar->type : gvar->type)
 
 void var_(struct Gner *g, let_lvar_gvar);
+#define var_enter(lv, gv) var_(g, (lv), (gv)), g->fun_text->size--, ft_add('\n')
 #define reg_(reg) blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add(' ')
 #define reg_enter(reg) blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add('\n')
 void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
@@ -380,6 +383,12 @@ void bin_l_and_r_to_e(struct LocalExpr *l, struct LocalExpr *r,
 					  struct LocalExpr *e, enum LE_Code op_code);
 void opt_bin_constant_folding(struct LocalExpr *e);
 void unary_or_bool_of_num(struct LocalExpr *e);
+
+// commutative
+#define is_non_commut(op)                                                      \
+	(((op) == LE_BIN_DIV || (op) == LE_BIN_SUB || (op) == LE_BIN_MOD ||        \
+	  (op) == LE_BIN_SHL || (op) == LE_BIN_SHR))
+#define is_commut(op) ((!is_non_commut((op))))
 
 #define if_opted(cap, low) ((e->code == LE_BIN_##cap && try_opt_##low(e)))
 #define if_opted2(cap0, cap1, low)                                             \

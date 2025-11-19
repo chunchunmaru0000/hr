@@ -164,9 +164,6 @@ void find_num_in_adds(struct LocalExpr **root_place_in_parrent,
 	*found_num_parrent_place = 0;
 }
 
-#define is_one_side_op(op)                                                     \
-	(((op) == LE_BIN_DIV || (op) == LE_BIN_SUB || (op) == LE_BIN_MOD ||        \
-	  (op) == LE_BIN_SHL || (op) == LE_BIN_SHR))
 // Коммутативные (порядок не важен):
 //     + * & | ^ && ||
 // Некоммутативные (порядок важен):
@@ -179,7 +176,7 @@ void try_bin_num_in_bin(struct LocalExpr *num,
 	struct LocalExpr *found_num_bin_bro;
 	struct LocalExpr **found_num_parrent_place;
 
-	if (is_one_side_op(op_code))
+	if (is_non_commut(op_code))
 		return;
 	// l I have alredy here
 	// found_num == r->r
@@ -209,7 +206,7 @@ void try_bin_bins(struct LocalExpr *e) {
 	struct LocalExpr **found_num_parrent_place;
 	enum LE_Code op_code = e->code;
 
-	if (is_one_side_op(op_code))
+	if (is_non_commut(op_code))
 		return;
 
 	if (e->l->code == op_code) {
