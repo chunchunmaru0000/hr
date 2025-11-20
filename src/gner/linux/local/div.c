@@ -31,8 +31,8 @@ void get_reg_to_rax(struct Token *tvar, Gg, struct Reg *reg) {
 }
 
 struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
-	long div_on = e->r->tvar->num;
-	int need_neg = 0, pow, is_unsigned = is_u_type(e->type->code);
+	long div_on = e->r->tvar->num, m;
+	int need_neg = 0, is_unsigned = is_u_type(e->type->code), pow, k;
 	struct Reg *r2 = 0;
 
 	if (div_on == 0)
@@ -72,7 +72,34 @@ struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
 		}
 
 	} else {
-		exit(132);
+		// TODO: better div
+		// 		// div = lambda a, d, k: (a * ((1 << k) // d + 1)) >> k
+		// 		// m = ((1 << k) // d + 1)
+		// 		// div = lambda a, d, k: (a * m) >> k
+		// 		k = r1->size == QWORD ? 64 : 32;
+		// 		m = ((1 << k) / div_on + 1);
+		//
+		// 		// ((a * m) >> k + 1) - (a >> k - 1)
+		// 		r2 = try_borrow_reg(e->tvar, g, QWORD);
+		// 		op_reg_reg(MOV, r2, r1);
+		// 		// a >> k - 1
+		// 		op_reg_(SAR, r1->reg_code);
+		// 		add_int_with_hex_comm(fun_text, k - 1);
+		// 		// a * m
+		// 		op_reg_(IMUL, r1->reg_code);
+		// 		reg_(r1->reg_code);
+		// 		add_int_with_hex_comm(fun_text, m);
+		// 		// (a * m) >> k
+		// 		op_reg_(SAR, r1->reg_code);
+		// 		add_int_with_hex_comm(fun_text, k + 1);
+		// 		// -
+		//
+		//
+		// 		if (!is_unsigned) {
+		// 			// idiv = fn a,d,k: div(a,d,k) if a > 0 else div(a,d,k) + 1
+		// 		}
+		r2 = prime_to_reg(g, e->r, r1->size);
+		return div_on_reg(g, e, r1, r2);
 	}
 
 	if (r2)
