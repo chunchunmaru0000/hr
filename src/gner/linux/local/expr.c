@@ -300,3 +300,20 @@ void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar) {
 	mov_reg_(g, reg);
 	var_enter(lvar, gvar);
 }
+
+int le_depth(struct LocalExpr *e) {
+	int l_depth, r_depth;
+
+	return is_primary(e)			  ? 1
+		   : is_unary(e) || lce(BOOL) ? 2
+		   : is_bin_le(e)
+			   ? 1 + (l_depth = le_depth(e->l), r_depth = le_depth(e->r),
+					  l_depth > r_depth ? l_depth : r_depth)
+		   // : lcea(CALL) ? cuz side effect
+		   // : lcea(INC) ?  cuz side effect
+		   // : lcea(DEC) ?  cuz side effect
+		   : lcea(INDEX)		? le_depth(e->l) + le_depth(e->r)
+		   : lcea(FIELD_OF_PTR) ? le_depth(e->l) + 1
+		   : lcea(FIELD)		? le_depth(e->l) + 1
+								: (exit(151), -1);
+}

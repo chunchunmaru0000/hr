@@ -300,6 +300,7 @@ struct GlobVar *find_glob_Var(struct Gner *g, struct BList *name);
 struct LocalVar *find_local_Var(struct Gner *g, struct BList *name);
 struct Inst *find_struct(struct BList *name);
 struct BList *size_str(uc size);
+int le_depth(struct LocalExpr *e);
 
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size);
 void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);

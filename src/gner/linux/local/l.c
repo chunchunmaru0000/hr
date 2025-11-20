@@ -206,9 +206,7 @@ struct Reg *xmm_bin_to_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 	free_reg(r2);
 	return r1;
 }
-/*
-TODO: x >> (y / z) here would be better to calc right side first
-*/
+
 struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *r1 = 0, *r2 = 0;
 	struct LocalExpr *l = e->l, *r = e->r;
@@ -262,8 +260,13 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 												  : 0)
 			goto int_or_var;
 
-		r1 = gen_to_reg(g, l, reg_size);
-		r2 = gen_to_reg(g, r, reg_size);
+		if (!have_any_side_effect(l) && le_depth(l) < le_depth(r)) {
+			r2 = gen_to_reg(g, r, reg_size);
+			r1 = gen_to_reg(g, l, reg_size);
+		} else {
+			r1 = gen_to_reg(g, l, reg_size);
+			r2 = gen_to_reg(g, r, reg_size);
+		}
 
 		if (is_real_type(e->type))
 			return xmm_bin_to_reg(g, e, r1, r2);
