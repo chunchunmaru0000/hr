@@ -35,12 +35,17 @@ struct Reg *mul_on_int(Gg, struct Reg *r1, struct LocalExpr *num) {
 
 	if (is_pow_of_two(mul_on)) {
 		mul_on = find_pow_of_2(mul_on);
-		op_reg_(SAL, r1->reg_code);
+		if (mul_on == 1) {
+			op_reg_enter(SAL1, r1->reg_code);
+		} else {
+			op_reg_(SAL, r1->reg_code);
+			add_int_with_hex_comm(fun_text, mul_on);
+		}
 	} else {
 		op_reg_(IMUL, r1->reg_code);
 		reg_(r1->reg_code);
+		add_int_with_hex_comm(fun_text, mul_on);
 	}
-	add_int_with_hex_comm(fun_text, mul_on);
 
 	return r1;
 }

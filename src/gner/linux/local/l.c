@@ -134,8 +134,7 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 	if (lceu(MINUS)) {
 		reg = gen_to_reg(g, e->l, reg_size);
-		isprint_ft(NEG);
-		reg_enter(reg->reg_code);
+		op_reg_enter(NEG, reg->reg_code);
 	} else if (lceu(INC)) {
 	} else if (lceu(DEC)) {
 	} else if (lceu(NOT) || lce(BOOL)) {
@@ -148,14 +147,12 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 			isprint_ft(SETE);
 		reg_enter(byte->reg_code);
 
-		mov_reg_(g, reg->reg_code);
-		reg_enter(byte->reg_code);
+		op_reg_reg(MOV, reg, byte);
 
 		free_byte_reg(byte);
 	} else if (lceu(BIT_NOT)) {
 		reg = gen_to_reg(g, e->l, reg_size);
-		isprint_ft(NOT);
-		reg_enter(reg->reg_code);
+		op_reg_enter(NOT, reg->reg_code);
 	} else if (lceu(AMPER)) {
 		reg = dereference(g, e->l);
 	} else if (lceu(ADDR)) {
