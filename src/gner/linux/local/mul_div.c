@@ -30,6 +30,21 @@ void get_reg_to_rax(struct Token *tvar, Gg, struct Reg *reg) {
 	}
 }
 
+struct Reg *mul_on_int(Gg, struct Reg *r1, struct LocalExpr *num) {
+	long mul_on = num->tvar->num;
+
+	if (is_pow_of_two(mul_on)) {
+		mul_on = find_pow_of_2(mul_on);
+		op_reg_(SAL, r1->reg_code);
+	} else {
+		op_reg_(IMUL, r1->reg_code);
+		reg_(r1->reg_code);
+	}
+	add_int_with_hex_comm(fun_text, mul_on);
+
+	return r1;
+}
+
 struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
 	long div_on = e->r->tvar->num, m;
 	int need_neg = 0, is_unsigned = is_u_type(e->type->code), pow, k;

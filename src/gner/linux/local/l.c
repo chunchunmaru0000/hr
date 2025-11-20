@@ -242,6 +242,8 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		if (lceb(DIV))
 			return lceep(num, INT) ? div_on_int(g, e, r1)
 								   : div_on_mem(g, e, r1);
+		if (lceb(MUL) && lceep(num, INT))
+			return mul_on_int(g, r1, num);
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);
