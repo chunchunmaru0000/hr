@@ -16,18 +16,80 @@ int find_pow_of_2(long value) {
 	return shifts;
 }
 
-void get_reg_to_rax(struct Token *tvar, Gg, struct Reg *reg) {
-	if (!is_rAX(reg->reg_code)) {
-		if (g->cpu->a->r->allocated) {
-			// reg is now points to rAX
-			swap_basic_regs(g, g->cpu->a, reg->rf, DO_XCHG);
+void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
+				   struct RegisterFamily *rf) {
+	if (reg->rf != rf) {
+		if (rf->r->allocated) {
+			// reg is now points to rf's reg
+			swap_basic_regs(g, rf, reg->rf, DO_XCHG);
 		} else {
-			mov_reg_(g, R_RAX);
-			reg_enter(reg->rf->r->reg_code);
+			op_reg_reg(MOV, rf->r, reg->rf->r);
 			free_reg_family(reg->rf);
-			reg = try_alloc_reg(tvar, g->cpu->a, reg->size);
+			reg = try_alloc_reg(tvar, rf, reg->size);
 		}
 	}
+}
+
+#define shl_and_shr_or_sal_and_sar                                             \
+	if (lceb(SHR)) {                                                           \
+		if (is_unsigned) {                                                     \
+			isprint_ft(SHR);                                                   \
+		} else {                                                               \
+			isprint_ft(SAR);                                                   \
+		}                                                                      \
+	} else {                                                                   \
+		if (is_unsigned) {                                                     \
+			isprint_ft(SHL);                                                   \
+		} else {                                                               \
+			isprint_ft(SAL);                                                   \
+		}                                                                      \
+	}
+
+// TODO: if u << usize or more or u >> usize or more then return 0
+// where u is unsigned and usize is its bits size
+struct Reg *shift_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
+	long shift_on = e->r->tvar->num;
+	int is_unsigned = is_u_type(e->type->code);
+	struct Reg *r2;
+
+	if (shift_on > 63 || shift_on < 0) {
+		r2 = prime_to_reg(g, e->r, r1->size);
+		return shift_on_reg(g, e, r1, r2);
+	}
+	if (shift_on == 1) {
+		if (lceb(SHR)) {
+			if (is_unsigned) {
+				isprint_ft(SHR1);
+			} else {
+				isprint_ft(SAR1);
+			}
+		} else {
+			if (is_unsigned) {
+				isprint_ft(SHL1);
+			} else {
+				isprint_ft(SAL1);
+			}
+		}
+		reg_enter(r1->reg_code);
+	} else {
+		shl_and_shr_or_sal_and_sar;
+		reg_enter(r1->reg_code);
+		add_int_with_hex_comm(fun_text, shift_on);
+	}
+	return r1;
+}
+
+struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
+						 struct Reg *r2) {
+	int is_unsigned = is_u_type(e->l->type->code);
+
+	get_reg_to_rf(e->tvar, g, r2, g->cpu->c);
+
+	shl_and_shr_or_sal_and_sar;
+	reg_enter(r1->reg_code);
+
+	free_reg_family(r2->rf);
+	return r1;
 }
 
 struct Reg *mul_on_int(Gg, struct Reg *r1, struct LocalExpr *num) {
@@ -133,7 +195,7 @@ struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1) {
 	declare_lvar_gvar;
 	get_assignee_size(g, e->r, &gvar, &lvar);
 
-	get_reg_to_rax(e->tvar, g, r1);
+	get_reg_to_rf(e->tvar, g, r1, g->cpu->a);
 
 	if (g->cpu->d->r->allocated) {
 		rDX = try_borrow_reg(e->tvar, g, QWORD);
@@ -157,7 +219,7 @@ struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 					   struct Reg *r2) {
 	struct Reg *rDX = 0;
 
-	get_reg_to_rax(e->tvar, g, r1);
+	get_reg_to_rf(e->tvar, g, r1, g->cpu->a);
 
 	if (is_rDX(r2->reg_code)) {
 		rDX = try_borrow_reg(e->tvar, g, QWORD);

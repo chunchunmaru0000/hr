@@ -309,6 +309,9 @@ struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1, struct Reg *r2);
 struct Reg *mul_on_int(Gg, struct Reg *r1, struct LocalExpr *num);
+struct Reg *shift_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
+struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
+						 struct Reg *r2);
 
 #define let_lvar_gvar struct LocalVar *lvar, struct GlobVar *gvar
 #define declare_lvar_gvar                                                      \

@@ -10,8 +10,6 @@ void iprint_op(Gg, enum LE_Code code) {
 	cbe(MUL)	   ? str_len_be(IMUL)
 	: cbe(ADD)	   ? str_len_be(ADD)
 	: cbe(SUB)	   ? str_len_be(SUB)
-	: cbe(SHL)	   ? str_len_be(SHL)
-	: cbe(SHR)	   ? str_len_be(SHR)
 	: cbe(BIT_AND) ? str_len_be(BIT_AND)
 	: cbe(BIT_XOR) ? str_len_be(BIT_XOR)
 	: cbe(BIT_OR)  ? str_len_be(BIT_OR)
@@ -209,7 +207,7 @@ struct Reg *xmm_bin_to_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 	return r1;
 }
 /*
-TODO: opt mul to shift if possible
+TODO: x >> (y / z) here would be better to calc right side first
 */
 struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *r1 = 0, *r2 = 0;
@@ -241,6 +239,8 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 								   : div_on_mem(g, e, r1);
 		if (lceb(MUL) && lceep(num, INT))
 			return mul_on_int(g, r1, num);
+		if ((lceb(SHR) || lceb(SHR)))
+			return shift_on_int(g, e, r1);
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);
@@ -256,9 +256,10 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		}
 		return r1;
 	} else {
-		if (lceep(l, VAR) && is_commut(e->code) ? (num = l, not_num = r)
-			: lceep(r, VAR)						? (num = r, not_num = l)
-												: 0)
+		if (lceb(SHR) || lceb(SHR)				  ? 0
+			: lceep(l, VAR) && is_commut(e->code) ? (num = l, not_num = r)
+			: lceep(r, VAR)						  ? (num = r, not_num = l)
+												  : 0)
 			goto int_or_var;
 
 		r1 = gen_to_reg(g, l, reg_size);
@@ -269,6 +270,8 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 		if (lceb(DIV))
 			return div_on_reg(g, e, r1, r2);
+		if (lceb(SHR) || lceb(SHR))
+			return shift_on_reg(g, e, r1, r2);
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);
