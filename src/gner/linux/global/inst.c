@@ -209,7 +209,7 @@ uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in) {
 
 	for (i = 2; arg; i++) {
 		if (arg->offset != last_offset)
-			// TODO: decide it 1 byte loss is not important
+			// it wastes 2 bytes on stack if first two args are of BYTE size
 			g->stack_counter -= mem_counter > 2			? arg->arg_size
 								: arg->arg_size == BYTE ? WORD
 														: arg->arg_size;

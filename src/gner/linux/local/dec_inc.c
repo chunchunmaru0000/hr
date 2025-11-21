@@ -55,10 +55,41 @@ void var_ptr_indec(Gg, Lvar, uc is_inc) {
 	free_reg_family(reg->rf);
 }
 
+Le try_add_index_summ_to_disp(struct LocalExpr *index, long unit_size,
+							  struct BList *disp) {
+	struct LocalExpr *num;
+	struct BList *tmp_str;
+
+	if (lceeb(index, ADD) &&
+		(lceep(index->l, INT)	? (num = index->l, index = index->r)
+		 : lceep(index->r, INT) ? (num = index->r, index = index->l)
+								: 0)) {
+		blist_add(disp, ' ');
+		blist_add(disp, '+');
+		blist_add(disp, ' ');
+		tmp_str = int_to_str(unit_size * num->tvar->num);
+		copy_to_fst_and_clear_snd(disp, tmp_str);
+	}
+	return index;
+}
+Le try_find_index_summ_as_disp(struct LocalExpr *index, long unit_size,
+							   long *disp) {
+	struct LocalExpr *num;
+
+	if (lceeb(index, ADD) &&
+		(lceep(index->l, INT)	? (num = index->l, index = index->r)
+		 : lceep(index->r, INT) ? (num = index->r, index = index->l)
+								: 0))
+		*disp = unit_size * num->tvar->num;
+	else
+		*disp = 0;
+	return index;
+}
+
 // var[var or int][++ / --]
 void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 	Lvar = e->l;
-	Le index = e->r;
+	struct LocalExpr *index = e->r;
 	struct Reg *index_reg = 0, *var_reg = 0;
 	declare_lvar_gvar;
 	get_assignee_size(g, var, &gvar, &lvar);
@@ -67,6 +98,7 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 	long unit;
 	int item_size;
 	struct BList *disp_str;
+	long disp_num = 0;
 	enum RegCode base;
 
 	if (var->type->code == TC_ARR) {
@@ -84,15 +116,16 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 			add_or_sub;
 			sib_(item_size, base, 0, 0, (long)disp_str, 1);
 
-			blist_clear_free(disp_str);
 		} else {
-			index_reg = gen_to_reg(g, index, QWORD);
+			disp_str = copy_str(lvar ? lvar->name->view : gvar->signature);
+			index = try_add_index_summ_to_disp(index, item_size, disp_str);
 
-			disp_str = lvar ? lvar->name->view : gvar->signature;
+			index_reg = gen_to_reg(g, index, QWORD);
 			add_or_sub;
 			sib_(item_size, base, item_size, index_reg->rf->r->reg_code,
 				 (long)disp_str, 1);
 		}
+		blist_clear_free(disp_str);
 
 	} else if (var->type->code == TC_PTR) {
 		unit_type = ptr_targ(var->type);
@@ -111,12 +144,15 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 		} else {
 			if ((var_reg = borrow_basic_reg(g->cpu, QWORD))) {
 				mov_reg_var(g, var_reg->reg_code, lvar, gvar);
+				index =
+					try_find_index_summ_as_disp(index, item_size, &disp_num);
 				index_reg = gen_to_reg(g, index, QWORD);
 				add_or_sub;
 				sib_(item_size, var_reg->reg_code, item_size,
-					 index_reg->reg_code, 0, 0);
+					 index_reg->reg_code, disp_num, 0);
 			} else {
-				disp_str = lvar ? lvar->name->view : gvar->signature;
+				disp_str = copy_str(lvar ? lvar->name->view : gvar->signature);
+				index = try_add_index_summ_to_disp(index, item_size, disp_str);
 
 				index_reg = gen_to_reg(g, index, QWORD);
 
@@ -130,6 +166,8 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 				// add     item_size [rax], int
 				add_or_sub;
 				sib_(item_size, index_reg->reg_code, 0, 0, 0, 0);
+
+				blist_clear_free(disp_str);
 			}
 		}
 	} else
@@ -193,7 +231,6 @@ void any_indec(Gg, struct LocalExpr *e, uc is_inc) {
 	fun_text_add('\n');
 }
 
-// TODO: when do index and if index is bin with num then add this num to disp
 void gen_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 	if (lcep(VAR)) {
 		// var[++ / --]
