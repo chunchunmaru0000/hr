@@ -1,9 +1,6 @@
 #include "../pser.h"
 #include <stdio.h>
 
-// TODO: let a: *int = 0,
-// here 0 is err cuz cant even just cast num to ptr
-
 struct GlobExpr *parse_global_expression(struct Pser *p,
 										 struct TypeExpr *type) {
 	struct GlobExpr *e = global_expression(p);
@@ -294,7 +291,10 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 			type = type_expr(p);
 			e = unary_g_expression(p);
 
-			check_global_type_compatibility(p, type, e);
+			// cast of int to ptr done here, cuz check_global_type_compatibility
+			// allow cast to ptr only if e->tvar->num is 0
+			if (!(type->code == TC_PTR && e->code == CT_INT))
+				check_global_type_compatibility(p, type, e);
 
 			if (e->type)
 				free_type(e->type);

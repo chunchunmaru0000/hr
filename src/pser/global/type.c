@@ -223,6 +223,8 @@ void are_types_compatible(struct PList *msgs, struct TypeExpr *type,
 		set_arr_len(type->data.arr, 1); // 1 element
 		return;
 	}
+	if (type->code == TC_PTR && e->code == CT_INT && e->tvar->num == 0)
+		return;
 
 	if (e->code != CT_ZERO) {
 		cmpts[e->code](msgs, type, e);
