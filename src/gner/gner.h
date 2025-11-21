@@ -166,7 +166,7 @@ sae(LET_8) sae(LET_16) sae(LET_32) sae(LET_64) sae(RAX) sae(RBP)
 														sae(BIT_XOR_PD)
 															sae(BIT_OR_PD);
 sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
-	sae(SAR1);
+	sae(SAR1) sae(XOR);
 
 // #############################################################################
 

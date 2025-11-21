@@ -29,8 +29,8 @@ int try_opt_mul(struct LocalExpr *e) {
 // e / 0 -> ERR
 int try_opt_div(struct LocalExpr *e) {
 	int opted = 0;
-	if (is_le_num(e->l, 0))
-		eet(e->l->tvar, LE_DIV_ON_ZERO, 0);
+	if (is_le_num(e->l, 0) && have_only_gvar_effect_or_none(e->r))
+		do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
 	else if (is_le_num(e->r, 0))
 		eet(e->l->tvar, LE_DIV_ON_ZERO, 0);
 	else if (is_le_num(e->l, 1))
@@ -43,9 +43,17 @@ int try_opt_div(struct LocalExpr *e) {
 // e +, - 0 -> e
 int try_opt_add_or_sub(struct LocalExpr *e) {
 	int opted = 0;
-	if (is_le_num(e->l, 0))
-		do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
-	else if (is_le_num(e->r, 0))
+	if (is_le_num(e->l, 0)) {
+		if (lceb(ADD)) {
+			do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
+		} else {
+			opted = 1;
+			merge_tuple_of_to(e->l, e);
+			merge_tuple_of_to(e->r, e);
+			e->code = LE_UNARY_MINUS;
+			e->l = e->r;
+		}
+	} else if (is_le_num(e->r, 0))
 		do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
 	return opted;
 }
@@ -58,8 +66,8 @@ int try_opt_add_or_sub(struct LocalExpr *e) {
 int try_opt_shl_or_shr(struct LocalExpr *e) {
 	int opted = 0;
 	if (is_INT_le(e->l)) {
-		if (e->l->tvar->num == 0)
-			do_opt(paste_with_tuple_merge_of(e, e->r, e->l));
+		if (e->l->tvar->num == 0 && have_only_gvar_effect_or_none(e))
+			do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
 
 	} else if (is_INT_le(e->r)) {
 		if (e->r->tvar->num == 0)

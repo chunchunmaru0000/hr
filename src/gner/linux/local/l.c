@@ -78,9 +78,13 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		unit_size = e->type->code == TC_SINGLE ? DWORD : QWORD;
 
 		reg = try_borrow_reg(e->tvar, g, unit_size);
-		mov_reg_(g, reg->reg_code);
-		real_add(g->fun_text, e->tvar->real);
-		ft_add('\n');
+		if (e->tvar->real) {
+			mov_reg_(g, reg->reg_code);
+			real_add(g->fun_text, e->tvar->real);
+			ft_add('\n');
+		} else {
+			op_reg_reg(XOR, reg, reg);
+		}
 
 		xmm = try_borrow_xmm_reg(e->tvar, g);
 		mov_xmm_reg_(xmm->reg_code);
@@ -91,9 +95,13 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 	} else if (lcep(INT)) {
 		reg = try_borrow_reg(e->tvar, g, reg_size);
-		mov_reg_(g, reg->reg_code);
-		add_int_with_hex_comm(fun_text, e->tvar->num);
 
+		if (e->tvar->num) {
+			mov_reg_(g, reg->reg_code);
+			add_int_with_hex_comm(fun_text, e->tvar->num);
+		} else {
+			op_reg_reg(XOR, reg, reg);
+		}
 	} else
 		exit(145);
 	return reg;

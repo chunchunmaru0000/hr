@@ -60,6 +60,7 @@ sa(SHL1, "сдвл1 ");
 sa(SHR1, "сдвп1 ");
 sa(TEST, "проб ");
 sa(CMOVS, "сбытьз ");
+sa(XOR, "искл ");
 
 sa(MUL_SS, "умнсо ");
 sa(DIV_SS, "делсо ");
