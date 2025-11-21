@@ -76,7 +76,6 @@ int lee(struct LocalExpr *l, struct LocalExpr *r) {
 	return 1;
 }
 
-// TODO: (a = ((x * 10) / 9))
 // e + - e -> e - e
 // e - - e -> e + e
 void opt_bin_constant_folding(struct LocalExpr *e) {

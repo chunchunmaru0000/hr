@@ -165,6 +165,33 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	return reg;
 }
 
+struct Reg *after_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+	struct Reg *r1 = 0, *r2 = 0;
+	struct Arg *arg;
+	struct BList *arg_field_full_name;
+
+	if (lcea(INDEX)) {
+	} else if (lcea(CALL)) {
+	} else if (lcea(INC)) {
+	} else if (lcea(DEC)) {
+	} else if (lcea(FIELD_OF_PTR)) {
+		arg = (struct Arg *)e->tvar->num;
+		arg_field_full_name = (struct BList *)(long)e->tvar->real;
+
+		r1 = gen_to_reg(g, e->l, QWORD);
+		op_reg_(MOV, r1->reg_code);
+		sib_enter(arg->arg_size, 0, 0, r1->reg_code, arg_field_full_name, 1);
+	} else if (lcea(FIELD)) {
+		arg = (struct Arg *)e->tvar->num;
+	}
+
+	if (!r1)
+		exit(146);
+	if (r2)
+		free_reg_family(r2->rf);
+	return r1;
+}
+
 #define ss_or_sd                                                               \
 	if (to_ss)                                                                 \
 		isprint_ft(CVTSI2SS);                                                  \
@@ -297,6 +324,8 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 		res_reg = prime_to_reg(g, e, reg_size);
 	else if (is_unary(e) || lce(BOOL))
 		res_reg = unary_to_reg(g, e, reg_size);
+	else if (is_after(e))
+		res_reg = after_to_reg(g, e, reg_size);
 	else if (is_bin_le(e))
 		res_reg = bin_to_reg(g, e, reg_size);
 	else

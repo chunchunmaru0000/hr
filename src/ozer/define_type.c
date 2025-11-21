@@ -32,8 +32,10 @@ void define_var_type(struct LocalExpr *e) {
 }
 
 void define_struct_field_type_type(struct LocalExpr *e) {
-	struct Token *field_name = (struct Token *)e->r, *arg_field_name;
+	struct Token *field_name = (struct Token *)e->r, *arg_field_name,
+				 *struct_name;
 	struct Inst *field_struct;
+	struct BList *arg_field_full_name;
 	struct Arg *arg;
 	u32 i, j;
 
@@ -59,8 +61,17 @@ void define_struct_field_type_type(struct LocalExpr *e) {
 			arg_field_name = plist_get(arg->names, j);
 
 			if (sc(vs(field_name), vs(arg_field_name))) {
+				struct_name = plist_get(field_struct->os, DCLR_STRUCT_NAME);
+
+				arg_field_full_name = copy_str(struct_name->view);
+				blist_add(arg_field_full_name, '.');
+				blat_blist(arg_field_full_name, arg_field_name->view);
+				zero_term_blist(arg_field_full_name);
+
 				// REMEMBER: when field e->tvar->num = (long)arg;
+				// and e->tvar->real = (double)(long)arg_field_full_name
 				e->tvar->num = (long)arg;
+				e->tvar->real = (double)(long)arg_field_full_name;
 				e->type = copy_type_expr(arg->type);
 				return;
 			}

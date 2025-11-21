@@ -499,6 +499,7 @@ enum LE_Code {
 #define is_primary(e)                                                          \
 	((e)->code >= LE_PRIMARY_INT && (e)->code <= LE_PRIMARY_TUPLE)
 #define is_unary(e) ((e)->code >= LE_UNARY_MINUS && (e)->code <= LE_UNARY_ADDR)
+#define is_after(e) ((e)->code >= LE_AFTER_INDEX && (e)->code <= LE_AFTER_FIELD)
 #define is_bin_le(e) ((e)->code >= LE_BIN_MUL && (e)->code <= LE_BIN_OR)
 #define is_INT_le(e) ((e)->code == LE_PRIMARY_INT)
 #define is_REAL_le(e) ((e)->code == LE_PRIMARY_REAL)

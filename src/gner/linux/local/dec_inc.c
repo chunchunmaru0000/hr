@@ -185,39 +185,33 @@ void var_index_indec(Gg, struct LocalExpr *e, uc is_inc) {
 void var_field_indec(Gg, struct LocalExpr *e, uc is_inc) {
 	// from define_struct_field_type_type
 	struct Arg *feld = (struct Arg *)e->tvar->num;
+	struct BList *disp = (struct BList *)(long)e->tvar->real;
+
 	struct LocalExpr *var = e->l;
 	struct Reg *var_reg = 0;
 
 	struct TypeExpr *unit_type = feld->type;
 	long unit = add_of_type(var->tvar, unit_type);
 	int unit_size = feld->arg_size;
+	enum RegCode base;
 
 	if (lcea(FIELD)) {
 		declare_lvar_gvar;
 		get_assignee_size(g, var, &gvar, &lvar);
+		blist_add(disp, ' '), blist_add(disp, '+'), blist_add(disp, ' ');
 
-		if (lvar) {
-			// add unit_size [rbp lvar+offset], unit
-			add_or_sub;
-			sib_(unit_size, R_RBP, 0, 0, lvar->stack_pointer + feld->offset, 0);
-		} else {
-			// add unit_size [gvar+offset], unit
-			struct BList *disp = int_to_str(feld->offset);
-			blist_add(disp, '+');
-			blat_blist(disp, gvar->signature);
-			add_or_sub;
-			sib_(unit_size, 0, 0, 0, (long)disp, 1);
-
-			blist_clear_free(disp);
-		}
+		lvar ? (blat_blist(disp, lvar->name->view), base = R_RBP)
+			 : (blat_blist(disp, gvar->signature), base = 0);
 	} else {
 		// add     unit_size [rax + offset], unit
-		var_reg = gen_to_reg(g, var, QWORD);
-		add_or_sub;
-		sib_(unit_size, var_reg->reg_code, 0, 0, feld->offset, 0);
+		base = (var_reg = gen_to_reg(g, var, QWORD))->reg_code;
 	}
 
+	add_or_sub;
+	sib_(unit_size, 0, 0, base, disp, 1);
 	add_int_with_hex_comm(fun_text, unit);
+
+	blist_clear_free(disp);
 	if (var_reg)
 		free_reg_family(var_reg->rf);
 }
