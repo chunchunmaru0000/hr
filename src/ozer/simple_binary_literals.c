@@ -1,4 +1,5 @@
 #include "../gner/gner.h"
+#include <stdio.h>
 // TODO: mem leaks in this file
 
 constr LE_DIV_ON_ZERO = "ЭЭЭ ты куда на 0 делишь.";
@@ -49,8 +50,11 @@ int try_opt_add_or_sub(struct LocalExpr *e) {
 	return opted;
 }
 
+#define BITS 8 // bits in one byte
 // e <<, >> 0 -> e
 // e <<, >> n -> e *,/ 2^n , but need to prove that e is int
+// if u <<, >> usize or more -> 0
+// * where u is unsigned num and usize is its bits size
 int try_opt_shl_or_shr(struct LocalExpr *e) {
 	int opted = 0;
 	if (is_INT_le(e->l)) {
@@ -60,6 +64,19 @@ int try_opt_shl_or_shr(struct LocalExpr *e) {
 	} else if (is_INT_le(e->r)) {
 		if (e->r->tvar->num == 0)
 			do_opt(paste_with_tuple_merge_of(e, e->l, e->r));
+
+		else if (is_u_type(e->l->type->code) &&
+				 e->r->tvar->num >= (unsafe_size_of_type(e->l->type) * BITS) &&
+				 have_only_gvar_effect_or_none(e)) {
+			opted = 1;
+			merge_tuple_of_to(e->l, e);
+			merge_tuple_of_to(e->r, e);
+			// make e zero
+			e->code = LE_PRIMARY_INT;
+			turn_type_to_simple(e, e->l->type->code);
+			e->tvar->num = 0;
+			update_int_view(e);
+		}
 
 		else if (e->l->type && is_int_type(e->l->type)) {
 			blist_clear_free(e->tvar->view);
@@ -71,7 +88,7 @@ int try_opt_shl_or_shr(struct LocalExpr *e) {
 				e->code = LE_BIN_DIV;
 				e->tvar->view = copy_blist_from_str("/");
 			}
-			e->r->tvar->num = 2 << (e->r->tvar->num - 1);
+			e->r->tvar->num = 1 << e->r->tvar->num;
 			update_int_view(e->r);
 		}
 	}

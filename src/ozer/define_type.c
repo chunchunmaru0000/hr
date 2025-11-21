@@ -132,6 +132,12 @@ struct TypeExpr *add_types(struct LocalExpr *l, struct LocalExpr *r) {
 	} else if (is_real_type(r_type)) {
 		res = new_type_expr(r_type->code);
 	} else { // both are ints or uints
+		// turn int literal type to unsigned
+		if (is_u_type(r->type->code) && lceep(l, INT))
+			turn_type_to_simple(l, r->type->code);
+		else if (is_u_type(l->type->code) && lceep(r, INT))
+			turn_type_to_simple(r, l->type->code);
+
 		res = new_type_expr(max_code_or_any(l_type->code, r_type->code));
 	}
 	return res;

@@ -45,8 +45,6 @@ void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 		}                                                                      \
 	}
 
-// TODO: if u << usize or more or u >> usize or more then return 0
-// where u is unsigned and usize is its bits size
 struct Reg *shift_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
 	long shift_on = e->r->tvar->num;
 	int is_unsigned = is_u_type(e->type->code);
