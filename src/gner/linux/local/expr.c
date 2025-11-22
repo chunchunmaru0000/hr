@@ -86,8 +86,9 @@ void print_le(struct LocalExpr *e, int with_n) {
 		print_le(e->l, 0);
 		printf("%s)%s", remove_color_level(), COLOR_RESET);
 	} else if (is_unary(e)) {
-		printf("%s", vs(e->tvar));
+		printf("%s(%s%s", take_color_level(), COLOR_RESET, vs(e->tvar));
 		print_le(e->l, 0);
+		printf("%s)%s", remove_color_level(), COLOR_RESET);
 	} else if (lcea(INC) || lcea(DEC)) {
 		print_le(e->l, 0);
 		printf("%s", vs(e->tvar));
@@ -164,8 +165,10 @@ struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 		print_orher(e->l);
 		just_char(')');
 	} else if (is_unary(e)) {
+		just_char('(');
 		print_tvar(e);
 		print_orher(e->l);
+		just_char(')');
 	} else if (lcea(INC) || lcea(DEC)) {
 		print_orher(e->l);
 		print_tvar(e);
