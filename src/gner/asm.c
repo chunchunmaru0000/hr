@@ -44,8 +44,8 @@ sa(BIT_XOR, "искл "); // LE_BIN_BIT_XOR
 sa(BIT_OR, "или ");	  // LE_BIN_BIT_OR
 sa(NEG, "нег ");
 sa(NOT, "не ");
-sa(SETE, "уст0 ");
-sa(SETNE, "устн0 ");
+sa(SET0, "уст0 ");
+sa(SETN0, "устн0 ");
 sa(CMP, "срав ");
 sa(MOV_XMM, "бытьэ ");
 sa(CVTSI2SS, "пресч2со ");
@@ -61,7 +61,6 @@ sa(SHR1, "сдвп1 ");
 sa(TEST, "проб ");
 sa(CMOVS, "сбытьз ");
 sa(XOR, "искл ");
-
 sa(MUL_SS, "умнсо ");
 sa(DIV_SS, "делсо ");
 sa(ADD_SS, "плюссо ");
@@ -76,6 +75,16 @@ sa(SUB_SD, "минссд ");
 sa(BIT_AND_PD, "иуд ");
 sa(BIT_XOR_PD, "илиуд ");
 sa(BIT_OR_PD, "исклуд ");
+sa(SETB, "устн ");
+sa(SETBE, "устнв ");
+sa(SETA, "уств ");
+sa(SETAE, "уствр ");
+sa(SETL, "устм ");
+sa(SETLE, "устмр ");
+sa(SETG, "устб ");
+sa(SETGE, "устбр ");
+sa(SETE, "устр ");
+sa(SETNE, "устнр ");
 
 sa(L_PAR, "(");
 sa(R_PAR, ") ");

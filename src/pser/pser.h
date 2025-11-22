@@ -501,6 +501,8 @@ enum LE_Code {
 #define is_unary(e) ((e)->code >= LE_UNARY_MINUS && (e)->code <= LE_UNARY_ADDR)
 #define is_after(e) ((e)->code >= LE_AFTER_INDEX && (e)->code <= LE_AFTER_FIELD)
 #define is_bin_le(e) ((e)->code >= LE_BIN_MUL && (e)->code <= LE_BIN_OR)
+#define is_uses_cmp(e)                                                         \
+	((e)->code >= LE_BIN_LESS && (e)->code <= LE_BIN_NOT_EQUALS)
 #define is_INT_le(e) ((e)->code == LE_PRIMARY_INT)
 #define is_REAL_le(e) ((e)->code == LE_PRIMARY_REAL)
 #define is_num_le(e) ((is_INT_le((e)) || is_REAL_le((e))))

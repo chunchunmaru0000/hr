@@ -155,8 +155,8 @@ sae(LET_8) sae(LET_16) sae(LET_32) sae(LET_64) sae(RAX) sae(RBP)
 			sae(BYTE) sae(WORD) sae(DWORD) sae(QWORD) sae(MOV) sae(L_PAR)
 				sae(R_PAR) sae(PAR_RBP) sae(OFF_RAX) sae(JMP) sae(LEA) sae(IMUL)
 					sae(IDIV) sae(ADD) sae(SUB) sae(SHL) sae(SHR) sae(BIT_AND)
-						sae(BIT_XOR) sae(BIT_OR) sae(NEG) sae(NOT) sae(SETE)
-							sae(SETNE) sae(CMP) sae(MOV_XMM) sae(CVTSI2SS)
+						sae(BIT_XOR) sae(BIT_OR) sae(NEG) sae(NOT) sae(SET0)
+							sae(SETN0) sae(CMP) sae(MOV_XMM) sae(CVTSI2SS)
 								sae(CVTSI2SD) sae(CVTSS2SD) sae(MUL_SS)
 									sae(DIV_SS) sae(ADD_SS) sae(SUB_SS)
 										sae(BIT_AND_PS) sae(BIT_XOR_PS)
@@ -166,7 +166,8 @@ sae(LET_8) sae(LET_16) sae(LET_32) sae(LET_64) sae(RAX) sae(RBP)
 														sae(BIT_XOR_PD)
 															sae(BIT_OR_PD);
 sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
-	sae(SAR1) sae(XOR);
+	sae(SAR1) sae(XOR) sae(SETB) sae(SETBE) sae(SETA) sae(SETAE) sae(SETL)
+		sae(SETLE) sae(SETG) sae(SETGE) sae(SETE) sae(SETNE);
 
 // #############################################################################
 
@@ -314,6 +315,11 @@ struct Reg *mul_on_int(Gg, struct Reg *r1, struct LocalExpr *num);
 struct Reg *shift_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 						 struct Reg *r2);
+struct Reg *cmp_on_mem_or_int(Gg, struct LocalExpr *e, struct Reg *r1,
+							  struct LocalExpr *num_or_mem);
+struct Reg *reverse_cmp_on_mem_or_int(Gg, struct LocalExpr *e, struct Reg *r1,
+							  struct LocalExpr *num_or_mem);
+struct Reg *cmp_on_reg(Gg, struct LocalExpr *e, struct Reg *r1, struct Reg *r2);
 
 #define let_lvar_gvar struct LocalVar *lvar, struct GlobVar *gvar
 #define declare_lvar_gvar                                                      \
@@ -361,6 +367,14 @@ struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 		reg_((rcode));                                                         \
 		reg_enter((rcode));                                                    \
 	} while (0)
+#define cmp_with_mem(reg, mem)                                                 \
+	op_reg_(CMP, (reg)->reg_code);                                             \
+	get_assignee_size(g, (mem), &gvar, &lvar);                                 \
+	var_enter(lvar, gvar);
+#define cmp_with_num(reg, number)                                              \
+	op_reg_(CMP, (reg)->reg_code);                                             \
+	add_int_with_hex_comm(fun_text, (number)->tvar->num);
+#define cmp_with_reg(r1, r2) op_reg_reg(CMP, (r1), (r2))
 
 // ############################################################################
 // 									OZER
