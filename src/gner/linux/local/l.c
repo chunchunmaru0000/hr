@@ -173,69 +173,6 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	return reg;
 }
 
-struct Reg *after_to_reg(Gg, struct LocalExpr *e, int reg_size) {
-	struct Reg *r1 = 0, *r2 = 0;
-	struct Arg *arg;
-	struct BList *field_full_name;
-	enum RegCode base;
-
-	if (lcea(INDEX)) {
-	} else if (lcea(CALL)) {
-	} else if (lcea(INC)) {
-	} else if (lcea(DEC)) {
-	} else if (lcea(FIELD_OF_PTR)) {
-		arg = (struct Arg *)e->tvar->num;
-		field_full_name = (struct BList *)(long)e->tvar->real;
-
-		r1 = gen_to_reg(g, e->l, QWORD);
-		op_reg_(MOV, r1->reg_code);
-		sib_enter(arg->arg_size, 0, 0, r1->reg_code, field_full_name, 1);
-
-		blist_clear_free(field_full_name);
-
-	} else if (lcea(FIELD)) {
-		arg = (struct Arg *)e->tvar->num;
-		field_full_name = (struct BList *)(long)e->tvar->real;
-
-		if (lceep(e->l, VAR)) {
-			declare_lvar_gvar;
-			get_assignee_size(g, e->l, &gvar, &lvar);
-
-			blist_add(field_full_name, ' ');
-			blist_add(field_full_name, '+');
-			blist_add(field_full_name, ' ');
-
-			lvar ? (blat_blist(field_full_name, lvar->name->view), base = R_RBP)
-				 : (blat_blist(field_full_name, gvar->signature), base = 0);
-
-			r1 = try_borrow_reg(e->tvar, g, arg->arg_size);
-			op_reg_(MOV, r1->reg_code);
-			sib_enter(arg->arg_size, 0, 0, base, field_full_name, 1);
-
-		} else if (lceeu(e->l, ADDR)) {
-			r1 = gen_to_reg(g, e->l->l, QWORD);
-			op_reg_(MOV, r1->reg_code);
-			sib_enter(arg->arg_size, 0, 0, r1->reg_code, field_full_name, 1);
-
-		} else if (lceea(e->l, FIELD_OF_PTR)) {
-			exit(147);
-		} else if (lceea(e->l, FIELD)) {
-			exit(148);
-		} else {
-			printf("[%d]\n", e->l->code);
-			eet(e->tvar, "а как, должно же проверятсья в define_type", 0);
-		}
-
-		blist_clear_free(field_full_name);
-	}
-
-	if (!r1)
-		exit(146);
-	if (r2)
-		free_reg_family(r2->rf);
-	return r1;
-}
-
 #define ss_or_sd                                                               \
 	if (to_ss)                                                                 \
 		isprint_ft(CVTSI2SS);                                                  \

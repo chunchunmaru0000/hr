@@ -10,6 +10,7 @@ struct BList *size_str(uc size) {
 		return copy_blist_from_str((char *)SA_DWORD);
 	if (size == QWORD)
 		return copy_blist_from_str((char *)SA_QWORD);
+	printf("size %d\n", size);
 	exit(127);
 }
 

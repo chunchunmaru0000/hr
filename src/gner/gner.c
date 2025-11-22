@@ -121,7 +121,22 @@ constr MAKE_SIMPLER_EXPR = "разделить выражение на неск�
 #define is_r15(r)                                                              \
 	(rc((r), R15) || rc((r), R15D) || rc((r), R15W) || rc((r), R15B))
 
+constr TOO_BIG_EXPR_FOR_REG =
+	"Слишком большое или маленькое выражение для помещения его в регистр.";
+constr SIZE_IN_BYTES = "размер выражения в байтах: ";
+
+void err_of_size(struct Token *place, long size) {
+	struct ErrorInfo info = {
+		place, TOO_BIG_EXPR_FOR_REG, SIZE_IN_BYTES, (void *)size, ET_INT,
+	};
+	etei_with_extra(&info);
+	exit(1);
+}
+
 struct Reg *try_borrow_reg(struct Token *place, Gg, uc of_size) {
+	if (of_size > QWORD || of_size < BYTE)
+		err_of_size(place, of_size);
+
 	struct Reg *reg = borrow_basic_reg(g->cpu, of_size);
 
 	if (reg == 0)

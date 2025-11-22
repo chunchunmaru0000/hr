@@ -305,6 +305,7 @@ int le_depth(struct LocalExpr *e);
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size);
 void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
 
+struct Reg *after_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1);
