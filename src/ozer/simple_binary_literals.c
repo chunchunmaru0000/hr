@@ -260,8 +260,11 @@ int try_opt_bit_and(struct LocalExpr *e) {
 
 // e < e  -> false, but if e is not side effective
 // e > e  -> false, but if e is not side effective
+// num >, < e -> e >, < num
 int try_opt_more_or_less(struct LocalExpr *e) {
 	int opted = 0;
+	struct LocalExpr *tmp;
+
 	if (both_not_side_effective(e->l, e->r) && lee(e->l, e->r)) {
 		opted = 1;
 		// free_req(e->l, e->r)
@@ -271,13 +274,20 @@ int try_opt_more_or_less(struct LocalExpr *e) {
 			e->tvar->num = 0;
 			update_int_view(e);
 		}
+	} else if (is_num_le(e->l)) {
+		tmp = e->l, e->l = e->r, e->r = tmp;
+		lceb(MORE) ? (blist_set(e->tvar->view, 0, '<'), e->code = LE_BIN_LESS)
+				   : (blist_set(e->tvar->view, 0, '>'), e->code = LE_BIN_MORE);
 	}
 	return opted;
 }
 // e == e -> true,  but if e is not side effective
 // e != e -> false, but if e is not side effective
+// num ==, != e -> e ==, != num
 int try_opt_eque_or_nequ(struct LocalExpr *e) {
 	int opted = 0;
+	struct LocalExpr *tmp;
+
 	if (both_not_side_effective(e->l, e->r) && lee(e->l, e->r)) {
 		opted = 1;
 		// free_req(e->l, e->r)
@@ -287,13 +297,17 @@ int try_opt_eque_or_nequ(struct LocalExpr *e) {
 			e->code = LE_PRIMARY_INT;
 			update_int_view(e);
 		}
-	}
+	} else if (is_num_le(e->l))
+		tmp = e->l, e->l = e->r, e->r = tmp;
 	return opted;
 }
 // e <= e -> true,  but if e is not side effective
 // e >= e -> true,  but if e is not side effective
+// num >=, <= e -> e >=, <= num
 int try_opt_moree_or_lesse(struct LocalExpr *e) {
 	int opted = 0;
+	struct LocalExpr *tmp;
+
 	if (both_not_side_effective(e->l, e->r) && lee(e->l, e->r)) {
 		opted = 1;
 		// free_req(e->l, e->r)
@@ -303,6 +317,11 @@ int try_opt_moree_or_lesse(struct LocalExpr *e) {
 			e->tvar->num = 1;
 			update_int_view(e);
 		}
+	} else if (is_num_le(e->l)) {
+		tmp = e->l, e->l = e->r, e->r = tmp;
+		lceb(MOREE)
+			? (blist_set(e->tvar->view, 0, '<'), e->code = LE_BIN_LESSE)
+			: (blist_set(e->tvar->view, 0, '>'), e->code = LE_BIN_MOREE);
 	}
 	return opted;
 }
