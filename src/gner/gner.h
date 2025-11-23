@@ -376,6 +376,12 @@ struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 	g->indent_level--;                                                         \
 	blat_ft(label), ft_add(':'), ft_add('\n');                                 \
 	g->indent_level++;
+#define reverse_cmp_le(le)                                                     \
+	((le) == LE_BIN_LESS	? LE_BIN_MOREE                                     \
+	 : (le) == LE_BIN_LESSE ? LE_BIN_MORE                                      \
+	 : (le) == LE_BIN_MORE	? LE_BIN_LESSE                                     \
+	 : (le) == LE_BIN_MOREE ? LE_BIN_LESS                                      \
+							: (le))
 
 // ############################################################################
 // 									OZER

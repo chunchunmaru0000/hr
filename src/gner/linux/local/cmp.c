@@ -43,12 +43,6 @@ void iprint_set(Gg, enum LE_Code le, int is_u) {
 	indent_line(g, g->fun_text);
 	blat(g->fun_text, (uc *)str, len - 1);
 }
-#define reverse_cmp_le(le)                                                     \
-	((le) == LE_BIN_LESS	? LE_BIN_MORE                                      \
-	 : (le) == LE_BIN_LESSE ? LE_BIN_MOREE                                     \
-	 : (le) == LE_BIN_MORE	? LE_BIN_LESS                                      \
-	 : (le) == LE_BIN_MOREE ? LE_BIN_LESSE                                     \
-							: (le))
 
 void just_cmp(Gg, struct LocalExpr *e) {
 	struct Reg *r1 = 0, *r2 = 0;

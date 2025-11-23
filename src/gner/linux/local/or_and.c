@@ -1,10 +1,40 @@
 #include "../../gner.h"
 
+#define cbe(bin) (le == LE_BIN_##bin)
+#define str_len_be(code) ((str = SA_##code, len = SA_##code##_LEN))
+
+void iprint_jmp(Gg, enum LE_Code le, int is_u) {
+	const char *str;
+	u32 len;
+	if (is_u) {
+		cbe(LESS)		  ? str_len_be(JB)
+		: cbe(LESSE)	  ? str_len_be(JBE)
+		: cbe(MORE)		  ? str_len_be(JA)
+		: cbe(MOREE)	  ? str_len_be(JAE)
+		: cbe(EQUALS)	  ? str_len_be(JE)
+		: cbe(NOT_EQUALS) ? str_len_be(JNE)
+						  : exit(133);
+	} else {
+		cbe(LESS)		  ? str_len_be(JL)
+		: cbe(LESSE)	  ? str_len_be(JLE)
+		: cbe(MORE)		  ? str_len_be(JG)
+		: cbe(MOREE)	  ? str_len_be(JGE)
+		: cbe(EQUALS)	  ? str_len_be(JE)
+		: cbe(NOT_EQUALS) ? str_len_be(JNE)
+						  : exit(134);
+	}
+	indent_line(g, g->fun_text);
+	blat(g->fun_text, (uc *)str, len - 1);
+}
+
 void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
 	struct Reg *r1;
 
 	if (is_uses_cmp(e)) {
 		just_cmp(g, e);
+
+		iprint_jmp(g, reverse_cmp_le(e->code), is_u_type(e->l->type->code));
+		blat_ft(false_label), ft_add('\n');
 	} else if (lceb(AND)) {
 		and_cmp(g, e->l, false_label);
 		and_cmp(g, e->r, false_label);
@@ -59,11 +89,8 @@ struct Reg *and_to_reg(Gg, struct LocalExpr *e, int reg_size,
 		op_reg_reg(XOR, r1, r1);
 		// exit_label:
 		add_label(exit_label);
-	} else {
+	} else
 		exit(127);
-		and_cmp(g, e->l, false_label);
-		and_cmp(g, e->r, false_label);
-	}
 
 	if (!r1 && to_gen_labels)
 		exit(122);
