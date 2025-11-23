@@ -317,11 +317,8 @@ struct Reg *mul_on_int(Gg, struct Reg *r1, struct LocalExpr *num);
 struct Reg *shift_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 						 struct Reg *r2);
-struct Reg *cmp_on_mem_or_int(Gg, struct LocalExpr *e, struct Reg *r1,
-							  struct LocalExpr *num_or_mem);
-struct Reg *reverse_cmp_on_mem_or_int(Gg, struct LocalExpr *e, struct Reg *r1,
-									  struct LocalExpr *num_or_mem);
-struct Reg *cmp_on_reg(Gg, struct LocalExpr *e, struct Reg *r1, struct Reg *r2);
+void just_cmp(Gg, struct LocalExpr *e);
+struct Reg *cmp_with_set(Gg, struct LocalExpr *e);
 struct Reg *and_to_reg(Gg, struct LocalExpr *e, int reg_size,
 					   struct BList *false_label);
 struct Reg *or_to_reg(Gg, struct LocalExpr *e, int reg_size);
@@ -375,14 +372,6 @@ struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 		reg_((rcode));                                                         \
 		reg_enter((rcode));                                                    \
 	} while (0)
-#define cmp_with_mem(reg, mem)                                                 \
-	op_reg_(CMP, (reg)->reg_code);                                             \
-	get_assignee_size(g, (mem), &gvar, &lvar);                                 \
-	var_enter(lvar, gvar);
-#define cmp_with_num(reg, number)                                              \
-	op_reg_(CMP, (reg)->reg_code);                                             \
-	add_int_with_hex_comm(fun_text, (number)->tvar->num);
-#define cmp_with_reg(r1, r2) op_reg_reg(CMP, (r1), (r2))
 #define add_label(label)                                                       \
 	g->indent_level--;                                                         \
 	blat_ft(label), ft_add(':'), ft_add('\n');                                 \

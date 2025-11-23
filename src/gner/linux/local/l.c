@@ -223,29 +223,15 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	if (is_num_le(l) && is_num_le(r))
 		exit(156);
 
-	if (is_uses_cmp(e)) {
-		lceep(l, INT)			 ? (num = l, not_num = r)
-		: lceep(r, INT)			 ? (num = r, not_num = l)
-		: lceb(SHR) || lceb(SHR) ? 0
-		: lceep(l, VAR)			 ? (num = l, not_num = r)
-		: lceep(r, VAR)			 ? (num = r, not_num = l)
-								 : 0;
-		if (l == not_num || (l == num && !have_any_side_effect(l)))
-			goto int_or_var;
-		goto calc_to_regs;
-	}
-
 	// if (lceep(l, INT) && is_commut(e->code) ? (num = l, not_num = r)
 	// 	: lceep(r, INT)						? (num = r, not_num = l)
 	// 										: 0) {
-	// TODO: cmp mem, int
-	if (lceep(l, INT) && is_commut(e->code)	  ? (num = l, not_num = r)
-		: lceep(r, INT)						  ? (num = r, not_num = l)
+	if (is_num_le(l) && is_commut(e->code)	  ? (num = l, not_num = r)
+		: is_num_le(r)						  ? (num = r, not_num = l)
 		: lceb(SHR) || lceb(SHR)			  ? 0
 		: lceep(l, VAR) && is_commut(e->code) ? (num = l, not_num = r)
 		: lceep(r, VAR)						  ? (num = r, not_num = l)
 											  : 0) {
-	int_or_var:
 		gen_tuple_of(g, num);
 		r1 = gen_to_reg(g, not_num, reg_size);
 
@@ -266,9 +252,6 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 			return mul_on_int(g, r1, num);
 		if ((lceb(SHR) || lceb(SHR)))
 			return shift_on_int(g, e, r1);
-		if (is_uses_cmp(e))
-			return l == not_num ? cmp_on_mem_or_int(g, e, r1, num)
-								: reverse_cmp_on_mem_or_int(g, e, r1, num);
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);
@@ -289,7 +272,6 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		// 	: lceep(r, VAR)						  ? (num = r, not_num = l)
 		// 										  : 0)
 		// 	goto int_or_var;
-	calc_to_regs:
 
 		if (!have_any_side_effect(l) && le_depth(l) < le_depth(r)) {
 			r2 = gen_to_reg(g, r, reg_size);
@@ -306,8 +288,6 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 			return div_on_reg(g, e, r1, r2);
 		if (lceb(SHR) || lceb(SHR))
 			return shift_on_reg(g, e, r1, r2);
-		if (is_uses_cmp(e))
-			return cmp_on_reg(g, e, r1, r2);
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);
@@ -336,6 +316,8 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 		res_reg = and_to_reg(g, e, reg_size, 0);
 	else if (lceb(OR))
 		res_reg = or_to_reg(g, e, reg_size);
+	else if (is_uses_cmp(e))
+		return cmp_with_set(g, e);
 	else if (is_bin_le(e))
 		res_reg = bin_to_reg(g, e, reg_size);
 	else

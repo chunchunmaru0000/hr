@@ -43,57 +43,81 @@ void iprint_set(Gg, enum LE_Code le, int is_u) {
 	indent_line(g, g->fun_text);
 	blat(g->fun_text, (uc *)str, len - 1);
 }
-struct Reg *reverse_cmp_on_mem_or_int(Gg, struct LocalExpr *e, struct Reg *r1,
-									  struct LocalExpr *num_or_mem) {
-	enum LE_Code le = e->code;
-	e->code = lceb(LESS)	? LE_BIN_MORE
-			  : lceb(LESSE) ? LE_BIN_MOREE
-			  : lceb(MORE)	? LE_BIN_LESS
-			  : lceb(MOREE) ? LE_BIN_LESSE
-							: e->code;
-	r1 = cmp_on_mem_or_int(g, e, r1, num_or_mem);
-	e->code = le; // in any case
-	return r1;
+#define reverse_cmp_le(le)                                                     \
+	((le) == LE_BIN_LESS	? LE_BIN_MORE                                      \
+	 : (le) == LE_BIN_LESSE ? LE_BIN_MOREE                                     \
+	 : (le) == LE_BIN_MORE	? LE_BIN_LESS                                      \
+	 : (le) == LE_BIN_MOREE ? LE_BIN_LESSE                                     \
+							: (le))
+
+void just_cmp(Gg, struct LocalExpr *e) {
+	struct Reg *r1 = 0, *r2 = 0;
+	struct LocalExpr *l = e->l, *r = e->r;
+	declare_lvar_gvar;
+
+	if (lceep(l, INT))
+		exit(112); // shouldn't be, ozer flips l int to r
+
+	else if (lceep(r, INT)) {
+		if (lceep(l, VAR)) {
+			gen_tuple_of(g, l);
+			gen_tuple_of(g, r);
+			get_assignee_size(g, l, &gvar, &lvar);
+			op_var_(CMP, lvar, gvar);
+		} else {
+			r1 = gen_to_reg(g, l, 0);
+			gen_tuple_of(g, r);
+			op_reg_(CMP, r1->reg_code);
+		}
+		add_int_with_hex_comm(fun_text, r->tvar->num);
+
+	} else if (lceep(r, VAR)) {
+		r1 = gen_to_reg(g, l, 0);
+		gen_tuple_of(g, r);
+
+		get_assignee_size(g, r, &gvar, &lvar);
+		op_reg_(CMP, r1->reg_code);
+		var_enter(lvar, gvar);
+
+	} else if (lceep(l, VAR) && !have_any_side_effect(l)) {
+		gen_tuple_of(g, l);
+		r1 = gen_to_reg(g, r, 0);
+
+		get_assignee_size(g, l, &gvar, &lvar);
+		op_var_(CMP, lvar, gvar);
+		reg_enter(r1->reg_code);
+
+	} else {
+		if (!have_any_side_effect(l) && le_depth(l) < le_depth(r)) {
+			r2 = gen_to_reg(g, r, 0);
+			r1 = gen_to_reg(g, l, 0);
+		} else {
+			r1 = gen_to_reg(g, l, 0);
+			r2 = gen_to_reg(g, r, 0);
+		}
+		op_reg_reg(CMP, r1, r2);
+	}
+
+	if (r2)
+		free_reg_family(r2->rf);
+	if (r1)
+		free_reg_family(r1->rf);
 }
 
-struct Reg *cmp_on_mem_or_int(Gg, struct LocalExpr *e, struct Reg *r1,
-							  struct LocalExpr *num_or_mem) {
-	if (lceep(num_or_mem, INT)) {
-		cmp_with_num(r1, num_or_mem);
-	} else {
-		declare_lvar_gvar;
-		cmp_with_mem(r1, num_or_mem);
-	}
+struct Reg *xmm_cmp(Gg, struct LocalExpr *e);
 
-	iprint_set(g, e->code, is_u_type(e->type->code));
-	if (r1->rf->l) {
-		r1 = r1->rf->l;
-	} else {
-		free_reg_family(r1->rf);
+struct Reg *cmp_with_set(Gg, struct LocalExpr *e) {
+	struct Reg *r1 = 0;
+
+	if (is_int_type(e->l->type) && is_int_type(e->r->type)) {
+		just_cmp(g, e);
+
+		iprint_set(g, e->code, is_u_type(e->type->code));
 		r1 = try_borrow_reg(e->tvar, g, BYTE);
-	}
-	reg_enter(r1->reg_code);
-
-	return r1;
-}
-
-struct Reg *cmp_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
-					   struct Reg *r2) {
-	cmp_with_reg(r1, r2);
-
-	iprint_set(g, e->code, is_u_type(e->type->code));
-	if (r1->rf->l) {
-		free_reg_family(r2->rf);
-		r1 = r1->rf->l;
-	} else if (r2->rf->l) {
-		free_reg_family(r1->rf);
-		r1 = r2->rf->l;
+		reg_enter(r1->reg_code);
 	} else {
-		free_reg_family(r1->rf);
-		free_reg_family(r2->rf);
-		r1 = try_borrow_reg(e->tvar, g, BYTE);
 	}
-	reg_enter(r1->reg_code);
-
+	if (!r1)
+		exit(135);
 	return r1;
 }

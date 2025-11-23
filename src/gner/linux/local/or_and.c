@@ -1,59 +1,10 @@
 #include "../../gner.h"
 
-void cmp_with_jmp(Gg, struct LocalExpr *e, struct BList *jmp_label) {
-	struct Reg *r1 = 0, *r2 = 0;
-	struct LocalExpr *l = e->l, *r = e->r;
-	declare_lvar_gvar;
-
-	if (lceep(r, INT)) {
-		if (lceep(l, VAR)) {
-			op_var_(CMP, lvar, gvar);
-		} else {
-			r1 = gen_to_reg(g, l, 0);
-			op_reg_(CMP, r1->reg_code);
-		}
-		add_int_with_hex_comm(fun_text, r->tvar->num);
-
-	} else if (lceep(l, INT)) {
-		if (lceep(l, VAR)) {
-			op_var_(CMP, lvar, gvar);
-		} else {
-			r1 = gen_to_reg(g, l, 0);
-			op_reg_(CMP, r1->reg_code);
-		}
-		add_int_with_hex_comm(fun_text, r->tvar->num);
-
-	} else if (lceep(r, VAR)) {
-		r1 = gen_to_reg(g, e->l, 0);
-		cmp_with_mem(r1, e->r);
-
-	} else if (!have_any_side_effect(e->l)) {
-		if (lceep(e->l, INT)) {
-			r1 = gen_to_reg(g, e->r, 0);
-			cmp_with_num(r1, e->l);
-		} else if (lceep(e->l, VAR)) {
-			r1 = gen_to_reg(g, e->l, 0);
-			cmp_with_mem(r1, e->r);
-		} else
-			goto cmp_woth_two_regs;
-	} else {
-	cmp_woth_two_regs:
-		r1 = gen_to_reg(g, e->l, 0);
-		r2 = gen_to_reg(g, e->l, 0);
-		cmp_with_reg(r1, r2);
-	}
-
-	if (r1)
-		free_reg_family(r1->rf);
-	if (r2)
-		free_reg_family(r2->rf);
-}
-
 void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
 	struct Reg *r1;
 
 	if (is_uses_cmp(e)) {
-		cmp_with_jmp(g, e, false_label);
+		just_cmp(g, e);
 	} else if (lceb(AND)) {
 		and_cmp(g, e->l, false_label);
 		and_cmp(g, e->r, false_label);
