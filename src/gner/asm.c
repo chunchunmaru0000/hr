@@ -85,6 +85,18 @@ sa(SETG, "устб ");
 sa(SETGE, "устбр ");
 sa(SETE, "устр ");
 sa(SETNE, "устнр ");
+sa(J0, "ид0 ");
+sa(JN0, "ид0 ");
+sa(JB, "идн ");
+sa(JBE, "иднв ");
+sa(JA, "идв ");
+sa(JAE, "идвр ");
+sa(JL, "идм ");
+sa(JLE, "идмр ");
+sa(JG, "идб ");
+sa(JGE, "идбр ");
+sa(JE, "идр ");
+sa(JNE, "иднр ");
 
 sa(L_PAR, "(");
 sa(R_PAR, ") ");

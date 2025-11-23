@@ -167,7 +167,9 @@ sae(LET_8) sae(LET_16) sae(LET_32) sae(LET_64) sae(RAX) sae(RBP)
 															sae(BIT_OR_PD);
 sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
 	sae(SAR1) sae(XOR) sae(SETB) sae(SETBE) sae(SETA) sae(SETAE) sae(SETL)
-		sae(SETLE) sae(SETG) sae(SETGE) sae(SETE) sae(SETNE);
+		sae(SETLE) sae(SETG) sae(SETGE) sae(SETE) sae(SETNE) sae(J0) sae(JN0)
+			sae(JB) sae(JBE) sae(JA) sae(JAE) sae(JL) sae(JLE) sae(JG) sae(JGE)
+				sae(JE) sae(JNE);
 
 // #############################################################################
 
@@ -318,8 +320,11 @@ struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 struct Reg *cmp_on_mem_or_int(Gg, struct LocalExpr *e, struct Reg *r1,
 							  struct LocalExpr *num_or_mem);
 struct Reg *reverse_cmp_on_mem_or_int(Gg, struct LocalExpr *e, struct Reg *r1,
-							  struct LocalExpr *num_or_mem);
+									  struct LocalExpr *num_or_mem);
 struct Reg *cmp_on_reg(Gg, struct LocalExpr *e, struct Reg *r1, struct Reg *r2);
+struct Reg *and_to_reg(Gg, struct LocalExpr *e, int reg_size,
+					   struct BList *false_label);
+struct Reg *or_to_reg(Gg, struct LocalExpr *e, int reg_size);
 
 #define let_lvar_gvar struct LocalVar *lvar, struct GlobVar *gvar
 #define declare_lvar_gvar                                                      \
@@ -345,6 +350,9 @@ void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar);
 #define op_reg_(op, reg)                                                       \
 	isprint_ft(op);                                                            \
 	reg_((reg));
+#define op_var_(op, lvar, gvar)                                                \
+	isprint_ft(op);                                                            \
+	var_(g, (lvar), (gvar));
 #define op_reg_enter(op, reg)                                                  \
 	isprint_ft(op);                                                            \
 	reg_enter((reg));
@@ -375,6 +383,10 @@ struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 	op_reg_(CMP, (reg)->reg_code);                                             \
 	add_int_with_hex_comm(fun_text, (number)->tvar->num);
 #define cmp_with_reg(r1, r2) op_reg_reg(CMP, (r1), (r2))
+#define add_label(label)                                                       \
+	g->indent_level--;                                                         \
+	blat_ft(label), ft_add(':'), ft_add('\n');                                 \
+	g->indent_level++;
 
 // ############################################################################
 // 									OZER

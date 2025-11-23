@@ -148,9 +148,9 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		reg = cmp_with_int(g, e->l, 0);
 
 		if (lce(BOOL))
-			isprint_ft(SETE);
-		else
 			isprint_ft(SETNE);
+		else
+			isprint_ft(SETE);
 		reg_enter(byte->reg_code);
 
 		op_reg_reg(MOV, reg, byte);
@@ -332,6 +332,10 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 		res_reg = unary_to_reg(g, e, reg_size);
 	else if (is_after(e))
 		res_reg = after_to_reg(g, e, reg_size);
+	else if (lceb(AND))
+		res_reg = and_to_reg(g, e, reg_size, 0);
+	else if (lceb(OR))
+		res_reg = or_to_reg(g, e, reg_size);
 	else if (is_bin_le(e))
 		res_reg = bin_to_reg(g, e, reg_size);
 	else
