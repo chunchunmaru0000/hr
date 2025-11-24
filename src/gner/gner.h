@@ -319,8 +319,7 @@ struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 						 struct Reg *r2);
 void just_cmp(Gg, struct LocalExpr *e);
 struct Reg *cmp_with_set(Gg, struct LocalExpr *e);
-struct Reg *and_to_reg(Gg, struct LocalExpr *e, int reg_size,
-					   struct BList *false_label);
+struct Reg *and_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *or_to_reg(Gg, struct LocalExpr *e, int reg_size);
 
 #define let_lvar_gvar struct LocalVar *lvar, struct GlobVar *gvar
@@ -382,6 +381,14 @@ struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 	 : (le) == LE_BIN_MORE	? LE_BIN_LESSE                                     \
 	 : (le) == LE_BIN_MOREE ? LE_BIN_LESS                                      \
 							: (le))
+#define opposite_cmp_le(le)                                                    \
+	((le) == LE_BIN_LESS		 ? LE_BIN_MOREE                                \
+	 : (le) == LE_BIN_LESSE		 ? LE_BIN_MORE                                 \
+	 : (le) == LE_BIN_MORE		 ? LE_BIN_LESSE                                \
+	 : (le) == LE_BIN_MOREE		 ? LE_BIN_LESS                                 \
+	 : (le) == LE_BIN_EQUALS	 ? LE_BIN_NOT_EQUALS                           \
+	 : (le) == LE_BIN_NOT_EQUALS ? LE_BIN_EQUALS                               \
+								 : (le))
 
 // ############################################################################
 // 									OZER

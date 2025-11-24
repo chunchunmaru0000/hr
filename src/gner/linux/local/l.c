@@ -313,7 +313,7 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 	else if (is_after(e))
 		res_reg = after_to_reg(g, e, reg_size);
 	else if (lceb(AND))
-		res_reg = and_to_reg(g, e, reg_size, 0);
+		res_reg = and_to_reg(g, e, reg_size);
 	else if (lceb(OR))
 		res_reg = or_to_reg(g, e, reg_size);
 	else if (is_uses_cmp(e))
