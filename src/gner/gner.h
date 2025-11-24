@@ -132,6 +132,8 @@ void swap_basic_regs(struct Gner *g, struct RegisterFamily *rf1,
 struct Reg *try_alloc_reg(struct Token *tvar, struct RegisterFamily *rf,
 						  int size);
 #define Gg struct Gner *g
+void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
+				   struct RegisterFamily *rf);
 
 struct Gner *new_gner(struct Pser *, enum Target, uc);
 void reset_flags(struct Gner *g);
@@ -169,7 +171,7 @@ sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
 	sae(SAR1) sae(XOR) sae(SETB) sae(SETBE) sae(SETA) sae(SETAE) sae(SETL)
 		sae(SETLE) sae(SETG) sae(SETGE) sae(SETE) sae(SETNE) sae(J0) sae(JN0)
 			sae(JB) sae(JBE) sae(JA) sae(JAE) sae(JL) sae(JLE) sae(JG) sae(JGE)
-				sae(JE) sae(JNE);
+				sae(JE) sae(JNE) sae(CALL);
 
 // #############################################################################
 

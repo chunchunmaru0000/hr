@@ -16,20 +16,6 @@ int find_pow_of_2(long value) {
 	return shifts;
 }
 
-void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
-				   struct RegisterFamily *rf) {
-	if (reg->rf != rf) {
-		if (rf->r->allocated) {
-			// reg is now points to rf's reg
-			swap_basic_regs(g, rf, reg->rf, DO_XCHG);
-		} else {
-			op_reg_reg(MOV, rf->r, reg->rf->r);
-			free_reg_family(reg->rf);
-			reg = try_alloc_reg(tvar, rf, reg->size);
-		}
-	}
-}
-
 #define shl_and_shr_or_sal_and_sar                                             \
 	if (lceb(SHR)) {                                                           \
 		if (is_unsigned) {                                                     \

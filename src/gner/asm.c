@@ -97,6 +97,7 @@ sa(JG, "идб ");
 sa(JGE, "идбр ");
 sa(JE, "идр ");
 sa(JNE, "иднр ");
+sa(CALL, "зов ");
 
 sa(L_PAR, "(");
 sa(R_PAR, ") ");

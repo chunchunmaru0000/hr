@@ -179,3 +179,17 @@ struct Reg *try_alloc_reg(struct Token *tvar, struct RegisterFamily *rf,
 	}
 	return reg;
 }
+
+void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
+				   struct RegisterFamily *rf) {
+	if (reg->rf != rf) {
+		if (rf->r->allocated) {
+			// reg is now points to rf's reg
+			swap_basic_regs(g, rf, reg->rf, DO_XCHG);
+		} else {
+			op_reg_reg(MOV, rf->r, reg->rf->r);
+			free_reg_family(reg->rf);
+			reg = try_alloc_reg(tvar, rf, reg->size);
+		}
+	}
+}

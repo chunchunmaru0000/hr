@@ -117,12 +117,54 @@ struct Reg *field_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	return r1;
 }
 
+// returns PList of Reg's
+struct PList *gen_ops_to_regs(Gg, struct LocalExpr *e, struct PList *ops) {
+	u32 i;
+	struct TypeExpr *arg_type;
+}
+
+struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+	struct LocalExpr *fun_expr = e->l;
+	struct PList *ops_regs;
+	u32 i;
+	struct Reg *r1 = 0, *tmp_r;
+
+	if (lceep(fun_expr, VAR)) {
+		declare_lvar_gvar;
+		get_assignee_size(g, fun_expr, &gvar, &lvar);
+
+		if (lvar)
+			goto expr_fun;
+
+		ops_regs = gen_ops_to_regs(g, e, e->co.ops);
+		isprint_ft(CALL);
+		blat_ft(gvar->signature), ft_add('\n');
+
+		goto return_rAX_in_r1;
+	}
+expr_fun:
+	r1 = gen_to_reg(g, fun_expr, QWORD);
+	ops_regs = gen_ops_to_regs(g, e, e->co.ops);
+	op_reg_enter(CALL, r1->reg_code);
+
+return_rAX_in_r1:
+	for (i = 0; i < ops_regs->size; i++) {
+		tmp_r = plist_get(ops_regs, i);
+		free_reg_family(tmp_r->rf);
+	}
+	if (r1 == 0)
+		r1 = try_borrow_reg(e->tvar, g, unsafe_size_of_type(e->type));
+	get_reg_to_rf(e->tvar, g, r1, g->cpu->a);
+	return r1;
+}
+
 struct Reg *after_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *r1 = 0;
 
 	if (lcea(INDEX)) {
-	} else if (lcea(CALL)) {
-	} else if (lcea(INC)) {
+	} else if (lcea(CALL))
+		r1 = call_to_reg(g, e, reg_size);
+	else if (lcea(INC)) {
 	} else if (lcea(DEC)) {
 	} else if (lcea(FIELD_OF_PTR))
 		r1 = field_of_ptr_to_reg(g, e, reg_size);
