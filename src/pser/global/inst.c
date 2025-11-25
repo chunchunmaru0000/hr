@@ -1,5 +1,6 @@
 #include "../pser.h"
 #include <stdint.h>
+#include <stdio.h>
 
 constr EXPECTED_STR_GLOB_EXPR_AS_ASM_ARG =
 	"Глобальная инструкция ассемблера в качестве аргумента принимает только "
@@ -363,8 +364,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 		if (sc(bs(snf->name), vs(fun_variable->name))) {
 			for (j = 0; j < snf->funs->size; j++) {
-				tmp_var = plist_get(snf->funs, i);
-
+				tmp_var = plist_get(snf->funs, j);
 				if (sc(bs(tmp_var->signature), bs(fun_variable->signature)))
 					eet(fun_variable->name, FUN_SIGNATURES_OVERLAP,
 						SUGGEST_FIX_FUN_SIGNATURES_OVERLAP);

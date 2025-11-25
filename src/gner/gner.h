@@ -133,7 +133,7 @@ void swap_basic_regs(struct Gner *g, struct RegisterFamily *rf1,
 struct Reg *try_alloc_reg(struct Token *tvar, struct RegisterFamily *rf,
 						  int size);
 #define Gg struct Gner *g
-void save_allocated_regs(Gg, struct Token *place);
+struct PList *save_allocated_regs(Gg, struct Token *place);
 void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 				   struct RegisterFamily *rf);
 
@@ -173,7 +173,7 @@ sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
 	sae(SAR1) sae(XOR) sae(SETB) sae(SETBE) sae(SETA) sae(SETAE) sae(SETL)
 		sae(SETLE) sae(SETG) sae(SETGE) sae(SETE) sae(SETNE) sae(J0) sae(JN0)
 			sae(JB) sae(JBE) sae(JA) sae(JAE) sae(JL) sae(JLE) sae(JG) sae(JGE)
-				sae(JE) sae(JNE) sae(CALL);
+				sae(JE) sae(JNE) sae(CALL) sae(CVTSS2SI) sae(CVTSD2SI);
 
 // #############################################################################
 
@@ -325,6 +325,7 @@ void just_cmp(Gg, struct LocalExpr *e);
 struct Reg *cmp_with_set(Gg, struct LocalExpr *e);
 struct Reg *and_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *or_to_reg(Gg, struct LocalExpr *e, int reg_size);
+struct Reg *cvt_from_xmm(Gg, struct LocalExpr *e, struct Reg *xmm_reg);
 
 #define let_lvar_gvar struct LocalVar *lvar, struct GlobVar *gvar
 #define declare_lvar_gvar                                                      \

@@ -361,3 +361,40 @@ void swap_basic_regs(Gg, struct RegisterFamily *rf1, struct RegisterFamily *rf2,
 	reg_(rf2->r->reg_code);
 	reg_enter(rf1->r->reg_code);
 }
+
+#define r13 cpu->rex[13 - 8]
+#define r14 cpu->rex[14 - 8]
+#define r15 cpu->rex[15 - 8]
+
+#define save_to_r(num)                                                         \
+	g->flags->is_r##num##_used = 1;                                            \
+	get_reg_to_rf(place, g, rf->r, r##num);                                    \
+	free_reg_family(rf);                                                       \
+	plist_add(saved_regs, r##num);                                             \
+	continue;
+
+struct PList *save_allocated_regs(Gg, struct Token *place) {
+	struct CPU *cpu = g->cpu;
+	struct RegisterFamily **rfs;
+	struct RegisterFamily *rf;
+	struct PList *saved_regs = new_plist(1);
+	u32 i;
+
+	for (i = 0, rfs = as_rfs(cpu); i < 4; i++, rfs++) { // 4 is rbp
+		rf = *rfs;
+		if (!rf->r->allocated)
+			continue;
+		if (!r13->r->allocated) {
+			save_to_r(13);
+		}
+		if (!r14->r->allocated) {
+			save_to_r(14);
+		}
+		if (!r15->r->allocated) {
+			save_to_r(15);
+		}
+		// TODO: 3 regs on stack
+		eet(place, "а все, нет регистров", 0);
+	}
+	return saved_regs;
+}

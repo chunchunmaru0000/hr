@@ -51,6 +51,8 @@ sa(MOV_XMM, "бытьэ ");
 sa(CVTSI2SS, "пресч2со ");
 sa(CVTSI2SD, "пресч2сд ");
 sa(CVTSS2SD, "пресо2сд ");
+sa(CVTSS2SI, "пресо2зч ");
+sa(CVTSD2SI, "пресд2зч ");
 sa(XCHG, "обмн ");
 sa(SAL, "сдал ");
 sa(SAR, "сдап ");

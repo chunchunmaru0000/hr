@@ -142,7 +142,7 @@ void define_call_type(struct LocalExpr *e) {
 		goto zero_fun_gvar_exit;
 
 	for (i = 0; i < ogner->same_name_funs->size; i++) {
-		snf = plist_get(ogner->same_name_funs, i++);
+		snf = plist_get(ogner->same_name_funs, i);
 
 		// gvar->name just same name as e->l->tvar but shorter
 		if (sc(bs(snf->name), vs(gvar->name))) {

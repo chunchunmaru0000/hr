@@ -173,6 +173,22 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	return reg;
 }
 
+struct Reg *cvt_from_xmm(Gg, struct LocalExpr *e, struct Reg *xmm_reg) {
+	struct Reg *r;
+
+	if (is_ss(e->type)) {
+		isprint_ft(CVTSS2SI);
+		r = try_borrow_reg(e->tvar, g, DWORD);
+	} else {
+		isprint_ft(CVTSD2SI);
+		r = try_borrow_reg(e->tvar, g, QWORD);
+	}
+	reg_(r->reg_code);
+	reg_enter(xmm_reg->reg_code);
+	free_reg(xmm_reg);
+	return r;
+}
+
 #define ss_or_sd                                                               \
 	if (to_ss)                                                                 \
 		isprint_ft(CVTSI2SS);                                                  \

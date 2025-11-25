@@ -194,7 +194,3 @@ void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 		}
 	}
 }
-
-void save_allocated_regs(Gg, struct Token *place) {
-	// TODO:
-}

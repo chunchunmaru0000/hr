@@ -117,10 +117,56 @@ struct Reg *field_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	return r1;
 }
 
+#define rsi g->cpu->si
+#define rdi g->cpu->di
+#define r8 g->cpu->rex[8 - 8]
+#define r9 g->cpu->rex[9 - 8]
+#define r10 g->cpu->rex[10 - 8]
+#define r11 g->cpu->rex[11 - 8]
+#define r12 g->cpu->rex[12 - 8]
+
 // returns PList of Reg's
-struct PList *gen_ops_to_regs(Gg, struct LocalExpr *e, struct PList *ops) {
+struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
+										struct PList *ops) {
+	struct RegisterFamily **cpu_regs;
+	struct LocalExpr *argument;
+	struct Reg *r;
 	u32 i;
-	struct TypeExpr *arg_type;
+	//  save changable regs before call
+	struct PList *ops_regs = new_plist(ops->size),
+				 *saved_regs = save_allocated_regs(g, place);
+
+	for (i = 0, cpu_regs = &rsi; i < ops->size; i++, cpu_regs++) {
+		argument = plist_get(ops, i);
+		// gen reg
+		if (lceep(argument, REAL)) {
+			r = try_borrow_reg(
+				place, g, argument->type->code == TC_SINGLE ? DWORD : QWORD);
+			if (argument->tvar->real) {
+				mov_reg_(g, r->reg_code);
+				real_add(g->fun_text, argument->tvar->real);
+				ft_add('\n');
+			} else {
+				op_reg_reg(XOR, r, r);
+			}
+		} else
+			r = gen_to_reg(g, argument, 0);
+		// change reg to basic if its xmm
+		if (is_xmm(r))
+			r = cvt_from_xmm(g, plist_get(ops, i), r);
+
+		plist_add(ops_regs, r);
+	}
+	for (i = 0, cpu_regs = &rsi; i < ops->size; i++, cpu_regs++) {
+		r = plist_get(ops_regs, i);
+		get_reg_to_rf(place, g, r, *cpu_regs);
+		plist_set(ops_regs, i, (*cpu_regs)->r);
+	}
+	// for (i = 0; i < saved_regs->size; i++)
+	// 	free_reg_family(plist_get(saved_regs, i));
+	plist_free(saved_regs);
+
+	return ops_regs;
 }
 
 struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size) {
@@ -128,26 +174,26 @@ struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct GlobVar *fun_gvar;
 	struct PList *ops_regs;
 	u32 i;
-	struct Reg *r1 = 0, *tmp_r;
-
-	exit(147);
-	ops_regs = gen_ops_to_regs(g, e, e->co.ops);
-	// save changable regs before call
-	save_allocated_regs(g, e->tvar);
+	struct Reg *r1 = 0;
 
 	if (e->tvar->num == 0) {
 		r1 = gen_to_reg(g, fun_expr, QWORD);
+		ops_regs = mov_ops_regs_to_args_regs(e->tvar, g, e->co.ops);
+
 		op_reg_enter(CALL, r1->reg_code);
 	} else {
+		gen_tuple_of(g, fun_expr);
+		ops_regs = mov_ops_regs_to_args_regs(e->tvar, g, e->co.ops);
+
 		fun_gvar = (struct GlobVar *)e->tvar->num;
 		isprint_ft(CALL);
 		blat_ft(fun_gvar->signature), ft_add('\n');
 	}
 
-	for (i = 0; i < ops_regs->size; i++) {
-		tmp_r = plist_get(ops_regs, i);
-		free_reg_family(tmp_r->rf);
-	}
+	for (i = 0; i < ops_regs->size; i++)
+		free_reg_family(((struct Reg *)plist_get(ops_regs, i))->rf);
+	plist_free(ops_regs);
+
 	if (r1 == 0)
 		r1 = try_borrow_reg(e->tvar, g, unsafe_size_of_type(e->type));
 
