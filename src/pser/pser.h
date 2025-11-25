@@ -225,7 +225,8 @@ struct TypeExpr {
 	((struct TypeExpr *)plist_get(fun_args((t)), fun_args((t))->size - 1))
 
 #define is_void_ptr(t) ((t)->code == TC_PTR && ptr_targ((t))->code == TC_VOID)
-#define is_ptr_type(t) ((t)->code == TC_PTR || (t)->code == TC_FUN)
+#define is_fun(t) ((t)->code == TC_FUN)
+#define is_ptr_type(t) ((t)->code == TC_PTR || is_fun((t)))
 
 #define set_arr_len(arr, len) (plist_set((arr), 1, (void *)(len)))
 

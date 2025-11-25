@@ -130,7 +130,10 @@ struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	u32 i;
 	struct Reg *r1 = 0, *tmp_r;
 
+	exit(147);
 	ops_regs = gen_ops_to_regs(g, e, e->co.ops);
+	// save changable regs before call
+	save_allocated_regs(g, e->tvar);
 
 	if (e->tvar->num == 0) {
 		r1 = gen_to_reg(g, fun_expr, QWORD);

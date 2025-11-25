@@ -376,7 +376,6 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	snf = malloc(sizeof(struct SameNameFuns));
 	snf->name = fun_variable->name->view;
 	snf->funs = new_plist(2);
-	plist_add(snf->funs, fun_variable);
 	plist_add(p->same_name_funs, snf);
 
 add_fun_variable_to_same_name_funs:
