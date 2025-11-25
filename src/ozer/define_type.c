@@ -83,7 +83,8 @@ void define_struct_field_type_type(struct LocalExpr *e) {
 
 void define_call_type(struct LocalExpr *e) {
 	struct LocalExpr *call_arg_e;
-	u32 i;
+	struct SameNameFuns *snf;
+	u32 i, j;
 
 	define_type_and_copy_flags_to_e(e->l);
 	if (e->l->type == 0 || e->l->type->code != TC_FUN)
@@ -92,11 +93,32 @@ void define_call_type(struct LocalExpr *e) {
 	e->type = copy_type_expr(find_return_type(e->l->type));
 	e->flags |= LEF_SIDE_EFFECT_FUN_CALL;
 
-	// TODO: check args_types and their count
-	// count also can vary in function signature
 	for (i = 0; i < e->co.ops->size; i++) {
 		call_arg_e = plist_get(e->co.ops, i);
 		define_type_and_copy_flags_to_e(call_arg_e);
+	}
+
+	declare_lvar_gvar;
+	if (lceep(e->l, VAR)) {
+		// REMEMBER: when call e->tvar->num = (long)fun gvar;
+		get_assignee_size(ogner, e->l, &gvar, &lvar);
+		if (lvar) {
+			e->tvar->num = 0;
+			return;
+		}
+	}
+	for (i = 0; i < ogner->same_name_funs->size; i++) {
+		snf = plist_get(ogner->same_name_funs, i++);
+
+		// gvar->name just same name as e->l->tvar but shorter
+		if (sc(bs(snf->name), vs(gvar->name))) {
+			for (j = 0; j < snf->funs->size; j++) {
+				gvar = plist_get(snf->funs, j);
+				if (fun_args(gvar->type)->size == e->co.ops->size) {
+					// here compare types
+				}
+			}
+		}
 	}
 }
 

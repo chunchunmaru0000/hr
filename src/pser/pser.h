@@ -72,8 +72,14 @@ struct Pser {
 
 	struct PList *global_vars; // global variables
 	struct PList *local_vars;
+	struct PList *same_name_funs; // SameNameFuns's
 };
 extern struct PList *parsed_structs; // Inst's of IP_DECLARE_STRUCT
+
+struct SameNameFuns {
+	struct BList *name;
+	struct PList *funs; // global variables
+};
 
 #define pser_need_err(p) ((p)->errors->size != 0 || (p)->warns->size != 0)
 void pser_err(struct Pser *p);

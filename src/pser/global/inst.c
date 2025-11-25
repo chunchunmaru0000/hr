@@ -172,8 +172,7 @@ struct PList *parse_arg(struct Pser *p, struct Arg *from, long args_offset) {
 	type_size = size_of_type(p, type);
 
 	if (is_one_memory && from && (type_size != size_of_type(p, from->type)))
-		eet(pser_prev(p), TYPES_SIZES_NOT_MATCH,
-			SUGGEST_CHANGE_ARG_TYPE_SIZE);
+		eet(pser_prev(p), TYPES_SIZES_NOT_MATCH, SUGGEST_CHANGE_ARG_TYPE_SIZE);
 	if (!is_one_memory && from)
 		eet(get_pser_token((p), colo_pos - p->pos - 1),
 			SEVERAL_ARGS_CANT_SHARE_MEM, SUGGEST_DELETE_ARGS_OR_COMMA);
@@ -286,9 +285,10 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 //   0 - zero terminator
 // ... - local inctrustions
 enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
-	uint32_t i, j;
+	u32 i, j;
 	long last_offset = -1;
 
+	struct SameNameFuns *snf;
 	struct Arg *arg;
 	struct TypeExpr *type;
 	struct GlobVar *fun_variable = malloc(sizeof(struct GlobVar)), *tmp_var;
@@ -349,16 +349,38 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	get_fun_signature_considering_args(os, fun_variable);
 	fun_variable->value_label = 0;
 	// check by signatures
-	for (i = 0; i < p->global_vars->size; i++) {
-		tmp_var = plist_get(p->global_vars, i);
+	// 	for (i = 0; i < p->global_vars->size; i++) {
+	// 		tmp_var = plist_get(p->global_vars, i);
+	//
+	// 		// cant use it here are_types_equal(tmp_var->type,
+	// fun_variable->type)) 		if (tmp_var->type->code == TC_FUN &&
+	// 			sc(bs(tmp_var->signature), bs(fun_variable->signature)))
+	// 			eet(fun_variable->name, FUN_SIGNATURES_OVERLAP,
+	// 				SUGGEST_FIX_FUN_SIGNATURES_OVERLAP);
+	// 	}
+	for (i = 0; i < p->same_name_funs->size; i++) {
+		snf = plist_get(p->same_name_funs, i);
 
-		// cant use it here are_types_equal(tmp_var->type, fun_variable->type))
-		if (tmp_var->type->code == TC_FUN &&
-			sc((char *)tmp_var->signature->st,
-			   (char *)fun_variable->signature->st))
-			eet(fun_variable->name, FUN_SIGNATURES_OVERLAP,
-				SUGGEST_FIX_FUN_SIGNATURES_OVERLAP);
+		if (sc(bs(snf->name), vs(fun_variable->name))) {
+			for (j = 0; j < snf->funs->size; j++) {
+				tmp_var = plist_get(snf->funs, i);
+
+				if (sc(bs(tmp_var->signature), bs(fun_variable->signature)))
+					eet(fun_variable->name, FUN_SIGNATURES_OVERLAP,
+						SUGGEST_FIX_FUN_SIGNATURES_OVERLAP);
+			}
+			// if here then means that valid signature of same name
+			goto add_fun_variable_to_same_name_funs;
+		}
 	}
+	snf = malloc(sizeof(struct SameNameFuns));
+	snf->name = fun_variable->name->view;
+	snf->funs = new_plist(2);
+	plist_add(snf->funs, fun_variable);
+	plist_add(p->same_name_funs, snf);
+
+add_fun_variable_to_same_name_funs:
+	plist_add(snf->funs, fun_variable);
 
 	// add after cuz if before then will compare with itself
 	plist_add(p->global_vars, fun_variable);

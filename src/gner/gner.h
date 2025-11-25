@@ -102,6 +102,7 @@ struct Gner {
 	struct PList *enums; // // struct Enum's
 	struct PList *global_vars;
 	struct PList *local_vars;
+	struct PList *same_name_funs; // SameNameFuns's
 
 	struct GlobVar *current_function;
 	struct PList *local_labels; // plist of tokens with labels names

@@ -21,6 +21,7 @@ struct Pser *new_pser(struct Fpfc *f, struct PList *tokens, char *filename,
 
 	p->global_vars = new_plist(16);
 	p->local_vars = new_plist(16);
+	p->same_name_funs = new_plist(16);
 
 	return p;
 }

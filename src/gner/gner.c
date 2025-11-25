@@ -32,6 +32,7 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 	g->fun_text = new_blist(128);
 
 	g->global_vars = p->global_vars;
+	g->same_name_funs = p->same_name_funs;
 	g->local_vars = new_plist(16);
 	g->local_labels = new_plist(8);
 

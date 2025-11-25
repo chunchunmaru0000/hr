@@ -125,35 +125,29 @@ struct PList *gen_ops_to_regs(Gg, struct LocalExpr *e, struct PList *ops) {
 
 struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct LocalExpr *fun_expr = e->l;
+	struct GlobVar *fun_gvar;
 	struct PList *ops_regs;
 	u32 i;
 	struct Reg *r1 = 0, *tmp_r;
 
-	if (lceep(fun_expr, VAR)) {
-		declare_lvar_gvar;
-		get_assignee_size(g, fun_expr, &gvar, &lvar);
-
-		if (lvar)
-			goto expr_fun;
-
-		ops_regs = gen_ops_to_regs(g, e, e->co.ops);
-		isprint_ft(CALL);
-		blat_ft(gvar->signature), ft_add('\n');
-
-		goto return_rAX_in_r1;
-	}
-expr_fun:
-	r1 = gen_to_reg(g, fun_expr, QWORD);
 	ops_regs = gen_ops_to_regs(g, e, e->co.ops);
-	op_reg_enter(CALL, r1->reg_code);
 
-return_rAX_in_r1:
+	if (e->tvar->num == 0) {
+		r1 = gen_to_reg(g, fun_expr, QWORD);
+		op_reg_enter(CALL, r1->reg_code);
+	} else {
+		fun_gvar = (struct GlobVar *)e->tvar->num;
+		isprint_ft(CALL);
+		blat_ft(fun_gvar->signature), ft_add('\n');
+	}
+
 	for (i = 0; i < ops_regs->size; i++) {
 		tmp_r = plist_get(ops_regs, i);
 		free_reg_family(tmp_r->rf);
 	}
 	if (r1 == 0)
 		r1 = try_borrow_reg(e->tvar, g, unsafe_size_of_type(e->type));
+
 	get_reg_to_rf(e->tvar, g, r1, g->cpu->a);
 	return r1;
 }
