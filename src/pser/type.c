@@ -1,4 +1,5 @@
 #include "pser.h"
+#include <stdio.h>
 
 constr ERR_WRONG_TOKEN_NUM_PAR_C_R = "Ожидалось целое число или скобка ']'.";
 constr WRONG_ARR_SIZE =
@@ -31,18 +32,20 @@ struct TypeExpr *copy_type_expr(struct TypeExpr *type) {
 	long i;
 	struct TypeExpr *copy = new_type_expr(type->code), *other;
 
+	if (type->code == TC_ENUM)
+		goto struct_or_enum;
 	if (type->code < TC_PTR) {
 
 	} else if (type->code == TC_PTR) {
 		// * if [[ ptr ]] -> TypeExpr *
-		copy->data.ptr_target = copy_type_expr(type->data.ptr_target);
+		copy->data.ptr_target = copy_type_expr(ptr_targ(type));
 	} else if (type->code == TC_FUN) {
 		// * if [[ fun ]] -> plist of TypeExpr * where last type is return type
-		copy->data.args_types = new_plist(type->data.args_types->size);
+		copy->data.args_types = new_plist(fun_args(type)->size);
 
-		for (i = 0; i < type->data.args_types->size; i++) {
-			other = plist_get(type->data.args_types, i);
-			plist_add(copy->data.args_types, copy_type_expr(other));
+		for (i = 0; i < fun_args(type)->size; i++) {
+			other = plist_get(fun_args(type), i);
+			plist_add(fun_args(copy), copy_type_expr(other));
 		}
 	} else if (type->code == TC_ARR) {
 		// * if [[ arr ]] -> plist with two items
@@ -53,10 +56,13 @@ struct TypeExpr *copy_type_expr(struct TypeExpr *type) {
 		// * - second item is long that is len of arr, if len is -1 then any len
 		set_arr_len(copy->data.arr, arr_len(type));
 	} else if (type->code == TC_STRUCT) {
+	struct_or_enum:
 		// * if [[ struct ]] -> name blist
 		copy->data.name = copy_str(type->data.name);
-	} else
+	} else {
+		printf("%d\n", type->code);
 		exit(125);
+	}
 
 	return copy;
 }

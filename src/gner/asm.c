@@ -26,6 +26,12 @@ sa(LEAVE, "выйти\n");
 sa(RET, "возд\n");
 sa(STR_XOR_EAX_EAX, "искл еах еах");
 sa(MOV_RAX, "быть рах ");
+sa(PUSH_R15, "толк р15\n");
+sa(PUSH_R14, "толк р14\n");
+sa(PUSH_R13, "толк р13\n");
+sa(POP_R15, "выт р15\n");
+sa(POP_R14, "выт р14\n");
+sa(POP_R13, "выт р13\n");
 
 sa(BYTE, "байт ");
 sa(WORD, "дбайт ");

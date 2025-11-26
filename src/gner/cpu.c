@@ -381,14 +381,14 @@ void save_allocated_regs(Gg, struct Token *place) {
 		rf = *rfs;
 		if (!rf->r->allocated)
 			continue;
-		if (!r13->r->allocated) {
-			save_to_r(13);
+		if (!r15->r->allocated) {
+			save_to_r(15);
 		}
 		if (!r14->r->allocated) {
 			save_to_r(14);
 		}
-		if (!r15->r->allocated) {
-			save_to_r(15);
+		if (!r13->r->allocated) {
+			save_to_r(13);
 		}
 		// TODO: 3 regs on stack
 		eet(place, "а все, нет регистров", 0);

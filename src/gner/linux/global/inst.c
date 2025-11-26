@@ -3,6 +3,7 @@
 
 uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in);
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg);
+void write_flags_and_end_stack_frame(Gg);
 
 struct Register {
 	const char *const name;
@@ -117,17 +118,9 @@ void gen_linux_text(struct Gner *g) {
 			for (; local_i < in->os->size; local_i++)
 				gen_local_linux(g, plist_get(in->os, local_i));
 			// free stack in return statement
-			if (g->flags->is_stack_used) {
-				iprint_stack_frame(SA_SUB_RSP);
-				add_int_with_hex_comm(stack_frame, -g->stack_counter);
+			write_flags_and_end_stack_frame(g);
 
-				iprint_fun_text(SA_LEAVE);
-			} else
-				iprint_fun_text(SA_POP_RBP);
-			iprint_fun_text(SA_RET);
-			fun_text_add('\n');
 			g->indent_level--;
-
 			// reset things after
 			g->current_function = 0;
 
@@ -165,6 +158,35 @@ end_gen_text_loop:;
 
 	aprol_add('\n');
 	iprint_aprol(SA_SEGMENT_READ_EXECUTE);
+}
+
+void write_flags_and_end_stack_frame(Gg) {
+	struct Fggs *f = g->flags;
+
+	if (f->is_stack_used || f->is_r15_used || f->is_r14_used ||
+		f->is_r13_used) {
+		iprint_stack_frame(SA_SUB_RSP);
+		add_int_with_hex_comm(stack_frame, -g->stack_counter);
+
+		if (f->is_r15_used) {
+			iprint_stack_frame(SA_PUSH_R15);
+			iprint_ft(SA_POP_R15);
+		}
+		if (f->is_r14_used) {
+			iprint_stack_frame(SA_PUSH_R14);
+			iprint_ft(SA_POP_R14);
+		}
+		if (f->is_r13_used) {
+			iprint_stack_frame(SA_PUSH_R13);
+			iprint_ft(SA_POP_R13);
+		}
+
+		iprint_ft(SA_LEAVE);
+	} else
+		iprint_ft(SA_POP_RBP);
+
+	iprint_ft(SA_RET);
+	ft_add('\n');
 }
 
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg) {

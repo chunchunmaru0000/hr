@@ -173,6 +173,8 @@ struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	u32 i;
 	struct Reg *r1 = 0;
 
+	g->flags->is_stack_used = 1;
+
 	if (e->tvar->num == 0) {
 		r1 = gen_to_reg(g, fun_expr, QWORD);
 		ops_regs = mov_ops_regs_to_args_regs(e->tvar, g, e->co.ops);

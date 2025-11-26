@@ -173,7 +173,9 @@ sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
 	sae(SAR1) sae(XOR) sae(SETB) sae(SETBE) sae(SETA) sae(SETAE) sae(SETL)
 		sae(SETLE) sae(SETG) sae(SETGE) sae(SETE) sae(SETNE) sae(J0) sae(JN0)
 			sae(JB) sae(JBE) sae(JA) sae(JAE) sae(JL) sae(JLE) sae(JG) sae(JGE)
-				sae(JE) sae(JNE) sae(CALL) sae(CVTSS2SI) sae(CVTSD2SI);
+				sae(JE) sae(JNE) sae(CALL) sae(CVTSS2SI) sae(CVTSD2SI)
+					sae(PUSH_R15) sae(PUSH_R14) sae(PUSH_R13) sae(POP_R15)
+						sae(POP_R14) sae(POP_R13);
 
 // #############################################################################
 
