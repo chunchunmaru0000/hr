@@ -133,8 +133,8 @@ struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 	struct Reg *r;
 	u32 i;
 	//  save changable regs before call
-	struct PList *ops_regs = new_plist(ops->size),
-				 *saved_regs = save_allocated_regs(g, place);
+	struct PList *ops_regs = new_plist(ops->size);
+	save_allocated_regs(g, place);
 
 	for (i = 0, cpu_regs = &rsi; i < ops->size; i++, cpu_regs++) {
 		argument = plist_get(ops, i);
@@ -162,9 +162,6 @@ struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 		get_reg_to_rf(place, g, r, *cpu_regs);
 		plist_set(ops_regs, i, (*cpu_regs)->r);
 	}
-	// for (i = 0; i < saved_regs->size; i++)
-	// 	free_reg_family(plist_get(saved_regs, i));
-	plist_free(saved_regs);
 
 	return ops_regs;
 }

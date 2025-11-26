@@ -133,7 +133,7 @@ void swap_basic_regs(struct Gner *g, struct RegisterFamily *rf1,
 struct Reg *try_alloc_reg(struct Token *tvar, struct RegisterFamily *rf,
 						  int size);
 #define Gg struct Gner *g
-struct PList *save_allocated_regs(Gg, struct Token *place);
+void save_allocated_regs(Gg, struct Token *place);
 void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 				   struct RegisterFamily *rf);
 

@@ -369,15 +369,12 @@ void swap_basic_regs(Gg, struct RegisterFamily *rf1, struct RegisterFamily *rf2,
 #define save_to_r(num)                                                         \
 	g->flags->is_r##num##_used = 1;                                            \
 	get_reg_to_rf(place, g, rf->r, r##num);                                    \
-	free_reg_family(rf);                                                       \
-	plist_add(saved_regs, r##num);                                             \
 	continue;
 
-struct PList *save_allocated_regs(Gg, struct Token *place) {
+void save_allocated_regs(Gg, struct Token *place) {
 	struct CPU *cpu = g->cpu;
 	struct RegisterFamily **rfs;
 	struct RegisterFamily *rf;
-	struct PList *saved_regs = new_plist(1);
 	u32 i;
 
 	for (i = 0, rfs = as_rfs(cpu); i < 4; i++, rfs++) { // 4 is rbp
@@ -396,5 +393,4 @@ struct PList *save_allocated_regs(Gg, struct Token *place) {
 		// TODO: 3 regs on stack
 		eet(place, "а все, нет регистров", 0);
 	}
-	return saved_regs;
 }

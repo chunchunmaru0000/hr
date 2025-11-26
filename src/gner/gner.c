@@ -188,9 +188,8 @@ void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 			// reg is now points to rf's reg
 			swap_basic_regs(g, rf, reg->rf, DO_XCHG);
 		} else {
-			op_reg_reg(MOV, rf->r, reg->rf->r);
 			free_reg_family(reg->rf);
-			reg = try_alloc_reg(tvar, rf, reg->size);
+			swap_basic_regs(g, reg->rf, rf, DO_MOV);
 		}
 	}
 }
