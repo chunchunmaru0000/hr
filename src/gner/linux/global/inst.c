@@ -100,7 +100,7 @@ void gen_linux_text(struct Gner *g) {
 			// reset things before
 			g->stack_counter = 0;
 			free_and_clear_local_vars(g);
-			plist_clear(g->local_labels);
+			plist_clear(g->local_labels); // plist of tokens with labels names
 			g->current_function = plist_get(in->os, 0);
 			// reset flags
 			reset_flags(g);

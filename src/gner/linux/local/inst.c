@@ -41,10 +41,14 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		}
 		plist_add(g->local_labels, name);
 
-		indent_line(g, g->fun_text);
-		blat_ft(g->current_function->signature);
-		blat_ft(name->view);
-		ft_add(':'), ft_add('\n');
+		g->indent_level--;
+		{
+			indent_line(g, g->fun_text);
+			blat_ft(g->current_function->signature);
+			blat_ft(name->view);
+			ft_add(':'), ft_add('\n');
+		}
+		g->indent_level++;
 		break;
 	case IP_GOTO:
 		// ### os explanation
@@ -63,7 +67,7 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 
 		string = take_label(g, LC_LOOP);
 		indent_line(g, g->fun_text);
-		blat_fun_text(string);
+		blat_ft(string);
 		ft_add(':'), ft_add('\n');
 
 		g->indent_level++;
