@@ -19,7 +19,7 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		//   _ - assembly string token
 
 		str = plist_get(in->os, 0);
-		blat_fun_text(str->str);
+		blat_ft(str->str);
 		break;
 	case IP_LET:
 		// ### os explanation
@@ -42,10 +42,9 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		plist_add(g->local_labels, name);
 
 		indent_line(g, g->fun_text);
-		blat_fun_text(g->current_function->signature);
-		blat_fun_text(name->view);
-		fun_text_add(':');
-		fun_text_add('\n');
+		blat_ft(g->current_function->signature);
+		blat_ft(name->view);
+		ft_add(':'), ft_add('\n');
 		break;
 	case IP_GOTO:
 		// ### os explanation
@@ -53,10 +52,10 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 
 		name = plist_get(in->os, 0);
 
-		iprint_fun_text(SA_JMP);
-		blat_fun_text(g->current_function->signature);
-		blat_fun_text(name->view);
-		fun_text_add('\n');
+		isprint_ft(JMP);
+		blat_ft(g->current_function->signature);
+		blat_ft(name->view);
+		ft_add('\n');
 		break;
 	case IP_LOOP:
 		// ### os explanation
@@ -65,17 +64,16 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		string = take_label(g, LC_LOOP);
 		indent_line(g, g->fun_text);
 		blat_fun_text(string);
-		fun_text_add(':');
-		fun_text_add('\n');
+		ft_add(':'), ft_add('\n');
 
 		g->indent_level++;
 
 		for (i = 0; i < in->os->size; i++)
 			gen_local_linux(g, plist_get(in->os, i));
 
-		iprint_fun_text(SA_JMP);
-		blat_fun_text(string);
-		fun_text_add('\n');
+		isprint_ft(JMP);
+		blat_ft(string);
+		ft_add('\n');
 
 		g->indent_level--;
 		blist_clear_free(string);

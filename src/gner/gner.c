@@ -70,7 +70,7 @@ struct LocalVar *new_local_var(struct Token *name, struct Arg *arg,
 	struct LocalVar *var = malloc(sizeof(struct LocalVar));
 	var->name = name;
 	var->stack_pointer = stack_pointer;
-	var->type = arg->type;
+	var->type = copy_type_expr(arg->type);
 	var->lvar_size = arg->arg_size;
 	return var;
 }
