@@ -47,17 +47,15 @@ void iprint_set(Gg, enum LE_Code le, int is_u) {
 void just_cmp(Gg, struct LocalExpr *e) {
 	struct Reg *r1 = 0, *r2 = 0;
 	struct LocalExpr *l = e->l, *r = e->r;
-	declare_lvar_gvar;
 
 	if (lceep(l, INT))
 		exit(112); // shouldn't be, ozer flips l int to r
 
 	else if (lceep(r, INT)) {
-		if (lceep(l, VAR)) {
-			gen_tuple_of(g, l);
+		if (is_mem(l)) {
+			gen_mem_tuple(g, l);
 			gen_tuple_of(g, r);
-			get_assignee_size(g, l, &gvar, &lvar);
-			op_var_(CMP, lvar, gvar);
+			op_mem_(CMP, l, 0);
 		} else {
 			r1 = gen_to_reg(g, l, 0);
 			gen_tuple_of(g, r);
@@ -65,20 +63,18 @@ void just_cmp(Gg, struct LocalExpr *e) {
 		}
 		add_int_with_hex_comm(fun_text, r->tvar->num);
 
-	} else if (lceep(r, VAR)) {
+	} else if (is_mem(r)) {
 		r1 = gen_to_reg(g, l, 0);
-		gen_tuple_of(g, r);
+		gen_mem_tuple(g, r);
 
-		get_assignee_size(g, r, &gvar, &lvar);
 		op_reg_(CMP, r1->reg_code);
-		var_enter(lvar, gvar);
+		mem_enter(r, 0);
 
-	} else if (lceep(l, VAR) && !have_any_side_effect(l)) {
+	} else if (is_mem(l) && !have_any_side_effect(l)) {
 		gen_tuple_of(g, l);
 		r1 = gen_to_reg(g, r, 0);
 
-		get_assignee_size(g, l, &gvar, &lvar);
-		op_var_(CMP, lvar, gvar);
+		op_mem_(CMP, l, 0);
 		reg_enter(r1->reg_code);
 
 	} else {

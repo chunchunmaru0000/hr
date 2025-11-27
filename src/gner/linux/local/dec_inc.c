@@ -5,7 +5,6 @@
 #define Lv struct LocalVar *
 #define Gv struct GlobVar *
 #define Le struct LocalExpr *
-#define LeE struct LocalExpr *e
 #define U long unit
 #define inced uc is_inc
 
@@ -32,13 +31,13 @@ long add_of_type(struct Token *tvar, struct TypeExpr *type) {
 }
 
 // var[++ / --]
-void var_indec(Gg, Lvar, uc is_inc) {
+void var_indec(Gg, struct LocalExpr *e, uc is_inc) {
 	declare_lvar_gvar;
-	get_assignee_size(g, var, &gvar, &lvar);
+	get_assignee_size(g, e, &gvar, &lvar);
 
 	add_or_sub;
 	var_(g, lvar, gvar);
-	add_int_with_hex_comm(fun_text, add_of_type(var->tvar, lvar_gvar_type()));
+	add_int_with_hex_comm(fun_text, add_of_type(e->tvar, lvar_gvar_type()));
 }
 
 // (*var)[++ / --]
@@ -230,7 +229,7 @@ void gen_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 		// var[++ / --]
 		var_indec(g, e, is_inc);
 
-	} else if (lceu(ADDR) && lceep(e->l, VAR)) {
+	} else if (lceu(ADDR)) {
 		// *var[++ / --]
 		var_ptr_indec(g, e->l, is_inc);
 

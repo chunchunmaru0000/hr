@@ -56,28 +56,27 @@ void iprint_xmm_op(Gg, enum LE_Code code, uc is_ss) {
 }
 
 struct Reg *mem_to_reg(Gg, struct LocalExpr *e, int reg_size) {
-	struct Reg *r = try_borrow_reg(e->tvar, g, reg_size);
-	op_reg_(MOV, r->reg_code);
+	struct Reg *r;
+
+	if (is_real_type(e->type)) {
+		r = try_borrow_xmm_reg(e->tvar, g);
+		mov_xmm_reg_(r->reg_code);
+	} else {
+		r = try_borrow_reg(e->tvar, g, reg_size);
+		op_reg_(MOV, r->reg_code);
+	}
 	mem_enter(e, 0);
+
 	return r;
 }
 
 struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *reg = 0, *xmm;
 	int unit_size;
-	declare_lvar_gvar;
 
-	if (lcep(VAR)) {
-		get_assignee_size(g, e, &gvar, &lvar);
-
-		if (is_real_type(e->type)) {
-			reg = try_borrow_xmm_reg(e->tvar, g);
-			mov_xmm_reg_(reg->reg_code);
-			var_enter(lvar, gvar);
-		} else {
-			reg = try_borrow_reg(e->tvar, g, reg_size);
-			mov_reg_var(g, reg->reg_code, lvar, gvar);
-		}
+	if (e->code == LE_PRIMARY_VAR) {
+		printf("use mem\n");
+		exit(101);
 	} else if (lcep(REAL)) {
 		unit_size = e->type->code == TC_SINGLE ? DWORD : QWORD;
 
@@ -112,27 +111,18 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 }
 
 struct Reg *dereference(Gg, struct LocalExpr *e) {
-	struct Reg *reg = 0;
-	declare_lvar_gvar;
+	struct Reg *r = 0;
 
-	if (lcep(VAR)) {
-		get_assignee_size(g, e, &gvar, &lvar);
-		reg = try_borrow_reg(e->tvar, g, QWORD);
-
-		if (lvar) {
-			isprint_ft(LEA);
-			reg_(reg->reg_code);
-			sib(g, QWORD, R_RBP, 0, 0, (long)lvar->name->view, 1);
-		} else {
-			mov_reg_(g, reg->reg_code);
-			blat_ft(gvar->signature);
-		}
-		ft_add('\n');
+	if (is_mem(e)) {
+		r = try_borrow_reg(e->tvar, g, QWORD);
+		gen_mem_tuple(g, e);
+		op_reg_(LEA, r->reg_code);
+		mem_enter(e, QWORD);
 	}
 
-	if (reg == 0)
+	if (r == 0)
 		exit(159);
-	return reg;
+	return r;
 }
 
 struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
@@ -246,7 +236,7 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		: is_mem(l) && is_commut(e->code)  ? (int_or_mem = l, not_num = r)
 		: is_mem(r)						   ? (int_or_mem = r, not_num = l)
 										   : 0) {
-		// gen_mem_typle can safely gen tuple for int or real too
+		// gen_mem_tuple can safely gen tuple for int or real too
 		gen_mem_tuple(g, int_or_mem);
 		r1 = gen_to_reg(g, not_num, reg_size);
 

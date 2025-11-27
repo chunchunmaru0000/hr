@@ -48,18 +48,6 @@ void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
 		and_cmp(g, e->r, false_label);
 		add_label(this_end_label);
 	} else {
-		// 		if (lceep(e, VAR)) {
-		// 			declare_lvar_gvar;
-		// 			get_assignee_size(g, e, &gvar, &lvar);
-		//
-		// 			isprint_ft(CMP);
-		// 			var_(g, lvar, gvar);
-		// 		} else {
-		// 			r1 = gen_to_reg(g, e, 0);
-		// 			op_reg_(CMP, r1->reg_code);
-		// 			free_reg_family(r1->rf);
-		// 		}
-		// 		add_int_with_hex_comm(fun_text, 0);
 		r1 = gen_to_reg(g, e, 0);
 		op_reg_reg(TEST, r1, r1);
 		free_reg_family(r1->rf);
@@ -126,12 +114,8 @@ void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label) {
 		or_cmp(g, e->r, true_label);
 		add_label(this_end_label);
 	} else {
-		if (lceep(e, VAR)) {
-			declare_lvar_gvar;
-			get_assignee_size(g, e, &gvar, &lvar);
-
-			isprint_ft(CMP);
-			var_(g, lvar, gvar);
+		if (is_mem(e)) {
+			op_mem_(CMP, e, 0);
 		} else {
 			r1 = gen_to_reg(g, e, 0);
 			op_reg_(CMP, r1->reg_code);

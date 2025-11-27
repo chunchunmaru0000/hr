@@ -402,6 +402,9 @@ void inner_mem(Gg, struct LocalExpr *e);
 void mem_(Gg, struct LocalExpr *e, int of_size);
 #define mem_enter(e, sz) mem_(g, (e), (sz)), g->fun_text->size--, ft_add('\n')
 void gen_mem_tuple(Gg, struct LocalExpr *e);
+#define op_mem_(op, e, sz)                                                     \
+	isprint_ft(op);                                                            \
+	mem_(g, (e), (sz));
 
 // ############################################################################
 // 									OZER
