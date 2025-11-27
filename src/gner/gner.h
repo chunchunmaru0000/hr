@@ -175,7 +175,7 @@ sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
 			sae(JB) sae(JBE) sae(JA) sae(JAE) sae(JL) sae(JLE) sae(JG) sae(JGE)
 				sae(JE) sae(JNE) sae(CALL) sae(CVTSS2SI) sae(CVTSD2SI)
 					sae(PUSH_R15) sae(PUSH_R14) sae(PUSH_R13) sae(POP_R15)
-						sae(POP_R14) sae(POP_R13);
+						sae(POP_R14) sae(POP_R13) sae(MEM_PLUS);
 
 // #############################################################################
 
@@ -246,6 +246,7 @@ void indent_line(struct Gner *g, struct BList *l);
 #define print_ft(str) (blat_str_fun_text(str))
 #define sprint_ft(str) (blat_str_fun_text(SA_##str))
 #define ft_add(byte) (blist_add(g->fun_text, (byte)))
+// TODO: i propably lose mem here if use with size_str(...)
 #define blat_ft(list) (blat_blist(g->fun_text, (list)))
 // #############################################################################
 
@@ -396,6 +397,11 @@ struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 	 : (le) == LE_BIN_EQUALS	 ? LE_BIN_NOT_EQUALS                           \
 	 : (le) == LE_BIN_NOT_EQUALS ? LE_BIN_EQUALS                               \
 								 : (le))
+int is_mem(struct LocalExpr *e);
+void inner_mem(Gg, struct LocalExpr *e);
+void mem_(Gg, struct LocalExpr *e, int of_size);
+#define mem_enter(e, sz) mem_(g, (e), (sz)), g->fun_text->size--, ft_add('\n')
+void gen_mem_tuple(Gg, struct LocalExpr *e);
 
 // ############################################################################
 // 									OZER

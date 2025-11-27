@@ -55,8 +55,12 @@ void iprint_xmm_op(Gg, enum LE_Code code, uc is_ss) {
 	blat(g->fun_text, (uc *)str, len - 1);
 }
 
-// local var, arr(not ptr), field(not ptr)
-// global var, arr(not ptr), field(not ptr)
+struct Reg *mem_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+	struct Reg *r = try_borrow_reg(e->tvar, g, reg_size);
+	op_reg_(MOV, r->reg_code);
+	mem_enter(e, 0);
+	return r;
+}
 
 struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *reg = 0, *xmm;
@@ -110,9 +114,6 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 struct Reg *dereference(Gg, struct LocalExpr *e) {
 	struct Reg *reg = 0;
 	declare_lvar_gvar;
-
-	// local var, arr(not ptr), field(not ptr)
-	// global var, arr(not ptr), field(not ptr)
 
 	if (lcep(VAR)) {
 		get_assignee_size(g, e, &gvar, &lvar);
@@ -234,38 +235,38 @@ struct Reg *xmm_bin_to_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *r1 = 0, *r2 = 0;
 	struct LocalExpr *l = e->l, *r = e->r;
-	struct LocalExpr *num, *not_num;
+	struct LocalExpr *int_or_mem, *not_num;
 
 	if (is_num_le(l) && is_num_le(r))
 		exit(156);
 
-	// if (lceep(l, INT) && is_commut(e->code) ? (num = l, not_num = r)
-	// 	: lceep(r, INT)						? (num = r, not_num = l)
-	// 										: 0) {
-	if (is_num_le(l) && is_commut(e->code)	  ? (num = l, not_num = r)
-		: is_num_le(r)						  ? (num = r, not_num = l)
-		: lceb(SHR) || lceb(SHR)			  ? 0
-		: lceep(l, VAR) && is_commut(e->code) ? (num = l, not_num = r)
-		: lceep(r, VAR)						  ? (num = r, not_num = l)
-											  : 0) {
-		gen_tuple_of(g, num);
+	if (is_num_le(l) && is_commut(e->code) ? (int_or_mem = l, not_num = r)
+		: is_num_le(r)					   ? (int_or_mem = r, not_num = l)
+		: lceb(SHR) || lceb(SHR)		   ? 0
+		: is_mem(l) && is_commut(e->code)  ? (int_or_mem = l, not_num = r)
+		: is_mem(r)						   ? (int_or_mem = r, not_num = l)
+										   : 0) {
+		// gen_mem_typle can safely gen tuple for int or real too
+		gen_mem_tuple(g, int_or_mem);
 		r1 = gen_to_reg(g, not_num, reg_size);
 
 		if (is_real_type(e->type)) {
-			if (lceep(num, INT)) {
-				num->code = LE_PRIMARY_REAL;
-				num->tvar->real = num->tvar->num;
-				turn_type_to_simple(num, e->type->code);
-				r2 = prime_to_reg(g, num, 0);
-			} else
-				r2 = prime_to_reg(g, num, reg_size);
+			if (lceep(int_or_mem, INT)) {
+				int_or_mem->code = LE_PRIMARY_REAL;
+				int_or_mem->tvar->real = int_or_mem->tvar->num;
+				turn_type_to_simple(int_or_mem, e->type->code);
+				r2 = prime_to_reg(g, int_or_mem, 0);
+			} else if (lceep(int_or_mem, REAL))
+				r2 = prime_to_reg(g, int_or_mem, 0);
+			else
+				r2 = mem_to_reg(g, int_or_mem, reg_size);
 			return xmm_bin_to_reg(g, e, r1, r2);
 		}
 		if (lceb(DIV))
-			return lceep(num, INT) ? div_on_int(g, e, r1)
-								   : div_on_mem(g, e, r1);
-		if (lceb(MUL) && lceep(num, INT))
-			return mul_on_int(g, r1, num);
+			return lceep(int_or_mem, INT) ? div_on_int(g, e, r1)
+										  : div_on_mem(g, e, r1);
+		if (lceb(MUL) && lceep(int_or_mem, INT))
+			return mul_on_int(g, r1, int_or_mem);
 		if ((lceb(SHR) || lceb(SHR)))
 			return shift_on_int(g, e, r1);
 
@@ -274,20 +275,13 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		if (lceb(MUL))
 			reg_(r1->reg_code);
 
-		if (lceep(num, VAR)) {
-			declare_lvar_gvar;
-			get_assignee_size(g, num, &gvar, &lvar);
-			var_enter(lvar, gvar);
+		if (lceep(int_or_mem, INT)) {
+			add_int_with_hex_comm(fun_text, int_or_mem->tvar->num);
 		} else {
-			add_int_with_hex_comm(fun_text, num->tvar->num);
+			mem_enter(int_or_mem, 0);
 		}
 		return r1;
 	} else {
-		// if (lceb(SHR) || lceb(SHR)				  ? 0
-		// 	: lceep(l, VAR) && is_commut(e->code) ? (num = l, not_num = r)
-		// 	: lceep(r, VAR)						  ? (num = r, not_num = l)
-		// 										  : 0)
-		// 	goto int_or_var;
 
 		if (!have_any_side_effect(l) && le_depth(l) < le_depth(r)) {
 			r2 = gen_to_reg(g, r, reg_size);
@@ -319,6 +313,11 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 	int reg_size = of_size ? of_size : unsafe_size_of_type(e->type);
 	struct Reg *res_reg;
 
+	if (is_mem(e)) {
+		gen_mem_tuple(g, e);
+		return mem_to_reg(g, e, reg_size);
+	}
+
 	// TODO: use gen_tuple_of whenever is need
 	gen_tuple_of(g, e);
 
@@ -338,6 +337,5 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 		res_reg = bin_to_reg(g, e, reg_size);
 	else
 		exit(152);
-
 	return res_reg;
 }

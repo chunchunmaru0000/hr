@@ -253,15 +253,15 @@ void gen_var(struct Gner *g, struct LocalExpr *e) {}
 
 void var_(struct Gner *g, let_lvar_gvar) {
 	if (lvar) {
-		blat_fun_text(size_str(lvar->lvar_size)); // *байт
-		print_fun_text(SA_PAR_RBP);				  // (рбп
-		blat_fun_text(lvar->name->view);		  // перем
-		blat_str_fun_text(SA_R_PAR);			  // )
-	} else {									  // gvar
-		blat_fun_text(size_str(gvar->gvar_size)); // *байт
-		blat_str_fun_text(SA_L_PAR);			  // (
-		blat_fun_text(gvar->signature);			  // сигнатура
-		blat_str_fun_text(SA_R_PAR);			  // )
+		blat_ft(size_str(lvar->lvar_size)); // *байт
+		sprint_ft(PAR_RBP);					// (рбп
+		blat_ft(lvar->name->view);			// перем
+		sprint_ft(R_PAR);					// )
+	} else {								// gvar
+		blat_ft(size_str(gvar->gvar_size)); // *байт
+		sprint_ft(L_PAR);					// (
+		blat_ft(gvar->signature);			// сигнатура
+		sprint_ft(R_PAR);					// )
 	}
 }
 void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
@@ -320,4 +320,63 @@ int le_depth(struct LocalExpr *e) {
 		   : lcea(FIELD_OF_PTR) ? le_depth(e->l) + 1
 		   : lcea(FIELD)		? le_depth(e->l) + 1
 								: (exit(151), -1);
+}
+
+// LE_PRIMARY_VAR = 3, LE_AFTER_INDEX = 36, LE_AFTER_FIELD = 41,
+
+// TODO: mem is:
+// * * local var, arr(not ptr), field(not ptr)
+// * * global var, arr(not ptr), field(not ptr)
+
+int is_mem(struct LocalExpr *e) {
+	return lcep(VAR) || (lcea(FIELD) && is_mem(e->l)) ||
+		   (lcea(INDEX) && e->l->type->code == TC_ARR && is_mem(e->l) &&
+			lceep(e->r, INT));
+}
+
+void inner_mem(Gg, struct LocalExpr *e) {
+	if (lcep(VAR)) {
+		declare_lvar_gvar;
+		get_assignee_size(g, e, &gvar, &lvar);
+		if (lvar) {
+			reg_(R_RBP);
+			blat_ft(lvar->name->view);
+		} else {
+			blat_ft(gvar->signature);
+		}
+
+	} else if (lcea(INDEX)) {
+		struct TypeExpr *item_type = arr_type(e->l->type);
+		int item_size = unsafe_size_of_type(item_type);
+
+		inner_mem(g, e->l);
+		sprint_ft(MEM_PLUS);
+		int_add(g->fun_text, e->r->tvar->num * item_size);
+
+	} else { // FIELD
+		struct BList *field_full_name = (struct BList *)(long)e->tvar->real;
+
+		inner_mem(g, e->l);
+		sprint_ft(MEM_PLUS);
+		blat_ft(field_full_name);
+	}
+}
+
+void mem_(Gg, struct LocalExpr *e, int of_size) {
+	of_size ? blat_ft(size_str(of_size))
+			: blat_ft(size_str(unsafe_size_of_type(e->type)));
+	ft_add('(');
+	inner_mem(g, e);
+	ft_add(')'), ft_add(' ');
+}
+
+void gen_mem_tuple(Gg, struct LocalExpr *e) {
+	gen_tuple_of(g, e);
+
+	if (lcea(FIELD)) {
+		gen_mem_tuple(g, e->l);
+	} else if (lcea(INDEX)) {
+		gen_mem_tuple(g, e->l);
+		gen_mem_tuple(g, e->r);
+	}
 }

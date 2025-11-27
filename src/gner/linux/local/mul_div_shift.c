@@ -176,9 +176,6 @@ struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
 struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1) {
 	struct Reg *rDX = 0;
 
-	declare_lvar_gvar;
-	get_assignee_size(g, e->r, &gvar, &lvar);
-
 	get_reg_to_rf(e->tvar, g, r1, g->cpu->a);
 
 	if (g->cpu->d->r->allocated) {
@@ -191,7 +188,7 @@ struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1) {
 	// CWDE
 	// CDQE
 	isprint_ft(IDIV);
-	var_enter(lvar, gvar);
+	mem_enter(e->r, 0);
 	// CWD
 	// CDQ
 	// CQO

@@ -16,6 +16,7 @@ sa(ZERO_TERMINATOR, " 0\n");
 sa(START_COMMENT, "\t; ");
 sa(EQU, "вот ");
 sa(COMM, "; ");
+sa(MEM_PLUS, " + ");
 
 sa(PUSH_RBP, "толк рбп\n");
 sa(MOV_RBP_RSP, "быть рбп рсп\n");
