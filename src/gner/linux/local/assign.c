@@ -34,18 +34,33 @@ void assign_to_mem(Gg, struct LocalExpr *e) {
 	}
 }
 
-// struct LocalExpr *find_trailed(struct LocalExpr *e)
-// 	return lcea(FIELD) || index_of_int ? find_trailed(e->l) : e;
-// struct LocalExpr *is_not_assignable_or_trailed(struct LocalExpr *e)
-// 	return lcea(FIELD) || index_of_int		  ? find_trailed(e->l)
-// 		   : lcea(FIELD_OF_PTR) || lceu(ADDR) ? e
-// 											  : 0;
 void assign_to_last_mem(Gg, struct LocalExpr *assignee,
 						struct LocalExpr *trailed, struct LocalExpr *right) {
-	struct Reg *r1, *r2;
+	struct Reg *r1 = 0, *r2 = 0;
 	struct BList *last_mem_str = 0;
 
 	r1 = gen_to_reg_with_last_mem(g, assignee, trailed, &last_mem_str);
+
+	if (is_num_le(right)) {
+		isprint_ft(MOV);
+		blat_blist(g->fun_text, last_mem_str);
+
+		if (lceep(right, INT)) {
+			add_int_with_hex_comm(fun_text, right->tvar->num);
+		} else {
+			real_add(g->fun_text, right->tvar->real);
+		}
+	} else {
+		r2 = gen_to_reg(g, right, 0);
+
+		isprint_ft(MOV);
+		blat_blist(g->fun_text, last_mem_str);
+		reg_enter(r2->reg_code);
+	}
+
+	free_reg_rf_if_not_zero(r1);
+	free_reg_rf_if_not_zero(r2);
+	blist_clear_free(last_mem_str);
 }
 
 void gen_assign(struct Gner *g, struct LocalExpr *e) {
@@ -53,7 +68,7 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 
 	if (is_mem(assignee))
 		assign_to_mem(g, e);
-	else if ((trailed = is_not_assignable_or_trailed(e)))
+	else if ((trailed = is_not_assignable_or_trailed(assignee)))
 		assign_to_last_mem(g, assignee, trailed, e->r);
 	else
 		eet(e->l->tvar, NOT_ASSIGNABLE, 0);

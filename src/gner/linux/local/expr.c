@@ -438,6 +438,7 @@ struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
 			if (is_mem(left)) {
 				printf("вот тут TODO потому что inner_mem в лист надо");
 				exit(175);
+				r1 = 0;
 			} else if ((trailed = is_not_assignable_or_trailed(left))) {
 				// i dont think this is it
 				r1 = last_inner_mem(g, left, trailed, imt);
@@ -446,60 +447,48 @@ struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
 		} else
 			exit(174);
 
-		imt_reg(r1->reg_code), imt_add(' ');
-		blat_imt(size_str), imt_add(' '), imt_reg(r2->reg_code);
+		imt_add(' '), blat_imt(size_str), imt_add(' '), imt_reg(r2->reg_code);
 		blist_clear_free(size_str);
 
 	} else if (lcea(FIELD_OF_PTR)) {
 		struct BList *field_full_name = (struct BList *)(long)e->tvar->real;
+		r1 = gen_to_reg(g, left, 0);
 
-		if (is_mem(left)) {
-			printf("вот тут TODO потому что inner_mem в лист надо");
-			exit(177);
-		} else if ((trailed = is_not_assignable_or_trailed(left))) {
-			// i dont think this is it
-			r1 = last_inner_mem(g, left, trailed, imt);
-		} else
-			exit(178);
-
-		imt_reg(r1->reg_code), imt_add(' ');
-		blat_imt(field_full_name);
+		imt_reg(r1->reg_code), imt_add(' '), blat_imt(field_full_name);
 		blist_clear_free(field_full_name);
 	}
 
-	if (r2)
-		free_reg_family(r2->rf);
-	if (!r1)
-		exit(172);
+	free_reg_rf_if_not_zero(r2);
 	return r1;
 }
 
 void trail_last_inner_mem(Gg, struct LocalExpr *e, struct LocalExpr *trailed,
 						  struct BList *imt) {
+	if (e == trailed)
+		return;
+	trail_last_inner_mem(g, e->l, trailed, imt);
+
 	if (lcea(INDEX)) {
 		struct TypeExpr *item_type = arr_type(e->l->type);
 		int item_size = unsafe_size_of_type(item_type);
 
-		// last_inner_mem(g, e->l, imt);
-		sprint_ft(MEM_PLUS);
-		int_add(g->fun_text, e->r->tvar->num * item_size);
+		sprint_imt(MEM_PLUS);
+		int_add(imt, e->r->tvar->num * item_size);
 
-	} else if (lcea(FIELD)) { // FIELD
+	} else if (lcea(FIELD)) {
 		struct BList *field_full_name = (struct BList *)(long)e->tvar->real;
 
-		// last_inner_mem(g, e->l, imt);
 		sprint_imt(MEM_PLUS);
 		blat_imt(field_full_name);
-	} else if (lcea(FIELD_OF_PTR)) {
-
+		blist_clear_free(field_full_name);
 	} else {
-		struct Reg *r = gen_to_reg(g, e, 0);
+		exit(123);
 	}
 }
 
 struct Reg *last_inner_mem(Gg, struct LocalExpr *e, struct LocalExpr *trailed,
 						   struct BList *imt) {
-	struct Reg *r = begin_last_inner_mem(g, e, imt);
+	struct Reg *r = begin_last_inner_mem(g, trailed, imt);
 	if (e != trailed)
 		trail_last_inner_mem(g, e, trailed, imt);
 	return r;
@@ -517,8 +506,6 @@ struct Reg *gen_to_reg_with_last_mem(Gg, struct LocalExpr *e,
 	imt_add(')');
 	imt_add(' ');
 
-	if (!r)
-		exit(171);
 	*last_mem_str = imt;
 	return r;
 }

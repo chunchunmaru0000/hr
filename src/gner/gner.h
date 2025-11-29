@@ -397,6 +397,9 @@ struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 	 : (le) == LE_BIN_EQUALS	 ? LE_BIN_NOT_EQUALS                           \
 	 : (le) == LE_BIN_NOT_EQUALS ? LE_BIN_EQUALS                               \
 								 : (le))
+#define free_reg_rf_if_not_zero(r)                                             \
+	if ((r))                                                                   \
+		free_reg_family((r)->rf);
 int is_mem(struct LocalExpr *e);
 void inner_mem(Gg, struct LocalExpr *e);
 void mem_(Gg, struct LocalExpr *e, int of_size);
