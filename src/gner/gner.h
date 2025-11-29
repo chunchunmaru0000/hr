@@ -406,6 +406,11 @@ void gen_mem_tuple(Gg, struct LocalExpr *e);
 	isprint_ft(op);                                                            \
 	mem_(g, (e), (sz));
 struct LocalExpr *is_not_assignable_or_trailed(struct LocalExpr *e);
+struct Reg *last_inner_mem(Gg, struct LocalExpr *e, struct LocalExpr *trailed,
+						   struct BList *imt);
+struct Reg *gen_to_reg_with_last_mem(Gg, struct LocalExpr *e,
+									 struct LocalExpr *trailed,
+									 struct BList **last_mem_str);
 
 // ############################################################################
 // 									OZER

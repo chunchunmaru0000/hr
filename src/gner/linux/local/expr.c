@@ -406,53 +406,119 @@ struct LocalExpr *is_not_assignable_or_trailed(struct LocalExpr *e) {
 											  : 0;
 }
 
+// TODO: here may need to do tuple gen in imt but later
 // imt - inner mem text
 #define blat_imt(l) (blat_blist(imt, (l)))
 #define sprint_imt(str) (blat(imt, (uc *)(SA_##str), (SA_##str##_LEN - 1)))
-#define imt_reg_(rc) (blat_imt(just_get_reg(g->cpu, (rc))->name))
+#define imt_reg(rc) (blat_imt(just_get_reg(g->cpu, (rc))->name))
+#define imt_add(b) (blist_add(imt, (b)))
 
-void last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
-	if (lcep(VAR)) {
-		declare_lvar_gvar;
-		get_assignee_size(g, e, &gvar, &lvar);
-		if (lvar) {
-			imt_reg_(R_RBP);
-			blat_imt(lvar->name->view);
-		} else {
-			blat_imt(gvar->signature);
-		}
+struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
+	struct Reg *r1 = 0, *r2 = 0;
+	struct LocalExpr *left = e->l, *trailed;
 
+	if (lceu(ADDR)) {
+		r1 = gen_to_reg(g, left, 0);
+		if (r1->size != QWORD)
+			exit(173);
+		imt_reg(r1->reg_code);
 	} else if (lcea(INDEX)) {
+		struct TypeExpr *iant_type = left->type;
+		struct BList *size_str;
+
+		r2 = gen_to_reg(g, e->r, 0); // index
+
+		if (iant_type->code == TC_PTR) {
+			size_str = int_to_str(unsafe_size_of_type(ptr_targ(iant_type)));
+			r1 = gen_to_reg(g, left, 0);
+
+		} else if (iant_type->code == TC_ARR) {
+			size_str = int_to_str(unsafe_size_of_type(arr_type(iant_type)));
+
+			if (is_mem(left)) {
+				printf("вот тут TODO потому что inner_mem в лист надо");
+				exit(175);
+			} else if ((trailed = is_not_assignable_or_trailed(left))) {
+				// i dont think this is it
+				r1 = last_inner_mem(g, left, trailed, imt);
+			} else
+				exit(176);
+		} else
+			exit(174);
+
+		imt_reg(r1->reg_code), imt_add(' ');
+		blat_imt(size_str), imt_add(' '), imt_reg(r2->reg_code);
+		blist_clear_free(size_str);
+
+	} else if (lcea(FIELD_OF_PTR)) {
+		struct BList *field_full_name = (struct BList *)(long)e->tvar->real;
+
+		if (is_mem(left)) {
+			printf("вот тут TODO потому что inner_mem в лист надо");
+			exit(177);
+		} else if ((trailed = is_not_assignable_or_trailed(left))) {
+			// i dont think this is it
+			r1 = last_inner_mem(g, left, trailed, imt);
+		} else
+			exit(178);
+
+		imt_reg(r1->reg_code), imt_add(' ');
+		blat_imt(field_full_name);
+		blist_clear_free(field_full_name);
+	}
+
+	if (r2)
+		free_reg_family(r2->rf);
+	if (!r1)
+		exit(172);
+	return r1;
+}
+
+void trail_last_inner_mem(Gg, struct LocalExpr *e, struct LocalExpr *trailed,
+						  struct BList *imt) {
+	if (lcea(INDEX)) {
 		struct TypeExpr *item_type = arr_type(e->l->type);
 		int item_size = unsafe_size_of_type(item_type);
 
-		last_inner_mem(g, e->l, imt);
+		// last_inner_mem(g, e->l, imt);
 		sprint_ft(MEM_PLUS);
 		int_add(g->fun_text, e->r->tvar->num * item_size);
 
 	} else if (lcea(FIELD)) { // FIELD
 		struct BList *field_full_name = (struct BList *)(long)e->tvar->real;
 
-		last_inner_mem(g, e->l, imt);
+		// last_inner_mem(g, e->l, imt);
 		sprint_imt(MEM_PLUS);
 		blat_imt(field_full_name);
 	} else if (lcea(FIELD_OF_PTR)) {
 
 	} else {
 		struct Reg *r = gen_to_reg(g, e, 0);
-		
 	}
 }
 
-struct BList *last_mem(Gg, struct LocalExpr *e, int of_size) {
-	struct BList *imt = new_blist(64);
+struct Reg *last_inner_mem(Gg, struct LocalExpr *e, struct LocalExpr *trailed,
+						   struct BList *imt) {
+	struct Reg *r = begin_last_inner_mem(g, e, imt);
+	if (e != trailed)
+		trail_last_inner_mem(g, e, trailed, imt);
+	return r;
+}
 
-	of_size ? blat_imt(size_str(of_size))
-			: blat_imt(size_str(unsafe_size_of_type(e->type)));
-	blist_add(imt, '(');
-	last_inner_mem(g, e, imt);
-	blist_add(imt, ')');
-	blist_add(imt, ' ');
+struct Reg *gen_to_reg_with_last_mem(Gg, struct LocalExpr *e,
+									 struct LocalExpr *trailed,
+									 struct BList **last_mem_str) {
+	struct BList *imt = !(*last_mem_str) ? new_blist(64) : *last_mem_str;
+	struct Reg *r = 0;
 
-	return imt;
+	blat_imt(size_str(unsafe_size_of_type(e->type)));
+	imt_add('(');
+	r = last_inner_mem(g, e, trailed, imt);
+	imt_add(')');
+	imt_add(' ');
+
+	if (!r)
+		exit(171);
+	*last_mem_str = imt;
+	return r;
 }
