@@ -126,7 +126,12 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 	} else if (lceb(ASSIGN) || lcea(INDEX)) {
 		opt_bin_constant_folding(e->l);
 		opt_bin_constant_folding(e->r);
-	} else if (is_unary(e) || lce(BOOL) || lcea(INC) || lcea(DEC)) {
+	} else if (lcea(CALL)) {
+		opt_bin_constant_folding(e->l);
+		for (u32 i = 0; i < e->co.ops->size; i++)
+			opt_bin_constant_folding(plist_get(e->co.ops, i));
+
+	} else if (is_unary(e) || lce(BOOL) || is_after(e)) {
 		opt_bin_constant_folding(e->l);
 		if (is_num_le(e->l))
 			unary_or_bool_of_num(e);

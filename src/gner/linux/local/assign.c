@@ -1,5 +1,7 @@
 #include "../../gner.h"
 
+constr NOT_ASSIGNABLE = "Данное выражение не может быть присваеваемым.";
+
 void assign_to_mem(Gg, struct LocalExpr *e) {
 	struct LocalExpr *mem = e->l;
 	struct LocalExpr *assignable = e->r;
@@ -32,11 +34,16 @@ void assign_to_mem(Gg, struct LocalExpr *e) {
 	}
 }
 
-void gen_assign(struct Gner *g, struct LocalExpr *e) {
-	struct LocalExpr *assignee = e->l;
+void assign_to_last_mem(Gg, struct LocalExpr *assignee,
+						struct LocalExpr *trailed, struct LocalExpr *right) {}
 
-	if (is_mem(assignee)) {
+void gen_assign(struct Gner *g, struct LocalExpr *e) {
+	struct LocalExpr *assignee = e->l, *trailed;
+
+	if (is_mem(assignee))
 		assign_to_mem(g, e);
-	} else
-		exit(161);
+	else if ((trailed = is_not_assignable_or_trailed(e)))
+		assign_to_last_mem(g, assignee, trailed, e->r);
+	else
+		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
 }

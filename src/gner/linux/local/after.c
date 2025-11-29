@@ -67,13 +67,13 @@ struct Reg *field_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		if (during_add) {
 			during_add = 0;
 
-			r1 = gen_to_reg(g, e->l->l, QWORD);
+			r1 = gen_to_reg(g, e->l, QWORD);
 			op_reg_(MOV, r1->reg_code);
 			sib_enter(reg_size, 0, 0, r1->reg_code, field_full_name, 1);
 
 			g->fun_text->size -= 2; // remove ")\n" after sib_enter
 		} else {
-			r1 = gen_to_reg(g, e->l->l, QWORD);
+			r1 = gen_to_reg(g, e->l, QWORD);
 			op_reg_(MOV, r1->reg_code);
 			sib_enter(reg_size, 0, 0, r1->reg_code, field_full_name, 1);
 		}

@@ -405,6 +405,7 @@ void gen_mem_tuple(Gg, struct LocalExpr *e);
 #define op_mem_(op, e, sz)                                                     \
 	isprint_ft(op);                                                            \
 	mem_(g, (e), (sz));
+struct LocalExpr *is_not_assignable_or_trailed(struct LocalExpr *e);
 
 // ############################################################################
 // 									OZER

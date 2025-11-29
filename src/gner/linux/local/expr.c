@@ -328,10 +328,12 @@ int le_depth(struct LocalExpr *e) {
 // * * local var, arr(not ptr), field(not ptr)
 // * * global var, arr(not ptr), field(not ptr)
 
+#define index_of_int                                                           \
+	((lcea(INDEX) && e->l->type->code == TC_ARR && is_mem(e->l) &&             \
+	  lceep(e->r, INT)))
+
 int is_mem(struct LocalExpr *e) {
-	return lcep(VAR) || (lcea(FIELD) && is_mem(e->l)) ||
-		   (lcea(INDEX) && e->l->type->code == TC_ARR && is_mem(e->l) &&
-			lceep(e->r, INT));
+	return lcep(VAR) || (lcea(FIELD) && is_mem(e->l)) || index_of_int;
 }
 
 void inner_mem(Gg, struct LocalExpr *e) {
@@ -379,4 +381,78 @@ void gen_mem_tuple(Gg, struct LocalExpr *e) {
 		gen_mem_tuple(g, e->l);
 		gen_mem_tuple(g, e->r);
 	}
+}
+
+/*
+x = e
+x can be:
+* * var...-@...[literal]...field or none is mem
+
+* * e[index]
+* * e -> or -@ field
+* * (*e)
+
+also x can be trailed by
+-@ field
+[literal]
+*/
+
+struct LocalExpr *find_trailed(struct LocalExpr *e) {
+	return lcea(FIELD) || index_of_int ? find_trailed(e->l) : e;
+}
+struct LocalExpr *is_not_assignable_or_trailed(struct LocalExpr *e) {
+	return lcea(FIELD) || index_of_int		  ? find_trailed(e->l)
+		   : lcea(FIELD_OF_PTR) || lceu(ADDR) ? e
+											  : 0;
+}
+
+// imt - inner mem text
+#define blat_imt(l) (blat_blist(imt, (l)))
+#define sprint_imt(str) (blat(imt, (uc *)(SA_##str), (SA_##str##_LEN - 1)))
+#define imt_reg_(rc) (blat_imt(just_get_reg(g->cpu, (rc))->name))
+
+void last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
+	if (lcep(VAR)) {
+		declare_lvar_gvar;
+		get_assignee_size(g, e, &gvar, &lvar);
+		if (lvar) {
+			imt_reg_(R_RBP);
+			blat_imt(lvar->name->view);
+		} else {
+			blat_imt(gvar->signature);
+		}
+
+	} else if (lcea(INDEX)) {
+		struct TypeExpr *item_type = arr_type(e->l->type);
+		int item_size = unsafe_size_of_type(item_type);
+
+		last_inner_mem(g, e->l, imt);
+		sprint_ft(MEM_PLUS);
+		int_add(g->fun_text, e->r->tvar->num * item_size);
+
+	} else if (lcea(FIELD)) { // FIELD
+		struct BList *field_full_name = (struct BList *)(long)e->tvar->real;
+
+		last_inner_mem(g, e->l, imt);
+		sprint_imt(MEM_PLUS);
+		blat_imt(field_full_name);
+	} else if (lcea(FIELD_OF_PTR)) {
+
+	} else {
+		struct Reg *r = gen_to_reg(g, e, 0);
+		
+	}
+}
+
+struct BList *last_mem(Gg, struct LocalExpr *e, int of_size) {
+	struct BList *imt = new_blist(64);
+
+	of_size ? blat_imt(size_str(of_size))
+			: blat_imt(size_str(unsafe_size_of_type(e->type)));
+	blist_add(imt, '(');
+	last_inner_mem(g, e, imt);
+	blist_add(imt, ')');
+	blist_add(imt, ' ');
+
+	return imt;
 }

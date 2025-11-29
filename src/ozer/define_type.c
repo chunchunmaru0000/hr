@@ -303,7 +303,7 @@ void define_le_type(struct LocalExpr *e) {
 		if (!is_int_type(e->r->type))
 			eet(e->r->tvar, INDEX_SHOULD_BE_OF_INT_TYPE_ONLY, 0);
 
-	} else if (lce(AFTER_PIPE_LINE)) {
+	} else if (lcea(PIPE_LINE)) {
 		// TODO: (1, 2) |> x ? fa : fb
 		define_type_and_copy_flags_to_e(e->r);
 
@@ -319,17 +319,29 @@ void define_le_type(struct LocalExpr *e) {
 		e->r = 0;
 		goto define_after_call;
 
-	} else if (lce(AFTER_CALL)) {
+	} else if (lcea(CALL)) {
 	define_after_call:
 		define_call_type(e);
 
-	} else if (lce(AFTER_INC) || lce(AFTER_DEC)) {
+	} else if (lcea(INC) || lcea(DEC)) {
 		define_type_and_copy_flags_to_e(e->l);
 		e->flags |= LEF_SIDE_EFFECT_MEMCH;
 		e->type = copy_type_expr(e->l->type);
-	} else if (lce(AFTER_FIELD_OF_PTR) || lce(AFTER_FIELD)) {
+	} else if (lcea(FIELD)) {
+		if (lceeu(e->l, ADDR)) {
+			e->l = e->l->l;
+			e->code = LE_AFTER_FIELD_OF_PTR;
+			blist_set(e->tvar->view, 1, '>');
+		}
 		define_struct_field_type_type(e);
-	} else if (lce(AFTER_ENUM)) {
+	} else if (lcea(FIELD_OF_PTR)) {
+		if (lceeu(e->l, AMPER)) {
+			e->l = e->l->l;
+			e->code = LE_AFTER_FIELD;
+			blist_set(e->tvar->view, 1, '@');
+		}
+		define_struct_field_type_type(e);
+	} else if (lcea(ENUM)) {
 		define_enum(e);
 	}
 }
