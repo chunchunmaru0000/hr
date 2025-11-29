@@ -401,9 +401,9 @@ struct LocalExpr *find_trailed(struct LocalExpr *e) {
 	return lcea(FIELD) || index_of_int ? find_trailed(e->l) : e;
 }
 struct LocalExpr *is_not_assignable_or_trailed(struct LocalExpr *e) {
-	return lcea(FIELD) || index_of_int		  ? find_trailed(e->l)
-		   : lcea(FIELD_OF_PTR) || lceu(ADDR) ? e
-											  : 0;
+	return lcea(FIELD) || index_of_int ? find_trailed(e->l)
+		   : lcea(FIELD_OF_PTR) || lceu(ADDR) || lcea(INDEX) ? e
+															 : 0;
 }
 
 // TODO: here may need to do tuple gen in imt but later
@@ -418,36 +418,55 @@ struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
 	struct LocalExpr *left = e->l, *trailed;
 
 	if (lceu(ADDR)) {
-		r1 = gen_to_reg(g, left, 0);
+		r1 = gen_to_reg(g, left, QWORD);
 		if (r1->size != QWORD)
 			exit(173);
 		imt_reg(r1->reg_code);
 	} else if (lcea(INDEX)) {
 		struct TypeExpr *iant_type = left->type;
+		int item_size = iant_type->code == TC_PTR
+							? unsafe_size_of_type(ptr_targ(iant_type))
+							: unsafe_size_of_type(arr_type(iant_type));
 		struct BList *size_str;
 
-		r2 = gen_to_reg(g, e->r, 0); // index
+		r2 = gen_to_reg(g, e->r, QWORD); // index
 
 		if (iant_type->code == TC_PTR) {
-			size_str = int_to_str(unsafe_size_of_type(ptr_targ(iant_type)));
-			r1 = gen_to_reg(g, left, 0);
+			size_str = int_to_str(item_size);
+			r1 = gen_to_reg(g, left, QWORD);
+
+			imt_reg(r1->reg_code), imt_add(' ');
+			blat_imt(size_str), imt_add(' '), imt_reg(r2->reg_code);
 
 		} else if (iant_type->code == TC_ARR) {
-			size_str = int_to_str(unsafe_size_of_type(arr_type(iant_type)));
+			size_str = int_to_str(item_size);
 
 			if (is_mem(left)) {
-				printf("вот тут TODO потому что inner_mem в лист надо");
-				exit(175);
+				if (is_in_word(item_size)) {
+					imt_add('0' + item_size), imt_add(' ');
+				} else {
+					isprint_ft(IMUL);
+					reg_(r2->reg_code);
+					reg_(r2->reg_code);
+					add_int_with_hex_comm(fun_text, item_size);
+				}
+				imt_reg(r2->rf->r->reg_code), imt_add(' ');
+
+				exch(imt, g->fun_text, g->tmp_blist);
+				inner_mem(g, left);
+				exch(imt, g->fun_text, g->tmp_blist);
+
 				r1 = 0;
 			} else if ((trailed = is_not_assignable_or_trailed(left))) {
 				// i dont think this is it
 				r1 = last_inner_mem(g, left, trailed, imt);
+
+				imt_add(' '), blat_imt(size_str);
+				imt_add(' '), imt_reg(r2->reg_code);
 			} else
 				exit(176);
-		} else
-			exit(174);
+		}
 
-		imt_add(' '), blat_imt(size_str), imt_add(' '), imt_reg(r2->reg_code);
 		blist_clear_free(size_str);
 
 	} else if (lcea(FIELD_OF_PTR)) {
@@ -481,9 +500,8 @@ void trail_last_inner_mem(Gg, struct LocalExpr *e, struct LocalExpr *trailed,
 		sprint_imt(MEM_PLUS);
 		blat_imt(field_full_name);
 		blist_clear_free(field_full_name);
-	} else {
+	} else
 		exit(123);
-	}
 }
 
 struct Reg *last_inner_mem(Gg, struct LocalExpr *e, struct LocalExpr *trailed,
@@ -503,8 +521,7 @@ struct Reg *gen_to_reg_with_last_mem(Gg, struct LocalExpr *e,
 	blat_imt(size_str(unsafe_size_of_type(e->type)));
 	imt_add('(');
 	r = last_inner_mem(g, e, trailed, imt);
-	imt_add(')');
-	imt_add(' ');
+	imt_add(')'), imt_add(' ');
 
 	*last_mem_str = imt;
 	return r;

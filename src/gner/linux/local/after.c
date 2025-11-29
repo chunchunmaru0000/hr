@@ -1,9 +1,80 @@
 #include "../../gner.h"
 #include <stdio.h>
 
+// for field_of_ptr_to_reg and field_to_reg
+u8 during_add = 0;
+
 struct Reg *index_to_reg(Gg, struct LocalExpr *e, int reg_size) {
-	;
-	return 0;
+	struct Reg *r1, *r2;
+	struct LocalExpr *left = e->l, *trailed;
+	struct TypeExpr *iant_type = left->type;
+	int item_size;
+
+	if (during_add) {
+		reg_size = QWORD;
+		during_add = 0;
+	}
+	item_size = iant_type->code == TC_PTR
+					? unsafe_size_of_type(ptr_targ(iant_type))
+					: unsafe_size_of_type(arr_type(iant_type));
+
+	r2 = gen_to_reg(g, e->r, QWORD); // index
+
+	if (iant_type->code == TC_PTR) {
+		r1 = gen_to_reg(g, left, QWORD);
+
+		if (is_in_word(item_size)) {
+			op_reg_(MOV, r1->reg_code);
+			sib_enter(QWORD, r1->reg_code, item_size, r2->reg_code, 0, 0);
+
+		} else {
+			op_reg_reg(IMUL, r2, r2);
+			g->fun_text->size--, ft_add(' ');
+			add_int_with_hex_comm(fun_text, item_size);
+
+			op_reg_(MOV, r1->reg_code);
+			sib_enter(QWORD, r1->reg_code, 0, r2->reg_code, 0, 0);
+		}
+	} else if (iant_type->code == TC_ARR) {
+
+		if (is_mem(left)) {
+			if (is_in_word(item_size)) {
+				op_reg_(MOV, r2->reg_code);
+				blat_ft(size_str(reg_size));
+				ft_add('(');
+				int_add(g->fun_text, item_size);
+				ft_add(' ');
+			} else {
+				op_reg_reg(IMUL, r2, r2);
+				g->fun_text->size--, ft_add(' ');
+				add_int_with_hex_comm(fun_text, item_size);
+
+				op_reg_(MOV, r2->reg_code);
+				blat_ft(size_str(reg_size));
+				ft_add('(');
+			}
+			reg_(r2->rf->r->reg_code);
+			inner_mem(g, e);
+			ft_add(')'), ft_add(' ');
+
+			r1 = r2, r2 = 0;
+
+		} else if ((trailed = is_not_assignable_or_trailed(left))) {
+			struct BList *last_mem_str = new_blist(64);
+			// i dont think this is it
+			r1 = last_inner_mem(g, left, trailed, last_mem_str);
+
+			isprint_ft(MOV);
+			blat_ft(last_mem_str);
+			ft_add(' '), reg_enter(r2->reg_code);
+
+			blist_clear_free(last_mem_str);
+		} else
+			exit(176);
+	}
+
+	free_reg_rf_if_not_zero(r2);
+	return r1;
 }
 
 struct Reg *inc_to_reg(Gg, struct LocalExpr *e, int reg_size) {
@@ -16,18 +87,12 @@ struct Reg *dec_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	return 0;
 }
 
-// for field_of_ptr_to_reg and field_to_reg
-u8 during_add = 0;
-
 struct Reg *field_of_ptr_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *r1;
 	struct Arg *arg = (struct Arg *)e->tvar->num;
 	struct BList *field_full_name = (struct BList *)(long)e->tvar->real;
 
 	during_add == 0 ? (reg_size = arg->arg_size) : (during_add = 0);
-
-	// printf("### field_of_ptr_to_reg [%s] during_add = %d of size %d\n",
-	// 	   bs(field_full_name), during_add, reg_size);
 
 	r1 = gen_to_reg(g, e->l, QWORD);
 	op_reg_(MOV, r1->reg_code);
@@ -36,79 +101,85 @@ struct Reg *field_of_ptr_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	blist_clear_free(field_full_name);
 	return r1;
 }
+
+struct Reg *field_to_reg_during_add(Gg, struct LocalExpr *e, int reg_size) {
+	struct Reg *r1;
+	struct BList *field_full_name = (struct BList *)(long)e->tvar->real;
+	struct LocalExpr *left = e->l;
+
+	if (is_mem(left)) {
+		gen_mem_tuple(g, left);
+		mem_(g, e->l, reg_size);
+		g->fun_text->size--; // remove " " after mem_
+
+	} else if (lceeu(left, ADDR)) {
+		r1 = gen_to_reg(g, e, QWORD);
+		g->fun_text->size -= 2; // remove ")\n" after sib_enter
+		blat_ft(field_full_name);
+
+	} else if (lceea(left, FIELD_OF_PTR)) {
+		r1 = field_of_ptr_to_reg(g, left, reg_size);
+		g->fun_text->size -= 2; // remove ")\n" after sib_enter
+		ft_add('+'), blat_ft(field_full_name);
+
+	} else if (lceea(left, FIELD)) {
+		r1 = field_to_reg_during_add(g, left, reg_size);
+		ft_add('+'), blat_ft(field_full_name);
+
+	} else if (lceea(left, INDEX)) {
+		r1 = index_to_reg(g, left, reg_size);
+		g->fun_text->size -= 2; // remove ")\n" after sib_enter
+		ft_add('+'), blat_ft(field_full_name);
+
+	} else {
+		printf("[%d]\n", left->code);
+		eet(e->tvar, "╤Н╤Н╤Н ╤З╨╡ type 0, ╨│╨┤╨╡ define_type", 0);
+	}
+
+	during_add = 0;
+	blist_clear_free(field_full_name);
+	return r1;
+}
+
 struct Reg *field_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *r1;
 	struct Arg *arg = (struct Arg *)e->tvar->num;
 	struct BList *field_full_name = (struct BList *)(long)e->tvar->real;
-	enum RegCode base;
+	struct LocalExpr *left = e->l;
 
-	if (during_add == 0)
-		reg_size = arg->arg_size;
+	reg_size = arg->arg_size;
 
-	// printf("### field_to_reg [%s] during_add = %d of size %d\n",
-	// 	   bs(field_full_name), during_add, reg_size);
+	if (is_mem(left)) {
+		gen_mem_tuple(g, left);
+		mem_enter(e->l, reg_size);
 
-	if (lceep(e->l, VAR)) {
-		declare_lvar_gvar;
-		get_assignee_size(g, e->l, &gvar, &lvar);
-
-		blist_add(field_full_name, '+');
-		lvar ? (blat_blist(field_full_name, lvar->name->view), base = R_RBP)
-			 : (blat_blist(field_full_name, gvar->signature), base = 0);
-
-		r1 = try_borrow_reg(e->tvar, g, reg_size);
+	} else if (lceeu(left, ADDR)) {
+		r1 = gen_to_reg(g, left, QWORD);
 		op_reg_(MOV, r1->reg_code);
-		sib_enter(reg_size, 0, 0, base, field_full_name, 1);
+		sib_enter(reg_size, 0, 0, r1->reg_code, field_full_name, 1);
 
-		if (during_add)
-			g->fun_text->size -= 2; // remove ")\n" after sib_enter
+	} else if (lceea(left, FIELD_OF_PTR)) {
+		during_add = 1;
+		r1 = field_of_ptr_to_reg(g, left, reg_size);
+		g->fun_text->size -= 2; // remove ")\n" after sib_enter
+		ft_add('+'), blat_ft(field_full_name);
+		ft_add(')'), ft_add('\n');
 
-	} else if (lceeu(e->l, ADDR)) {
-		if (during_add) {
-			during_add = 0;
+	} else if (lceea(left, FIELD)) {
+		during_add = 1;
+		r1 = field_to_reg_during_add(g, left, reg_size);
+		ft_add('+'), blat_ft(field_full_name);
+		ft_add(')'), ft_add('\n');
 
-			r1 = gen_to_reg(g, e->l, QWORD);
-			op_reg_(MOV, r1->reg_code);
-			sib_enter(reg_size, 0, 0, r1->reg_code, field_full_name, 1);
+	} else if (lceea(left, INDEX)) {
+		during_add = 1;
+		r1 = index_to_reg(g, left, reg_size);
+		g->fun_text->size -= 2; // remove ")\n" after sib_enter
+		ft_add('+'), blat_ft(field_full_name);
+		ft_add(')'), ft_add('\n');
 
-			g->fun_text->size -= 2; // remove ")\n" after sib_enter
-		} else {
-			r1 = gen_to_reg(g, e->l, QWORD);
-			op_reg_(MOV, r1->reg_code);
-			sib_enter(reg_size, 0, 0, r1->reg_code, field_full_name, 1);
-		}
-
-	} else if (lceea(e->l, FIELD_OF_PTR)) {
-		if (during_add) {
-			r1 = field_of_ptr_to_reg(g, e->l, reg_size);
-
-			g->fun_text->size -= 2; // remove ")\n" after sib_enter
-			ft_add('+');
-			blat_ft(field_full_name);
-		} else {
-			during_add = 1;
-			r1 = field_of_ptr_to_reg(g, e->l, reg_size);
-
-			g->fun_text->size -= 2; // remove ")\n" after sib_enter
-			ft_add('+');
-			blat_ft(field_full_name);
-			ft_add(')'), ft_add('\n');
-		}
-	} else if (lceea(e->l, FIELD)) {
-		if (during_add) {
-			r1 = field_to_reg(g, e->l, reg_size);
-			ft_add('+');
-			blat_ft(field_full_name);
-		} else {
-			during_add = 1;
-			r1 = field_to_reg(g, e->l, reg_size);
-
-			ft_add('+');
-			blat_ft(field_full_name);
-			ft_add(')'), ft_add('\n');
-		}
 	} else {
-		printf("[%d]\n", e->l->code);
+		printf("[%d]\n", left->code);
 		eet(e->tvar, "эээ че type 0, где define_type", 0);
 	}
 
@@ -204,6 +275,7 @@ struct Reg *after_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *r1 = 0;
 
 	if (lcea(INDEX)) {
+		r1 = index_to_reg(g, e, reg_size);
 	} else if (lcea(CALL))
 		r1 = call_to_reg(g, e, reg_size);
 	else if (lcea(INC)) {

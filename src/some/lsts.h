@@ -16,6 +16,9 @@
 #define YWORD 32 // юбайт
 #define ZWORD 64 // ябайт
 
+#define is_in_word(sz)                                                         \
+	((sz == BYTE) || (sz == WORD) || (sz == DWORD) || (sz == QWORD))
+
 struct PList {
 	void **st; // start
 	uint32_t cap_pace;
@@ -88,3 +91,8 @@ struct BList *real_to_str(double num);
 	for ((count) = 0; (count) < items->size; (count)++) {                      \
 		item = plist_get(items, (count));
 #define foreach_end }
+
+#define exch(var1, var2, tmp)                                                  \
+	(tmp) = (var1);                                                            \
+	(var1) = (var2);                                                           \
+	(var2) = (tmp);
