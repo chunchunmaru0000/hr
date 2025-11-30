@@ -255,7 +255,7 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 			return lceep(int_or_mem, INT) ? div_on_int(g, e, r1)
 										  : div_on_mem(g, e, r1);
 		if (lceb(MUL) && lceep(int_or_mem, INT))
-			return mul_on_int(g, r1, int_or_mem);
+			return mul_on_int(g, r1, int_or_mem->tvar->num);
 		if ((lceb(SHR) || lceb(SHR)))
 			return shift_on_int(g, e, r1);
 

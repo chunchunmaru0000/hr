@@ -413,6 +413,7 @@ struct LocalExpr *is_not_assignable_or_trailed(struct LocalExpr *e) {
 #define blat_imt(l) (blat_blist(imt, (l)))
 #define sprint_imt(str) (blat(imt, (uc *)(SA_##str), (SA_##str##_LEN - 1)))
 #define imt_reg(rc) (blat_imt(just_get_reg(g->cpu, (rc))->name))
+#define imt_reg_(rc) (imt_reg((rc)), imt_add(' '))
 #define imt_add(b) (blist_add(imt, (b)))
 
 struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
@@ -423,25 +424,23 @@ struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
 		r1 = gen_to_reg(g, left, QWORD);
 		if (r1->size != QWORD)
 			exit(173);
-		imt_reg(r1->reg_code);
+		imt_reg_(r1->reg_code);
+		imt_add('0'); // need zero to parry '+' if will be after r1
 	} else if (lcea(INDEX)) {
 		struct TypeExpr *iant_type = left->type;
 		int item_size = iant_type->code == TC_PTR
 							? unsafe_size_of_type(ptr_targ(iant_type))
 							: unsafe_size_of_type(arr_type(iant_type));
-		struct BList *size_str;
 
 		if (lceep(e->r, INT)) {
-			if (iant_type->code == TC_PTR) {
-				size_str = int_to_str(item_size * e->r->tvar->num);
-				r1 = gen_to_reg(g, left, QWORD);
+			struct BList *size_str = int_to_str(item_size * e->r->tvar->num);
 
-				imt_reg(r1->reg_code), imt_add(' ');
+			if (iant_type->code == TC_PTR) {
+				r1 = gen_to_reg(g, left, QWORD);
+				imt_reg_(r1->reg_code);
 				blat_imt(size_str);
 
 			} else if (iant_type->code == TC_ARR) {
-				size_str = int_to_str(item_size * e->r->tvar->num);
-
 				if ((trailed = is_not_assignable_or_trailed(left))) {
 					r1 = last_inner_mem(g, left, trailed, imt);
 
@@ -450,28 +449,25 @@ struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
 				} else
 					exit(179);
 			}
+			blist_clear_free(size_str);
 		} else {
 			r2 = gen_to_reg(g, e->r, QWORD); // index
 
 			if (iant_type->code == TC_PTR) {
-				size_str = int_to_str(item_size);
+				mul_on_int(g, r2, item_size);
 				r1 = gen_to_reg(g, left, QWORD);
 
-				imt_reg(r1->reg_code), imt_add(' ');
-				blat_imt(size_str), imt_add(' '), imt_reg(r2->reg_code);
+				op_reg_reg(ADD, r1, r2);
+				imt_reg_(r1->reg_code);
+				imt_add('0'); // need zero to parry '+' if will be after r1
 
 			} else if (iant_type->code == TC_ARR) {
-				size_str = int_to_str(item_size);
-
 				if (is_mem(left)) {
-					if (is_in_word(item_size)) {
+					if (is_in_word(item_size))
 						imt_add('0' + item_size), imt_add(' ');
-					} else {
-						op_reg_(IMUL, r2->reg_code);
-						reg_(r2->reg_code);
-						add_int_with_hex_comm(fun_text, item_size);
-					}
-					imt_reg(r2->rf->r->reg_code), imt_add(' ');
+					else
+						mul_on_int(g, r2, item_size);
+					imt_reg_(r2->rf->r->reg_code);
 
 					exch(imt, g->fun_text, g->tmp_blist);
 					inner_mem(g, left);
@@ -479,9 +475,7 @@ struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
 
 					r1 = r2, r2 = 0;
 				} else if ((trailed = is_not_assignable_or_trailed(left))) {
-					op_reg_(IMUL, r2->reg_code);
-					reg_(r2->reg_code);
-					add_int_with_hex_comm(fun_text, item_size);
+					mul_on_int(g, r2, item_size);
 
 					r1 = last_inner_mem(g, left, trailed, imt);
 					op_reg_reg(ADD, r1, r2);
@@ -490,13 +484,11 @@ struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
 			}
 		}
 
-		blist_clear_free(size_str);
-
 	} else if (lcea(FIELD_OF_PTR)) {
 		struct BList *field_full_name = (struct BList *)(long)e->tvar->real;
 		r1 = gen_to_reg(g, left, 0);
 
-		imt_reg(r1->reg_code), imt_add(' '), blat_imt(field_full_name);
+		imt_reg_(r1->reg_code), blat_imt(field_full_name);
 		blist_clear_free(field_full_name);
 	}
 

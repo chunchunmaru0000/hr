@@ -323,7 +323,7 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1, struct Reg *r2);
-struct Reg *mul_on_int(Gg, struct Reg *r1, struct LocalExpr *num);
+struct Reg *mul_on_int(Gg, struct Reg *r1, long mul_on);
 struct Reg *shift_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 						 struct Reg *r2);
@@ -354,31 +354,32 @@ void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 void mov_var_(struct Gner *g, let_lvar_gvar);
 void mov_reg_(Gg, enum RegCode reg);
 void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar);
+#define op_ isprint_ft
 #define op_reg_(op, reg)                                                       \
-	isprint_ft(op);                                                            \
+	op_(op);                                                                   \
 	reg_((reg));
 #define op_var_(op, lvar, gvar)                                                \
-	isprint_ft(op);                                                            \
+	op_(op);                                                                   \
 	var_(g, (lvar), (gvar));
 #define op_reg_enter(op, reg)                                                  \
-	isprint_ft(op);                                                            \
+	op_(op);                                                                   \
 	reg_enter((reg));
 #define op_reg_reg(op, r1, r2)                                                 \
-	isprint_ft(op);                                                            \
+	op_(op);                                                                   \
 	reg_((r1)->reg_code);                                                      \
 	reg_enter((r2)->reg_code);
 struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 #define mov_xmm_reg_(reg)                                                      \
-	isprint_ft(MOV_XMM);                                                       \
+	op_(MOV_XMM);                                                              \
 	reg_(reg);
 #define mov_xmm_var_(g, lvar, gvar)                                            \
 	do {                                                                       \
-		isprint_ft(MOV_XMM);                                                   \
+		op_(MOV_XMM);                                                          \
 		var_((g), (lvar), (gvar));                                             \
 	} while (0)
 #define cvt_ss_to_sd(rcode)                                                    \
 	do {                                                                       \
-		isprint_ft(CVTSS2SD);                                                  \
+		op_(CVTSS2SD);                                                         \
 		reg_((rcode));                                                         \
 		reg_enter((rcode));                                                    \
 	} while (0)

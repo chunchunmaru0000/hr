@@ -5,7 +5,7 @@
 u8 during_add = 0;
 
 struct Reg *index_to_reg(Gg, struct LocalExpr *e, int reg_size) {
-	struct Reg *r1, *r2;
+	struct Reg *r1, *r2 = 0;
 	struct LocalExpr *left = e->l, *trailed;
 	struct TypeExpr *iant_type = left->type;
 	int item_size;
@@ -17,60 +17,80 @@ struct Reg *index_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	item_size = iant_type->code == TC_PTR
 					? unsafe_size_of_type(ptr_targ(iant_type))
 					: unsafe_size_of_type(arr_type(iant_type));
+	if (lceep(e->r, INT)) {
+		long unit = item_size * e->r->tvar->num;
 
-	r2 = gen_to_reg(g, e->r, QWORD); // index
-
-	if (iant_type->code == TC_PTR) {
-		r1 = gen_to_reg(g, left, QWORD);
-
-		if (is_in_word(item_size)) {
+		if (iant_type->code == TC_PTR) {
+			r1 = gen_to_reg(g, left, QWORD);
 			op_reg_(MOV, r1->reg_code);
-			sib_enter(QWORD, r1->reg_code, item_size, r2->reg_code, 0, 0);
+			sib_enter(QWORD, r1->reg_code, 0, 0, unit, 0);
 
-		} else {
-			op_reg_reg(IMUL, r2, r2);
-			g->fun_text->size--, ft_add(' ');
-			add_int_with_hex_comm(fun_text, item_size);
+		} else if (iant_type->code == TC_ARR) {
+			if ((trailed = is_not_assignable_or_trailed(left))) {
+				struct BList *last_mem_str = new_blist(64);
+				r1 = last_inner_mem(g, left, trailed, last_mem_str);
 
-			op_reg_(MOV, r1->reg_code);
-			sib_enter(QWORD, r1->reg_code, 0, r2->reg_code, 0, 0);
+				op_reg_(MOV, r1->reg_code);
+				blat_ft(size_str(reg_size));
+				ft_add('(');
+				blat_ft(last_mem_str);
+				if (unit) {
+					sprint_ft(MEM_PLUS);
+					int_add(g->fun_text, unit);
+				}
+				ft_add(')'), ft_add('\n');
+
+				blist_clear_free(last_mem_str);
+			} else
+				exit(180);
 		}
-	} else if (iant_type->code == TC_ARR) {
+	} else {
+		r2 = gen_to_reg(g, e->r, QWORD); // index
 
-		if (is_mem(left)) {
+		if (iant_type->code == TC_PTR) {
+			r1 = gen_to_reg(g, left, QWORD);
+
 			if (is_in_word(item_size)) {
-				op_reg_(MOV, r2->reg_code);
-				blat_ft(size_str(reg_size));
-				ft_add('(');
-				int_add(g->fun_text, item_size);
-				ft_add(' ');
+				op_reg_(MOV, r1->reg_code);
+				sib_enter(QWORD, r1->reg_code, item_size, r2->reg_code, 0, 0);
 			} else {
-				op_reg_(IMUL, r2->reg_code);
-				reg_(r2->reg_code);
-				add_int_with_hex_comm(fun_text, item_size);
-
-				op_reg_(MOV, r2->reg_code);
-				blat_ft(size_str(reg_size));
-				ft_add('(');
+				mul_on_int(g, r2, item_size);
+				op_reg_(MOV, r1->reg_code);
+				sib_enter(QWORD, r1->reg_code, 0, r2->reg_code, 0, 0);
 			}
-			reg_(r2->rf->r->reg_code);
-			inner_mem(g, e);
-			ft_add(')'), ft_add(' ');
+		} else if (iant_type->code == TC_ARR) {
+			if (is_mem(left)) {
+				if (is_in_word(item_size)) {
+					op_reg_(MOV, r2->reg_code);
+					blat_ft(size_str(reg_size));
+					ft_add('(');
+					int_add(g->fun_text, item_size);
+					ft_add(' ');
+				} else {
+					mul_on_int(g, r2, item_size);
 
-			r1 = r2, r2 = 0;
+					op_reg_(MOV, r2->reg_code);
+					blat_ft(size_str(reg_size));
+					ft_add('(');
+				}
+				reg_(r2->rf->r->reg_code);
+				inner_mem(g, e);
+				ft_add(')'), ft_add('\n');
 
-		} else if ((trailed = is_not_assignable_or_trailed(left))) {
-			struct BList *last_mem_str = new_blist(64);
-			// i dont think this is it
-			r1 = last_inner_mem(g, left, trailed, last_mem_str);
+				r1 = r2, r2 = 0;
 
-			isprint_ft(MOV);
-			blat_ft(last_mem_str);
-			ft_add(' '), reg_enter(r2->reg_code);
+			} else if ((trailed = is_not_assignable_or_trailed(left))) {
+				struct BList *last_mem_str = new_blist(64);
+				r1 = last_inner_mem(g, left, trailed, last_mem_str);
 
-			blist_clear_free(last_mem_str);
-		} else
-			exit(176);
+				isprint_ft(MOV);
+				blat_ft(last_mem_str);
+				ft_add(' '), reg_enter(r2->reg_code);
+
+				blist_clear_free(last_mem_str);
+			} else
+				exit(176);
+		}
 	}
 
 	free_reg_rf_if_not_zero(r2);

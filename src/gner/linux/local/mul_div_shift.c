@@ -76,9 +76,7 @@ struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 	return r1;
 }
 
-struct Reg *mul_on_int(Gg, struct Reg *r1, struct LocalExpr *num) {
-	long mul_on = num->tvar->num;
-
+struct Reg *mul_on_int(Gg, struct Reg *r1, long mul_on) {
 	if (is_pow_of_two(mul_on)) {
 		mul_on = find_pow_of_2(mul_on);
 		if (mul_on == 1) {
@@ -92,7 +90,6 @@ struct Reg *mul_on_int(Gg, struct Reg *r1, struct LocalExpr *num) {
 		reg_(r1->reg_code);
 		add_int_with_hex_comm(fun_text, mul_on);
 	}
-
 	return r1;
 }
 

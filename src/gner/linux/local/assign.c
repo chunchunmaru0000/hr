@@ -63,6 +63,7 @@ void assign_to_last_mem(Gg, struct LocalExpr *assignee,
 			}
 		}
 	} else {
+		// TODO: else if AMPER && e->l is gvar
 		r2 = gen_to_reg(g, right, 0);
 
 		isprint_ft(MOV);

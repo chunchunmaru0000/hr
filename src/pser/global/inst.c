@@ -274,7 +274,9 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 		last_offset = arg->offset;
 	}
 
-	plist_set(os, DCLR_STRUCT_SIZE, (void *)size);		 // set size
+	plist_set(os, DCLR_STRUCT_SIZE, (void *)size); // set size
+	// plist_set(os, DCLR_STRUCT_SIZE,
+	// 		  (void *)(size + 16 - (size % 16)));		 // set size
 	plist_set(os, DCLR_STRUCT_MEMS, (void *)mems_count); // set mems_count
 
 	return IP_DECLARE_STRUCT;
