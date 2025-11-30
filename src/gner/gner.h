@@ -487,3 +487,4 @@ void unary_or_bool_of_num(struct LocalExpr *e);
 	constr CANT_##op_name##_ON_NUMS =                                          \
 		"Операция '" op "' не применима к числам.";
 extern constr ALLOWANCE_OF_INDEXATION;
+extern constr NOT_ASSIGNABLE;
