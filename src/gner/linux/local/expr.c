@@ -24,8 +24,6 @@ void gen_int(struct Gner *g, struct LocalExpr *e) {
 	fun_text_add('\n');
 }
 
-void gen_real(struct Gner *g, struct LocalExpr *e);
-void gen_var(struct Gner *g, struct LocalExpr *e);
 void gen_assign(struct Gner *g, struct LocalExpr *e);
 
 #define colored(name, code) ("\x1B[" #code "m")
@@ -247,23 +245,6 @@ void merge_tuple_of_to(struct LocalExpr *of, struct LocalExpr *to) {
 	plat_plist(to->tuple, of->tuple);
 }
 
-void gen_real(struct Gner *g, struct LocalExpr *e) {}
-
-void gen_var(struct Gner *g, struct LocalExpr *e) {}
-
-void var_(struct Gner *g, let_lvar_gvar) {
-	if (lvar) {
-		blat_ft(size_str(lvar->lvar_size)); // *байт
-		sprint_ft(PAR_RBP);					// (рбп
-		blat_ft(lvar->name->view);			// перем
-		sprint_ft(R_PAR);					// )
-	} else {								// gvar
-		blat_ft(size_str(gvar->gvar_size)); // *байт
-		sprint_ft(L_PAR);					// (
-		blat_ft(gvar->signature);			// сигнатура
-		sprint_ft(R_PAR);					// )
-	}
-}
 void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 		 enum RegCode index, long disp, uc is_disp_blist) {
 
@@ -291,18 +272,6 @@ void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 			int_add(g->fun_text, disp);
 	}
 	ft_add(')');
-}
-void mov_var_(Gg, let_lvar_gvar) {
-	iprint_fun_text(SA_MOV);
-	var_(g, lvar, gvar);
-}
-void mov_reg_(Gg, enum RegCode reg) {
-	iprint_fun_text(SA_MOV);
-	reg_(reg);
-}
-void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar) {
-	mov_reg_(g, reg);
-	var_enter(lvar, gvar);
 }
 
 int le_depth(struct LocalExpr *e) {

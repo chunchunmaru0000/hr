@@ -97,16 +97,6 @@ struct Reg *index_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	return r1;
 }
 
-struct Reg *inc_to_reg(Gg, struct LocalExpr *e, int reg_size) {
-	;
-	return 0;
-}
-
-struct Reg *dec_to_reg(Gg, struct LocalExpr *e, int reg_size) {
-	;
-	return 0;
-}
-
 struct Reg *field_of_ptr_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *r1;
 	struct Arg *arg = (struct Arg *)e->tvar->num;
@@ -234,7 +224,7 @@ struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 			r = try_borrow_reg(
 				place, g, argument->type->code == TC_SINGLE ? DWORD : QWORD);
 			if (argument->tvar->real) {
-				mov_reg_(g, r->reg_code);
+				op_reg_(MOV, r->reg_code);
 				real_add_enter(fun_text, argument->tvar->real);
 			} else {
 				op_reg_reg(XOR, r, r);
@@ -297,8 +287,8 @@ struct Reg *after_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		r1 = index_to_reg(g, e, reg_size);
 	} else if (lcea(CALL))
 		r1 = call_to_reg(g, e, reg_size);
-	else if (lcea(INC)) {
-	} else if (lcea(DEC)) {
+	else if (lcea(INC) || lcea(DEC)) {
+		r1 = after_dec_inc(g, e->l, lcea(INC));
 	} else if (lcea(FIELD_OF_PTR))
 		r1 = field_of_ptr_to_reg(g, e, reg_size);
 	else if (lcea(FIELD))

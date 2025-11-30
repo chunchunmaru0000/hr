@@ -332,15 +332,12 @@ struct Reg *cmp_with_set(Gg, struct LocalExpr *e);
 struct Reg *and_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *or_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *cvt_from_xmm(Gg, struct LocalExpr *e, struct Reg *xmm_reg);
+struct Reg *unary_dec_inc(Gg, struct LocalExpr *e, uc is_inc);
+struct Reg *after_dec_inc(Gg, struct LocalExpr *e, uc is_inc);
 
-#define let_lvar_gvar struct LocalVar *lvar, struct GlobVar *gvar
 #define declare_lvar_gvar                                                      \
 	struct LocalVar *lvar = 0;                                                 \
 	struct GlobVar *gvar = 0;
-#define lvar_gvar_type() (lvar ? lvar->type : gvar->type)
-
-void var_(struct Gner *g, let_lvar_gvar);
-#define var_enter(lv, gv) var_(g, (lv), (gv)), g->fun_text->size--, ft_add('\n')
 #define reg_(reg) blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add(' ')
 #define reg_enter(reg) blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add('\n')
 void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
@@ -351,16 +348,10 @@ void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 #define sib_enter(size, base, scale, index, disp, is_disp_bl)                  \
 	sib(g, (size), (base), (scale), (index), (long)(disp), (is_disp_bl)),      \
 		ft_add('\n')
-void mov_var_(struct Gner *g, let_lvar_gvar);
-void mov_reg_(Gg, enum RegCode reg);
-void mov_reg_var(Gg, enum RegCode reg, let_lvar_gvar);
 #define op_ isprint_ft
 #define op_reg_(op, reg)                                                       \
 	op_(op);                                                                   \
 	reg_((reg));
-#define op_var_(op, lvar, gvar)                                                \
-	op_(op);                                                                   \
-	var_(g, (lvar), (gvar));
 #define op_reg_enter(op, reg)                                                  \
 	op_(op);                                                                   \
 	reg_enter((reg));
@@ -372,11 +363,6 @@ struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 #define mov_xmm_reg_(reg)                                                      \
 	op_(MOV_XMM);                                                              \
 	reg_(reg);
-#define mov_xmm_var_(g, lvar, gvar)                                            \
-	do {                                                                       \
-		op_(MOV_XMM);                                                          \
-		var_((g), (lvar), (gvar));                                             \
-	} while (0)
 #define cvt_ss_to_sd(rcode)                                                    \
 	do {                                                                       \
 		op_(CVTSS2SD);                                                         \

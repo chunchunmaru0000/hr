@@ -82,7 +82,7 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 		reg = try_borrow_reg(e->tvar, g, unit_size);
 		if (e->tvar->real) {
-			mov_reg_(g, reg->reg_code);
+			op_reg_(MOV, reg->reg_code);
 			real_add_enter(fun_text, e->tvar->real);
 		} else {
 			op_reg_reg(XOR, reg, reg);
@@ -99,7 +99,7 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		reg = try_borrow_reg(e->tvar, g, reg_size);
 
 		if (e->tvar->num) {
-			mov_reg_(g, reg->reg_code);
+			op_reg_(MOV, reg->reg_code);
 			add_int_with_hex_comm(fun_text, e->tvar->num);
 		} else {
 			op_reg_reg(XOR, reg, reg);
@@ -131,8 +131,8 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	if (lceu(MINUS)) {
 		reg = gen_to_reg(g, e->l, reg_size);
 		op_reg_enter(NEG, reg->reg_code);
-	} else if (lceu(INC)) {
-	} else if (lceu(DEC)) {
+	} else if (lceu(INC) || lceu(DEC)) {
+		reg = unary_dec_inc(g, e->l, lceu(INC));
 	} else if (lceu(NOT) || lce(BOOL)) {
 		byte = try_borrow_reg(e->tvar, g, BYTE);
 		reg = cmp_with_int(g, e->l, 0);
@@ -154,7 +154,7 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	} else if (lceu(ADDR)) {
 		unit_size = unsafe_size_of_type(e->type);
 		reg = gen_to_reg(g, e->l, 0); // QWORD by itself
-		mov_reg_(g, reg->reg_code);
+		op_reg_(MOV, reg->reg_code);
 		sib(g, unit_size, 0, 0, reg->reg_code, 0, 0), ft_add('\n');
 	}
 

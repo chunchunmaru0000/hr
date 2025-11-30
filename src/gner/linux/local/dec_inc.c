@@ -45,3 +45,55 @@ void gen_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 	} else
 		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
 }
+
+struct Reg *unary_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
+	/*
+	++a
+	mov r, mem a
+	add r unit
+	mov mem a, r
+
+	res is in r
+	 */
+	struct Reg *r;
+	struct LocalExpr *trailed;
+
+	if (is_mem(e)) {
+		gen_mem_tuple(g, e);
+
+
+		add_or_sub;
+
+	} else if ((trailed = is_not_assignable_or_trailed(e))) {
+		struct Reg *r1 = 0;
+		struct BList *last_mem_str = 0;
+
+		r1 = gen_to_reg_with_last_mem(g, e, trailed, &last_mem_str);
+		add_or_sub;
+		blat_ft(last_mem_str);
+
+
+		free_reg_rf_if_not_zero(r1);
+		blist_clear_free(last_mem_str);
+	} else
+		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
+
+	return r;
+}
+
+struct Reg *after_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
+	/*
+	a++
+	mov r1, mem a
+	mov r2, r1
+	add r2 unit
+	mov mem a, r2
+
+	mov r1, mem a
+	add r1 unit
+	mov mem a, r1
+	sub r1 unit
+
+	res is in r1
+	 */
+}
