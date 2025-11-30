@@ -273,6 +273,9 @@ void indent_line(struct Gner *g, struct BList *l);
 		blat_blist((list), g->tmp_blist);                                      \
 		blist_clear_free(g->tmp_blist);                                        \
 	} while (0);
+#define real_add_enter(list, value)                                            \
+	real_add(g->list, value);                                                  \
+	list##_add('\n')
 
 void write_fun(struct Gner *g);
 void gen_linux_text(struct Gner *);

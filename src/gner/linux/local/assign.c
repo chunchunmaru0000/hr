@@ -17,8 +17,8 @@ void assign_to_mem(Gg, struct LocalExpr *e) {
 	} else if (lceep(assignable, REAL)) {
 		gen_tuple_of(g, assignable);
 		op_mem_(MOV, mem, 0);
-		real_add(g->fun_text, assignable->tvar->real);
-		ft_add('\n');
+		real_add_enter(fun_text, assignable->tvar->real);
+
 	} else {
 		reg = gen_to_reg(g, assignable, 0);
 
@@ -42,13 +42,25 @@ void assign_to_last_mem(Gg, struct LocalExpr *assignee,
 	r1 = gen_to_reg_with_last_mem(g, assignee, trailed, &last_mem_str);
 
 	if (is_num_le(right)) {
-		isprint_ft(MOV);
-		blat_blist(g->fun_text, last_mem_str);
 
 		if (lceep(right, INT)) {
+			isprint_ft(MOV);
+			blat_blist(g->fun_text, last_mem_str);
 			add_int_with_hex_comm(fun_text, right->tvar->num);
 		} else {
-			real_add(g->fun_text, right->tvar->real);
+			if (is_ss(right->type)) {
+				isprint_ft(MOV);
+				blat_blist(g->fun_text, last_mem_str);
+				real_add_enter(fun_text, right->tvar->real);
+			} else {
+				r2 = try_borrow_reg(right->tvar, g, QWORD);
+				op_reg_(MOV, r2->reg_code);
+				real_add_enter(fun_text, right->tvar->real);
+
+				isprint_ft(MOV);
+				blat_blist(g->fun_text, last_mem_str);
+				reg_enter(r2->reg_code);
+			}
 		}
 	} else {
 		r2 = gen_to_reg(g, right, 0);

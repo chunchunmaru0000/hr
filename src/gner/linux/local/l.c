@@ -83,8 +83,7 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		reg = try_borrow_reg(e->tvar, g, unit_size);
 		if (e->tvar->real) {
 			mov_reg_(g, reg->reg_code);
-			real_add(g->fun_text, e->tvar->real);
-			ft_add('\n');
+			real_add_enter(fun_text, e->tvar->real);
 		} else {
 			op_reg_reg(XOR, reg, reg);
 		}

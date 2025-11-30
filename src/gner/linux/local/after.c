@@ -45,8 +45,8 @@ struct Reg *index_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 				int_add(g->fun_text, item_size);
 				ft_add(' ');
 			} else {
-				op_reg_reg(IMUL, r2, r2);
-				g->fun_text->size--, ft_add(' ');
+				op_reg_(IMUL, r2->reg_code);
+				reg_(r2->reg_code);
 				add_int_with_hex_comm(fun_text, item_size);
 
 				op_reg_(MOV, r2->reg_code);
@@ -215,8 +215,7 @@ struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 				place, g, argument->type->code == TC_SINGLE ? DWORD : QWORD);
 			if (argument->tvar->real) {
 				mov_reg_(g, r->reg_code);
-				real_add(g->fun_text, argument->tvar->real);
-				ft_add('\n');
+				real_add_enter(fun_text, argument->tvar->real);
 			} else {
 				op_reg_reg(XOR, r, r);
 			}
