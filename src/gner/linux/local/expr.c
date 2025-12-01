@@ -291,12 +291,6 @@ int le_depth(struct LocalExpr *e) {
 								: (exit(151), -1);
 }
 
-// LE_PRIMARY_VAR = 3, LE_AFTER_INDEX = 36, LE_AFTER_FIELD = 41,
-
-// TODO: mem is:
-// * * local var, arr(not ptr), field(not ptr)
-// * * global var, arr(not ptr), field(not ptr)
-
 #define index_of_int                                                           \
 	((lcea(INDEX) && e->l->type->code == TC_ARR && is_mem(e->l) &&             \
 	  lceep(e->r, INT)))
@@ -353,20 +347,6 @@ void gen_mem_tuple(Gg, struct LocalExpr *e) {
 		gen_mem_tuple(g, e->r);
 	}
 }
-
-/*
-x = e
-x can be:
-* * var...-@...[literal]...field or none is mem
-
-* * e[index]
-* * e -> or -@ field
-* * (*e)
-
-also x can be trailed by
--@ field
-[literal]
-*/
 
 struct LocalExpr *find_trailed(struct LocalExpr *e) {
 	return lcea(FIELD) || index_of_int ? find_trailed(e->l) : e;
@@ -496,13 +476,15 @@ struct Reg *last_inner_mem(Gg, struct LocalExpr *e, struct LocalExpr *trailed,
 	return r;
 }
 
+int lm_size = 0;
 struct Reg *gen_to_reg_with_last_mem(Gg, struct LocalExpr *e,
 									 struct LocalExpr *trailed,
 									 struct BList **last_mem_str) {
 	struct BList *imt = !(*last_mem_str) ? new_blist(64) : *last_mem_str;
 	struct Reg *r = 0;
 
-	blat_imt(size_str(unsafe_size_of_type(e->type)));
+	lm_size ? (blat_imt(size_str(lm_size)), lm_size = 0)
+			: blat_imt(size_str(unsafe_size_of_type(e->type)));
 	imt_add('(');
 	r = last_inner_mem(g, e, trailed, imt);
 	imt_add(')'), imt_add(' ');

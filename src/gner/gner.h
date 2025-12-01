@@ -407,6 +407,10 @@ struct Reg *gen_to_reg_with_last_mem(Gg, struct LocalExpr *e,
 									 struct BList **last_mem_str);
 #define last_mem_enter(lm_str)                                                 \
 	blat_ft((lm_str)), g->fun_text->size--, ft_add('\n')
+#define op_last_mem_(op, lm)                                                   \
+	op_(op);                                                                   \
+	blat_ft((lm));
+extern int lm_size;
 
 // ############################################################################
 // 									OZER

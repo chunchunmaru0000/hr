@@ -1,6 +1,8 @@
 #include "../../gner.h"
 #include <stdio.h>
 
+#define EXIT(c) exit((c))
+
 // for field_of_ptr_to_reg and field_to_reg
 u8 during_add = 0;
 
@@ -24,6 +26,7 @@ struct Reg *index_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 			r1 = gen_to_reg(g, left, QWORD);
 			op_reg_(MOV, r1->reg_code);
 			sib_enter(QWORD, r1->reg_code, 0, 0, unit, 0);
+			EXIT(115);
 
 		} else if (iant_type->code == TC_ARR) {
 			if ((trailed = is_not_assignable_or_trailed(left))) {
@@ -53,12 +56,15 @@ struct Reg *index_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 			if (is_in_word(item_size)) {
 				op_reg_(MOV, r1->reg_code);
 				sib_enter(QWORD, r1->reg_code, item_size, r2->reg_code, 0, 0);
+				EXIT(114);
 			} else {
 				mul_on_int(g, r2, item_size);
 				op_reg_(MOV, r1->reg_code);
 				sib_enter(QWORD, r1->reg_code, 0, r2->reg_code, 0, 0);
+				EXIT(113);
 			}
 		} else if (iant_type->code == TC_ARR) {
+
 			if (is_mem(left)) {
 				if (is_in_word(item_size)) {
 					op_reg_(MOV, r2->reg_code);
@@ -72,6 +78,7 @@ struct Reg *index_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 					op_reg_(MOV, r2->reg_code);
 					blat_ft(size_str(reg_size));
 					ft_add('(');
+					EXIT(112);
 				}
 				reg_(r2->rf->r->reg_code);
 				inner_mem(g, e);
@@ -80,13 +87,16 @@ struct Reg *index_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 				r1 = r2, r2 = 0;
 
 			} else if ((trailed = is_not_assignable_or_trailed(left))) {
-				struct BList *last_mem_str = new_blist(64);
-				r1 = last_inner_mem(g, left, trailed, last_mem_str);
+				struct BList *last_mem_str = 0;
 
-				op_(MOV);
-				blat_ft(last_mem_str);
-				ft_add(' '), reg_enter(r2->reg_code);
+				mul_on_int(g, r2, item_size);
 
+				lm_size = reg_size;
+				r1 = gen_to_reg_with_last_mem(g, left, trailed, &last_mem_str);
+
+				op_reg_reg(ADD, r1, r2);
+				op_reg_(MOV, r1->reg_code);
+				last_mem_enter(last_mem_str);
 				blist_clear_free(last_mem_str);
 			} else
 				exit(176);

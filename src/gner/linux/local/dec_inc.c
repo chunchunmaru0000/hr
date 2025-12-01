@@ -85,8 +85,7 @@ struct Reg *unary_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 		reg_(r1->reg_code);
 		add_int_with_hex_comm(fun_text, unit);
 		// mov mem, r
-		op_(MOV);
-		blat_ft(last_mem_str);
+		op_last_mem_(MOV, last_mem_str);
 		reg_enter(r1->reg_code);
 
 		blist_clear_free(last_mem_str);
@@ -146,8 +145,7 @@ struct Reg *after_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 		reg_(r2->reg_code);
 		add_int_with_hex_comm(fun_text, unit);
 		// mov mem, r2
-		op_(MOV);
-		blat_ft(last_mem_str);
+		op_last_mem_(MOV, last_mem_str);
 		reg_enter(r2->reg_code);
 
 		blist_clear_free(last_mem_str);
