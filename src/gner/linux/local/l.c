@@ -72,12 +72,19 @@ struct Reg *mem_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 struct Reg *assignable_to_reg(Gg, struct LocalExpr *e,
 							  struct LocalExpr *trailed, int reg_size) {
-	struct Reg *r;
+	struct Reg *r, *xmm;
 	struct BList *last_mem_str = 0;
 
 	lm_size = reg_size;
 	r = gen_to_reg_with_last_mem(g, e, trailed, &last_mem_str);
-	op_reg_(MOV, r->reg_code);
+	if (is_real_type(e->type)) {
+		xmm = try_borrow_xmm_reg(e->tvar, g);
+		mov_xmm_reg_(xmm->reg_code);
+
+		free_reg_family(r->rf), r = xmm;
+	} else {
+		op_reg_(MOV, r->reg_code);
+	}
 	last_mem_enter(last_mem_str);
 
 	blist_clear_free(last_mem_str);
@@ -125,12 +132,20 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 struct Reg *dereference(Gg, struct LocalExpr *e) {
 	struct Reg *r = 0;
+	struct LocalExpr *trailed;
 
 	if (is_mem(e)) {
 		r = try_borrow_reg(e->tvar, g, QWORD);
 		gen_mem_tuple(g, e);
 		op_reg_(LEA, r->reg_code);
 		mem_enter(e, QWORD);
+	} else if ((trailed = is_not_assignable_or_trailed(e))) {
+		struct BList *last_mem_str = 0;
+		lm_size = QWORD;
+		r = gen_to_reg_with_last_mem(g, e, trailed, &last_mem_str);
+		op_reg_(LEA, r->reg_code);
+		last_mem_enter(last_mem_str);
+		blist_clear_free(last_mem_str);
 	}
 
 	if (r == 0)
