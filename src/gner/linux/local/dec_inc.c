@@ -49,36 +49,52 @@ void gen_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 struct Reg *unary_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 	/*
 	++a
-	mov r, mem a
+	mov r, mem
 	add r unit
-	mov mem a, r
-
-	res is in r
+	mov mem, r
 	 */
-	struct Reg *r;
+	struct Reg *r1, *r2 = 0;
 	struct LocalExpr *trailed;
+	int e_size = unsafe_size_of_type(e->type);
+	int unit = add_of_type(e->tvar, e->type);
+
+	r1 = try_borrow_reg(e->tvar, g, e_size);
 
 	if (is_mem(e)) {
 		gen_mem_tuple(g, e);
-
-
+		// mov r, mem
+		op_reg_(MOV, r1->reg_code);
+		mem_enter(e, 0);
+		// dec / inc r, unit
 		add_or_sub;
+		reg_(r1->reg_code);
+		add_int_with_hex_comm(fun_text, unit);
+		// mov mem, r
+		op_mem_(MOV, e, 0);
+		reg_enter(r1->reg_code);
 
 	} else if ((trailed = is_not_assignable_or_trailed(e))) {
-		struct Reg *r1 = 0;
 		struct BList *last_mem_str = 0;
+		r2 = gen_to_reg_with_last_mem(g, e, trailed, &last_mem_str);
 
-		r1 = gen_to_reg_with_last_mem(g, e, trailed, &last_mem_str);
+		// mov r, mem
+		op_reg_(MOV, r1->reg_code);
+		last_mem_enter(last_mem_str);
+		// dec / inc r, unit
 		add_or_sub;
+		reg_(r1->reg_code);
+		add_int_with_hex_comm(fun_text, unit);
+		// mov mem, r
+		op_(MOV);
 		blat_ft(last_mem_str);
+		reg_enter(r1->reg_code);
 
-
-		free_reg_rf_if_not_zero(r1);
 		blist_clear_free(last_mem_str);
 	} else
 		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
 
-	return r;
+	free_reg_rf_if_not_zero(r2);
+	return r1;
 }
 
 struct Reg *after_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
@@ -86,14 +102,59 @@ struct Reg *after_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 	a++
 	mov r1, mem a
 	mov r2, r1
-	add r2 unit
+	add r2, unit
 	mov mem a, r2
-
-	mov r1, mem a
-	add r1 unit
-	mov mem a, r1
-	sub r1 unit
-
-	res is in r1
+	// mov r1, mem a
+	// add r1 unit
+	// mov mem a, r1
+	// sub r1 unit
 	 */
+	struct Reg *r1, *r2 = 0, *r3 = 0;
+	struct LocalExpr *trailed;
+	int e_size = unsafe_size_of_type(e->type);
+	int unit = add_of_type(e->tvar, e->type);
+
+	r1 = try_borrow_reg(e->tvar, g, e_size);
+	r2 = try_borrow_reg(e->tvar, g, e_size);
+
+	if (is_mem(e)) {
+		gen_mem_tuple(g, e);
+		// mov r1, mem
+		op_reg_(MOV, r1->reg_code);
+		mem_enter(e, 0);
+		// mov r2, r1
+		op_reg_reg(MOV, r2, r1);
+		// dec / inc r2, unit
+		add_or_sub;
+		reg_(r2->reg_code);
+		add_int_with_hex_comm(fun_text, unit);
+		// mov mem, r2
+		op_mem_(MOV, e, 0);
+		reg_enter(r2->reg_code);
+
+	} else if ((trailed = is_not_assignable_or_trailed(e))) {
+		struct BList *last_mem_str = 0;
+		r3 = gen_to_reg_with_last_mem(g, e, trailed, &last_mem_str);
+
+		// mov r1, mem
+		op_reg_(MOV, r1->reg_code);
+		last_mem_enter(last_mem_str);
+		// mov r2, r1
+		op_reg_reg(MOV, r2, r1);
+		// dec / inc r2, unit
+		add_or_sub;
+		reg_(r2->reg_code);
+		add_int_with_hex_comm(fun_text, unit);
+		// mov mem, r2
+		op_(MOV);
+		blat_ft(last_mem_str);
+		reg_enter(r2->reg_code);
+
+		blist_clear_free(last_mem_str);
+	} else
+		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
+
+	free_reg_rf_if_not_zero(r2);
+	free_reg_rf_if_not_zero(r3);
+	return r1;
 }

@@ -404,6 +404,8 @@ struct Reg *last_inner_mem(Gg, struct LocalExpr *e, struct LocalExpr *trailed,
 struct Reg *gen_to_reg_with_last_mem(Gg, struct LocalExpr *e,
 									 struct LocalExpr *trailed,
 									 struct BList **last_mem_str);
+#define last_mem_enter(lm_str)                                                 \
+	blat_ft((lm_str)), g->fun_text->size--, ft_add('\n')
 
 // ############################################################################
 // 									OZER
