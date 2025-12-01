@@ -70,6 +70,20 @@ struct Reg *mem_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	return r;
 }
 
+struct Reg *assignable_to_reg(Gg, struct LocalExpr *e,
+							  struct LocalExpr *trailed, int reg_size) {
+	struct Reg *r;
+	struct BList *last_mem_str = 0;
+
+	lm_size = reg_size;
+	r = gen_to_reg_with_last_mem(g, e, trailed, &last_mem_str);
+	op_reg_(MOV, r->reg_code);
+	last_mem_enter(last_mem_str);
+
+	blist_clear_free(last_mem_str);
+	return r;
+}
+
 struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *reg = 0, *xmm;
 	int unit_size;
@@ -300,11 +314,16 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 	int reg_size = of_size ? of_size : unsafe_size_of_type(e->type);
+	struct LocalExpr *trailed;
 	struct Reg *res_reg;
 
 	if (is_mem(e)) {
 		gen_mem_tuple(g, e);
 		return mem_to_reg(g, e, reg_size);
+	}
+	if ((trailed = is_not_assignable_or_trailed(e))) {
+		// TODO: gen_assignable_tuple
+		return assignable_to_reg(g, e, trailed, reg_size);
 	}
 
 	// TODO: use gen_tuple_of whenever is need
@@ -314,8 +333,10 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 		res_reg = prime_to_reg(g, e, reg_size);
 	else if (is_unary(e) || lce(BOOL))
 		res_reg = unary_to_reg(g, e, reg_size);
-	else if (is_after(e))
-		res_reg = after_to_reg(g, e, reg_size);
+	else if (lcea(CALL))
+		res_reg = call_to_reg(g, e, reg_size);
+	else if (lcea(INC) || lcea(DEC))
+		res_reg = after_dec_inc(g, e->l, lcea(INC));
 	else if (lceb(AND))
 		res_reg = and_to_reg(g, e, reg_size);
 	else if (lceb(OR))

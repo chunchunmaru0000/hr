@@ -108,33 +108,3 @@ void gen_call(Gg, struct LocalExpr *e) {
 
 	free_reg_rf_if_not_zero(r1);
 }
-
-struct Reg *after_to_reg(Gg, struct LocalExpr *e, int reg_size) {
-	struct LocalExpr *trailed;
-	struct Reg *r = 0;
-
-	if (lcea(CALL))
-		r = call_to_reg(g, e, reg_size);
-	else if (lcea(INC) || lcea(DEC))
-		r = after_dec_inc(g, e->l, lcea(INC));
-	else if (is_mem(e)) {
-		r = try_borrow_reg(e->tvar, g, reg_size);
-		op_reg_(MOV, r->reg_code);
-		mem_enter(e, 0);
-
-	} else if ((trailed = is_not_assignable_or_trailed(e))) {
-		struct BList *last_mem_str = 0;
-		lm_size = reg_size;
-
-		r = gen_to_reg_with_last_mem(g, e, trailed, &last_mem_str);
-		op_reg_(MOV, r->reg_code);
-		last_mem_enter(last_mem_str);
-
-		blist_clear_free(last_mem_str);
-	} else
-		exit(107);
-
-	if (!r)
-		exit(146);
-	return r;
-}

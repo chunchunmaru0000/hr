@@ -335,6 +335,7 @@ struct Reg *or_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *cvt_from_xmm(Gg, struct LocalExpr *e, struct Reg *xmm_reg);
 struct Reg *unary_dec_inc(Gg, struct LocalExpr *e, uc is_inc);
 struct Reg *after_dec_inc(Gg, struct LocalExpr *e, uc is_inc);
+struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size);
 
 #define declare_lvar_gvar                                                      \
 	struct LocalVar *lvar = 0;                                                 \
