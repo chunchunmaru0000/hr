@@ -317,6 +317,7 @@ int le_depth(struct LocalExpr *e);
 
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size);
 void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
+void gen_call(Gg, struct LocalExpr *e);
 
 struct Reg *after_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size);
@@ -396,7 +397,7 @@ void mem_(Gg, struct LocalExpr *e, int of_size);
 #define mem_enter(e, sz) mem_(g, (e), (sz)), g->fun_text->size--, ft_add('\n')
 void gen_mem_tuple(Gg, struct LocalExpr *e);
 #define op_mem_(op, e, sz)                                                     \
-	isprint_ft(op);                                                            \
+	op_(op);                                                                   \
 	mem_(g, (e), (sz));
 struct LocalExpr *is_not_assignable_or_trailed(struct LocalExpr *e);
 struct Reg *last_inner_mem(Gg, struct LocalExpr *e, struct LocalExpr *trailed,

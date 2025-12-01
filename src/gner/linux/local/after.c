@@ -83,7 +83,7 @@ struct Reg *index_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 				struct BList *last_mem_str = new_blist(64);
 				r1 = last_inner_mem(g, left, trailed, last_mem_str);
 
-				isprint_ft(MOV);
+				op_(MOV);
 				blat_ft(last_mem_str);
 				ft_add(' '), reg_enter(r2->reg_code);
 
@@ -265,7 +265,7 @@ struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		ops_regs = mov_ops_regs_to_args_regs(e->tvar, g, e->co.ops);
 
 		fun_gvar = (struct GlobVar *)e->tvar->num;
-		isprint_ft(CALL);
+		op_(CALL);
 		blat_ft(fun_gvar->signature), ft_add('\n');
 	}
 
@@ -278,6 +278,38 @@ struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 	get_reg_to_rf(e->tvar, g, r1, g->cpu->a);
 	return r1;
+}
+
+void gen_call(Gg, struct LocalExpr *e) {
+	gen_tuple_of(g, e);
+
+	struct LocalExpr *fun_expr = e->l;
+	struct GlobVar *fun_gvar;
+	struct PList *ops_regs;
+	u32 i;
+	struct Reg *r1 = 0;
+
+	g->flags->is_stack_used = 1;
+
+	if (e->tvar->num == 0) {
+		r1 = gen_to_reg(g, fun_expr, QWORD);
+		ops_regs = mov_ops_regs_to_args_regs(e->tvar, g, e->co.ops);
+
+		op_reg_enter(CALL, r1->reg_code);
+	} else {
+		gen_tuple_of(g, fun_expr);
+		ops_regs = mov_ops_regs_to_args_regs(e->tvar, g, e->co.ops);
+
+		fun_gvar = (struct GlobVar *)e->tvar->num;
+		op_(CALL);
+		blat_ft(fun_gvar->signature), ft_add('\n');
+	}
+
+	for (i = 0; i < ops_regs->size; i++)
+		free_reg_family(((struct Reg *)plist_get(ops_regs, i))->rf);
+	plist_free(ops_regs);
+
+	free_reg_rf_if_not_zero(r1);
 }
 
 struct Reg *after_to_reg(Gg, struct LocalExpr *e, int reg_size) {

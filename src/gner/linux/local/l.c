@@ -138,9 +138,9 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		reg = cmp_with_int(g, e->l, 0);
 
 		if (lce(BOOL))
-			isprint_ft(SETNE);
+			op_(SETNE);
 		else
-			isprint_ft(SETE);
+			op_(SETE);
 		reg_enter(byte->reg_code);
 
 		op_reg_reg(MOV, reg, byte);
@@ -167,10 +167,10 @@ struct Reg *cvt_from_xmm(Gg, struct LocalExpr *e, struct Reg *xmm_reg) {
 	struct Reg *r;
 
 	if (is_ss(e->type)) {
-		isprint_ft(CVTSS2SI);
+		op_(CVTSS2SI);
 		r = try_borrow_reg(e->tvar, g, DWORD);
 	} else {
-		isprint_ft(CVTSD2SI);
+		op_(CVTSD2SI);
 		r = try_borrow_reg(e->tvar, g, QWORD);
 	}
 	reg_(r->reg_code);
@@ -181,9 +181,9 @@ struct Reg *cvt_from_xmm(Gg, struct LocalExpr *e, struct Reg *xmm_reg) {
 
 #define ss_or_sd                                                               \
 	if (to_ss)                                                                 \
-		isprint_ft(CVTSI2SS);                                                  \
+		op_(CVTSI2SS);                                                         \
 	else                                                                       \
-		isprint_ft(CVTSI2SD);
+		op_(CVTSI2SD);
 
 // TODO: pxor
 struct Reg *cvt_to_xmm(Gg, struct LocalExpr *not_xmm_e, struct Reg *not_xmm,

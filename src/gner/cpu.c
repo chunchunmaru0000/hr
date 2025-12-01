@@ -354,9 +354,9 @@ void swap_basic_regs(Gg, struct RegisterFamily *rf1, struct RegisterFamily *rf2,
 	memcpy(rf2, tmp_rf, sizeof(struct RegisterFamily));
 
 	if (do_mov == DO_MOV) {
-		isprint_ft(MOV);
+		op_(MOV);
 	} else {
-		isprint_ft(XCHG);
+		op_(XCHG);
 	}
 	reg_(rf2->r->reg_code);
 	reg_enter(rf1->r->reg_code);

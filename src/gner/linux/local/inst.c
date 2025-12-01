@@ -56,7 +56,7 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 
 		name = plist_get(in->os, 0);
 
-		isprint_ft(JMP);
+		op_(JMP);
 		blat_ft(g->current_function->signature);
 		blat_ft(name->view);
 		ft_add('\n');
@@ -75,7 +75,7 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		for (i = 0; i < in->os->size; i++)
 			gen_local_linux(g, plist_get(in->os, i));
 
-		isprint_ft(JMP);
+		op_(JMP);
 		blat_ft(string);
 		ft_add('\n');
 

@@ -19,15 +19,15 @@ int find_pow_of_2(long value) {
 #define shl_and_shr_or_sal_and_sar                                             \
 	if (lceb(SHR)) {                                                           \
 		if (is_unsigned) {                                                     \
-			isprint_ft(SHR);                                                   \
+			op_(SHR);                                                          \
 		} else {                                                               \
-			isprint_ft(SAR);                                                   \
+			op_(SAR);                                                          \
 		}                                                                      \
 	} else {                                                                   \
 		if (is_unsigned) {                                                     \
-			isprint_ft(SHL);                                                   \
+			op_(SHL);                                                          \
 		} else {                                                               \
-			isprint_ft(SAL);                                                   \
+			op_(SAL);                                                          \
 		}                                                                      \
 	}
 
@@ -43,15 +43,15 @@ struct Reg *shift_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
 	if (shift_on == 1) {
 		if (lceb(SHR)) {
 			if (is_unsigned) {
-				isprint_ft(SHR1);
+				op_(SHR1);
 			} else {
-				isprint_ft(SAR1);
+				op_(SAR1);
 			}
 		} else {
 			if (is_unsigned) {
-				isprint_ft(SHL1);
+				op_(SHL1);
 			} else {
-				isprint_ft(SAL1);
+				op_(SAL1);
 			}
 		}
 		reg_enter(r1->reg_code);
@@ -184,7 +184,7 @@ struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1) {
 	// CBW
 	// CWDE
 	// CDQE
-	isprint_ft(IDIV);
+	op_(IDIV);
 	mem_enter(e->r, 0);
 	// CWD
 	// CDQ
@@ -213,7 +213,7 @@ struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 	// CBW
 	// CWDE
 	// CDQE
-	isprint_ft(IDIV);
+	op_(IDIV);
 	reg_enter(r2->reg_code);
 	// CWD
 	// CDQ

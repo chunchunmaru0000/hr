@@ -52,7 +52,7 @@ void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
 		op_reg_reg(TEST, r1, r1);
 		free_reg_family(r1->rf);
 
-		isprint_ft(J0);
+		op_(J0);
 		blat_ft(false_label), ft_add('\n');
 	}
 }
@@ -77,7 +77,7 @@ struct Reg *and_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	op_reg_(MOV, r1->reg_code);
 	add_int_with_hex_comm(fun_text, 1);
 	// jmp exit
-	isprint_ft(JMP);
+	op_(JMP);
 	blat_ft(exit_label), ft_add('\n');
 
 	// false_label:
@@ -123,7 +123,7 @@ void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label) {
 		}
 		add_int_with_hex_comm(fun_text, 0);
 
-		isprint_ft(JN0);
+		op_(JN0);
 		blat_ft(true_label), ft_add('\n');
 	}
 }
@@ -151,7 +151,7 @@ struct Reg *or_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	op_reg_(MOV, r1->reg_code);
 	add_int_with_hex_comm(fun_text, 1);
 	// jmp exit
-	isprint_ft(JMP);
+	op_(JMP);
 	blat_ft(exit_label), ft_add('\n');
 	// false_label:
 	add_label(false_label);

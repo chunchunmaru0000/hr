@@ -44,21 +44,21 @@ void assign_to_last_mem(Gg, struct LocalExpr *assignee,
 	if (is_num_le(right)) {
 
 		if (lceep(right, INT)) {
-			isprint_ft(MOV);
-			blat_blist(g->fun_text, last_mem_str);
+			op_(MOV);
+			blat_ft(last_mem_str);
 			add_int_with_hex_comm(fun_text, right->tvar->num);
 		} else {
 			if (is_ss(right->type)) {
-				isprint_ft(MOV);
-				blat_blist(g->fun_text, last_mem_str);
+				op_(MOV);
+				blat_ft(last_mem_str);
 				real_add_enter(fun_text, right->tvar->real);
 			} else {
 				r2 = try_borrow_reg(right->tvar, g, QWORD);
 				op_reg_(MOV, r2->reg_code);
 				real_add_enter(fun_text, right->tvar->real);
 
-				isprint_ft(MOV);
-				blat_blist(g->fun_text, last_mem_str);
+				op_(MOV);
+				blat_ft(last_mem_str);
 				reg_enter(r2->reg_code);
 			}
 		}
@@ -66,8 +66,8 @@ void assign_to_last_mem(Gg, struct LocalExpr *assignee,
 		// TODO: else if AMPER && e->l is gvar
 		r2 = gen_to_reg(g, right, 0);
 
-		isprint_ft(MOV);
-		blat_blist(g->fun_text, last_mem_str);
+		op_(MOV);
+		blat_ft(last_mem_str);
 		reg_enter(r2->reg_code);
 	}
 

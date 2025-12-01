@@ -1,14 +1,13 @@
 #include "../../gner.h"
 
 struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num) {
-	struct Reg *some_reg = 0;
+	struct Reg *r = 0;
 
-	some_reg = gen_to_reg(g, e, 0);
-	isprint_ft(CMP);
-	reg_(some_reg->reg_code);
+	r = gen_to_reg(g, e, 0);
+	op_reg_(CMP, r->reg_code);
 	add_int_with_hex_comm(fun_text, num);
 
-	return some_reg;
+	return r;
 }
 
 //	LE_BIN_LESS 		setl 	setb

@@ -198,8 +198,8 @@ void gen_local_expr_linux(Gg, struct LocalExpr *e) {
 		gen_assign(g, e);
 	else if (lceu(INC) || lcea(INC) || lceu(DEC) || lcea(DEC))
 		gen_dec_inc(g, e->l, lceu(INC) || lcea(INC));
-	// else if (lcea(CALL))
-	// 	gen_call(g, e);
+	else if (lcea(CALL))
+		gen_call(g, e);
 	// else if (lceb(TERRY))
 	//	gen_terry(g, e);
 	else
