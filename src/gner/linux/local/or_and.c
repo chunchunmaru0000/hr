@@ -1,7 +1,5 @@
 #include "../../gner.h"
 
-void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label);
-
 #define cbe(bin) (le == LE_BIN_##bin)
 #define str_len_be(code) ((str = SA_##code, len = SA_##code##_LEN))
 
@@ -47,6 +45,7 @@ void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
 		or_cmp(g, e->l, this_end_label);
 		and_cmp(g, e->r, false_label);
 		add_label(this_end_label);
+		blist_clear_free(this_end_label);
 	} else {
 		r1 = gen_to_reg(g, e, 0);
 		op_reg_reg(TEST, r1, r1);
@@ -113,6 +112,7 @@ void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label) {
 		and_cmp(g, e->l, this_end_label);
 		or_cmp(g, e->r, true_label);
 		add_label(this_end_label);
+		blist_clear_free(this_end_label);
 	} else {
 		if (is_mem(e)) {
 			op_mem_(CMP, e, 0);

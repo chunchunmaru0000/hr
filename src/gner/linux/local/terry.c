@@ -1,0 +1,69 @@
+#include "../../gner.h"
+
+struct Reg *terry_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+	struct Reg *r1 = 0, *r2 = 0;
+
+	struct BList *r_result_label, *exit_label;
+
+	r_result_label = take_label(g, LC_ELSE);
+	exit_label = take_label(g, LC_ELSE);
+
+	and_cmp(g, e->co.cond, r_result_label);
+
+	// l
+	r1 = gen_to_reg(g, e->l, reg_size);
+	free_reg_family(r1->rf);
+	// jmp exit
+	op_(JMP);
+	blat_ft(exit_label), ft_add('\n');
+	// r
+	add_label(r_result_label);
+	r2 = gen_to_reg(g, e->r, reg_size);
+	get_reg_to_rf(e->tvar, g, r2, r1->rf);
+	// exit_label:
+	add_label(exit_label);
+
+	blist_clear_free(r_result_label);
+	blist_clear_free(exit_label);
+
+	if (!r2)
+		exit(193);
+	return r2;
+}
+
+void gen_terry(Gg, struct LocalExpr *e) {
+	struct BList *r_result_label = take_label(g, LC_ELSE), *exit_label;
+
+	if (causes_more_than_just_gvar(e->l) && causes_more_than_just_gvar(e->r)) {
+		exit_label = take_label(g, LC_ELSE);
+		and_cmp(g, e->co.cond, r_result_label);
+
+		// l
+		gen_local_expr_linux(g, e->l);
+		op_(JMP); // jmp exit
+		blat_ft(exit_label), ft_add('\n');
+		// r
+		add_label(r_result_label);
+		gen_local_expr_linux(g, e->r);
+		// exit_label:
+		add_label(exit_label);
+		blist_clear_free(exit_label);
+
+	} else if (causes_more_than_just_gvar(e->l)) {
+		and_cmp(g, e->co.cond, r_result_label);
+		// l
+		gen_local_expr_linux(g, e->l);
+		// r
+		add_label(r_result_label);
+
+	} else if (causes_more_than_just_gvar(e->r)) {
+		or_cmp(g, e->co.cond, r_result_label);
+		// r
+		gen_local_expr_linux(g, e->r);
+		add_label(r_result_label);
+
+	} else
+		exit(190);
+
+	blist_clear_free(r_result_label);
+}

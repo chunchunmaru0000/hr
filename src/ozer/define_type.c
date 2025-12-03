@@ -21,6 +21,9 @@ constr FUN_WITH_SUCH_ARGS_WASNT_FOUND =
 	"найдена.";
 constr FUN_WITH_SUCH_NAME_WASNT_FOUND =
 	"Именно функция с таким именем не была найдена.";
+constr CANT_BIN_ON_PTRS =
+	"Нельзя применять бинарные операции к двум указателям.";
+constr PTRS_TARGETS_WASNT_EQUAL = "Указываемые типы не были равны.";
 
 void define_var_type(struct LocalExpr *e) {
 	struct LocalVar *lvar;
@@ -190,12 +193,16 @@ enum TypeCode max_code_or_any(enum TypeCode c0, enum TypeCode c1) {
 struct TypeExpr *add_types(struct LocalExpr *l, struct LocalExpr *r) {
 	struct TypeExpr *l_type = l->type, *r_type = r->type, *res;
 
-	if (l_type == 0 || !is_num_type(l_type))
-		eet(l->tvar, INVALID_TYPE_FOR_BIN, 0);
-	if (r_type == 0 || !is_num_type(r_type))
-		eet(r->tvar, INVALID_TYPE_FOR_BIN, 0);
+	if (l_type == 0 || r_type == 0)
+		eet(l->tvar, "эээ где типы", 0);
+	if (is_ptr_type(l_type) && is_ptr_type(r_type))
+		eet(l->tvar, CANT_BIN_ON_PTRS, 0);
 
-	if (is_real_type(l_type)) {
+	if (is_ptr_type(l_type)) {
+		res = copy_type_expr(l_type);
+	} else if (is_ptr_type(r_type)) {
+		res = copy_type_expr(r_type);
+	} else if (is_real_type(l_type)) {
 		if (is_real_type(r_type))
 			res = new_type_expr(max_code_or_any(l_type->code, r_type->code));
 		else
@@ -214,6 +221,26 @@ struct TypeExpr *add_types(struct LocalExpr *l, struct LocalExpr *r) {
 	return res;
 }
 
+struct TypeExpr *terry_type(struct LocalExpr *e) {
+	struct TypeExpr *lt = e->l->type, *rt = e->r->type;
+	if (is_ptr_type(lt) && is_ptr_type(rt)) {
+		if (are_types_equal(lt, rt))
+			return copy_type_expr(lt);
+		eet(e->r->tvar, PTRS_TARGETS_WASNT_EQUAL, 0);
+	}
+	if (is_ptr_type(lt)) {
+		if (is_le_num(e->r, 0))
+			return copy_type_expr(lt);
+		eet(e->r->tvar, EXPECTED_PTR_TYPE, 0);
+	}
+	if (is_ptr_type(rt)) {
+		if (is_le_num(e->l, 0))
+			return copy_type_expr(rt);
+		eet(e->l->tvar, EXPECTED_PTR_TYPE, 0);
+	}
+	return new_type_expr(max_code_or_any(lt->code, rt->code));
+}
+
 void define_le_type(struct LocalExpr *e) {
 	if (e->type)
 		return;
@@ -227,9 +254,10 @@ void define_le_type(struct LocalExpr *e) {
 		e->type = add_types(e->l, e->r);
 
 	} else if (lce(BIN_TERRY)) {
+		define_type_and_copy_flags_to_e(e->co.cond);
 		define_type_and_copy_flags_to_e(e->l);
 		define_type_and_copy_flags_to_e(e->r);
-		define_type_and_copy_flags_to_e(e->co.cond);
+		e->type = terry_type(e);
 
 	} else if (lce(BIN_ASSIGN)) {
 		define_type_and_copy_flags_to_e(e->l);

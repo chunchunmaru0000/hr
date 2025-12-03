@@ -318,6 +318,7 @@ int le_depth(struct LocalExpr *e);
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size);
 void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
 void gen_call(Gg, struct LocalExpr *e);
+void gen_terry(Gg, struct LocalExpr *e);
 
 struct Reg *after_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size);
@@ -328,14 +329,18 @@ struct Reg *mul_on_int(Gg, struct Reg *r1, long mul_on);
 struct Reg *shift_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 						 struct Reg *r2);
-void just_cmp(Gg, struct LocalExpr *e);
-struct Reg *cmp_with_set(Gg, struct LocalExpr *e);
 struct Reg *and_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *or_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *cvt_from_xmm(Gg, struct LocalExpr *e, struct Reg *xmm_reg);
 struct Reg *unary_dec_inc(Gg, struct LocalExpr *e, uc is_inc);
 struct Reg *after_dec_inc(Gg, struct LocalExpr *e, uc is_inc);
 struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size);
+struct Reg *terry_to_reg(Gg, struct LocalExpr *e, int reg_size);
+
+struct Reg *cmp_with_set(Gg, struct LocalExpr *e);
+void just_cmp(Gg, struct LocalExpr *e);
+void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label);
+void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label);
 
 #define declare_lvar_gvar                                                      \
 	struct LocalVar *lvar = 0;                                                 \

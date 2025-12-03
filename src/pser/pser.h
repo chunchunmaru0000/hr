@@ -536,6 +536,8 @@ enum LE_Flag {
 	((have_any_side_effect((e)) <= LEF_SIDE_EFFECT_GVAR))
 #define both_not_side_effective(l, r)                                          \
 	(((LEF_ALL_SIDE_EFFECTS & ((l)->flags | (r)->flags)) == 0))
+#define causes_more_than_just_gvar(e)                                          \
+	((have_any_side_effect((e)) > LEF_SIDE_EFFECT_GVAR))
 
 struct LocalExpr {
 	enum LE_Code code;

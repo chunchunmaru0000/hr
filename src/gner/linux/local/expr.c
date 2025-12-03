@@ -54,11 +54,11 @@ void print_le(struct LocalExpr *e, int with_n) {
 		printf("%s)%s", remove_color_level(), COLOR_RESET);
 	} else if (lceb(TERRY)) {
 		printf("%s{%s", take_color_level(), COLOR_RESET);
-		print_le(e->l, 0);
-		printf(" ? ");
-		print_le(e->r, 0);
-		printf(" : ");
 		print_le(e->co.cond, 0);
+		printf(" ? ");
+		print_le(e->l, 0);
+		printf(" : ");
+		print_le(e->r, 0);
 		printf("%s}%s", remove_color_level(), COLOR_RESET);
 	} else if (lcea(INDEX)) {
 		print_le(e->l, 0);
@@ -132,11 +132,11 @@ struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 		just_char(')');
 	} else if (lceb(TERRY)) {
 		just_char('{');
-		print_orher(e->l);
-		print_str(" ? ");
-		print_orher(e->r);
-		print_str(" : ");
 		print_orher(e->co.cond);
+		print_str(" ? ");
+		print_orher(e->l);
+		print_str(" : ");
+		print_orher(e->r);
 		just_char('}');
 	} else if (lcea(INDEX)) {
 		print_orher(e->l);
@@ -200,8 +200,8 @@ void gen_local_expr_linux(Gg, struct LocalExpr *e) {
 		gen_dec_inc(g, e->l, lceu(INC) || lcea(INC));
 	else if (lcea(CALL))
 		gen_call(g, e);
-	// else if (lceb(TERRY))
-	//	gen_terry(g, e);
+	else if (lceb(TERRY) && causes_more_than_just_gvar(e))
+		gen_terry(g, e);
 	else
 		// 	exit(159);
 		printf("### NOT GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
