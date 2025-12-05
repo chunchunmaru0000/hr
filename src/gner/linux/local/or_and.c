@@ -56,9 +56,8 @@ void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
 	}
 }
 
-struct Reg *and_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+struct Reg *and_to_reg(Gg, struct LocalExpr *e) {
 	struct Reg *r1 = 0;
-	reg_size = unsafe_size_of_type(e->type);
 
 	struct BList *exit_label, *false_label;
 
@@ -72,7 +71,7 @@ struct Reg *and_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	and_cmp(g, e->r, false_label);
 
 	// mov reg, 1
-	r1 = try_borrow_reg(e->tvar, g, reg_size);
+	r1 = try_borrow_reg(e->tvar, g, unsafe_size_of_type(e->type));
 	op_reg_(MOV, r1->reg_code);
 	add_int_with_hex_comm(fun_text, 1);
 	// jmp exit
@@ -128,9 +127,8 @@ void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label) {
 	}
 }
 
-struct Reg *or_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+struct Reg *or_to_reg(Gg, struct LocalExpr *e) {
 	struct Reg *r1 = 0;
-	reg_size = unsafe_size_of_type(e->type);
 
 	struct BList *exit_label, *true_label, *false_label;
 
@@ -147,7 +145,7 @@ struct Reg *or_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	// true_label:
 	add_label(true_label);
 	// mov reg, 1
-	r1 = try_borrow_reg(e->tvar, g, reg_size);
+	r1 = try_borrow_reg(e->tvar, g, unsafe_size_of_type(e->type));
 	op_reg_(MOV, r1->reg_code);
 	add_int_with_hex_comm(fun_text, 1);
 	// jmp exit

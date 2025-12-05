@@ -39,6 +39,11 @@ struct CPU {
 		(reg)->allocated = 0;                                                  \
 		(reg)->is_value_active = 0;                                            \
 	} while (0)
+#define reg_of_sz(rf, sz)                                                      \
+	(sz) == BYTE	? (rf)->l                                                  \
+	: (sz) == WORD	? (rf)->x                                                  \
+	: (sz) == DWORD ? (rf)->e                                                  \
+					: (rf)->r
 
 struct CPU *new_cpu();
 struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code);
@@ -331,14 +336,14 @@ struct Reg *mul_on_int(Gg, struct Reg *r1, long mul_on);
 struct Reg *shift_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 						 struct Reg *r2);
-struct Reg *and_to_reg(Gg, struct LocalExpr *e, int reg_size);
-struct Reg *or_to_reg(Gg, struct LocalExpr *e, int reg_size);
+struct Reg *and_to_reg(Gg, struct LocalExpr *e);
+struct Reg *or_to_reg(Gg, struct LocalExpr *e);
 struct Reg *cvt_from_xmm(Gg, struct LocalExpr *e, struct Reg *xmm_reg);
 struct Reg *unary_dec_inc(Gg, struct LocalExpr *e, uc is_inc);
 struct Reg *after_dec_inc(Gg, struct LocalExpr *e, uc is_inc);
-struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size);
-struct Reg *terry_to_reg(Gg, struct LocalExpr *e, int reg_size);
-struct Reg *assign_to_reg(Gg, struct LocalExpr *e, int reg_size);
+struct Reg *call_to_reg(Gg, struct LocalExpr *e);
+struct Reg *terry_to_reg(Gg, struct LocalExpr *e);
+struct Reg *assign_to_reg(Gg, struct LocalExpr *e);
 
 struct Reg *cmp_with_set(Gg, struct LocalExpr *e);
 void just_cmp(Gg, struct LocalExpr *e);

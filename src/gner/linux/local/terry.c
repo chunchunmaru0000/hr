@@ -1,7 +1,8 @@
 #include "../../gner.h"
 
-struct Reg *terry_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+struct Reg *terry_to_reg(Gg, struct LocalExpr *e) {
 	struct Reg *r1 = 0, *r2 = 0;
+	int res_size = unsafe_size_of_type(e->type);
 
 	struct BList *r_result_label, *exit_label;
 
@@ -11,14 +12,14 @@ struct Reg *terry_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	and_cmp(g, e->co.cond, r_result_label);
 
 	// l
-	r1 = gen_to_reg(g, e->l, reg_size);
+	r1 = gen_to_reg(g, e->l, res_size);
 	free_reg_family(r1->rf);
 	// jmp exit
 	op_(JMP);
 	blat_ft(exit_label), ft_add('\n');
 	// r
 	add_label(r_result_label);
-	r2 = gen_to_reg(g, e->r, reg_size);
+	r2 = gen_to_reg(g, e->r, res_size);
 	get_reg_to_rf(e->tvar, g, r2, r1->rf);
 	// exit_label:
 	add_label(exit_label);

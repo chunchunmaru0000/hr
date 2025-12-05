@@ -43,7 +43,7 @@ struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 	return ops_regs;
 }
 
-struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+struct Reg *call_to_reg(Gg, struct LocalExpr *e) {
 	struct LocalExpr *fun_expr = e->l;
 	struct GlobVar *fun_gvar;
 	struct PList *ops_regs;
@@ -70,8 +70,11 @@ struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		free_reg_family(((struct Reg *)plist_get(ops_regs, i))->rf);
 	plist_free(ops_regs);
 
+	int res_size = unsafe_size_of_type(e->type);
 	if (r1 == 0)
-		r1 = try_borrow_reg(e->tvar, g, unsafe_size_of_type(e->type));
+		r1 = try_borrow_reg(e->tvar, g, res_size);
+	else
+		r1 = reg_of_sz(r1->rf, res_size);
 
 	get_reg_to_rf(e->tvar, g, r1, g->cpu->a);
 	return r1;

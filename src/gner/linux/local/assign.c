@@ -98,13 +98,13 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
 }
 
-struct Reg *assign_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+struct Reg *assign_to_reg(Gg, struct LocalExpr *e) {
 	struct LocalExpr *assignee = e->l, *trailed;
 	int assignee_size = unsafe_size_of_type(assignee->type);
 	struct BList *last_mem_str = 0;
 	struct Reg *r1, *r2 = 0;
 
-	r1 = gen_to_reg(g, e->r, reg_size);
+	r1 = gen_to_reg(g, e->r, 0);
 	if (!is_xmm(r1))
 		r1 = get_reg_to_size(g, r1, assignee_size);
 

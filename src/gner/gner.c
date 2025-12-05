@@ -195,13 +195,9 @@ void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 	}
 }
 
-#define reg_of_sz(rf, sz)                                                      \
-	(sz) == BYTE	? (rf)->l                                                  \
-	: (sz) == WORD	? (rf)->x                                                  \
-	: (sz) == DWORD ? (rf)->e                                                  \
-					: (rf)->r
-
 struct Reg *get_reg_to_size(Gg, struct Reg *r, int wanna_size) {
+	struct Reg *r_was;
+
 	if (r->rf == 0) // means xmm
 		exit(201);
 	if (r->size == wanna_size)
@@ -210,23 +206,23 @@ struct Reg *get_reg_to_size(Gg, struct Reg *r, int wanna_size) {
 		r = reg_of_sz(r->rf, wanna_size);
 	} else {
 		if (r->rf->r->reg_code == R_RAX) {
-			while (r->size != wanna_size) {
-				if (r->reg_code == R_AL) {
-					op_(CBW);
-					r = r->rf->x;
-				} else if (r->reg_code == R_AX) {
-					op_(CWDE);
-					r = r->rf->e;
-				} else if (r->reg_code == R_EAX) {
-					op_(CDQE);
-					r = r->rf->r;
-				} else {
-					printf("%s %d\n", bs(r->name), wanna_size);
-					exit(203); // ah
-				}
-			}
+			if (r->reg_code == R_AL && wanna_size == WORD) {
+				op_(CBW);
+				r = r->rf->x;
+			} else if (r->reg_code == R_AX && wanna_size == DWORD) {
+				op_(CWDE);
+				r = r->rf->e;
+			} else if (r->reg_code == R_EAX && wanna_size == QWORD) {
+				op_(CDQE);
+				r = r->rf->r;
+			} else if (r->reg_code == R_AH) {
+				printf("%s %d\n", bs(r->name), wanna_size);
+				exit(203); // ah
+			} else
+				goto just_movzx;
 		} else {
-			struct Reg *r_was = r;
+		just_movzx:
+			r_was = r;
 			r = reg_of_sz(r->rf, wanna_size);
 			op_reg_(MOV, r->reg_code);
 			reg_enter(r_was->reg_code);

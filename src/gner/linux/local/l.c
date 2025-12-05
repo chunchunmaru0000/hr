@@ -153,12 +153,12 @@ struct Reg *dereference(Gg, struct LocalExpr *e) {
 	return r;
 }
 
-struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+struct Reg *unary_to_reg(Gg, struct LocalExpr *e) {
 	struct Reg *reg = 0, *byte;
 	int unit_size;
 
 	if (lceu(MINUS)) {
-		reg = gen_to_reg(g, e->l, reg_size);
+		reg = gen_to_reg(g, e->l, 0);
 		op_reg_enter(NEG, reg->reg_code);
 	} else if (lceu(INC) || lceu(DEC)) {
 		reg = unary_dec_inc(g, e->l, lceu(INC));
@@ -176,7 +176,7 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 		free_byte_reg(byte);
 	} else if (lceu(BIT_NOT)) {
-		reg = gen_to_reg(g, e->l, reg_size);
+		reg = gen_to_reg(g, e->l, 0);
 		op_reg_enter(NOT, reg->reg_code);
 	} else if (lceu(AMPER)) {
 		reg = dereference(g, e->l);
@@ -273,11 +273,12 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e) {
 		r1 = gen_to_reg(g, not_num, 0);
 		// is mem size is not equal to reg_size then can as well just get mem to
 		// reg and do bin with other reg cuz may lose data if mem size is less
-		if (!is_num_le(int_or_mem) &&
-			unsafe_size_of_type(int_or_mem->type) != r1->size) {
+		int int_or_mem_size = unsafe_size_of_type(int_or_mem->type);
+		if (!is_num_le(int_or_mem) && int_or_mem_size != r1->size) {
 			r2 = gen_to_reg(g, int_or_mem, 0);
 			goto two_regs;
-		}
+		} else if (!is_xmm(r1))
+			r1 = get_reg_to_size(g, r1, int_or_mem_size);
 		// gen_mem_tuple can safely gen tuple for int or real too
 		gen_mem_tuple(g, int_or_mem);
 
@@ -362,23 +363,23 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 	if (is_primary(e))
 		res_reg = prime_to_reg(g, e, reg_size);
 	else if (is_unary(e) || lce(BOOL))
-		res_reg = unary_to_reg(g, e, reg_size);
+		res_reg = unary_to_reg(g, e);
 	else if (lcea(CALL))
-		res_reg = call_to_reg(g, e, reg_size);
+		res_reg = call_to_reg(g, e);
 	else if (lcea(INC) || lcea(DEC))
 		res_reg = after_dec_inc(g, e->l, lcea(INC));
 	else if (lceb(AND))
-		res_reg = and_to_reg(g, e, reg_size);
+		res_reg = and_to_reg(g, e);
 	else if (lceb(OR))
-		res_reg = or_to_reg(g, e, reg_size);
+		res_reg = or_to_reg(g, e);
 	else if (is_uses_cmp(e))
 		return cmp_with_set(g, e);
 	else if (is_bin_le(e))
 		res_reg = bin_to_reg(g, e);
 	else if (lceb(TERRY))
-		res_reg = terry_to_reg(g, e, reg_size);
+		res_reg = terry_to_reg(g, e);
 	else if (lceb(ASSIGN))
-		res_reg = assign_to_reg(g, e, reg_size);
+		res_reg = assign_to_reg(g, e);
 	else
 		exit(152);
 	return is_xmm(res_reg) ? res_reg : get_reg_to_size(g, res_reg, reg_size);
