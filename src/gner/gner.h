@@ -336,6 +336,7 @@ struct Reg *unary_dec_inc(Gg, struct LocalExpr *e, uc is_inc);
 struct Reg *after_dec_inc(Gg, struct LocalExpr *e, uc is_inc);
 struct Reg *call_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *terry_to_reg(Gg, struct LocalExpr *e, int reg_size);
+struct Reg *assign_to_reg(Gg, struct LocalExpr *e, int reg_size);
 
 struct Reg *cmp_with_set(Gg, struct LocalExpr *e);
 void just_cmp(Gg, struct LocalExpr *e);

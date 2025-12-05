@@ -93,3 +93,33 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 	else
 		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
 }
+
+struct Reg *assign_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+	struct LocalExpr *assignee = e->l, *trailed;
+	struct BList *last_mem_str = 0;
+	struct Reg *r1, *r2 = 0;
+
+	r1 = gen_to_reg(g, e->r, reg_size);
+
+	if (is_mem(assignee)) {
+		gen_mem_tuple(g, assignee);
+
+		if (is_xmm(r1)) {
+			op_mem_(MOV_XMM, assignee, 0);
+			reg_enter(r1->reg_code);
+		} else {
+			op_mem_(MOV, assignee, 0);
+			reg_enter(r1->reg_code);
+		}
+
+	} else if ((trailed = is_not_assignable_or_trailed(assignee))) {
+		r2 = gen_to_reg_with_last_mem(g, assignee, trailed, &last_mem_str);
+		op_last_mem_(MOV, last_mem_str);
+		reg_enter(r1->reg_code);
+		// TODO: is xmm
+	} else
+		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
+
+	free_reg_rf_if_not_zero(r2);
+	return r1;
+}

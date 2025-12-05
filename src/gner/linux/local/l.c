@@ -362,6 +362,8 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 		res_reg = bin_to_reg(g, e, reg_size);
 	else if (lceb(TERRY))
 		res_reg = terry_to_reg(g, e, reg_size);
+	else if (lceb(ASSIGN))
+		res_reg = assign_to_reg(g, e, reg_size);
 	else
 		exit(152);
 	return res_reg;
