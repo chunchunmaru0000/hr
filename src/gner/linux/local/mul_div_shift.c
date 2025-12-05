@@ -183,14 +183,16 @@ struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1) {
 	} else {
 		rDX = try_alloc_reg(e->tvar, g->cpu->d, r1->size);
 	}
-	// CBW
-	// CWDE
-	// CDQE
+
+	if (r1->size == WORD)
+		op_(CWD);
+	else if (r1->size == DWORD)
+		op_(CDQ);
+	else if (r1->size == QWORD)
+		op_(CQO);
 	op_(IDIV);
 	mem_enter(e->r, 0);
-	// CWD
-	// CDQ
-	// CQO
+
 	free_reg_family(rDX->rf);
 	return r1;
 }
@@ -211,15 +213,15 @@ struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 		rDX = try_alloc_reg(e->tvar, g->cpu->d, r2->size);
 	}
 
-	// TODO: proper size
-	// CBW
-	// CWDE
-	// CDQE
-	op_(IDIV);
-	reg_enter(r2->reg_code);
-	// CWD
-	// CDQ
-	// CQO
+	if (r1->size != r2->size)
+		exit(111);
+	if (r1->size == WORD)
+		op_(CWD);
+	else if (r1->size == DWORD)
+		op_(CDQ);
+	else if (r1->size == QWORD)
+		op_(CQO);
+	op_reg_enter(IDIV, r2->reg_code);
 
 	free_reg_family(r2->rf);
 	free_reg_family(rDX->rf);

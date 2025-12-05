@@ -250,12 +250,6 @@ struct Reg *xmm_bin_to_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 	return r1;
 }
 
-#define get_regs_to_one_size(r1p, r2p)                                         \
-	if ((*(r1p))->size > (*(r2p))->size)                                       \
-		*(r2p) = get_reg_to_size(g, *(r2p), (*(r1p))->size);                   \
-	else if ((*(r2p))->size > (*(r1p))->size)                                  \
-		*(r1p) = get_reg_to_size(g, *(r1p), (*(r2p))->size);
-
 struct Reg *bin_to_reg(Gg, struct LocalExpr *e) {
 	struct Reg *r1 = 0, *r2 = 0;
 	struct LocalExpr *l = e->l, *r = e->r;
@@ -325,13 +319,13 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e) {
 
 		if (is_real_type(e->type))
 			return xmm_bin_to_reg(g, e, r1, r2);
-
-		if (lceb(DIV))
-			return div_on_reg(g, e, r1, r2);
 		if (lceb(SHR) || lceb(SHR))
 			return shift_on_reg(g, e, r1, r2);
 
 		get_regs_to_one_size(&r1, &r2);
+
+		if (lceb(DIV))
+			return div_on_reg(g, e, r1, r2);
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);

@@ -182,7 +182,7 @@ sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
 				sae(JE) sae(JNE) sae(CALL) sae(CVTSS2SI) sae(CVTSD2SI)
 					sae(PUSH_R15) sae(PUSH_R14) sae(PUSH_R13) sae(POP_R15)
 						sae(POP_R14) sae(POP_R13) sae(MEM_PLUS) sae(CBW)
-							sae(CWDE) sae(CDQE);
+							sae(CWDE) sae(CDQE) sae(CWD) sae(CDQ) sae(CQO);
 
 // #############################################################################
 
@@ -350,6 +350,11 @@ void just_cmp(Gg, struct LocalExpr *e);
 void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label);
 void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label);
 
+#define get_regs_to_one_size(r1p, r2p)                                         \
+	if ((*(r1p))->size > (*(r2p))->size)                                       \
+		*(r2p) = get_reg_to_size(g, *(r2p), (*(r1p))->size);                   \
+	else if ((*(r2p))->size > (*(r1p))->size)                                  \
+		*(r1p) = get_reg_to_size(g, *(r1p), (*(r2p))->size);
 #define declare_lvar_gvar                                                      \
 	struct LocalVar *lvar = 0;                                                 \
 	struct GlobVar *gvar = 0;
