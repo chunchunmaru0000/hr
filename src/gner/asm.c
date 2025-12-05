@@ -107,6 +107,9 @@ sa(JGE, "идбр ");
 sa(JE, "идр ");
 sa(JNE, "иднр ");
 sa(CALL, "зов ");
+sa(CBW, "перебд\n");
+sa(CWDE, "передч\n");
+sa(CDQE, "перечв\n");
 
 sa(L_PAR, "(");
 sa(R_PAR, ") ");

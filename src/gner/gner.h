@@ -136,6 +136,7 @@ struct Reg *try_alloc_reg(struct Token *tvar, struct RegisterFamily *rf,
 void save_allocated_regs(Gg, struct Token *place);
 void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 				   struct RegisterFamily *rf);
+struct Reg *get_reg_to_size(Gg, struct Reg *r, int wanna_size);
 
 struct Gner *new_gner(struct Pser *, enum Target, uc);
 void reset_flags(struct Gner *g);
@@ -175,7 +176,8 @@ sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
 			sae(JB) sae(JBE) sae(JA) sae(JAE) sae(JL) sae(JLE) sae(JG) sae(JGE)
 				sae(JE) sae(JNE) sae(CALL) sae(CVTSS2SI) sae(CVTSD2SI)
 					sae(PUSH_R15) sae(PUSH_R14) sae(PUSH_R13) sae(POP_R15)
-						sae(POP_R14) sae(POP_R13) sae(MEM_PLUS);
+						sae(POP_R14) sae(POP_R13) sae(MEM_PLUS) sae(CBW)
+							sae(CWDE) sae(CDQE);
 
 // #############################################################################
 

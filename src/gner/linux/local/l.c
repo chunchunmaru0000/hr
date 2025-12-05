@@ -250,7 +250,13 @@ struct Reg *xmm_bin_to_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 	return r1;
 }
 
-struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
+#define get_regs_to_one_size(r1p, r2p)                                         \
+	if ((*(r1p))->size > (*(r2p))->size)                                       \
+		*(r2p) = get_reg_to_size(g, *(r2p), (*(r1p))->size);                   \
+	else if ((*(r2p))->size > (*(r1p))->size)                                  \
+		*(r1p) = get_reg_to_size(g, *(r1p), (*(r2p))->size);
+
+struct Reg *bin_to_reg(Gg, struct LocalExpr *e) {
 	struct Reg *r1 = 0, *r2 = 0;
 	struct LocalExpr *l = e->l, *r = e->r;
 	struct LocalExpr *int_or_mem, *not_num;
@@ -264,9 +270,16 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		: is_mem(l) && is_commut(e->code)  ? (int_or_mem = l, not_num = r)
 		: is_mem(r)						   ? (int_or_mem = r, not_num = l)
 										   : 0) {
+		r1 = gen_to_reg(g, not_num, 0);
+		// is mem size is not equal to reg_size then can as well just get mem to
+		// reg and do bin with other reg cuz may lose data if mem size is less
+		if (!is_num_le(int_or_mem) &&
+			unsafe_size_of_type(int_or_mem->type) != r1->size) {
+			r2 = gen_to_reg(g, int_or_mem, 0);
+			goto two_regs;
+		}
 		// gen_mem_tuple can safely gen tuple for int or real too
 		gen_mem_tuple(g, int_or_mem);
-		r1 = gen_to_reg(g, not_num, reg_size);
 
 		if (is_real_type(e->type)) {
 			if (lceep(int_or_mem, INT)) {
@@ -277,7 +290,7 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 			} else if (lceep(int_or_mem, REAL))
 				r2 = prime_to_reg(g, int_or_mem, 0);
 			else
-				r2 = mem_to_reg(g, int_or_mem, reg_size);
+				r2 = gen_to_reg(g, int_or_mem, 0);
 			return xmm_bin_to_reg(g, e, r1, r2);
 		}
 		if (lceb(DIV))
@@ -300,14 +313,14 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		}
 		return r1;
 	} else {
-
 		if (!have_any_side_effect(l) && le_depth(l) < le_depth(r)) {
-			r2 = gen_to_reg(g, r, reg_size);
-			r1 = gen_to_reg(g, l, reg_size);
+			r2 = gen_to_reg(g, r, 0);
+			r1 = gen_to_reg(g, l, 0);
 		} else {
-			r1 = gen_to_reg(g, l, reg_size);
-			r2 = gen_to_reg(g, r, reg_size);
+			r1 = gen_to_reg(g, l, 0);
+			r2 = gen_to_reg(g, r, 0);
 		}
+	two_regs:
 
 		if (is_real_type(e->type))
 			return xmm_bin_to_reg(g, e, r1, r2);
@@ -316,6 +329,8 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 			return div_on_reg(g, e, r1, r2);
 		if (lceb(SHR) || lceb(SHR))
 			return shift_on_reg(g, e, r1, r2);
+
+		get_regs_to_one_size(&r1, &r2);
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);
@@ -359,12 +374,12 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 	else if (is_uses_cmp(e))
 		return cmp_with_set(g, e);
 	else if (is_bin_le(e))
-		res_reg = bin_to_reg(g, e, reg_size);
+		res_reg = bin_to_reg(g, e);
 	else if (lceb(TERRY))
 		res_reg = terry_to_reg(g, e, reg_size);
 	else if (lceb(ASSIGN))
 		res_reg = assign_to_reg(g, e, reg_size);
 	else
 		exit(152);
-	return res_reg;
+	return is_xmm(res_reg) ? res_reg : get_reg_to_size(g, res_reg, reg_size);
 }

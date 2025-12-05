@@ -322,12 +322,13 @@ struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code) {
 	return cpu->xmm[code - R_XMM0];
 }
 
-#define xchg_reg_reg(r1, r2)                                                   \
+#define xchg_mem(m1, m2, tmp, type)                                            \
 	do {                                                                       \
-		memcpy(tmp_reg, (r1), sizeof(struct Reg));                             \
-		memcpy((r1), (r2), sizeof(struct Reg));                                \
-		memcpy((r2), tmp_reg, sizeof(struct Reg));                             \
+		memcpy((tmp), (m1), sizeof(type));                                     \
+		memcpy((m1), (m2), sizeof(type));                                      \
+		memcpy((m2), (tmp), sizeof(type));                                     \
 	} while (0)
+#define xchg_reg_reg(r1, r2) xchg_mem((r1), (r2), tmp_reg, struct Reg)
 
 void swap_basic_regs(Gg, struct RegisterFamily *rf1, struct RegisterFamily *rf2,
 					 int do_mov) {
@@ -346,12 +347,14 @@ void swap_basic_regs(Gg, struct RegisterFamily *rf1, struct RegisterFamily *rf2,
 	xchg_reg_reg(rf1->x, rf2->x);
 	if (rf1->h && rf2->h)
 		xchg_reg_reg(rf1->h, rf2->h);
+	else
+		exch(rf1->h, rf2->h, tmp_reg);
 	if (rf1->l && rf2->l)
 		xchg_reg_reg(rf1->l, rf2->l);
+	else
+		exch(rf1->l, rf2->l, tmp_reg);
 
-	memcpy(tmp_rf, rf1, sizeof(struct RegisterFamily));
-	memcpy(rf1, rf2, sizeof(struct RegisterFamily));
-	memcpy(rf2, tmp_rf, sizeof(struct RegisterFamily));
+	xchg_mem(rf1, rf2, tmp_rf, struct RegisterFamily);
 
 	if (do_mov == DO_MOV) {
 		op_(MOV);

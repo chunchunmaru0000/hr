@@ -8,8 +8,8 @@ constr NOT_ASSIGNABLE = "Данное выражение не может быт�
 	 (gvar = find_glob_Var(g, (r)->l->tvar->view)))
 
 void assign_to_mem(Gg, struct LocalExpr *e) {
-	struct LocalExpr *mem = e->l;
-	struct LocalExpr *assignable = e->r;
+	struct LocalExpr *mem = e->l, *assignable = e->r;
+	int assignee_size = unsafe_size_of_type(mem->type);
 	struct GlobVar *gvar;
 	struct Reg *reg;
 
@@ -38,6 +38,7 @@ void assign_to_mem(Gg, struct LocalExpr *e) {
 			reg_enter(reg->reg_code);
 			free_reg(reg);
 		} else {
+			reg = get_reg_to_size(g, reg, assignee_size);
 			op_mem_(MOV, mem, 0);
 			reg_enter(reg->reg_code);
 			free_reg_family(reg->rf);
@@ -47,6 +48,7 @@ void assign_to_mem(Gg, struct LocalExpr *e) {
 
 void assign_to_last_mem(Gg, struct LocalExpr *assignee,
 						struct LocalExpr *trailed, struct LocalExpr *right) {
+	int assignee_size = unsafe_size_of_type(assignee->type);
 	struct BList *last_mem_str = 0;
 	struct Reg *r1 = 0, *r2 = 0;
 	struct GlobVar *gvar;
@@ -74,6 +76,8 @@ void assign_to_last_mem(Gg, struct LocalExpr *assignee,
 		}
 	} else {
 		r2 = gen_to_reg(g, right, 0);
+		if (!is_xmm(r2))
+			r2 = get_reg_to_size(g, r2, assignee_size);
 		op_last_mem_(MOV, last_mem_str);
 		reg_enter(r2->reg_code);
 	}
@@ -96,10 +100,13 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 
 struct Reg *assign_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct LocalExpr *assignee = e->l, *trailed;
+	int assignee_size = unsafe_size_of_type(assignee->type);
 	struct BList *last_mem_str = 0;
 	struct Reg *r1, *r2 = 0;
 
 	r1 = gen_to_reg(g, e->r, reg_size);
+	if (!is_xmm(r1))
+		r1 = get_reg_to_size(g, r1, assignee_size);
 
 	if (is_mem(assignee)) {
 		gen_mem_tuple(g, assignee);

@@ -92,7 +92,4 @@ struct BList *real_to_str(double num);
 		item = plist_get(items, (count));
 #define foreach_end }
 
-#define exch(var1, var2, tmp)                                                  \
-	(tmp) = (var1);                                                            \
-	(var1) = (var2);                                                           \
-	(var2) = (tmp);
+#define exch(var1, var2, tmp) (tmp) = (var1), (var1) = (var2), (var2) = (tmp)
