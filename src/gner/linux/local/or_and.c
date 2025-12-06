@@ -28,7 +28,6 @@ void iprint_jmp(Gg, enum LE_Code le, int is_u) {
 }
 
 void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
-	struct Reg *r1;
 	struct BList *this_end_label;
 
 	if (is_uses_cmp(e)) {
@@ -47,10 +46,7 @@ void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
 		add_label(this_end_label);
 		blist_clear_free(this_end_label);
 	} else {
-		r1 = gen_to_reg(g, e, 0);
-		op_reg_reg(TEST, r1, r1);
-		free_reg_family(r1->rf);
-
+		cmp_bool(g, e);
 		op_(J0);
 		blat_ft(false_label), ft_add('\n');
 	}
@@ -94,7 +90,6 @@ struct Reg *and_to_reg(Gg, struct LocalExpr *e) {
 }
 
 void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label) {
-	struct Reg *r1;
 	struct BList *this_end_label;
 
 	if (is_uses_cmp(e)) {
@@ -113,15 +108,7 @@ void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label) {
 		add_label(this_end_label);
 		blist_clear_free(this_end_label);
 	} else {
-		if (is_mem(e)) {
-			op_mem_(CMP, e, 0);
-		} else {
-			r1 = gen_to_reg(g, e, 0);
-			op_reg_(CMP, r1->reg_code);
-			free_reg_family(r1->rf);
-		}
-		add_int_with_hex_comm(fun_text, 0);
-
+		cmp_bool(g, e);
 		op_(JN0);
 		blat_ft(true_label), ft_add('\n');
 	}

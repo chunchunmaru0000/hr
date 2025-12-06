@@ -10,6 +10,27 @@ struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num) {
 	return r;
 }
 
+void cmp_bool(Gg, struct LocalExpr *e) {
+	struct Reg *r1 = 0, *r2 = 0;
+	if (lceb(SUB)) {
+		just_cmp(g, e);
+	} else if (lceb(ADD) && lceeu(e->r, MINUS)) {
+		// 	// e - n -> e - n
+		gen_tuple_of(g, e->r);
+		e->r = e->r->l; // TODO: here may lose tuple
+		just_cmp(g, e);
+	} else if (lceb(ADD) && lceep(e->r, INT)) {
+		// 	// e + n -> e - -n
+		e->r->tvar->num = -e->r->tvar->num;
+		just_cmp(g, e);
+	} else {
+		r1 = gen_to_reg(g, e, 0);
+		op_reg_reg(TEST, r1, r1);
+	}
+	free_reg_rf_if_not_zero(r1);
+	free_reg_rf_if_not_zero(r2);
+}
+
 //	LE_BIN_LESS 		setl 	setb
 //	LE_BIN_LESSE 		setle 	setbe
 //	LE_BIN_MORE 		setg 	seta
@@ -84,6 +105,7 @@ void just_cmp(Gg, struct LocalExpr *e) {
 			r1 = gen_to_reg(g, l, 0);
 			r2 = gen_to_reg(g, r, 0);
 		}
+		get_regs_to_one_size(&r1, &r2);
 		op_reg_reg(CMP, r1, r2);
 	}
 

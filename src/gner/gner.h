@@ -346,6 +346,7 @@ struct Reg *terry_to_reg(Gg, struct LocalExpr *e);
 struct Reg *assign_to_reg(Gg, struct LocalExpr *e);
 
 struct Reg *cmp_with_set(Gg, struct LocalExpr *e);
+void cmp_bool(Gg, struct LocalExpr *e);
 void just_cmp(Gg, struct LocalExpr *e);
 void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label);
 void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label);

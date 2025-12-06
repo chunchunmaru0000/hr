@@ -62,6 +62,8 @@ struct Reg *mem_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		r = try_borrow_xmm_reg(e->tvar, g);
 		mov_xmm_reg_(r->reg_code);
 	} else {
+		if (!reg_size)
+			reg_size = unsafe_size_of_type(e->type);
 		r = try_borrow_reg(e->tvar, g, reg_size);
 		op_reg_(MOV, r->reg_code);
 	}
@@ -154,7 +156,7 @@ struct Reg *dereference(Gg, struct LocalExpr *e) {
 }
 
 struct Reg *unary_to_reg(Gg, struct LocalExpr *e) {
-	struct Reg *reg = 0, *byte;
+	struct Reg *reg = 0;
 	int unit_size;
 
 	if (lceu(MINUS)) {
@@ -163,18 +165,13 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e) {
 	} else if (lceu(INC) || lceu(DEC)) {
 		reg = unary_dec_inc(g, e->l, lceu(INC));
 	} else if (lceu(NOT) || lce(BOOL)) {
-		byte = try_borrow_reg(e->tvar, g, BYTE);
-		reg = cmp_with_int(g, e->l, 0);
-
+		cmp_bool(g, e->l);
+		reg = try_borrow_reg(e->tvar, g, BYTE);
 		if (lce(BOOL))
-			op_(SETNE);
+			op_(SETN0);
 		else
-			op_(SETE);
-		reg_enter(byte->reg_code);
-
-		op_reg_reg(MOV, reg, byte);
-
-		free_byte_reg(byte);
+			op_(SET0);
+		reg_enter(reg->reg_code);
 	} else if (lceu(BIT_NOT)) {
 		reg = gen_to_reg(g, e->l, 0);
 		op_reg_enter(NOT, reg->reg_code);
