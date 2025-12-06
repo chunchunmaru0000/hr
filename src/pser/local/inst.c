@@ -89,15 +89,6 @@ struct Inst *get_local_inst(struct Pser *p) {
 		code = IP_LOCAL_EXPRESSION;
 		plist_add(os, local_expression(p));
 	}
-	// 	expression,
-	//
-	// 	IP_EQU,
-	// 	IP_PLUS_EQU,
-	// 	IP_MINUS_EQU,
-	// 	IP_MUL_EQU,
-	// 	IP_DIV_EQU,
-	// 	IP_SHR_EQU,
-	// 	IP_SHL_EQU,
 	//
 	// 	IP_IF_ELIF_ELSE,
 	// 	IP_WHILE_LOOP,

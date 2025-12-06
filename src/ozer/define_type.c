@@ -193,8 +193,10 @@ enum TypeCode max_code_or_any(enum TypeCode c0, enum TypeCode c1) {
 struct TypeExpr *add_types(struct LocalExpr *l, struct LocalExpr *r) {
 	struct TypeExpr *l_type = l->type, *r_type = r->type, *res;
 
-	if (l_type == 0 || r_type == 0)
+	if (l_type == 0 || r_type == 0) {
+		printf("[%s][%s]\n", vs(l->tvar), vs(r->tvar));
 		eet(l->tvar, "эээ где типы", 0);
+	}
 	if (is_ptr_type(l_type) && is_ptr_type(r_type))
 		eet(l->tvar, CANT_BIN_ON_PTRS, 0);
 
@@ -371,5 +373,8 @@ void define_le_type(struct LocalExpr *e) {
 		define_struct_field_type_type(e);
 	} else if (lcea(ENUM)) {
 		define_enum(e);
-	}
+	} else if (lce(IF_ELSE)) {
+		define_type_and_copy_flags_to_e(e->co.cond);
+	} else
+		exit(87);
 }

@@ -15,8 +15,7 @@ struct Reg *terry_to_reg(Gg, struct LocalExpr *e) {
 	r1 = gen_to_reg(g, e->l, res_size);
 	free_reg_family(r1->rf);
 	// jmp exit
-	op_(JMP);
-	blat_ft(exit_label), ft_add('\n');
+	jmp_(exit_label);
 	// r
 	add_label(r_result_label);
 	r2 = gen_to_reg(g, e->r, res_size);
@@ -41,8 +40,7 @@ void gen_terry(Gg, struct LocalExpr *e) {
 
 		// l
 		gen_local_expr_linux(g, e->l);
-		op_(JMP); // jmp exit
-		blat_ft(exit_label), ft_add('\n');
+		jmp_(exit_label);
 		// r
 		add_label(r_result_label);
 		gen_local_expr_linux(g, e->r);
@@ -67,4 +65,30 @@ void gen_terry(Gg, struct LocalExpr *e) {
 		exit(190);
 
 	blist_clear_free(r_result_label);
+}
+
+void gen_if_else(Gg, struct LocalExpr *e) {
+	struct PList *os;
+	u32 i;
+	struct BList *r_label = take_label(g, LC_ELSE),
+				 *exit_label = take_label(g, LC_ELSE);
+
+	and_cmp(g, e->co.cond, r_label);
+	g->indent_level++;
+	// l
+	for (os = (void *)e->l, i = 0; i < os->size; i++)
+		gen_local_linux(g, plist_get(os, i));
+	plist_free(os);
+	jmp_(exit_label);
+	// r
+	add_label(r_label);
+	for (os = (void *)e->r, i = 0; i < os->size; i++)
+		gen_local_linux(g, plist_get(os, i));
+	plist_free(os);
+	// exit_label:
+	g->indent_level--;
+	add_label(exit_label);
+
+	blist_clear_free(exit_label);
+	blist_clear_free(r_label);
 }

@@ -1,15 +1,5 @@
 #include "../../gner.h"
 
-struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num) {
-	struct Reg *r = 0;
-
-	r = gen_to_reg(g, e, 0);
-	op_reg_(CMP, r->reg_code);
-	add_int_with_hex_comm(fun_text, num);
-
-	return r;
-}
-
 void cmp_bool(Gg, struct LocalExpr *e) {
 	struct Reg *r1 = 0, *r2 = 0;
 	if (lceb(SUB)) {

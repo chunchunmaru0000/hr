@@ -266,33 +266,23 @@ long unsafe_size_of_global_value(struct GlobExpr *e) {
 
 constr ERR_WRONG_TOKEN = "Неверное выражение.";
 
-constr EXPECTED__STR = "Ожидалась строка.";
-constr EXPECTED__INT = "Ожидалось целое число.";
-constr EXPECTED__FPN = "Ожидалось вещественное число.";
-constr EXPECTED__PAR_L = "Ожидалась '(' скобка.";
-constr EXPECTED__PAR_R = "Ожидалась ')' скобка.";
-constr EXPECTED__PAR_C_L = "Ожидалась '[' скобка.";
-constr EXPECTED__PAR_C_R = "Ожидалась ']' скобка.";
-constr EXPECTED__EQU = "Ожидался '=' знак равно.";
-constr EXPECTED__COLO = "Ожидалось ':'.";
-constr EXPECTED__ID = "Ожидалось имя или слово.";
-constr EXPECTED__COMMA = "Ожидалась ',' запятая.";
-constr EXPECTED__SH_L = "Ожидалось '(#'.";
-constr EXPECTED__DOT = "Ожидалась '.' точка.";
-
-constr SUGGEST__STR = "строка";
-constr SUGGEST__PAR_L = "(";
-constr SUGGEST__PAR_R = ")";
-constr SUGGEST__PAR_C_L = "[";
-constr SUGGEST__PAR_C_R = "]";
-constr SUGGEST__EQU = "=";
-constr SUGGEST__COLO = ":";
-constr SUGGEST__ID = "имя";
-constr SUGGEST__INT = "целое";
-constr SUGGEST__FPN = "вещественное";
-constr SUGGEST__COMMA = ",";
-constr SUGGEST__SH_L = "(#";
-constr SUGGEST__DOT = ".";
+#define ex_sg(n, b, c, e)                                                      \
+	constr EXPECTED__##n = b c e;                                              \
+	constr SUGGEST__##n = c;
+ex_sg(STR, "Ожидалась ", "строка", ".");
+ex_sg(INT, "Ожидалось ", "целое число", ".");
+ex_sg(FPN, "Ожидалось ", "вещественное число", ".");
+ex_sg(PAR_L, "Ожидалась '", "(", "' скобка.");
+ex_sg(PAR_R, "Ожидалась '", ")", "' скобка.");
+ex_sg(PAR_C_L, "Ожидалась '", "[", "' скобка.");
+ex_sg(PAR_C_R, "Ожидалась '", "]", "' скобка.");
+ex_sg(EQU, "Ожидался '", "=", "' знак равно.");
+ex_sg(COLO, "Ожидалось '", ":", "'.");
+ex_sg(ID, "Ожидалось ", "имя или слово", ".");
+ex_sg(COMMA, "Ожидалась '", ",", "' запятая.");
+ex_sg(SH_L, "Ожидалось '", "(#", "'.");
+ex_sg(DOT, "Ожидалась '", ".", "' точка.");
+ex_sg(CC, "Ожидалось '", "::", "'.");
 
 constr STR_EOF = "_КОНЕЦ_ФАЙЛА_";
 // words
@@ -345,9 +335,6 @@ struct Inst *get_global_inst(struct Pser *p) {
 		eet(cur, ERR_WRONG_TOKEN, vs(cur));
 	}
 	//	TODO
-	//
-	//	IP_DECLARE_FUNCTION body,
-	//
 	//	global IP_DECLARE_LABEL, // like seem to be meaningless
 	//	global IP_GOTO,
 

@@ -86,6 +86,8 @@ enum TCode {
 	SOBAKA_ARROW, // -@
 	PIPE_LINE,	  // |>
 	DOT,		  // .
+	QQ,			  // ??
+	CC,			  // ::
 
 	SHPLS, // #+
 	SH_L,  // (#

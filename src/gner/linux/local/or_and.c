@@ -71,8 +71,7 @@ struct Reg *and_to_reg(Gg, struct LocalExpr *e) {
 	op_reg_(MOV, r1->reg_code);
 	add_int_with_hex_comm(fun_text, 1);
 	// jmp exit
-	op_(JMP);
-	blat_ft(exit_label), ft_add('\n');
+	jmp_(exit_label);
 
 	// false_label:
 	add_label(false_label);
@@ -136,8 +135,7 @@ struct Reg *or_to_reg(Gg, struct LocalExpr *e) {
 	op_reg_(MOV, r1->reg_code);
 	add_int_with_hex_comm(fun_text, 1);
 	// jmp exit
-	op_(JMP);
-	blat_ft(exit_label), ft_add('\n');
+	jmp_(exit_label);
 	// false_label:
 	add_label(false_label);
 	// mov reg, 0

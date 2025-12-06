@@ -56,7 +56,7 @@ struct LocalExpr *copy_local_expr(struct LocalExpr *e) {
 		copy->l = copy_local_expr(e->l);
 	} else if (lce(PRIMARY_ARR)) {
 		goto copy_ops;
-	} else if (is_unary(e) || lce(BOOL)){
+	} else if (is_unary(e) || lce(BOOL)) {
 		copy->l = copy_local_expr(e->l);
 	}
 
@@ -219,7 +219,7 @@ repeat_after:
 		after = new_local_expr(ops1(INC) ? LE_AFTER_INC : LE_AFTER_DEC, 0, c);
 		after->l = e;
 	} else if (ops1(DOT)) {
-		consume(p); // slip '.'
+		consume(p); // skip '.'
 		// - var_expr.some_expr
 		// - some_expr.some_expr
 		// + some_expr.expr_call -> call
@@ -245,6 +245,18 @@ repeat_after:
 			plist_set(after->co.ops, 0, e);
 		} else
 			eet(c, WRONG_DOT_USAGE, HOW_TO_USE_DOT);
+	} else if (ops1(QQ)) {
+		consume(p); // slip '??'
+		after = new_local_expr(LE_IF_ELSE, 0, c);
+		after->co.cond = e;
+
+		after->l = (void *)new_plist(16);
+		parse_block_of_local_inst(p, (void *)after->l);
+		match(pser_cur(p), CC);
+		after->r = (void *)new_plist(16);
+		parse_block_of_local_inst(p, (void *)after->r);
+
+		e = after, after = 0;
 	}
 
 	if (after) {

@@ -380,7 +380,6 @@ void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 	op_(op);                                                                   \
 	reg_((r1)->reg_code);                                                      \
 	reg_enter((r2)->reg_code);
-struct Reg *cmp_with_int(Gg, struct LocalExpr *e, long num);
 #define mov_xmm_reg_(reg)                                                      \
 	op_(MOV_XMM);                                                              \
 	reg_(reg);
@@ -431,6 +430,9 @@ struct Reg *gen_to_reg_with_last_mem(Gg, struct LocalExpr *e,
 	op_(op);                                                                   \
 	blat_ft((lm));
 extern int lm_size;
+#define jmp_(l)                                                                \
+	op_(JMP);                                                                  \
+	blat_ft((l)), ft_add('\n');
 
 // ############################################################################
 // 									OZER

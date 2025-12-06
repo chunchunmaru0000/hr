@@ -20,33 +20,14 @@ void etei_with_extra(struct ErrorInfo *info);
 #define DCLR_STRUCT_MEMS 2
 #define DCLR_STRUCT_ARGS 3
 
-extern constr EXPECTED__STR;
-extern constr EXPECTED__PAR_L;
-extern constr EXPECTED__PAR_R;
-extern constr EXPECTED__PAR_C_L;
-extern constr EXPECTED__PAR_C_R;
-extern constr EXPECTED__EQU;
-extern constr EXPECTED__COLO;
-extern constr EXPECTED__ID;
-extern constr EXPECTED__INT;
-extern constr EXPECTED__FPN;
-extern constr EXPECTED__COMMA;
-extern constr EXPECTED__SH_L;
-extern constr EXPECTED__DOT;
+#define ext_ex_sg(n)                                                           \
+	extern constr EXPECTED__##n;                                               \
+	extern constr SUGGEST__##n;
 
-extern constr SUGGEST__STR;
-extern constr SUGGEST__PAR_L;
-extern constr SUGGEST__PAR_R;
-extern constr SUGGEST__PAR_C_L;
-extern constr SUGGEST__PAR_C_R;
-extern constr SUGGEST__EQU;
-extern constr SUGGEST__COLO;
-extern constr SUGGEST__ID;
-extern constr SUGGEST__INT;
-extern constr SUGGEST__FPN;
-extern constr SUGGEST__COMMA;
-extern constr SUGGEST__SH_L;
-extern constr SUGGEST__DOT;
+ext_ex_sg(STR) ext_ex_sg(PAR_L) ext_ex_sg(PAR_R) ext_ex_sg(PAR_C_L)
+	ext_ex_sg(PAR_C_R) ext_ex_sg(EQU) ext_ex_sg(COLO) ext_ex_sg(ID)
+		ext_ex_sg(INT) ext_ex_sg(FPN) ext_ex_sg(COMMA) ext_ex_sg(SH_L)
+			ext_ex_sg(DOT) ext_ex_sg(CC);
 
 extern constr ERR_WRONG_TOKEN;
 
@@ -490,6 +471,7 @@ enum LE_Code {
 	LE_AFTER_ENUM = 42,
 
 	LE_BOOL = 43,
+	LE_IF_ELSE = 44,
 };
 // LE Code Equals
 #define lce(c) ((e->code == LE_##c))
