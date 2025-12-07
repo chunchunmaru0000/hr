@@ -290,7 +290,7 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 
 	switch (c) {
 	case ':':
-		n == ':' ? vn2("::", CC) : vn1(":", COLO);
+		n == ':' ? vn2("::", CC) : n == '?' ? vn2(":?", CQ) : vn1(":", COLO);
 		break;
 	case '.':
 		n == '.' ? vn2("..", DD) : vn1(".", DOT);

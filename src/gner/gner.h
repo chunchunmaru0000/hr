@@ -287,6 +287,7 @@ void indent_line(struct Gner *g, struct BList *l);
 void write_fun(struct Gner *g);
 void gen_linux_text(struct Gner *);
 
+void gen_block(Gg, struct PList *os);
 void gen_local_linux(struct Gner *g, struct Inst *in);
 struct BList *gen_glob_expr_linux(struct Gner *g, struct GlobExpr *e);
 
@@ -389,10 +390,7 @@ void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 		reg_((rcode));                                                         \
 		reg_enter((rcode));                                                    \
 	} while (0)
-#define add_label(label)                                                       \
-	g->indent_level--;                                                         \
-	blat_ft(label), ft_add(':'), ft_add('\n');                                 \
-	g->indent_level++;
+#define add_label(label) blat_ft(label), ft_add(':'), ft_add('\n');
 #define reverse_cmp_le(le)                                                     \
 	((le) == LE_BIN_LESS	? LE_BIN_MOREE                                     \
 	 : (le) == LE_BIN_LESSE ? LE_BIN_MORE                                      \

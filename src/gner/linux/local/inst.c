@@ -8,6 +8,11 @@ constr CHANGE_LABEL_NAME_OR_DELETE_LABEL = "изменить имя метки �
 constr REDEFINING_OF_LOCAL_VAR = "Переопределение локальной переменной.";
 constr REDEFINING_OF_LOCAL_LABEL = "Переопределение локальной метки.";
 
+void gen_block(Gg, struct PList *os) {
+	for (u32 i = 0; i < os->size; i++)
+		gen_local_linux(g, plist_get(os, i));
+}
+
 void gen_local_linux(struct Gner *g, struct Inst *in) {
 	struct Token *tok, *name, *str;
 	struct BList *string;
@@ -45,8 +50,9 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		{
 			indent_line(g, g->fun_text);
 			blat_ft(g->current_function->signature);
-			blat_ft(name->view);
-			ft_add(':'), ft_add('\n');
+			add_label(name->view);
+			// blat_ft(name->view);
+			// ft_add(':'), ft_add('\n');
 		}
 		g->indent_level++;
 		break;
@@ -67,18 +73,10 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 
 		string = take_label(g, LC_LOOP);
 		indent_line(g, g->fun_text);
-		blat_ft(string);
-		ft_add(':'), ft_add('\n');
-
+		add_label(string);
 		g->indent_level++;
-
-		for (i = 0; i < in->os->size; i++)
-			gen_local_linux(g, plist_get(in->os, i));
-
-		op_(JMP);
-		blat_ft(string);
-		ft_add('\n');
-
+		gen_block(g, in->os);
+		jmp_(string);
 		g->indent_level--;
 		blist_clear_free(string);
 		break;

@@ -471,8 +471,10 @@ enum LE_Code {
 	LE_AFTER_ENUM = 42,
 
 	LE_BOOL = 43,
-	LE_IF_ELSE = 44,
-	LE_NUMEROUS_CALL = 45,
+	LE_IF = 44,
+	LE_IF_ELIF = 45,
+	LE_IF_ELSE = 46,
+	LE_NUMEROUS_CALL = 47,
 };
 // LE Code Equals
 #define lce(c) ((e->code == LE_##c))
@@ -491,6 +493,7 @@ enum LE_Code {
 #define is_unary(e) ((e)->code >= LE_UNARY_MINUS && (e)->code <= LE_UNARY_ADDR)
 #define is_after(e) ((e)->code >= LE_AFTER_INDEX && (e)->code <= LE_AFTER_FIELD)
 #define is_bin_le(e) ((e)->code >= LE_BIN_MUL && (e)->code <= LE_BIN_OR)
+#define is_if(e) (((e)->code >= LE_IF && (e)->code <= LE_IF_ELSE))
 #define is_uses_cmp(e)                                                         \
 	((e)->code >= LE_BIN_LESS && (e)->code <= LE_BIN_NOT_EQUALS)
 #define is_INT_le(e) ((e)->code == LE_PRIMARY_INT)

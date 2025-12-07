@@ -300,9 +300,22 @@ struct LocalExpr *trnry_l_expression(struct Pser *p) {
 
 		trnry->l = (void *)new_plist(16);
 		parse_block_of_local_inst(p, (void *)trnry->l);
-		match(pser_cur(p), CC);
-		trnry->r = (void *)new_plist(16);
-		parse_block_of_local_inst(p, (void *)trnry->r);
+
+		c = pser_cur(p);
+		if (c->code == CC) {
+			consume(p); // skip '::'
+			trnry->r = (void *)new_plist(16);
+			parse_block_of_local_inst(p, (void *)trnry->r);
+
+		} else if (c->code == CQ) {
+			trnry->code = LE_IF_ELIF;
+			consume(p); // skip ':?'
+			trnry->r = local_expression(p);
+			if (!is_if(trnry->r))
+				eet(c, "Ожидалось выражение с '::' или '?\?' или ':?'.", 0);
+
+		} else
+			trnry->code = LE_IF;
 
 		e = trnry;
 	}

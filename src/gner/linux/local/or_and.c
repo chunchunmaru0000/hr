@@ -1,4 +1,5 @@
 #include "../../gner.h"
+#include <stdio.h>
 
 #define cbe(bin) (le == LE_BIN_##bin)
 #define str_len_be(code) ((str = SA_##code, len = SA_##code##_LEN))
@@ -29,7 +30,6 @@ void iprint_jmp(Gg, enum LE_Code le, int is_u) {
 
 void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
 	struct BList *this_end_label;
-
 	if (is_uses_cmp(e)) {
 		just_cmp(g, e);
 

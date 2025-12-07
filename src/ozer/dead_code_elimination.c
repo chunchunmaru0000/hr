@@ -3,8 +3,7 @@
 #define causes_side_effects(e)                                                 \
 	((e)->code == LE_UNARY_DEC || (e)->code == LE_UNARY_INC ||                 \
 	 (e)->code == LE_AFTER_DEC || (e)->code == LE_AFTER_INC ||                 \
-	 (e)->code == LE_AFTER_CALL || (e)->code == LE_BIN_ASSIGN ||               \
-	 (e)->code == LE_IF_ELSE)
+	 (e)->code == LE_AFTER_CALL || (e)->code == LE_BIN_ASSIGN || is_if((e)))
 
 void try_cut_even_when_side_effects(struct PList *es, struct LocalExpr *e) {
 	if (lceb(ASSIGN) && both_not_side_effective(e->l, e->r) && lee(e->l, e->r))
@@ -37,7 +36,7 @@ void cut(struct PList *es, struct LocalExpr *e) {
 struct PList *eliminate_dead_code_from_le(struct LocalExpr *e) {
 	struct PList *es = new_plist(1);
 
-	//gen_tuple_of(ogner, e); TODO: why was it here
+	// gen_tuple_of(ogner, e); TODO: why was it here
 	cut(es, e);
 
 	return es;

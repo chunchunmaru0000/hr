@@ -1,4 +1,5 @@
 #include "../../gner.h"
+#include <stdio.h>
 
 void cmp_bool(Gg, struct LocalExpr *e) {
 	struct Reg *r1 = 0, *r2 = 0;

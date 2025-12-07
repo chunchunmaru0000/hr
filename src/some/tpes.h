@@ -87,6 +87,7 @@ enum TCode {
 	PIPE_LINE,	  // |>
 	DOT,		  // .
 	QQ,			  // ??
+	CQ,			  // :?
 	CC,			  // ::
 	DD,			  // ..
 

@@ -1,4 +1,5 @@
 #include "../../gner.h"
+#include <stdio.h>
 
 struct Reg *terry_to_reg(Gg, struct LocalExpr *e) {
 	struct Reg *r1 = 0, *r2 = 0;
@@ -68,23 +69,55 @@ void gen_terry(Gg, struct LocalExpr *e) {
 }
 
 void gen_if_else(Gg, struct LocalExpr *e) {
-	struct PList *os;
-	u32 i;
 	struct BList *r_label = take_label(g, LC_ELSE),
 				 *exit_label = take_label(g, LC_ELSE);
 
 	and_cmp(g, e->co.cond, r_label);
 	g->indent_level++;
 	// l
-	for (os = (void *)e->l, i = 0; i < os->size; i++)
-		gen_local_linux(g, plist_get(os, i));
-	plist_free(os);
+	gen_block(g, (void *)e->l);
+	plist_free((void *)e->l);
 	jmp_(exit_label);
 	// r
 	add_label(r_label);
-	for (os = (void *)e->r, i = 0; i < os->size; i++)
-		gen_local_linux(g, plist_get(os, i));
-	plist_free(os);
+	gen_block(g, (void *)e->r);
+	plist_free((void *)e->r);
+	// exit_label:
+	g->indent_level--;
+	add_label(exit_label);
+
+	blist_clear_free(exit_label);
+	blist_clear_free(r_label);
+}
+
+void gen_if(struct Gner *g, struct LocalExpr *e) {
+	struct BList *exit_label = take_label(g, LC_ELSE);
+
+	and_cmp(g, e->co.cond, exit_label);
+	g->indent_level++;
+	// l
+	gen_block(g, (void *)e->l);
+	plist_free((void *)e->l);
+	// exit_label:
+	g->indent_level--;
+	add_label(exit_label);
+
+	blist_clear_free(exit_label);
+}
+
+void gen_if_elif(struct Gner *g, struct LocalExpr *e) {
+	struct BList *r_label = take_label(g, LC_ELSE),
+				 *exit_label = take_label(g, LC_ELSE);
+
+	and_cmp(g, e->co.cond, r_label);
+	g->indent_level++;
+	// l
+	gen_block(g, (void *)e->l);
+	plist_free((void *)e->l);
+	jmp_(exit_label);
+	// r
+	add_label(r_label);
+	gen_local_expr_linux(g, e->r);
 	// exit_label:
 	g->indent_level--;
 	add_label(exit_label);

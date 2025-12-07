@@ -15,6 +15,8 @@ struct BList *size_str(uc size) {
 }
 
 void gen_assign(struct Gner *g, struct LocalExpr *e);
+void gen_if(struct Gner *g, struct LocalExpr *e);
+void gen_if_elif(struct Gner *g, struct LocalExpr *e);
 void gen_if_else(struct Gner *g, struct LocalExpr *e);
 
 #define colored(name, code) ("\x1B[" #code "m")
@@ -81,7 +83,7 @@ void print_le(struct LocalExpr *e, int with_n) {
 	} else if (lcea(INC) || lcea(DEC)) {
 		print_le(e->l, 0);
 		printf("%s", vs(e->tvar));
-	} else if (lce(IF_ELSE)) {
+	} else if (is_if(e)) {
 		printf("?? ");
 		print_le(e->co.cond, 0);
 	} else {
@@ -164,7 +166,7 @@ struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 	} else if (lcea(INC) || lcea(DEC)) {
 		print_orher(e->l);
 		print_tvar(e);
-	} else if (lce(IF_ELSE)) {
+	} else if (is_if(e)) {
 		print_str("?? ");
 		print_orher(e->co.cond);
 	} else {
@@ -201,6 +203,11 @@ void gen_local_expr_linux(Gg, struct LocalExpr *e) {
 		gen_terry(g, e);
 	else if (lce(IF_ELSE))
 		gen_if_else(g, e);
+	else if (lce(IF_ELIF)) {
+		gen_if_elif(g, e);
+		//	gen_local_expr_linux(g, e->r);
+	} else if (lce(IF))
+		gen_if(g, e);
 	else
 		// 	exit(159);
 		printf("### NOT GEN LOCAL EXPR INFO: e->code == %d\n", e->code);

@@ -403,8 +403,10 @@ void define_le_type(struct LocalExpr *e) {
 		define_struct_field_type_type(e);
 	} else if (lcea(ENUM)) {
 		define_enum(e);
-	} else if (lce(IF_ELSE)) {
+	} else if (is_if(e)) {
 		define_type_and_copy_flags_to_e(e->co.cond);
+		if (lce(IF_ELIF))
+			define_type_and_copy_flags_to_e(e->r);
 	} else
 		exit(87);
 }
