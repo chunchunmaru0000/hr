@@ -180,6 +180,35 @@ void define_enum(struct LocalExpr *e) {
 	e->l = 0;
 }
 
+void define_numerous_call(struct LocalExpr *e) {
+	struct LocalExpr *e1, *e2;
+	u32 i;
+
+	if (!lceep(e->l, VAR))
+		eet(e->tvar, "copy_local_expr параша, вот", 0);
+	if (!e->co.ops->size)
+		eet(e->tvar, "вот зачем", 0);
+	if (!e->tuple)
+		e->tuple = new_plist(e->co.ops->size);
+
+	for (i = 0; i < e->co.ops->size; i++) {
+		e1 = plist_get(e->co.ops, i);
+
+		if (lceep(e1, TUPLE)) {
+			(e2 = e1)->code = LE_AFTER_CALL;
+		} else {
+			e2 = new_local_expr(LE_AFTER_CALL, 0, e->tvar);
+			plist_add((e2->co.ops = new_plist(1)), e1);
+		}
+		e2->l = copy_local_expr(e->l), e2->r = 0;
+		define_call_type(e2);
+		plist_add(e->tuple, e2);
+	}
+	e->tuple->size--; // remove last e2 from tuple
+	e2->tuple = e->tuple;
+	paste_le(e, e2);
+}
+
 enum TypeCode max_code_or_any(enum TypeCode c0, enum TypeCode c1) {
 	enum TypeCode res = c0;
 	if (c0 > c1) {
@@ -248,7 +277,7 @@ void define_le_type(struct LocalExpr *e) {
 		return;
 
 	u64 i;
-	struct LocalExpr *other_epxr;
+	struct LocalExpr *other;
 
 	if (is_bin_le(e)) {
 		define_type_and_copy_flags_to_e(e->l);
@@ -281,8 +310,8 @@ void define_le_type(struct LocalExpr *e) {
 
 	} else if (lce(PRIMARY_ARR)) {
 		for (i = 0; i < e->co.ops->size; i++) {
-			other_epxr = plist_get(e->co.ops, i);
-			define_type_and_copy_flags_to_e(other_epxr);
+			other = plist_get(e->co.ops, i);
+			define_type_and_copy_flags_to_e(other);
 		}
 		e->type = 0;
 
@@ -291,16 +320,16 @@ void define_le_type(struct LocalExpr *e) {
 			eet(e->tvar, USELESS_EMPTY_TUPLE, 0);
 		// define type only for last as it will be used as expr,
 		// and other exprs of yuple will be opted and compiled later
-		other_epxr = plist_get(e->co.ops, e->co.ops->size - 1);
-		define_type_and_copy_flags_to_e(other_epxr);
+		other = plist_get(e->co.ops, e->co.ops->size - 1);
+		define_type_and_copy_flags_to_e(other);
 		// replace e and set tuple to it
-		if (other_epxr->tuple)
-			plat_plist(other_epxr->tuple, e->co.ops);
+		if (other->tuple)
+			plat_plist(other->tuple, e->co.ops);
 		else
-			other_epxr->tuple = e->co.ops;
-		paste_le(e, other_epxr);
+			other->tuple = e->co.ops;
+		paste_le(e, other);
 		// remove other_epxr from tuple
-		free(other_epxr);
+		free(other);
 		e->tuple->size--;
 
 	} else if (is_unary(e) || lce(BOOL)) {
@@ -334,11 +363,10 @@ void define_le_type(struct LocalExpr *e) {
 			eet(e->r->tvar, INDEX_SHOULD_BE_OF_INT_TYPE_ONLY, 0);
 
 	} else if (lcea(PIPE_LINE)) {
-		// TODO: (1, 2) |> x ? fa : fb
 		define_type_and_copy_flags_to_e(e->r);
 
 		e->code = LE_AFTER_CALL;
-		if (e->l->code == LE_PRIMARY_TUPLE) {
+		if (lceep(e->l, TUPLE)) {
 			e->co.ops = e->l->co.ops;
 			free(e->l);
 		} else {
@@ -349,6 +377,8 @@ void define_le_type(struct LocalExpr *e) {
 		e->r = 0;
 		goto define_after_call;
 
+	} else if (lce(NUMEROUS_CALL)) {
+		define_numerous_call(e);
 	} else if (lcea(CALL)) {
 	define_after_call:
 		define_call_type(e);

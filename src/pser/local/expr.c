@@ -190,6 +190,7 @@ repeat_after:
 		// e->ops is params
 
 		after = new_local_expr(LE_AFTER_CALL, 0, c);
+	parse_params:
 		after->l = e;
 		after->co.ops = new_plist(2);
 
@@ -203,6 +204,14 @@ repeat_after:
 		if (ops1(EF))
 			eet(c, "EOF IN after_l_expression fun call", 0);
 		consume(p); // skip ')'
+	} else if (ops1(DD)) {
+		// same as call
+
+		c = absorb(p); // skip '..'
+		expect(c, PAR_L);
+		after = new_local_expr(LE_NUMEROUS_CALL, 0, c);
+		goto parse_params;
+
 	} else if (ops1(PAR_C_L)) {
 		// e->l is indexer
 		// e->r is index
@@ -245,18 +254,6 @@ repeat_after:
 			plist_set(after->co.ops, 0, e);
 		} else
 			eet(c, WRONG_DOT_USAGE, HOW_TO_USE_DOT);
-	} else if (ops1(QQ)) {
-		consume(p); // slip '??'
-		after = new_local_expr(LE_IF_ELSE, 0, c);
-		after->co.cond = e;
-
-		after->l = (void *)new_plist(16);
-		parse_block_of_local_inst(p, (void *)after->l);
-		match(pser_cur(p), CC);
-		after->r = (void *)new_plist(16);
-		parse_block_of_local_inst(p, (void *)after->r);
-
-		e = after, after = 0;
 	}
 
 	if (after) {
@@ -284,7 +281,7 @@ struct LocalExpr *trnry_l_expression(struct Pser *p) {
 	c = pser_cur(p);
 
 	if (c->code == QUEST) {
-		consume(p);
+		consume(p); // skip '?'
 
 		true = local_expression(p);
 		match(pser_cur(p), COLO);
@@ -294,6 +291,18 @@ struct LocalExpr *trnry_l_expression(struct Pser *p) {
 		trnry->co.cond = e;
 		trnry->l = true;
 		trnry->r = false;
+
+		e = trnry;
+	} else if (ops1(QQ)) {
+		consume(p); // skip '??'
+		trnry = new_local_expr(LE_IF_ELSE, 0, c);
+		trnry->co.cond = e;
+
+		trnry->l = (void *)new_plist(16);
+		parse_block_of_local_inst(p, (void *)trnry->l);
+		match(pser_cur(p), CC);
+		trnry->r = (void *)new_plist(16);
+		parse_block_of_local_inst(p, (void *)trnry->r);
 
 		e = trnry;
 	}

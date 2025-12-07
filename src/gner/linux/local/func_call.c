@@ -81,8 +81,6 @@ struct Reg *call_to_reg(Gg, struct LocalExpr *e) {
 }
 
 void gen_call(Gg, struct LocalExpr *e) {
-	gen_tuple_of(g, e);
-
 	struct LocalExpr *fun_expr = e->l;
 	struct GlobVar *fun_gvar;
 	struct PList *ops_regs;

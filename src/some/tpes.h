@@ -88,6 +88,7 @@ enum TCode {
 	DOT,		  // .
 	QQ,			  // ??
 	CC,			  // ::
+	DD,			  // ..
 
 	SHPLS, // #+
 	SH_L,  // (#

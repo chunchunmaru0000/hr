@@ -472,6 +472,7 @@ enum LE_Code {
 
 	LE_BOOL = 43,
 	LE_IF_ELSE = 44,
+	LE_NUMEROUS_CALL = 45,
 };
 // LE Code Equals
 #define lce(c) ((e->code == LE_##c))
@@ -536,6 +537,7 @@ struct LocalExpr {
 #define paste_le(to, from) (memcpy((to), (from), sizeof(struct LocalExpr)))
 struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 								 struct Token *tvar);
+struct LocalExpr *copy_local_expr(struct LocalExpr *e);
 struct LocalExpr *local_bin(struct LocalExpr *l, struct LocalExpr *r,
 							struct Token *op);
 struct LocalExpr *after_l_expression(struct Pser *p);
