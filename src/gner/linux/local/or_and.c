@@ -46,8 +46,13 @@ void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
 		add_label(this_end_label);
 		blist_clear_free(this_end_label);
 	} else {
-		cmp_bool(g, e);
-		op_(J0);
+		if (lceu(NOT)) {
+			cmp_bool(g, e->l);
+			op_(JN0);
+		} else {
+			cmp_bool(g, e);
+			op_(J0);
+		}
 		blat_ft(false_label), ft_add('\n');
 	}
 }
@@ -107,8 +112,13 @@ void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label) {
 		add_label(this_end_label);
 		blist_clear_free(this_end_label);
 	} else {
-		cmp_bool(g, e);
-		op_(JN0);
+		if (lceu(NOT)) {
+			cmp_bool(g, e->l);
+			op_(J0);
+		} else {
+			cmp_bool(g, e);
+			op_(JN0);
+		}
 		blat_ft(true_label), ft_add('\n');
 	}
 }

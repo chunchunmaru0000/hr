@@ -50,9 +50,7 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		{
 			indent_line(g, g->fun_text);
 			blat_ft(g->current_function->signature);
-			add_label(name->view);
-			// blat_ft(name->view);
-			// ft_add(':'), ft_add('\n');
+			blat_ft(name->view), ft_add(':'), ft_add('\n');
 		}
 		g->indent_level++;
 		break;
@@ -72,12 +70,11 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		// ... - local instructions
 
 		string = take_label(g, LC_LOOP);
-		indent_line(g, g->fun_text);
 		add_label(string);
 		g->indent_level++;
 		gen_block(g, in->os);
-		jmp_(string);
 		g->indent_level--;
+		jmp_(string);
 		blist_clear_free(string);
 		break;
 	case IP_LOCAL_EXPRESSION:

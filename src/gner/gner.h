@@ -32,6 +32,8 @@ struct CPU {
 	struct RegisterFamily *di;
 	struct RegisterFamily *rex[8];
 	struct Reg *xmm[16];
+	// TODO: struct RegisterFamily *wanna_to
+	// used when try borrow, may be used to gen in prefered register
 };
 
 #define free_reg(reg)                                                          \
@@ -390,7 +392,11 @@ void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 		reg_((rcode));                                                         \
 		reg_enter((rcode));                                                    \
 	} while (0)
-#define add_label(label) blat_ft(label), ft_add(':'), ft_add('\n');
+#define add_label(label)                                                       \
+	do {                                                                       \
+		indent_line(g, g->fun_text);                                           \
+		blat_ft(label), ft_add(':'), ft_add('\n');                             \
+	} while (0)
 #define reverse_cmp_le(le)                                                     \
 	((le) == LE_BIN_LESS	? LE_BIN_MOREE                                     \
 	 : (le) == LE_BIN_LESSE ? LE_BIN_MORE                                      \
