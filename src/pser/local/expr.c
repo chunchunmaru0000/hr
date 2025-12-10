@@ -164,6 +164,55 @@ struct LocalExpr *local_bin(struct LocalExpr *l, struct LocalExpr *r,
 #define bf(name, next, ops)                                                    \
 	struct LocalExpr *name(struct Pser *p) { binop(next, ops); }
 
+constr BACK = "назад";
+constr STEP1 = "шаг";
+constr STEP2 = "шагом";
+constr EXPECTED_DDD_OR_DDE = "Ожидалось '...' или '..='.";
+
+struct LocalExpr *parse_range(struct Pser *p, struct LocalExpr *assignable_e,
+							  struct Token *c) {
+	// assignable_e => (e0[...|..=]e1 [шаг|шагом e2] [назад]) ( ... )
+	// e->l is e0
+	// e->r is e1
+	// e->co.cond is e2
+	// e->flags is ... or ..= and back or not
+	// e->tvar->num is assignable_e
+	// e->tvar->real is block
+	// e->tvar->str is loop
+
+	struct LocalExpr *e = new_local_expr(LE_RANGE_LOOP, 0, c);
+	match(pser_cur(p), PAR_L);
+	e->tvar->num = (long)assignable_e;
+
+	e->l = local_expression(p);
+	c = pser_cur(p);
+	ops1(DDD)	? (e->flags = LOOP_DDD)
+	: ops1(DDE) ? (e->flags = LOOP_DDE)
+				: (eet(c, EXPECTED_DDD_OR_DDE, 0));
+	consume(p);
+	e->r = local_expression(p);
+
+	c = pser_cur(p);
+	sc(vs(c), STEP1)   ? (consume(p), e->co.cond = local_expression(p))
+	: sc(vs(c), STEP2) ? (consume(p), e->co.cond = local_expression(p))
+					   : (0);
+
+	c = pser_cur(p);
+	if (ops1(ID) && sc(vs(c), BACK))
+		consume(p), e->flags |= LOOP_IS_BACKWARD;
+
+	match(pser_cur(p), PAR_R);
+
+	struct Loop *loop = new_loop(0, 0);
+	plist_add(p->loops, loop);
+	e->tvar->str = (void *)loop;
+	e->tvar->real = (double)(long)new_plist(16);
+	parse_block_of_local_inst(p, (void *)(long)e->tvar->real);
+	p->loops->size--; // remove loop from loops
+
+	return e;
+}
+
 struct LocalExpr *after_l_expression(struct Pser *p) {
 	struct LocalExpr *e = prime_l_expression(p), *after;
 	struct Token *c;
@@ -318,6 +367,11 @@ struct LocalExpr *trnry_l_expression(struct Pser *p) {
 			trnry->code = LE_IF;
 
 		e = trnry;
+	} else if (ops1(LOOP_ARROW)) {
+		// in parse_range
+
+		consume(p); // skip '=>'
+		e = parse_range(p, e, c);
 	}
 
 	return e;

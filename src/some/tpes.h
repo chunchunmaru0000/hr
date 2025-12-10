@@ -90,6 +90,9 @@ enum TCode {
 	CQ,			  // :?
 	CC,			  // ::
 	DD,			  // ..
+	DDD,		  // ...
+	DDE,		  // ..=
+	LOOP_ARROW,	  // =>
 
 	SHPLS, // #+
 	SH_L,  // (#

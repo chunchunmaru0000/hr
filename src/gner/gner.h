@@ -304,9 +304,11 @@ struct LocalVar *find_local_Var(struct Gner *g, struct BList *name);
 struct Inst *find_struct(struct BList *name);
 struct BList *size_str(uc size);
 int le_depth(struct LocalExpr *e);
+void iprint_jmp(Gg, enum LE_Code le, int is_u);
 
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size);
 void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
+void gen_assign(struct Gner *g, struct LocalExpr *e);
 void gen_call(Gg, struct LocalExpr *e);
 void gen_terry(Gg, struct LocalExpr *e);
 

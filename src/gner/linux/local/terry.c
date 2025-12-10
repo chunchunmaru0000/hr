@@ -119,3 +119,59 @@ void gen_if_elif(struct Gner *g, struct LocalExpr *e) {
 	blist_clear_free(exit_label);
 	blist_clear_free(r_label);
 }
+
+#define is_back ((e->flags & LOOP_IS_BACKWARD))
+
+void gen_range_loop(struct Gner *g, struct LocalExpr *e) {
+	struct BList *block_begin = take_label(LC_ELSE),
+				 *cmp_begin = take_label(LC_ELSE);
+	struct LocalExpr *other;
+	struct Loop *loop = (void *)e->tvar->str; // e->tvar->str is loop
+	// assignable_e => (e0[...|..=]e1 [шаг|шагом e2] [назад]) ( ... )
+
+	// first thing is assignable_e = e0
+	other = new_local_expr(LE_BIN_ASSIGN, 0, e->tvar);
+	other->l = (void *)e->tvar->num; // e->tvar->num is assignable_e
+	other->r = e->l;				 // e->l is e0
+	gen_local_expr_linux(g, other), free(other);
+
+	// then jmp to cmp
+	jmp_(cmp_begin);
+	// next is just block
+	add_label(block_begin);
+	gen_block(g, (void *)(long)e->tvar->real); // e->tvar->real is block
+
+	// inc/dec and continue label
+	if (loop->cont) {
+		add_label(loop->cont);
+		blist_clear_free(loop->cont);
+	}
+	if (!e->co.cond) {				  // e->co.cond is e2
+		other = (void *)e->tvar->num; // e->tvar->num is assignable_e
+		gen_dec_inc(g, other, !is_back);
+	} else {
+		exit(99); // TODO: make step
+	}
+
+	// compare
+	add_label(cmp_begin);
+	other = new_local_expr(0, 0, e->tvar);
+	other->code = is_back ? (e->flags & LOOP_DDE) ? LE_BIN_MOREE : LE_BIN_MORE
+				  : (e->flags & LOOP_DDE) ? LE_BIN_LESSE
+										  : LE_BIN_LESS;
+	other->l = (void *)e->tvar->num; // e->tvar->num is assignable_e
+	other->r = e->r;				 // e->r is e1
+	just_cmp(g, other);
+	iprint_jmp(g, other->code, is_u_type(other->l->type->code));
+	free(other);
+	blat_ft(block_begin), ft_add('\n');
+
+	// break label
+	if (loop->brek) {
+		add_label(loop->brek);
+		blist_clear_free(loop->brek);
+	}
+	free(loop);
+	blist_clear_free(cmp_begin);
+	blist_clear_free(block_begin);
+}

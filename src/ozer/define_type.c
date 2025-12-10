@@ -404,9 +404,15 @@ void define_le_type(struct LocalExpr *e) {
 	} else if (lcea(ENUM)) {
 		define_enum(e);
 	} else if (is_if(e)) {
-		define_type_and_copy_flags_to_e(e->co.cond);
+		define_le_type(e->co.cond);
 		if (lce(IF_ELIF))
-			define_type_and_copy_flags_to_e(e->r);
+			define_le_type(e->r);
+	} else if (lce(RANGE_LOOP)) {
+		define_le_type((struct LocalExpr *)e->tvar->num);
+		define_le_type(e->l);
+		define_le_type(e->r);
+		if (e->co.cond)
+			define_le_type(e->co.cond);
 	} else
 		exit(87);
 }

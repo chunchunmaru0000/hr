@@ -505,7 +505,11 @@ enum LE_Code {
 	LE_IF_ELIF = 45,
 	LE_IF_ELSE = 46,
 	LE_NUMEROUS_CALL = 47,
+	LE_RANGE_LOOP = 48,
 };
+#define LOOP_DDD 1 << 0
+#define LOOP_DDE 1 << 1
+#define LOOP_IS_BACKWARD 1 << 2
 // LE Code Equals
 #define lce(c) ((e->code == LE_##c))
 #define lcep(c) ((e->code == LE_PRIMARY_##c))

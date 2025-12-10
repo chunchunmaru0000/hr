@@ -14,10 +14,10 @@ struct BList *size_str(uc size) {
 	exit(127);
 }
 
-void gen_assign(struct Gner *g, struct LocalExpr *e);
 void gen_if(struct Gner *g, struct LocalExpr *e);
 void gen_if_elif(struct Gner *g, struct LocalExpr *e);
 void gen_if_else(struct Gner *g, struct LocalExpr *e);
+void gen_range_loop(struct Gner *g, struct LocalExpr *e);
 
 #define colored(name, code) ("\x1B[" #code "m")
 constr colours[8] = {
@@ -86,6 +86,19 @@ void print_le(struct LocalExpr *e, int with_n) {
 	} else if (is_if(e)) {
 		printf("?? ");
 		print_le(e->co.cond, 0);
+	} else if (lce(RANGE_LOOP)) {
+		print_le((void *)e->tvar->num, 0);
+		printf(" => %s(%s", take_color_level(), COLOR_RESET);
+		print_le(e->l, 0);
+		(e->flags & DDD) ? printf(" ... ") : printf(" ..= ");
+		print_le(e->r, 0);
+		if (e->co.cond) {
+			printf(" шаг ");
+			print_le(e->co.cond, 0);
+		}
+		if (e->flags & LOOP_IS_BACKWARD)
+			printf(" назад");
+		printf("%s)%s ( ... )", remove_color_level(), COLOR_RESET);
 	} else {
 		printf("%s", vs(e->tvar));
 	}
@@ -169,6 +182,19 @@ struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 	} else if (is_if(e)) {
 		print_str("?? ");
 		print_orher(e->co.cond);
+	} else if (lce(RANGE_LOOP)) {
+		print_orher((void *)e->tvar->num);
+		print_str(" => (");
+		print_orher(e->l);
+		(e->flags & DDD) ? print_str(" ... ") : print_str(" ..= ");
+		print_orher(e->r);
+		if (e->co.cond) {
+			print_str(" шаг ");
+			print_orher(e->co.cond);
+		}
+		if (e->flags & LOOP_IS_BACKWARD)
+			print_str(" назад");
+		print_str(") ( ... )");
 	} else {
 		print_tvar(e);
 	}
@@ -203,11 +229,12 @@ void gen_local_expr_linux(Gg, struct LocalExpr *e) {
 		gen_terry(g, e);
 	else if (lce(IF_ELSE))
 		gen_if_else(g, e);
-	else if (lce(IF_ELIF)) {
+	else if (lce(IF_ELIF))
 		gen_if_elif(g, e);
-		//	gen_local_expr_linux(g, e->r);
-	} else if (lce(IF))
+	else if (lce(IF))
 		gen_if(g, e);
+	else if (lce(RANGE_LOOP))
+		gen_range_loop(g, e);
 	else
 		// 	exit(159);
 		printf("### NOT GEN LOCAL EXPR INFO: e->code == %d\n", e->code);

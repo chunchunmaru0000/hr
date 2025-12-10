@@ -293,7 +293,10 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 		n == ':' ? vn2("::", CC) : n == '?' ? vn2(":?", CQ) : vn1(":", COLO);
 		break;
 	case '.':
-		n == '.' ? vn2("..", DD) : vn1(".", DOT);
+		n == '.' ? nn == '.'   ? vn3("...", DDD)
+				   : nn == '=' ? vn3("..=", DDE)
+							   : vn2("..", DD)
+				 : vn1(".", DOT);
 		break;
 	case '!':
 		ie321('=', '=', "!==", NEQUE, "!=", NEQU, "!", EXCL);
@@ -338,7 +341,10 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 			vn1("/", DIV);
 		break;
 	case '=':
-		ie321('=', '=', "===", EQUEE, "==", EQUE, "=", EQU);
+		n == '='   ? nn == '=' ? vn3("===", EQUEE) : vn2("==", EQUE)
+		  : n == '>' ? vn2("=>", LOOP_ARROW)
+				   : vn1("=", EQU);
+		//ie321('=', '=', "===", EQUEE, "==", EQUE, "=", EQU);
 		break;
 	case '%':
 		if (n == '=')
