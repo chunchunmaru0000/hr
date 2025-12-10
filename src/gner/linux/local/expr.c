@@ -313,7 +313,6 @@ void inner_mem(Gg, struct LocalExpr *e) {
 			reg_(R_RBP);
 			blat_ft(lvar->name->view);
 		} else {
-			//ft_add('0'), ft_add('+');
 			blat_ft(gvar->signature);
 		}
 

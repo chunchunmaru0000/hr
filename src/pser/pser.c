@@ -14,13 +14,14 @@ struct Pser *new_pser(struct Fpfc *f, struct PList *tokens, char *filename,
 	p->errors = new_plist(2);
 	p->warns = new_plist(2);
 
-	p->enums = new_plist(8);
+	p->local_vars = new_plist(16);
+	p->loops = new_plist(16);
 
+	p->enums = new_plist(8);
 	if (parsed_structs == 0)
 		parsed_structs = new_plist(8);
 
 	p->global_vars = new_plist(16);
-	p->local_vars = new_plist(16);
 	p->same_name_funs = new_plist(16);
 
 	return p;
@@ -359,4 +360,72 @@ struct PList *pse(struct Pser *p) {
 	plist_add(is, i);
 
 	return is;
+}
+
+// # - число
+// _в# - вечно
+// _п# - пока
+// _д# - для
+// _е# - если
+// _и# - иначе
+#define LETTER_LEN 3
+constr LETTER_LOOP = "_в";
+constr LETTER_WHILE = "_п";
+constr LETTER_FOR = "_д";
+constr LETTER_IF = "_е";
+constr LETTER_ELSE = "_и";
+constr LETTER_PTR = "_у";
+
+struct Lbls *labels = &(struct Lbls){0, 0, 0, 0, 0, 0};
+struct BList *take_label(enum L_Code label_code) {
+	struct BList *label = new_blist(8), *num;
+	switch (label_code) {
+	case LC_LOOP:
+		num = int_to_str(labels->loops);
+		blat(label, (uc *)LETTER_LOOP, LETTER_LEN);
+		labels->loops++;
+		break;
+	case LC_WHILE:
+		num = int_to_str(labels->whiles);
+		blat(label, (uc *)LETTER_WHILE, LETTER_LEN);
+		labels->whiles++;
+		break;
+	case LC_FOR:
+		num = int_to_str(labels->fors);
+		blat(label, (uc *)LETTER_FOR, LETTER_LEN);
+		labels->fors++;
+		break;
+	case LC_IF:
+		num = int_to_str(labels->ifs);
+		blat(label, (uc *)LETTER_IF, LETTER_LEN);
+		labels->ifs++;
+		break;
+	case LC_ELSE:
+		num = int_to_str(labels->elses);
+		blat(label, (uc *)LETTER_ELSE, LETTER_LEN);
+		labels->elses++;
+		break;
+	case LC_PTR:
+		num = int_to_str(labels->ptrs);
+		blat(label, (uc *)LETTER_PTR, LETTER_LEN);
+		labels->ptrs++;
+		break;
+	default:
+		printf("asdf 228\n");
+		exit(228);
+	}
+	blat_blist(label, num);
+	blist_clear_free(num);
+
+	blist_cut(label);
+	zero_term_blist(label);
+
+	return label;
+}
+
+struct Loop *new_loop(struct BList *brek, struct BList *cont) {
+	struct Loop *l = malloc(sizeof(struct Loop));
+	l->brek = brek ? copy_str(brek) : 0;
+	l->cont = cont ? copy_str(cont) : 0;
+	return l;
 }

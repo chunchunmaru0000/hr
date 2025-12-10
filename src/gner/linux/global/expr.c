@@ -103,7 +103,7 @@ struct BList *lay_down_obj(struct Gner *g, struct GlobExpr *e) {
 			g->indent_level -= 2;
 
 			// save label
-			tmp_gen = take_label(g, LC_PTR);
+			tmp_gen = take_label(LC_PTR);
 			plist_add(labels, tmp_gen);
 
 			// lay label
@@ -144,7 +144,7 @@ struct BList *lay_down_obj_ptr(struct Gner *g, struct GlobExpr *e) {
 	uc was_need_to_gen_ptr = need_to_gen_ptr;
 
 	if (was_need_to_gen_ptr) {
-		ptr = take_label(g, LC_PTR);
+		ptr = take_label(LC_PTR);
 		// declare label
 		iprint_gen(SA_LET_64);
 		blat_blist(generated, ptr);
@@ -173,7 +173,7 @@ struct BList *lay_down_str_ptr(struct Gner *g, struct GlobExpr *e) {
 	if (!e->from) {
 	add_value_ptr_to_this_e_var:;
 
-		struct BList *ptr = take_label(g, LC_PTR);
+		struct BList *ptr = take_label(LC_PTR);
 		struct GlobVar *this_e_var;
 
 		for (uint32_t j = 0; j < g->current_inst->os->size; j++) {

@@ -7,8 +7,8 @@ struct Reg *terry_to_reg(Gg, struct LocalExpr *e) {
 
 	struct BList *r_result_label, *exit_label;
 
-	r_result_label = take_label(g, LC_ELSE);
-	exit_label = take_label(g, LC_ELSE);
+	r_result_label = take_label(LC_ELSE);
+	exit_label = take_label(LC_ELSE);
 
 	and_cmp(g, e->co.cond, r_result_label);
 
@@ -33,10 +33,10 @@ struct Reg *terry_to_reg(Gg, struct LocalExpr *e) {
 }
 
 void gen_terry(Gg, struct LocalExpr *e) {
-	struct BList *r_result_label = take_label(g, LC_ELSE), *exit_label;
+	struct BList *r_result_label = take_label(LC_ELSE), *exit_label;
 
 	if (causes_more_than_just_gvar(e->l) && causes_more_than_just_gvar(e->r)) {
-		exit_label = take_label(g, LC_ELSE);
+		exit_label = take_label(LC_ELSE);
 		and_cmp(g, e->co.cond, r_result_label);
 
 		// l
@@ -69,11 +69,10 @@ void gen_terry(Gg, struct LocalExpr *e) {
 }
 
 void gen_if_else(Gg, struct LocalExpr *e) {
-	struct BList *r_label = take_label(g, LC_ELSE),
-				 *exit_label = take_label(g, LC_ELSE);
+	struct BList *r_label = take_label(LC_ELSE),
+				 *exit_label = take_label(LC_ELSE);
 
 	and_cmp(g, e->co.cond, r_label);
-	g->indent_level++;
 	// l
 	gen_block(g, (void *)e->l);
 	plist_free((void *)e->l);
@@ -83,7 +82,6 @@ void gen_if_else(Gg, struct LocalExpr *e) {
 	gen_block(g, (void *)e->r);
 	plist_free((void *)e->r);
 	// exit_label:
-	g->indent_level--;
 	add_label(exit_label);
 
 	blist_clear_free(exit_label);
@@ -91,26 +89,23 @@ void gen_if_else(Gg, struct LocalExpr *e) {
 }
 
 void gen_if(struct Gner *g, struct LocalExpr *e) {
-	struct BList *exit_label = take_label(g, LC_ELSE);
+	struct BList *exit_label = take_label(LC_ELSE);
 
 	and_cmp(g, e->co.cond, exit_label);
-	g->indent_level++;
 	// l
 	gen_block(g, (void *)e->l);
 	plist_free((void *)e->l);
 	// exit_label:
-	g->indent_level--;
 	add_label(exit_label);
 
 	blist_clear_free(exit_label);
 }
 
 void gen_if_elif(struct Gner *g, struct LocalExpr *e) {
-	struct BList *r_label = take_label(g, LC_ELSE),
-				 *exit_label = take_label(g, LC_ELSE);
+	struct BList *r_label = take_label(LC_ELSE),
+				 *exit_label = take_label(LC_ELSE);
 
 	and_cmp(g, e->co.cond, r_label);
-	g->indent_level++;
 	// l
 	gen_block(g, (void *)e->l);
 	plist_free((void *)e->l);
@@ -119,7 +114,6 @@ void gen_if_elif(struct Gner *g, struct LocalExpr *e) {
 	add_label(r_label);
 	gen_local_expr_linux(g, e->r);
 	// exit_label:
-	g->indent_level--;
 	add_label(exit_label);
 
 	blist_clear_free(exit_label);

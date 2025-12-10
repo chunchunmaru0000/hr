@@ -39,7 +39,7 @@ void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
 		and_cmp(g, e->l, false_label);
 		and_cmp(g, e->r, false_label);
 	} else if (lceb(OR)) {
-		this_end_label = take_label(g, LC_ELSE);
+		this_end_label = take_label(LC_ELSE);
 
 		or_cmp(g, e->l, this_end_label);
 		and_cmp(g, e->r, false_label);
@@ -65,8 +65,8 @@ struct Reg *and_to_reg(Gg, struct LocalExpr *e) {
 	if (is_num_le(e->l) || is_num_le(e->r))
 		exit(121);
 
-	false_label = take_label(g, LC_ELSE);
-	exit_label = take_label(g, LC_ELSE);
+	false_label = take_label(LC_ELSE);
+	exit_label = take_label(LC_ELSE);
 
 	and_cmp(g, e->l, false_label);
 	and_cmp(g, e->r, false_label);
@@ -105,7 +105,7 @@ void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label) {
 		or_cmp(g, e->l, true_label);
 		or_cmp(g, e->r, true_label);
 	} else if (lceb(AND)) {
-		this_end_label = take_label(g, LC_ELSE);
+		this_end_label = take_label(LC_ELSE);
 
 		and_cmp(g, e->l, this_end_label);
 		or_cmp(g, e->r, true_label);
@@ -131,9 +131,9 @@ struct Reg *or_to_reg(Gg, struct LocalExpr *e) {
 	if (is_num_le(e->l) || is_num_le(e->r))
 		exit(121);
 
-	true_label = take_label(g, LC_ELSE);
-	false_label = take_label(g, LC_ELSE);
-	exit_label = take_label(g, LC_ELSE);
+	true_label = take_label(LC_ELSE);
+	false_label = take_label(LC_ELSE);
+	exit_label = take_label(LC_ELSE);
 
 	or_cmp(g, e->l, true_label);
 	and_cmp(g, e->r, false_label);

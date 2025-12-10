@@ -144,7 +144,7 @@ enum TCode num_token(struct Tzer *t, struct Token *token) {
 		// абвгде
 		// abcdef
 		// абстиф
-		loop {
+		forever {
 			if (c == '_') {
 				c = next(t);
 				continue;

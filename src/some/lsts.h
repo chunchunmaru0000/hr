@@ -69,7 +69,7 @@ struct BList *int_to_str(long num);
 struct BList *real_to_str(double num);
 #define b_last(l) (blist_get((l), (l)->size - 1))
 
-#define loop while (1)
+#define forever while (1)
 #define loa(arr) (sizeof((arr)) / sizeof((arr)[0]))
 // String Compare
 #define sc(str1, str2) (strcmp((str1), (str2)) == 0)

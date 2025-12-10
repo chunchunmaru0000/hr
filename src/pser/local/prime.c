@@ -98,7 +98,7 @@ struct LocalExpr *unary_l_expression(struct Pser *p) {
 
 	if (c->code == PLUS || c->code == MINUS) {
 		// LE_UNARY_MINUS
-		loop {
+		forever {
 			if (c->code == PLUS) {
 				c = absorb(p);
 				continue;

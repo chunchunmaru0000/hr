@@ -40,6 +40,33 @@ extern constr STR_AS;
 extern constr STR_SIZE_OF;
 extern constr STR_SIZE_OF_VAL;
 
+struct Loop {
+	struct BList *cont;
+	struct BList *brek;
+};
+struct Loop *new_loop(struct BList *brek, struct BList *cont);
+
+enum L_Code {
+	LC_LOOP,
+	LC_WHILE,
+	LC_FOR,
+	LC_IF,
+	LC_ELSE,
+	LC_PTR,
+};
+
+struct Lbls {
+	u32 loops;
+	u32 whiles;
+	u32 fors;
+	u32 ifs;
+	u32 elses;
+	u32 ptrs;
+};
+
+extern struct Lbls *labels;
+struct BList *take_label(enum L_Code label_code);
+
 struct Pser {
 	struct Fpfc *f;
 	struct PList *ts; // tokens
@@ -49,10 +76,11 @@ struct Pser {
 	struct PList *errors;
 	struct PList *warns;
 
-	struct PList *enums; // struct Enum's
-
-	struct PList *global_vars; // global variables
 	struct PList *local_vars;
+	struct PList *loops;
+
+	struct PList *enums;		  // struct Enum's
+	struct PList *global_vars;	  // global variables
 	struct PList *same_name_funs; // SameNameFuns's
 };
 extern struct PList *parsed_structs; // Inst's of IP_DECLARE_STRUCT
@@ -113,7 +141,9 @@ enum IP_Code {
 	IP_FOR_LOOP,
 	IP_WHILE_LOOP,
 
-	IP_LOCAL_EXPRESSION
+	IP_LOCAL_EXPRESSION,
+	IP_BREAK,
+	IP_CONTINUE,
 };
 
 struct Enum {

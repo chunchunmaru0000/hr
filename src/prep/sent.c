@@ -233,7 +233,7 @@ int until_next_arg(struct PList *words, struct NodeToken **c, uint32_t *i) {
 	enum TCode code;
 
 	*c = take_guaranteed_next(*c);
-	loop {
+	forever {
 		n = take_guaranteed_next(*c);
 		code = (*c)->token->code;
 

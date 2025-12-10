@@ -74,24 +74,6 @@ struct Fggs {
 	uc is_data_segment_used;
 };
 
-enum L_Code {
-	LC_LOOP,
-	LC_WHILE,
-	LC_FOR,
-	LC_IF,
-	LC_ELSE,
-	LC_PTR,
-};
-
-struct Lbls {
-	uint32_t loops;
-	uint32_t whiles;
-	uint32_t fors;
-	uint32_t ifs;
-	uint32_t elses;
-	uint32_t ptrs;
-};
-
 struct Gner {
 	enum Target t;
 	uc debug;
@@ -103,7 +85,6 @@ struct Gner {
 	uint32_t indent_level;
 	long stack_counter;
 	struct Fggs *flags;
-	struct Lbls *labels;
 
 	struct PList *is;
 	struct PList *enums; // // struct Enum's
@@ -303,7 +284,6 @@ struct LocalVar {
 
 struct LocalVar *new_local_var(struct Token *, struct Arg *, long);
 void free_and_clear_local_vars(struct Gner *g);
-struct BList *take_label(struct Gner *g, enum L_Code label_code);
 
 void gen_local_expr_linux(Gg, struct LocalExpr *e);
 void gen_tuple_of(Gg, struct LocalExpr *e);

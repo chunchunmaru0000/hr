@@ -9,13 +9,16 @@ constr REDEFINING_OF_LOCAL_VAR = "Переопределение локальн�
 constr REDEFINING_OF_LOCAL_LABEL = "Переопределение локальной метки.";
 
 void gen_block(Gg, struct PList *os) {
+	g->indent_level++;
 	for (u32 i = 0; i < os->size; i++)
 		gen_local_linux(g, plist_get(os, i));
+	g->indent_level--;
 }
 
 void gen_local_linux(struct Gner *g, struct Inst *in) {
 	struct Token *tok, *name, *str;
 	struct BList *string;
+	struct Loop *loop;
 	uint32_t i = 0;
 
 	switch (in->code) {
@@ -68,17 +71,35 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 	case IP_LOOP:
 		// ### os explanation
 		// ... - local instructions
+		//   _ - struct Loop *
 
-		string = take_label(g, LC_LOOP);
+		loop = p_last(in->os);
+		in->os->size--; // remove loop from os
+
+		string = loop->cont ? loop->cont : take_label(LC_LOOP);
 		add_label(string);
-		g->indent_level++;
+
 		gen_block(g, in->os);
-		g->indent_level--;
 		jmp_(string);
-		blist_clear_free(string);
+
+		blist_clear_free(string); // free cont
+		if (loop->brek) {
+			add_label(loop->brek);
+			blist_clear_free(string); // free brek
+		}
+		free(loop);
 		break;
 	case IP_LOCAL_EXPRESSION:
 		gen_local_expr_inst_linux(g, in);
+		break;
+	case IP_BREAK:
+	case IP_CONTINUE:
+		// ### os explanation
+		//   _ - label to jmp to
+
+		string = plist_get(in->os, 0);
+		jmp_(string);
+		blist_clear_free(string);
 		break;
 	case IP_NONE:
 	default:
@@ -119,66 +140,4 @@ void put_vars_on_the_stack(struct Gner *g, struct Inst *in) {
 
 		last_offset = arg->offset;
 	}
-}
-
-// # - число
-// _в# - вечно
-// _п# - пока
-// _д# - для
-// _е# - если
-// _и# - иначе
-#define LETTER_LEN 3
-constr LETTER_LOOP = "_в";
-constr LETTER_WHILE = "_п";
-constr LETTER_FOR = "_д";
-constr LETTER_IF = "_е";
-constr LETTER_ELSE = "_и";
-constr LETTER_PTR = "_у";
-
-struct BList *take_label(struct Gner *g, enum L_Code label_code) {
-	struct BList *label = new_blist(8), *num;
-
-	switch (label_code) {
-	case LC_LOOP:
-		num = int_to_str(g->labels->loops);
-		blat(label, (uc *)LETTER_LOOP, LETTER_LEN);
-		g->labels->loops++;
-		break;
-	case LC_WHILE:
-		num = int_to_str(g->labels->whiles);
-		blat(label, (uc *)LETTER_WHILE, LETTER_LEN);
-		g->labels->whiles++;
-		break;
-	case LC_FOR:
-		num = int_to_str(g->labels->fors);
-		blat(label, (uc *)LETTER_FOR, LETTER_LEN);
-		g->labels->fors++;
-		break;
-	case LC_IF:
-		num = int_to_str(g->labels->ifs);
-		blat(label, (uc *)LETTER_IF, LETTER_LEN);
-		g->labels->ifs++;
-		break;
-	case LC_ELSE:
-		num = int_to_str(g->labels->elses);
-		blat(label, (uc *)LETTER_ELSE, LETTER_LEN);
-		g->labels->elses++;
-		break;
-	case LC_PTR:
-		num = int_to_str(g->labels->ptrs);
-		blat(label, (uc *)LETTER_PTR, LETTER_LEN);
-		g->labels->ptrs++;
-		break;
-	default:
-		printf("asdf 228\n");
-		exit(228);
-	}
-
-	blat_blist(label, num);
-	blist_clear_free(num);
-
-	blist_cut(label);
-	zero_term_blist(label);
-
-	return label;
 }

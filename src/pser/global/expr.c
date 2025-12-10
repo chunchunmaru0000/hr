@@ -355,7 +355,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 		struct GlobExpr *e = prev_fun(p);                                      \
 		struct Token *c;                                                       \
                                                                                \
-		loop {                                                                 \
+		forever {                                                              \
 			c = pser_cur(p);                                                   \
                                                                                \
 			if (cond) {                                                        \

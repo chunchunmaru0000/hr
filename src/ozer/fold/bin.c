@@ -184,7 +184,7 @@ void try_bin_num_in_bin(struct LocalExpr *num,
 	// found_num_bin_bro == r->l
 	// found_num_parrent_place == e->r
 	// found_num_bin_bro becomes found_num_parrent_place
-	loop {
+	forever {
 		if ((*root_place_in_parrent)->code != op_code)
 			break;
 		fnia(root_place_in_parrent);

@@ -140,7 +140,7 @@ struct LocalExpr *local_bin(struct LocalExpr *l, struct LocalExpr *r,
 		struct LocalExpr *e = prev_fun(p);                                     \
 		struct Token *c;                                                       \
                                                                                \
-		loop {                                                                 \
+		forever {                                                              \
 			c = pser_cur(p);                                                   \
                                                                                \
 			if (cond) {                                                        \

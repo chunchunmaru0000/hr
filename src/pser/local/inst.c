@@ -1,4 +1,8 @@
 #include "../pser.h"
+#include <stdio.h>
+
+constr NO_LOOP_TO_ = "Использование слова прерывания цикла вне цикла.";
+constr USE_INSIDE_LOOP = "использовать слово внутри цикла";
 
 // ### os explanation
 // ... - Arg's
@@ -44,12 +48,52 @@ enum IP_Code pser_local_inst_goto(struct Pser *p, struct PList *os) {
 }
 
 // ### os explanation
+//   _ - label to jmp to
+enum IP_Code pser_local_inst_break(struct Pser *p, struct PList *os) {
+	if (!p->loops->size)
+		eet(pser_cur(p), NO_LOOP_TO_, USE_INSIDE_LOOP);
+	consume(p);
+
+	struct Loop *loop = p_last(p->loops);
+	if (!loop->brek)
+		loop->brek = take_label(LC_ELSE);
+
+	plist_add(os, copy_str(loop->brek));
+	return IP_BREAK;
+}
+
+// ### os explanation
+//   _ - label to jmp to
+enum IP_Code pser_local_inst_continue(struct Pser *p, struct PList *os) {
+	if (!p->loops->size)
+		eet(pser_cur(p), NO_LOOP_TO_, USE_INSIDE_LOOP);
+	consume(p);
+
+	struct Loop *loop = p_last(p->loops);
+	if (!loop->cont)
+		loop->cont = take_label(LC_ELSE);
+
+	plist_add(os, copy_str(loop->cont));
+	return IP_CONTINUE;
+}
+
+// ### os explanation
 // ... - local instructions
+//   _ - struct Loop *
 enum IP_Code pser_local_inst_loop(struct Pser *p, struct PList *os) {
 	consume(p); // consime вечно
+	struct Loop *loop = new_loop(0, 0);
+	plist_add(p->loops, loop);
+
 	parse_block_of_local_inst(p, os);
+	plist_add(os, loop);
+
+	p->loops->size--; // remove loop from loops
 	return IP_LOOP;
 }
+
+constr STR_BREAK = "обрыв";
+constr STR_CONTINUE = "миновать";
 
 struct Inst *get_local_inst(struct Pser *p) {
 	struct Token *c = pser_cur(p), *n;
@@ -77,6 +121,10 @@ struct Inst *get_local_inst(struct Pser *p) {
 			code = pser_local_inst_let(p, os);
 		else if (sc(cv, STR_GOTO))
 			code = pser_local_inst_goto(p, os);
+		else if (sc(cv, STR_BREAK))
+			code = pser_local_inst_break(p, os);
+		else if (sc(cv, STR_CONTINUE))
+			code = pser_local_inst_continue(p, os);
 
 		else if (n->code == COLO)
 			code = pser_local_inst_label(p, os, c);
