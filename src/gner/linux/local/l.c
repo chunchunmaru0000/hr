@@ -288,6 +288,9 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e) {
 		if (lceb(DIV))
 			return lceep(int_or_mem, INT) ? div_on_int(g, e, r1)
 										  : div_on_mem(g, e, r1);
+		if (lceb(MOD))
+			return lceep(int_or_mem, INT) ? mod_on_int(g, e, r1)
+										  : mod_on_mem(g, e, r1);
 		if (lceb(MUL) && lceep(int_or_mem, INT))
 			return mul_on_int(g, r1, int_or_mem->tvar->num);
 		if ((lceb(SHR) || lceb(SHR)))
@@ -323,6 +326,8 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e) {
 
 		if (lceb(DIV))
 			return div_on_reg(g, e, r1, r2);
+		if (lceb(MOD))
+			return mod_on_reg(g, e, r1, r2);
 
 		iprint_op(g, e->code);
 		reg_(r1->reg_code);

@@ -172,8 +172,14 @@ struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
 	return r1;
 }
 
-struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1) {
-	struct Reg *rDX = 0;
+struct Reg *mod_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
+	struct Reg *r2 = prime_to_reg(g, e->r, r1->size);
+	return mod_on_reg(g, e, r1, r2);
+}
+
+void divide_on_mem(Gg, struct LocalExpr *e, struct Reg **to_rAX,
+				   struct Reg **to_rDX) {
+	struct Reg *rDX = 0, *r1 = *to_rAX;
 
 	get_reg_to_rf(e->tvar, g, r1, g->cpu->a);
 
@@ -193,13 +199,28 @@ struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1) {
 	op_(IDIV);
 	mem_enter(e->r, 0);
 
+	// return
+	*to_rAX = r1;
+	*to_rDX = rDX;
+}
+
+struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1) {
+	struct Reg *rDX;
+	divide_on_mem(g, e, &r1, &rDX);
 	free_reg_family(rDX->rf);
 	return r1;
 }
 
-struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
-					   struct Reg *r2) {
-	struct Reg *rDX = 0;
+struct Reg *mod_on_mem(Gg, struct LocalExpr *e, struct Reg *r1) {
+	struct Reg *rDX;
+	divide_on_mem(g, e, &r1, &rDX);
+	free_reg_family(r1->rf);
+	return rDX;
+}
+
+void divide_on_reg(Gg, struct LocalExpr *e, struct Reg **to_rAX,
+				   struct Reg **to_rDX) {
+	struct Reg *rDX = 0, *r1 = *to_rAX, *r2 = *to_rDX;
 
 	get_reg_to_rf(e->tvar, g, r1, g->cpu->a);
 
@@ -223,7 +244,23 @@ struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 		op_(CQO);
 	op_reg_enter(IDIV, r2->reg_code);
 
+	if (r2->rf != g->cpu->d)
+		free_reg_family(r2->rf);
+	// return
+	*to_rAX = r1;
+	*to_rDX = rDX;
+}
+
+struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
+					   struct Reg *r2) {
+	divide_on_reg(g, e, &r1, &r2);
 	free_reg_family(r2->rf);
-	free_reg_family(rDX->rf);
 	return r1;
+}
+
+struct Reg *mod_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
+					   struct Reg *r2) {
+	divide_on_reg(g, e, &r1, &r2);
+	free_reg_family(r1->rf);
+	return r2;
 }

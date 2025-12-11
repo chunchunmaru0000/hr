@@ -317,6 +317,9 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size);
 struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1, struct Reg *r2);
+struct Reg *mod_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
+struct Reg *mod_on_mem(Gg, struct LocalExpr *e, struct Reg *r1);
+struct Reg *mod_on_reg(Gg, struct LocalExpr *e, struct Reg *r1, struct Reg *r2);
 struct Reg *mul_on_int(Gg, struct Reg *r1, long mul_on);
 struct Reg *shift_on_int(Gg, struct LocalExpr *e, struct Reg *r1);
 struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
