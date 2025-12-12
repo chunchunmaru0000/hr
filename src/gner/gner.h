@@ -73,6 +73,7 @@ struct Fggs {
 
 	uc is_data_segment_used;
 };
+extern uc function_body_return;
 
 struct Gner {
 	enum Target t;
@@ -93,6 +94,7 @@ struct Gner {
 	struct PList *same_name_funs; // SameNameFuns's
 
 	struct GlobVar *current_function;
+	struct BList *label_to_ret;
 	struct PList *local_labels; // plist of tokens with labels names
 
 	// before prolog for defns of an assembly

@@ -13,6 +13,8 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 	g->pos = 0;
 	g->stack_counter = 0;
 
+	g->label_to_ret = 0;
+
 	g->enums = p->enums;
 	g->flags = malloc(sizeof(struct Fggs));
 
@@ -33,6 +35,7 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 
 	// struct PList *ts; // tokens
 	plist_free(p->local_vars);
+	plist_free(p->loops);
 	pser_err(p);
 	free(p);
 

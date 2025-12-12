@@ -10,11 +10,20 @@ constr REDEFINING_OF_LOCAL_VAR = "Переопределение локальн�
 constr REDEFINING_OF_LOCAL_LABEL = "Переопределение локальной метки.";
 constr CANT_CAST_E_TYPE_TOO_RETURN_TYPE =
 	"Тип возвращаемого выражения несовместим с возвращаемым типом функции.";
+constr EXPRESSION_ISNT_CALCULABLE =
+	"Вычисляемое выражение не может возвращать результат.";
 
 void gen_block(Gg, struct PList *os) {
+	struct Inst *block_in;
 	g->indent_level++;
-	for (u32 i = 0; i < os->size; i++)
-		gen_local_linux(g, plist_get(os, i));
+
+	for (u32 i = 0; i < os->size; i++) {
+		block_in = plist_get(os, i);
+		gen_local_linux(g, block_in);
+		if (block_in->code == IP_RETURN)
+			break;
+	}
+
 	g->indent_level--;
 }
 
@@ -160,6 +169,7 @@ int can_cast_type(struct LocalExpr *e, struct TypeExpr *cast_type) {
 			   : is_num_type(cast_type) && is_num_type(from_type);
 }
 
+uc function_body_return = 0;
 void gen_return(Gg, struct LocalExpr *e) {
 	struct TypeExpr *return_type = find_return_type(g->current_function->type);
 
@@ -170,6 +180,8 @@ void gen_return(Gg, struct LocalExpr *e) {
 		struct Reg *r;
 
 		define_type_and_copy_flags_to_e(e);
+		if (!e->type)
+			eet(e->tvar, EXPRESSION_ISNT_CALCULABLE, 0);
 		opt_bin_constant_folding(e);
 
 		if (!can_cast_type(e, return_type))
@@ -184,7 +196,7 @@ void gen_return(Gg, struct LocalExpr *e) {
 			real_add_enter(fun_text, e->tvar->real);
 
 			if (is_xmm(r))
-				exit(98); // TODO: return xmm in rax
+				exit(98); // TODO: return xmm reg to rax
 		} else {
 			r = gen_to_reg(g, e, return_type_size);
 		}
@@ -192,5 +204,13 @@ void gen_return(Gg, struct LocalExpr *e) {
 		get_reg_to_rf(e->tvar, g, r, g->cpu->a);
 	}
 
-	write_flags_and_end_stack_frame(g);
+	if (function_body_return) {
+		if (g->label_to_ret)
+			add_label(g->label_to_ret);
+		write_flags_and_end_stack_frame(g);
+	} else {
+		if (!g->label_to_ret)
+			g->label_to_ret = take_label(LC_ELSE);
+		jmp_(g->label_to_ret);
+	}
 }

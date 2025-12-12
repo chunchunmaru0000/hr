@@ -38,7 +38,7 @@ const struct Register argument_regs_QWORD[7] = {
 
 void gen_linux_text(struct Gner *g) {
 	uint32_t i, j, local_i;
-	struct Inst *in;
+	struct Inst *in, *local_in;
 	struct Token *tok, *tok2;
 	struct GlobVar *global_var;
 	struct Enum *enum_obj;
@@ -101,6 +101,9 @@ void gen_linux_text(struct Gner *g) {
 			free_and_clear_local_vars(g);
 			plist_clear(g->local_labels); // plist of tokens with labels names
 			g->current_function = plist_get(in->os, 0);
+			if (g->label_to_ret)
+				blist_clear_free(g->label_to_ret);
+			g->label_to_ret = 0;
 			// reset flags
 			reset_flags(g);
 			// begin stack frame
@@ -114,10 +117,19 @@ void gen_linux_text(struct Gner *g) {
 
 			local_i = put_args_on_the_stack(g, in);
 			// function body
-			for (; local_i < in->os->size; local_i++)
-				gen_local_linux(g, plist_get(in->os, local_i));
-			// free stack in return statement
+			for (; local_i < in->os->size; local_i++) {
+				local_in = plist_get(in->os, local_i);
+				if (local_in->code == IP_RETURN) {
+					function_body_return = 1;
+					gen_local_linux(g, local_in);
+					function_body_return = 0;
+					goto skip_everything_after_return;
+				} else
+					gen_local_linux(g, local_in);
+			}
+			// free stack in return statement if wasnt return
 			write_flags_and_end_stack_frame(g);
+		skip_everything_after_return:
 
 			g->indent_level--;
 			// reset things after
