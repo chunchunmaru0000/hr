@@ -144,6 +144,7 @@ enum IP_Code {
 	IP_LOCAL_EXPRESSION,
 	IP_BREAK,
 	IP_CONTINUE,
+	IP_RETURN,
 };
 
 struct Enum {

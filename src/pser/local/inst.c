@@ -81,7 +81,7 @@ enum IP_Code pser_local_inst_continue(struct Pser *p, struct PList *os) {
 // ... - local instructions
 //   _ - struct Loop *
 enum IP_Code pser_local_inst_loop(struct Pser *p, struct PList *os) {
-	consume(p); // consime вечно
+	consume(p); // skip вечно
 	struct Loop *loop = new_loop(0, 0);
 	plist_add(p->loops, loop);
 
@@ -92,8 +92,21 @@ enum IP_Code pser_local_inst_loop(struct Pser *p, struct PList *os) {
 	return IP_LOOP;
 }
 
+// ### os explanation
+//   _ - return LocalExpr *
+enum IP_Code pser_local_inst_return(struct Pser *p, struct PList *os) {
+	consume(p); // skip воздать
+	if (pser_cur(p)->code == COMMA) {
+		plist_add(os, 0);
+		consume(p); // skip ','
+	} else
+		plist_add(os, local_expression(p));
+	return IP_RETURN;
+}
+
 constr STR_BREAK = "обрыв";
 constr STR_CONTINUE = "миновать";
+constr STR_RETURN = "воздать";
 
 struct Inst *get_local_inst(struct Pser *p) {
 	struct Token *c = pser_cur(p), *n;
@@ -125,6 +138,8 @@ struct Inst *get_local_inst(struct Pser *p) {
 			code = pser_local_inst_break(p, os);
 		else if (sc(cv, STR_CONTINUE))
 			code = pser_local_inst_continue(p, os);
+		else if (sc(cv, STR_RETURN))
+			code = pser_local_inst_return(p, os);
 
 		else if (n->code == COLO)
 			code = pser_local_inst_label(p, os, c);

@@ -2,11 +2,14 @@
 #include <stdio.h>
 
 void put_vars_on_the_stack(struct Gner *g, struct Inst *in);
+void gen_return(Gg, struct LocalExpr *e);
 
 constr CHANGE_VAR_NAME_OR_DELETE_VAR = "изменить имя переменной или удалить ее";
 constr CHANGE_LABEL_NAME_OR_DELETE_LABEL = "изменить имя метки или удалить ее";
 constr REDEFINING_OF_LOCAL_VAR = "Переопределение локальной переменной.";
 constr REDEFINING_OF_LOCAL_LABEL = "Переопределение локальной метки.";
+constr CANT_CAST_E_TYPE_TOO_RETURN_TYPE =
+	"Тип возвращаемого выражения несовместим с возвращаемым типом функции.";
 
 void gen_block(Gg, struct PList *os) {
 	g->indent_level++;
@@ -101,6 +104,12 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		jmp_(string);
 		blist_clear_free(string);
 		break;
+	case IP_RETURN:
+		// ### os explanation
+		//   _ - return LocalExpr *
+
+		gen_return(g, plist_get(in->os, 0));
+		break;
 	case IP_NONE:
 	default:
 		eei(in, "эээ", 0);
@@ -140,4 +149,48 @@ void put_vars_on_the_stack(struct Gner *g, struct Inst *in) {
 
 		last_offset = arg->offset;
 	}
+}
+
+int can_cast_type(struct LocalExpr *e, struct TypeExpr *cast_type) {
+	struct TypeExpr *from_type = e->type;
+	return is_ptr_type(cast_type) && is_ptr_type(from_type)
+			   ? are_types_equal(cast_type, from_type)
+		   : is_ptr_type(cast_type) && is_le_num(e, 0)
+			   ? 1
+			   : is_num_type(cast_type) && is_num_type(from_type);
+}
+
+void gen_return(Gg, struct LocalExpr *e) {
+	struct TypeExpr *return_type = find_return_type(g->current_function->type);
+
+	if (!e) {
+		if (return_type->code != TC_VOID)
+			eet(e->tvar, CANT_CAST_E_TYPE_TOO_RETURN_TYPE, 0);
+	} else {
+		struct Reg *r;
+
+		define_type_and_copy_flags_to_e(e);
+		opt_bin_constant_folding(e);
+
+		if (!can_cast_type(e, return_type))
+			eet(e->tvar, CANT_CAST_E_TYPE_TOO_RETURN_TYPE, 0);
+
+		int return_type_size = unsafe_size_of_type(return_type);
+
+		if (lceep(e, REAL)) {
+			gen_tuple_of(g, e);
+			r = try_borrow_reg(e->tvar, g, return_type_size);
+			op_reg_(MOV, r->reg_code);
+			real_add_enter(fun_text, e->tvar->real);
+
+			if (is_xmm(r))
+				exit(98); // TODO: return xmm in rax
+		} else {
+			r = gen_to_reg(g, e, return_type_size);
+		}
+
+		get_reg_to_rf(e->tvar, g, r, g->cpu->a);
+	}
+
+	write_flags_and_end_stack_frame(g);
 }

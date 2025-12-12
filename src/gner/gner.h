@@ -273,6 +273,7 @@ void gen_linux_text(struct Gner *);
 void gen_block(Gg, struct PList *os);
 void gen_local_linux(struct Gner *g, struct Inst *in);
 struct BList *gen_glob_expr_linux(struct Gner *g, struct GlobExpr *e);
+void write_flags_and_end_stack_frame(Gg);
 
 struct LocalVar {
 	struct Token *name;

@@ -3,7 +3,6 @@
 
 uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in);
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg);
-void write_flags_and_end_stack_frame(Gg);
 
 struct Register {
 	const char *const name;
@@ -170,22 +169,22 @@ void write_flags_and_end_stack_frame(Gg) {
 
 		if (f->is_r15_used) {
 			iprint_stack_frame(SA_PUSH_R15);
-			iprint_ft(SA_POP_R15);
+			op_(POP_R15);
 		}
 		if (f->is_r14_used) {
 			iprint_stack_frame(SA_PUSH_R14);
-			iprint_ft(SA_POP_R14);
+			op_(POP_R14);
 		}
 		if (f->is_r13_used) {
 			iprint_stack_frame(SA_PUSH_R13);
-			iprint_ft(SA_POP_R13);
+			op_(POP_R13);
 		}
 
-		iprint_ft(SA_LEAVE);
+		op_(LEAVE);
 	} else
-		iprint_ft(SA_POP_RBP);
+		op_(POP_RBP);
 
-	iprint_ft(SA_RET);
+	op_(RET);
 	ft_add('\n');
 }
 
