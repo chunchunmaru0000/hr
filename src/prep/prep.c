@@ -435,12 +435,13 @@ struct NodeToken *preprocess_token(struct Prep *pr, struct NodeToken *c) {
 	name = next_applyed(pr, c);
 	lst = try_parse_sh(pr, name);
 	if (!lst) { // in case of STR_INCLUDE when include
-		c = new_included_head;
-		//c = new_included_tail;
-		//printf("a4 tail %s\n", vs(new_included_tail->token));
+		// c = new_included_head;
+		// new_included_head = 0, new_included_tail = 0;
+		// goto try_fill_head_if_empty;
+
+		c = new_included_tail;
+		check_head(&pr->head, new_included_head);
 		new_included_head = 0, new_included_tail = 0;
-		check_head(&pr->head, c);
-		printf("a5\n");
 		return c;
 	}
 
@@ -455,8 +456,7 @@ try_fill_head_if_empty:
 }
 
 void pre(struct Prep *pr, struct PList *final_tokens) {
-	struct NodeToken *c, *name, *fst, *lst;
-	enum TCode code;
+	struct NodeToken *c;
 
 	for (c = pr->head; c;) {
 		c = preprocess_token(pr, c);

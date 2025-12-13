@@ -72,22 +72,38 @@ struct NodeToken *get_included_head(struct BList *included_path) {
 }
 
 struct NodeToken *get_included_tail(struct Prep *pr,
-									struct NodeToken *included_head) {
+									struct NodeToken **included_head) {
 	struct NodeToken *included_tail;
+	struct NodeToken *save_pr_head, *c;
 
-	while (included_head->next && included_head->token->code != EF) {
-		//printf("a1.1.1 tail %s\n", vs(included_head->token));
-		//included_head = preprocess_token(pr, included_head);
-		included_head = included_head->next;
-		//printf("a1.1.2 tail %s\n", vs(included_head->token));
-	}
+	save_pr_head = pr->head;
+	pr->head = *included_head;
+
+	// for (c = pr->head; c->next && c->token->code != EF;)
+	// 	c = c->next;
+	// included_tail = c->prev;
+	// full_free_node_token(c); // free EF node token
+
+	c = pr->head;
+	c = preprocess_token(pr, c);
+	if (*included_head != pr->head)
+		save_pr_head = pr->head;
+	while (c)
+		c = preprocess_token(pr, c);
+	printf("## here          %p\n", pr->head);
+	printf("## llbe restored %p\n", save_pr_head);
+	for (c = pr->head; c->next && c->token->code != EF;)
+		c = c->next;
+	if (c->token->code == EF) {
+		included_tail = c->prev;
+		full_free_node_token(c); // free EF node token
+		included_tail->next = 0;
+	} else
+		included_tail = c;
+
 	blist_clear_free(p_last(included_dirs)), included_dirs->size--;
-
-	included_tail = included_head->prev;
-	included_tail->next = 0;
-	full_free_node_token(included_head); // free EF node token
-	// included_tail->next = 0; // could included_tail be 0?
-
+	*included_head = pr->head;
+	pr->head = save_pr_head;
 	return included_tail;
 }
 
@@ -127,7 +143,7 @@ struct NodeToken *single_include(struct Prep *pr, struct NodeToken *c) {
 	}
 	// included_tail cant be 0 cuz if its then
 	// included_head is EF that is handled above
-	included_tail = get_included_tail(pr, included_head);
+	included_tail = get_included_tail(pr, &included_head);
 
 	c = cut_off_inclusive(c, path_name); // cut off влечь and path_name
 
@@ -143,7 +159,7 @@ struct NodeToken *single_include(struct Prep *pr, struct NodeToken *c) {
 struct NodeToken *multi_include(struct Prep *pr, struct NodeToken *c) {
 	struct NodeToken *fst = c->prev, *par_l = c->next, *path_name = 0;
 	struct NodeToken *included_head, *included_tail;
-	struct NodeToken *includes_head = 0, *includes_tail;
+	struct NodeToken *includes_head = 0, *includes_tail = 0;
 
 	for (c = tgn(par_l); c->token->code != PAR_R; c = path_name->next) {
 		if (!c || c->token->code == EF)
@@ -158,9 +174,9 @@ struct NodeToken *multi_include(struct Prep *pr, struct NodeToken *c) {
 			blist_clear_free(p_last(included_dirs)), included_dirs->size--;
 			continue; // empty file
 		}
-		printf("a1.1\n");
-		included_tail = get_included_tail(pr, included_head);
-		printf("a1.2\n");
+		printf("a1.1 head %p %s\n", included_head, vs(included_head->token));
+		included_tail = get_included_tail(pr, &included_head);
+		printf("a1.2 head %p\n", included_head);
 
 		if (includes_head == 0) {
 			includes_head = included_head;
@@ -173,19 +189,17 @@ struct NodeToken *multi_include(struct Prep *pr, struct NodeToken *c) {
 	if (path_name == 0)
 		return c; // no files to include
 
-	printf("a2\n");
 	c = cut_off_inclusive(par_l->prev, c); // cut off влечь and par l to r
 	free(fst->token->p);
 	fst->token->p = 0;
+	printf("a2 head %p tail %p\n", includes_head, includes_tail);
+	printf("a2 head %s tail %s\n", vs(includes_head->token),
+		   vs(includes_tail->token));
 	new_included_head = replace_inclusive(fst, includes_head, includes_tail);
-	//c->next = included_head;
-	//included_head->prev = c;
-	//new_included_head = included_head;
-	// printf("a2.1 tail %s\n", vs(includes_tail->token));
-	// printf("tail->next %p\n", includes_tail->next);
-	// new_included_head = replace_inclusive(fst, includes_head, includes_tail);
-	// new_included_tail = includes_tail;
-	printf("a3\n");
+	new_included_tail = includes_tail;
+	printf("a3 head %p tail %p\n", new_included_head, new_included_tail);
+	printf("a3 head %s tail %s\n", vs(new_included_head->token),
+		   vs(new_included_tail->token));
 
 	return 0;
 }
@@ -221,6 +235,7 @@ struct NodeToken *gen_node_tokens(struct PList *tokens) {
 		prev = cur;
 	}
 	cur->next = 0;
+	head->prev = 0;
 
 	// printf("###### returns from gen_node_tokens with head of %s\n",
 	//         vs(head->token));
