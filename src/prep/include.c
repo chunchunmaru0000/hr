@@ -71,13 +71,20 @@ struct NodeToken *get_included_head(struct BList *included_path) {
 	return included_head;
 }
 
-struct NodeToken *get_included_tail(struct NodeToken *included_head) {
+struct NodeToken *get_included_tail(struct Prep *pr,
+									struct NodeToken *included_head) {
 	struct NodeToken *included_tail;
 
-	while (included_head->next && included_head->token->code != EF)
+	while (included_head->next && included_head->token->code != EF) {
+		//printf("a1.1.1 tail %s\n", vs(included_head->token));
+		//included_head = preprocess_token(pr, included_head);
 		included_head = included_head->next;
+		//printf("a1.1.2 tail %s\n", vs(included_head->token));
+	}
+	blist_clear_free(p_last(included_dirs)), included_dirs->size--;
 
 	included_tail = included_head->prev;
+	included_tail->next = 0;
 	full_free_node_token(included_head); // free EF node token
 	// included_tail->next = 0; // could included_tail be 0?
 
@@ -98,7 +105,7 @@ struct NodeToken *try_get_included_head(struct NodeToken *path_name) {
 	file_to_include = 0;
 	// TODO: this remove from included_dirs should be not here but after
 	// preprocessing included file text
-	blist_clear_free(p_last(included_dirs)), included_dirs->size--;
+	// blist_clear_free(p_last(included_dirs)), included_dirs->size--;
 
 	if (included_head->token->code == EF) {
 		full_free_node_token(included_head);
@@ -109,22 +116,25 @@ struct NodeToken *try_get_included_head(struct NodeToken *path_name) {
 }
 
 // fst is #, c is влечь
-struct NodeToken *single_include(struct NodeToken *c) {
+struct NodeToken *single_include(struct Prep *pr, struct NodeToken *c) {
 	struct NodeToken *fst = c->prev, *path_name = c->next;
 	struct NodeToken *included_head, *included_tail;
 
 	included_head = try_get_included_head(path_name);
-	if (!included_head)
+	if (!included_head) {
+		blist_clear_free(p_last(included_dirs)), included_dirs->size--;
 		return path_name; // need when include empty file
+	}
 	// included_tail cant be 0 cuz if its then
 	// included_head is EF that is handled above
-	included_tail = get_included_tail(included_head);
+	included_tail = get_included_tail(pr, included_head);
 
 	c = cut_off_inclusive(c, path_name); // cut off влечь and path_name
 
 	free(fst->token->p);
 	fst->token->p = 0;
 	new_included_head = replace_inclusive(fst, included_head, included_tail);
+	new_included_tail = included_tail;
 
 	return 0;
 }
@@ -142,10 +152,15 @@ struct NodeToken *multi_include(struct Prep *pr, struct NodeToken *c) {
 		if (path_name->token->code != STR)
 			eet(path_name->token, EXPECTED_STR_AS_AN_INCLUDE_PATH, 0);
 
+		printf("a1\n");
 		included_head = try_get_included_head(path_name);
-		if (!included_head)
+		if (!included_head) {
+			blist_clear_free(p_last(included_dirs)), included_dirs->size--;
 			continue; // empty file
-		included_tail = get_included_tail(included_head);
+		}
+		printf("a1.1\n");
+		included_tail = get_included_tail(pr, included_head);
+		printf("a1.2\n");
 
 		if (includes_head == 0) {
 			includes_head = included_head;
@@ -158,22 +173,33 @@ struct NodeToken *multi_include(struct Prep *pr, struct NodeToken *c) {
 	if (path_name == 0)
 		return c; // no files to include
 
+	printf("a2\n");
 	c = cut_off_inclusive(par_l->prev, c); // cut off влечь and par l to r
 	free(fst->token->p);
 	fst->token->p = 0;
 	new_included_head = replace_inclusive(fst, includes_head, includes_tail);
+	//c->next = included_head;
+	//included_head->prev = c;
+	//new_included_head = included_head;
+	// printf("a2.1 tail %s\n", vs(includes_tail->token));
+	// printf("tail->next %p\n", includes_tail->next);
+	// new_included_head = replace_inclusive(fst, includes_head, includes_tail);
+	// new_included_tail = includes_tail;
+	printf("a3\n");
+
 	return 0;
 }
 
 struct Token *file_to_include = 0;
 struct NodeToken *new_included_head = 0;
+struct NodeToken *new_included_tail = 0;
 struct NodeToken *parse_include(struct Prep *pr, struct NodeToken *c) {
 	struct NodeToken *path_name = tgn(c);
 
 	if (path_name->token->code == PAR_L)
 		return multi_include(pr, c);
 	if (path_name->token->code == STR)
-		return single_include(c);
+		return single_include(pr, c);
 
 	eet(path_name->token, EXPECTED_STR_AS_AN_INCLUDE_PATH_OR_PAR_L, 0);
 	return (void *)-1;

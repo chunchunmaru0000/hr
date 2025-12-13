@@ -33,14 +33,13 @@ struct PList *included_files = 0;
 
 struct PList *preprocess(struct Tzer *tzer) {
 	struct Prep *pr = malloc(sizeof(struct Prep));
-	pr->f = tzer->f;
 	pr->defines = new_plist(10);
 	pr->macros = new_plist(10);
 	pr->sentences = new_plist(10);
 
 	if (included_files == 0) {
 		included_files = new_plist(8);
-		add_source_path(pr->f);
+		add_source_path(tzer->f);
 	}
 
 	struct PList *tokens = tze(tzer, 128);
@@ -398,19 +397,22 @@ struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
 }
 
 void check_head(struct NodeToken **head, struct NodeToken *damocles) {
-	// printf("c [%p]", c);
-	// if (c) {
-	// 	printf("[%s]\n", vs(c->token));
-	// 	printf("\tc->prev  [%p]\n", c->prev);
-	// 	printf("\tpr->head [%p]\n", pr->head);
-	// } else
-	// 	putchar('\n');
+	// printf("a4.1\n");
+	//  printf("c [%p]\n", damocles);
+	//  if (damocles) {
+	//  	printf("damocles->token %p\n", damocles->token->str);
+	//  	printf("[%s]\n", vs(damocles->token));
+	//  	printf("\tc->prev  [%p]\n", damocles->prev);
+	//  	printf("\thead [%p]\n", head);
+	//  } else
+	//  	putchar('\n');
 	if (damocles) {
 		if (damocles->prev == 0)
 			*head = damocles;
 		else if (damocles->prev->prev == 0)
 			*head = damocles->prev;
 	}
+	// printf("a4.2\n");
 }
 
 #define iter(cond, line)                                                       \
@@ -419,35 +421,45 @@ void check_head(struct NodeToken **head, struct NodeToken *damocles) {
 		goto try_fill_head_if_empty;                                           \
 	}
 
+struct NodeToken *preprocess_token(struct Prep *pr, struct NodeToken *c) {
+	struct NodeToken *name, *fst, *lst;
+	enum TCode code = c->token->code;
+	// printf("doin' %s\n", vs(c->token));
+
+	iter(== SH_QR, eet(c->token, SH_QR_CANT_OCCUR_BY_ITSELF, 0));
+	iter(== SH_QL, c = sh_string(c));
+	iter(== SHPLS, c = shplus(pr, c));
+	iter(!= SHARP, c = try_apply(pr, c)->next);
+
+	fst = c;
+	name = next_applyed(pr, c);
+	lst = try_parse_sh(pr, name);
+	if (!lst) { // in case of STR_INCLUDE when include
+		c = new_included_head;
+		//c = new_included_tail;
+		//printf("a4 tail %s\n", vs(new_included_tail->token));
+		new_included_head = 0, new_included_tail = 0;
+		check_head(&pr->head, c);
+		printf("a5\n");
+		return c;
+	}
+
+	// - cut off statemnt nodes so it wont be in final_tokens
+	c = cut_off_inclusive(fst, lst); // its already next token in here
+	if (pr->head == fst)			 // fst is freed but pointer is just a value
+		pr->head = c; // in case if its first and tokens decapitated
+
+try_fill_head_if_empty:
+	check_head(&pr->head, c);
+	return c;
+}
+
 void pre(struct Prep *pr, struct PList *final_tokens) {
 	struct NodeToken *c, *name, *fst, *lst;
 	enum TCode code;
 
 	for (c = pr->head; c;) {
-		code = c->token->code;
-		// printf("doin' %s\n", vs(c->token));
-
-		iter(== SH_QR, eet(c->token, SH_QR_CANT_OCCUR_BY_ITSELF, 0));
-		iter(== SH_QL, c = sh_string(c));
-		iter(== SHPLS, c = shplus(pr, c));
-		iter(!= SHARP, c = try_apply(pr, c)->next);
-
-		fst = c;
-		name = next_applyed(pr, c);
-		lst = try_parse_sh(pr, name);
-		if (!lst) { // in case of STR_INCLUD when include
-			c = new_included_head;
-			new_included_head = 0;
-			goto try_fill_head_if_empty;
-		}
-
-		// - cut off statemnt nodes so it wont be in final_tokens
-		c = cut_off_inclusive(fst, lst); // its already next token in here
-		if (pr->head == fst) // fst is freed but pointer is just a value
-			pr->head = c;	 // in case if its first and tokens decapitated
-
-	try_fill_head_if_empty:
-		check_head(&pr->head, c);
+		c = preprocess_token(pr, c);
 	}
 
 	// collect tokens
