@@ -83,6 +83,8 @@ struct BList *real_to_str(double num);
 #define ss(t) ((char *)(t)->str->st)
 // BList String
 #define bs(l) ((char *)(l)->st)
+// BList Compare
+#define bc(l0, l1) (sc(bs(l0), bs(l1)))
 
 #define foreach_begin(item, items)                                             \
 	for (i = 0; i < items->size; i++) {                                        \

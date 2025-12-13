@@ -20,7 +20,8 @@ struct Tzer *new_tzer(char *filename) {
 
 	FILE *file = fopen(filename, "r");
 	if (!file) {
-		if (file_to_include)
+		if (file_to_include && file_to_include->str)
+			file_to_include->view = file_to_include->str,
 			eet(file_to_include, "Ошибка при открытии файла при его включении.",
 				0);
 		printf("%sОшибка при открытии исходного файла, возможно файл "

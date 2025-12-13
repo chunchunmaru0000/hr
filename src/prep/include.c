@@ -12,17 +12,44 @@ constr ALREADY_INCLUDED = "Файл уже однажды включен.";
 constr EXPECTED_INCLUDES_CLOSE_PAR =
 	"Встречен конец файла, а скобка так и не была закрыта.";
 
+struct BList *get_dir(struct BList *path) {
+	int i;
+	path = copy_str(path);
+
+	if (path->size)
+		for (i = path->size - 1; i >= 0; i--) {
+			if (path->st[i] == '/')
+				break;
+			if (path->size)
+				path->size--, path->st[i] = 0;
+		}
+	return path;
+}
+
+struct PList *included_dirs;
 struct BList *try_include_path(struct Token *path) {
-	struct BList *included_path;
+	struct BList *included_path, *loop_path;
 	uint32_t i;
 
-	foreach_begin(included_path, included_files);
-	// here compare token str cuz view has "
-	if (sc(ss(path), (char *)included_path->st))
-		return 0;
+	if (!included_dirs) {
+		included_dirs = new_plist(8);
+		plist_add(included_dirs, zero_term_blist(copy_blist_from_str("")));
+	}
+
+	included_path = copy_str(p_last(included_dirs));
+	blat_blist(included_path, path->str);
+	zero_term_blist(included_path);
+
+	blist_clear_free(path->str);
+	path->str = included_path;
+
+	foreach_begin(loop_path, included_files) {
+		if (sc(bs(loop_path), bs(included_path)))
+			return 0;
+	}
 	foreach_end;
 
-	included_path = copy_str(path->str);
+	plist_add(included_dirs, get_dir(included_path));
 	plist_add(included_files, included_path);
 
 	return included_path;
@@ -34,7 +61,7 @@ struct NodeToken *get_included_head(struct BList *included_path) {
 	struct Tzer *tzer;
 
 	tzer = new_tzer((char *)included_path->st);
-	new_tokens = tze(tzer, 128);
+	new_tokens = tze(tzer, 1024);
 	// printf("# gen_node_tokens in %s with %d num of tokens\n",
 	// 	   (char *)included_path->st, new_tokens->size);
 	included_head = gen_node_tokens(new_tokens);
@@ -65,8 +92,13 @@ struct NodeToken *try_get_included_head(struct NodeToken *path_name) {
 		eet(path_name->token, ALREADY_INCLUDED, 0);
 
 	file_to_include = path_name->token;
+
 	included_head = get_included_head(path_to_include);
+
 	file_to_include = 0;
+	// TODO: this remove from included_dirs should be not here but after
+	// preprocessing included file text
+	blist_clear_free(p_last(included_dirs)), included_dirs->size--;
 
 	if (included_head->token->code == EF) {
 		full_free_node_token(included_head);
