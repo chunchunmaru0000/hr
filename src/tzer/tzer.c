@@ -23,9 +23,9 @@ struct Tzer *new_tzer(char *filename) {
 		if (file_to_include)
 			eet(file_to_include, "Ошибка при открытии файла при его включении.",
 				0);
-		printf("Ошибка при открытии исходного файла, возможно файл "
-			   "отсутствует: %s\n",
-			   filename);
+		printf("%sОшибка при открытии исходного файла, возможно файл "
+			   "отсутствует: %s%s\n",
+			   COLOR_RED, filename, COLOR_RESET);
 		exit(1);
 	}
 
@@ -344,7 +344,6 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 		n == '='   ? nn == '=' ? vn3("===", EQUEE) : vn2("==", EQUE)
 		  : n == '>' ? vn2("=>", LOOP_ARROW)
 				   : vn1("=", EQU);
-		//ie321('=', '=', "===", EQUEE, "==", EQUE, "=", EQU);
 		break;
 	case '%':
 		if (n == '=')
