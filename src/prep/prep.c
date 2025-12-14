@@ -287,6 +287,7 @@ struct Nodes *copy_nodeses(struct Pos *place_pos, struct Nodes *src) {
 	return dst;
 }
 
+struct NodeToken *last_replaced_lst_copy = 0;
 struct NodeToken *replace_inclusive(struct NodeToken *place,
 									struct NodeToken *fst,
 									struct NodeToken *lst) {
@@ -304,11 +305,14 @@ struct NodeToken *replace_inclusive(struct NodeToken *place,
 			fst_copy = place->next;
 		}
 		free_node_token(place);
+
+		last_replaced_lst_copy = fst_copy;
 		return fst_copy;
 	}
 
 	if (fst == lst) {
 		replace_token(place->token, fst->token);
+		last_replaced_lst_copy = place;
 		return place;
 	}
 
@@ -322,6 +326,7 @@ struct NodeToken *replace_inclusive(struct NodeToken *place,
 	lst_copy->next = place->next;
 
 	free_node_token(place);
+	last_replaced_lst_copy = lst_copy;
 	return fst_copy;
 }
 

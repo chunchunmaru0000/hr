@@ -150,7 +150,7 @@ struct NodeToken *single_include(struct Prep *pr, struct NodeToken *c) {
 	free(fst->token->p);
 	fst->token->p = 0;
 	new_included_head = replace_inclusive(fst, included_head, included_tail);
-	new_included_tail = included_tail;
+	new_included_tail = last_replaced_lst_copy;
 
 	return 0;
 }
@@ -196,7 +196,7 @@ struct NodeToken *multi_include(struct Prep *pr, struct NodeToken *c) {
 	printf("a2 head %s tail %s\n", vs(includes_head->token),
 		   vs(includes_tail->token));
 	new_included_head = replace_inclusive(fst, includes_head, includes_tail);
-	new_included_tail = includes_tail;
+	new_included_tail = last_replaced_lst_copy;
 	printf("a3 head %p tail %p\n", new_included_head, new_included_tail);
 	printf("a3 head %s tail %s\n", vs(new_included_head->token),
 		   vs(new_included_tail->token));
