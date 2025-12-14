@@ -1,5 +1,6 @@
 #include "prep.h"
 #include <stdio.h>
+#include <unistd.h>
 
 void pre(struct Prep *pr, struct PList *final_tokens);
 void free_prep(struct Prep *pr);
@@ -21,13 +22,20 @@ constr SH_QR_CANT_OCCUR_BY_ITSELF =
 	"закрываюшего токена для '#\"', например: #\"текст текст 123 текст\"#.";
 
 void add_source_path(struct Fpfc *f) {
-	uint32_t path_len = strlen(f->path);
-	char *path_copy = malloc(path_len + 1);
-	memcpy(path_copy, f->path, path_len + 1);
+	// При вызове функции getcwd() с параметром dir, равным NULL,
+	// функция getcwd() автоматичес­ки размещает буфер с использованием
+	// функции malloc() и возвращает указатель на этот буфер.
+	// Можно освободить память, выделенную функцией getcwd(),
+	// используя функцию free().
+	char *dir = getcwd(0, 1024);
+	struct BList *source_path = copy_blist_from_str(dir);
+	blist_add(source_path, '/');
+	blat(source_path, (uc *)f->path, strlen(f->path));
+	zero_term_blist(source_path);
 
-	struct BList *source_path = blist_from_str(path_copy, path_len + 1);
-	source_path->size--;
 	plist_add(included_files, source_path);
+	printf("# ADDED PATH [%s]\n", bs(source_path));
+	free(dir);
 }
 struct PList *included_files = 0;
 
@@ -287,7 +295,6 @@ struct Nodes *copy_nodeses(struct Pos *place_pos, struct Nodes *src) {
 	return dst;
 }
 
-struct NodeToken *last_replaced_lst_copy = 0;
 struct NodeToken *replace_inclusive(struct NodeToken *place,
 									struct NodeToken *fst,
 									struct NodeToken *lst) {
@@ -306,13 +313,11 @@ struct NodeToken *replace_inclusive(struct NodeToken *place,
 		}
 		free_node_token(place);
 
-		last_replaced_lst_copy = fst_copy;
 		return fst_copy;
 	}
 
 	if (fst == lst) {
 		replace_token(place->token, fst->token);
-		last_replaced_lst_copy = place;
 		return place;
 	}
 
@@ -326,7 +331,6 @@ struct NodeToken *replace_inclusive(struct NodeToken *place,
 	lst_copy->next = place->next;
 
 	free_node_token(place);
-	last_replaced_lst_copy = lst_copy;
 	return fst_copy;
 }
 
@@ -440,14 +444,8 @@ struct NodeToken *preprocess_token(struct Prep *pr, struct NodeToken *c) {
 	name = next_applyed(pr, c);
 	lst = try_parse_sh(pr, name);
 	if (!lst) { // in case of STR_INCLUDE when include
-		// c = new_included_head;
-		// new_included_head = 0, new_included_tail = 0;
-		// goto try_fill_head_if_empty;
-
-		c = new_included_tail;
-		check_head(&pr->head, new_included_head);
-		new_included_head = 0, new_included_tail = 0;
-		return c;
+		c = new_included_head, new_included_head = 0;
+		goto try_fill_head_if_empty;
 	}
 
 	// - cut off statemnt nodes so it wont be in final_tokens

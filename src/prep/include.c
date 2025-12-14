@@ -26,22 +26,22 @@ struct BList *get_dir(struct BList *path) {
 	return path;
 }
 
-struct PList *included_dirs;
 struct BList *try_include_path(struct Token *path) {
 	struct BList *included_path, *loop_path;
-	uint32_t i;
+	u32 i;
 
-	if (!included_dirs) {
-		included_dirs = new_plist(8);
-		plist_add(included_dirs, zero_term_blist(copy_blist_from_str("")));
-	}
+	loop_path = copy_blist_from_str((char *)path->p->f->path);
+	included_path = get_dir(loop_path);
+	blist_clear_free(loop_path);
 
-	included_path = copy_str(p_last(included_dirs));
 	blat_blist(included_path, path->str);
 	zero_term_blist(included_path);
 
 	blist_clear_free(path->str);
 	path->str = included_path;
+	// copy it, cuz if Token *path is freed then its path->str can also be freed
+	// resulting into path->str->st and path->p->f->path be same thing
+	included_path = zero_term_blist(copy_str(included_path));
 
 	foreach_begin(loop_path, included_files) {
 		if (sc(bs(loop_path), bs(included_path)))
@@ -49,9 +49,8 @@ struct BList *try_include_path(struct Token *path) {
 	}
 	foreach_end;
 
-	plist_add(included_dirs, get_dir(included_path));
 	plist_add(included_files, included_path);
-
+	printf("## ADDED PATH [%s]\n", bs(included_path));
 	return included_path;
 }
 
@@ -60,7 +59,7 @@ struct NodeToken *get_included_head(struct BList *included_path) {
 	struct PList *new_tokens;
 	struct Tzer *tzer;
 
-	tzer = new_tzer((char *)included_path->st);
+	tzer = new_tzer(bs(included_path));
 	new_tokens = tze(tzer, 1024);
 	// printf("# gen_node_tokens in %s with %d num of tokens\n",
 	// 	   (char *)included_path->st, new_tokens->size);
@@ -71,39 +70,16 @@ struct NodeToken *get_included_head(struct BList *included_path) {
 	return included_head;
 }
 
-struct NodeToken *get_included_tail(struct Prep *pr,
-									struct NodeToken **included_head) {
+struct NodeToken *get_included_tail(struct NodeToken *included_head) {
 	struct NodeToken *included_tail;
-	struct NodeToken *save_pr_head, *c;
 
-	save_pr_head = pr->head;
-	pr->head = *included_head;
+	while (included_head->next && included_head->token->code != EF)
+		included_head = included_head->next;
 
-	// for (c = pr->head; c->next && c->token->code != EF;)
-	// 	c = c->next;
-	// included_tail = c->prev;
-	// full_free_node_token(c); // free EF node token
+	included_tail = included_head->prev;
+	full_free_node_token(included_head); // free EF node token
+	// included_tail->next = 0; // could included_tail be 0?
 
-	c = pr->head;
-	c = preprocess_token(pr, c);
-	if (*included_head != pr->head)
-		save_pr_head = pr->head;
-	while (c)
-		c = preprocess_token(pr, c);
-	printf("## here          %p\n", pr->head);
-	printf("## llbe restored %p\n", save_pr_head);
-	for (c = pr->head; c->next && c->token->code != EF;)
-		c = c->next;
-	if (c->token->code == EF) {
-		included_tail = c->prev;
-		full_free_node_token(c); // free EF node token
-		included_tail->next = 0;
-	} else
-		included_tail = c;
-
-	blist_clear_free(p_last(included_dirs)), included_dirs->size--;
-	*included_head = pr->head;
-	pr->head = save_pr_head;
 	return included_tail;
 }
 
@@ -115,13 +91,8 @@ struct NodeToken *try_get_included_head(struct NodeToken *path_name) {
 		eet(path_name->token, ALREADY_INCLUDED, 0);
 
 	file_to_include = path_name->token;
-
 	included_head = get_included_head(path_to_include);
-
 	file_to_include = 0;
-	// TODO: this remove from included_dirs should be not here but after
-	// preprocessing included file text
-	// blist_clear_free(p_last(included_dirs)), included_dirs->size--;
 
 	if (included_head->token->code == EF) {
 		full_free_node_token(included_head);
@@ -132,25 +103,23 @@ struct NodeToken *try_get_included_head(struct NodeToken *path_name) {
 }
 
 // fst is #, c is влечь
-struct NodeToken *single_include(struct Prep *pr, struct NodeToken *c) {
+struct NodeToken *single_include(struct NodeToken *c) {
 	struct NodeToken *fst = c->prev, *path_name = c->next;
 	struct NodeToken *included_head, *included_tail;
 
 	included_head = try_get_included_head(path_name);
-	if (!included_head) {
-		blist_clear_free(p_last(included_dirs)), included_dirs->size--;
+	if (!included_head)
 		return path_name; // need when include empty file
-	}
+
 	// included_tail cant be 0 cuz if its then
 	// included_head is EF that is handled above
-	included_tail = get_included_tail(pr, &included_head);
+	included_tail = get_included_tail(included_head);
 
 	c = cut_off_inclusive(c, path_name); // cut off влечь and path_name
 
 	free(fst->token->p);
 	fst->token->p = 0;
 	new_included_head = replace_inclusive(fst, included_head, included_tail);
-	new_included_tail = last_replaced_lst_copy;
 
 	return 0;
 }
@@ -159,7 +128,7 @@ struct NodeToken *single_include(struct Prep *pr, struct NodeToken *c) {
 struct NodeToken *multi_include(struct Prep *pr, struct NodeToken *c) {
 	struct NodeToken *fst = c->prev, *par_l = c->next, *path_name = 0;
 	struct NodeToken *included_head, *included_tail;
-	struct NodeToken *includes_head = 0, *includes_tail = 0;
+	struct NodeToken *includes_head = 0, *includes_tail;
 
 	for (c = tgn(par_l); c->token->code != PAR_R; c = path_name->next) {
 		if (!c || c->token->code == EF)
@@ -168,15 +137,10 @@ struct NodeToken *multi_include(struct Prep *pr, struct NodeToken *c) {
 		if (path_name->token->code != STR)
 			eet(path_name->token, EXPECTED_STR_AS_AN_INCLUDE_PATH, 0);
 
-		printf("a1\n");
 		included_head = try_get_included_head(path_name);
-		if (!included_head) {
-			blist_clear_free(p_last(included_dirs)), included_dirs->size--;
+		if (!included_head)
 			continue; // empty file
-		}
-		printf("a1.1 head %p %s\n", included_head, vs(included_head->token));
-		included_tail = get_included_tail(pr, &included_head);
-		printf("a1.2 head %p\n", included_head);
+		included_tail = get_included_tail(included_head);
 
 		if (includes_head == 0) {
 			includes_head = included_head;
@@ -192,14 +156,7 @@ struct NodeToken *multi_include(struct Prep *pr, struct NodeToken *c) {
 	c = cut_off_inclusive(par_l->prev, c); // cut off влечь and par l to r
 	free(fst->token->p);
 	fst->token->p = 0;
-	printf("a2 head %p tail %p\n", includes_head, includes_tail);
-	printf("a2 head %s tail %s\n", vs(includes_head->token),
-		   vs(includes_tail->token));
 	new_included_head = replace_inclusive(fst, includes_head, includes_tail);
-	new_included_tail = last_replaced_lst_copy;
-	printf("a3 head %p tail %p\n", new_included_head, new_included_tail);
-	printf("a3 head %s tail %s\n", vs(new_included_head->token),
-		   vs(new_included_tail->token));
 
 	return 0;
 }
@@ -213,7 +170,7 @@ struct NodeToken *parse_include(struct Prep *pr, struct NodeToken *c) {
 	if (path_name->token->code == PAR_L)
 		return multi_include(pr, c);
 	if (path_name->token->code == STR)
-		return single_include(pr, c);
+		return single_include(c);
 
 	eet(path_name->token, EXPECTED_STR_AS_AN_INCLUDE_PATH_OR_PAR_L, 0);
 	return (void *)-1;

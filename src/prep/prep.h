@@ -57,8 +57,6 @@ struct Prep {
 struct NodeToken *gen_node_tokens(struct PList *tokens);
 extern struct PList *included_files; // list of BLists
 extern struct NodeToken *new_included_head;
-extern struct NodeToken *new_included_tail;
-extern struct NodeToken *last_replaced_lst_copy;
 struct NodeToken *preprocess_token(struct Prep *pr, struct NodeToken *c);
 struct PList *preprocess(struct Tzer *tzer);
 
