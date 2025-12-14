@@ -21,22 +21,6 @@ constr SH_QR_CANT_OCCUR_BY_ITSELF =
 	"Токен '\"#' не может быть использован отдельно, только в качестве "
 	"закрываюшего токена для '#\"', например: #\"текст текст 123 текст\"#.";
 
-void add_source_path(struct Fpfc *f) {
-	// При вызове функции getcwd() с параметром dir, равным NULL,
-	// функция getcwd() автоматичес­ки размещает буфер с использованием
-	// функции malloc() и возвращает указатель на этот буфер.
-	// Можно освободить память, выделенную функцией getcwd(),
-	// используя функцию free().
-	char *dir = getcwd(0, 1024);
-	struct BList *source_path = copy_blist_from_str(dir);
-	blist_add(source_path, '/');
-	blat(source_path, (uc *)f->path, strlen(f->path));
-	zero_term_blist(source_path);
-
-	plist_add(included_files, source_path);
-	printf("# ADDED PATH [%s]\n", bs(source_path));
-	free(dir);
-}
 struct PList *included_files = 0;
 
 struct PList *preprocess(struct Tzer *tzer) {
@@ -44,11 +28,6 @@ struct PList *preprocess(struct Tzer *tzer) {
 	pr->defines = new_plist(10);
 	pr->macros = new_plist(10);
 	pr->sentences = new_plist(10);
-
-	if (included_files == 0) {
-		included_files = new_plist(8);
-		add_source_path(tzer->f);
-	}
 
 	struct PList *tokens = tze(tzer, 128);
 	free(tzer);

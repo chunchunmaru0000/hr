@@ -26,6 +26,39 @@ struct BList *get_dir(struct BList *path) {
 	return path;
 }
 
+void shift_from_by(struct BList *l, int from, int by) {
+	l->size -= by;
+	for (; from < (int)l->size; from++)
+		l->st[from] = l->st[from + by];
+}
+int smooth_some_path(struct BList *path) {
+	char c, n, nn;
+	u32 i;
+	int slashes_diff;
+	char *last_slash = (char *)path->st, *pre_last_slash = 0;
+
+	for (i = 0; i < path->size - 1; i++) {
+		c = path->st[i], n = path->st[i + 1];
+		nn = i < path->size - 2 ? path->st[i + 2] : 0;
+
+		if (c == '.') {
+			if (n == '/') {
+				shift_from_by(path, i - 1, 2);
+				return 1;
+			} else if (n == '.' && nn == '/') {
+				if (!pre_last_slash || !last_slash)
+					exit(13);
+				slashes_diff = last_slash - pre_last_slash;
+				shift_from_by(path, i - slashes_diff, slashes_diff + 3);
+				return 1;
+			}
+		}
+		if (c == '/')
+			pre_last_slash = last_slash, last_slash = (char *)(path->st + i);
+	}
+	return 0;
+}
+
 struct BList *try_include_path(struct Token *path) {
 	struct BList *included_path, *loop_path;
 	u32 i;
@@ -42,6 +75,9 @@ struct BList *try_include_path(struct Token *path) {
 	// copy it, cuz if Token *path is freed then its path->str can also be freed
 	// resulting into path->str->st and path->p->f->path be same thing
 	included_path = zero_term_blist(copy_str(included_path));
+	while (smooth_some_path(included_path))
+		;
+	zero_term_blist(included_path);
 
 	foreach_begin(loop_path, included_files) {
 		if (sc(bs(loop_path), bs(included_path)))
@@ -50,7 +86,6 @@ struct BList *try_include_path(struct Token *path) {
 	foreach_end;
 
 	plist_add(included_files, included_path);
-	printf("## ADDED PATH [%s]\n", bs(included_path));
 	return included_path;
 }
 

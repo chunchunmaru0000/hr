@@ -1,5 +1,6 @@
 #include "../gner/gner.h"
 #include <stdio.h>
+#include <unistd.h>
 
 struct Gner *ogner;
 uc NEED_WARN = 1;
@@ -32,9 +33,23 @@ void get_file_in_and_out_names(int argov, char **args, char **in, char **out) {
 			   COLOR_RESET);
 		exit(1);
 	}
-	arg = plist_get(argi, 1), *in = bs(arg);
-	arg = plist_get(argi, 2), *out = bs(arg);
+	arg = plist_get(argi, 1), *in = bs(arg), free(arg);
+	arg = plist_get(argi, 2), *out = bs(arg), free(arg);
 	plist_free(argi);
+}
+
+struct BList *add_source_path(char *path) {
+	included_files = new_plist(8);
+
+	char *dir = getcwd(0, 1024);
+	struct BList *source_path = copy_blist_from_str(dir);
+	blist_add(source_path, '/');
+	blat(source_path, (uc *)path, strlen(path));
+	zero_term_blist(source_path);
+
+	plist_add(included_files, source_path);
+	free(dir);
+	return source_path;
 }
 
 #define g_write(name) (fwrite(g->name->st, 1, g->name->size, file))
@@ -43,7 +58,7 @@ int main(int argov, char **args) {
 	char *filename, *outname;
 	get_file_in_and_out_names(argov, args, &filename, &outname);
 
-	struct Tzer *t = new_tzer(filename);
+	struct Tzer *t = new_tzer(bs(add_source_path(filename)));
 	struct Fpfc *f = t->f;
 	struct PList *tokens = preprocess(t); // tzer freed in here
 
