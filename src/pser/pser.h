@@ -30,6 +30,8 @@ ext_ex_sg(STR) ext_ex_sg(PAR_L) ext_ex_sg(PAR_R) ext_ex_sg(PAR_C_L)
 			ext_ex_sg(DOT) ext_ex_sg(CC);
 
 extern constr ERR_WRONG_TOKEN;
+extern constr SEVERAL_ARGS_CANT_SHARE_MEM;
+extern constr SUGGEST_DELETE_ARGS_OR_COMMA;
 
 extern constr STR_LET;
 extern constr STR_ASM;
@@ -355,6 +357,7 @@ void cmpt_struct_ptr(struct PList *, struct TypeExpr *, struct GlobExpr *);
 // void cmpt_zero(struct PList *, struct TypeExpr *, struct GlobExpr *);
 
 struct GlobVar {
+	// name num can be used as function flags
 	struct Token *name;
 	struct BList *signature;
 	struct GlobExpr *value;
@@ -367,6 +370,7 @@ struct GlobVar {
 	struct TypeExpr *type;
 	int gvar_size;
 };
+#define DO_NOT_CREATE_STACK_FRAME 1 << 0
 
 #define types_sizes_do_match(t1, t2)                                           \
 	(((t1) >= TC_VOID && (t2) >= TC_VOID) ||                                   \

@@ -103,7 +103,9 @@ void write_fun(struct Gner *g) {
 }
 
 void indent_line(struct Gner *g, struct BList *l) {
-	for (uint32_t i = g->indent_level; i; i--)
+	if ((int)g->indent_level < 0)
+		exit(11);
+	for (u32 i = g->indent_level; i; i--)
 		blist_add(l, '\t');
 }
 

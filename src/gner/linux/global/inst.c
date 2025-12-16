@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in);
+u32 get_first_fun_inst_index(struct Inst *in);
 void declare_struct_arg(struct Gner *g, struct Token *strct, struct Arg *arg);
 
 struct Register {
@@ -107,15 +108,19 @@ void gen_linux_text(struct Gner *g) {
 			// reset flags
 			reset_flags(g);
 			// begin stack frame
-			global_var = plist_get(in->os, 0);
-
+			global_var = g->current_function;
 			blat_stack_frame(global_var->signature); // fun label
 			blat_str_stack_frame(SA_LABEL_END);		 // :
 			g->indent_level++;
-			iprint_stack_frame(SA_PUSH_RBP);
-			iprint_stack_frame(SA_MOV_RBP_RSP);
 
-			local_i = put_args_on_the_stack(g, in);
+			if (global_var->name->num & DO_NOT_CREATE_STACK_FRAME)
+				local_i = get_first_fun_inst_index(in);
+			else {
+				iprint_stack_frame(SA_PUSH_RBP);
+				iprint_stack_frame(SA_MOV_RBP_RSP);
+				local_i = put_args_on_the_stack(g, in);
+			}
+
 			// function body
 			for (; local_i < in->os->size; local_i++) {
 				local_in = plist_get(in->os, local_i);
@@ -174,6 +179,9 @@ end_gen_text_loop:;
 void write_flags_and_end_stack_frame(Gg) {
 	struct Fggs *f = g->flags;
 
+	if (g->current_function->name->num & DO_NOT_CREATE_STACK_FRAME)
+		goto ret;
+
 	if (f->is_stack_used || f->is_r15_used || f->is_r14_used ||
 		f->is_r13_used) {
 		iprint_stack_frame(SA_SUB_RSP);
@@ -196,6 +204,7 @@ void write_flags_and_end_stack_frame(Gg) {
 	} else
 		op_(POP_RBP);
 
+ret:
 	op_(RET);
 	ft_add('\n');
 }
@@ -232,9 +241,19 @@ const struct Register *get_regs_of_size(int size_of_var, int i) {
 	exit(1);
 }
 
-uint32_t put_args_on_the_stack(struct Gner *g, struct Inst *in) {
+u32 get_first_fun_inst_index(struct Inst *in) {
 	// fun in->os are: fun variable, args..., 0 term, instructions...
-	uint32_t i, j, mem_counter = 0;
+	u32 i;
+	struct Arg *arg = plist_get(in->os, 1);
+	for (i = 2; arg; i++) {
+		arg = plist_get(in->os, i);
+	}
+	return i;
+}
+
+u32 put_args_on_the_stack(struct Gner *g, struct Inst *in) {
+	// fun in->os are: fun variable, args..., 0 term, instructions...
+	u32 i, j, mem_counter = 0;
 	struct Arg *arg = plist_get(in->os, 1);
 	struct LocalVar *var;
 	const struct Register *reg;
