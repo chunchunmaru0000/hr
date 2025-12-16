@@ -125,7 +125,6 @@ void define_call_type(struct LocalExpr *e) {
 	if (e->l->type == 0 || e->l->type->code != TC_FUN)
 		eet(e->l->tvar, EXPECTED_FUN_TYPE, 0);
 
-	e->type = copy_type_expr(find_return_type(e->l->type));
 	e->flags |= LEF_SIDE_EFFECT_FUN_CALL;
 
 	for (i = 0; i < e->co.ops->size; i++) {
@@ -136,6 +135,7 @@ void define_call_type(struct LocalExpr *e) {
 	// REMEMBER: when call e->tvar->num = (long)fun gvar;
 	if (!lceep(e->l, VAR)) {
 	zero_fun_gvar_exit:
+		e->type = copy_type_expr(find_return_type(e->l->type));
 		e->tvar->num = 0;
 		return;
 	}
@@ -153,7 +153,8 @@ void define_call_type(struct LocalExpr *e) {
 				gvar = plist_get(snf->funs, j);
 				if (fun_args(gvar->type)->size - 1 == e->co.ops->size &&
 					good_enough_args_for_fun(fun_args(gvar->type), e->co.ops)) {
-					e->tvar->num = (long)gvar;
+					e->type = copy_type_expr(find_return_type(gvar->type));
+					e->r = (void *)gvar;
 					return;
 				}
 			}
@@ -207,6 +208,7 @@ void define_numerous_call(struct LocalExpr *e) {
 	e->tuple->size--; // remove last e2 from tuple
 	e2->tuple = e->tuple;
 	paste_le(e, e2);
+	free(e2);
 }
 
 enum TypeCode max_code_or_any(enum TypeCode c0, enum TypeCode c1) {
