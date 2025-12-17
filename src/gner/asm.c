@@ -113,6 +113,8 @@ sa(CDQE, "перечв\n");
 sa(CWD, "превдч\n");
 sa(CDQ, "превчв\n");
 sa(CQO, "преввш\n");
+sa(INC, "++");
+sa(DEC, "--");
 
 sa(L_PAR, "(");
 sa(R_PAR, ") ");

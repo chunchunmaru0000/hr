@@ -73,8 +73,8 @@ struct Reg *and_to_reg(Gg, struct LocalExpr *e) {
 
 	// mov reg, 1
 	r1 = try_borrow_reg(e->tvar, g, unsafe_size_of_type(e->type));
-	op_reg_(MOV, r1->reg_code);
-	add_int_with_hex_comm(fun_text, 1);
+	op_reg_reg(XOR, r1, r1);
+	op_reg_enter(INC, r1->reg_code);
 	// jmp exit
 	jmp_(exit_label);
 
@@ -142,8 +142,8 @@ struct Reg *or_to_reg(Gg, struct LocalExpr *e) {
 	add_label(true_label);
 	// mov reg, 1
 	r1 = try_borrow_reg(e->tvar, g, unsafe_size_of_type(e->type));
-	op_reg_(MOV, r1->reg_code);
-	add_int_with_hex_comm(fun_text, 1);
+	op_reg_reg(XOR, r1, r1);
+	op_reg_enter(INC, r1->reg_code);
 	// jmp exit
 	jmp_(exit_label);
 	// false_label:

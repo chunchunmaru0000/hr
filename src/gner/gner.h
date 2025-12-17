@@ -167,7 +167,8 @@ sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
 				sae(JE) sae(JNE) sae(CALL) sae(CVTSS2SI) sae(CVTSD2SI)
 					sae(PUSH_R15) sae(PUSH_R14) sae(PUSH_R13) sae(POP_R15)
 						sae(POP_R14) sae(POP_R13) sae(MEM_PLUS) sae(CBW)
-							sae(CWDE) sae(CDQE) sae(CWD) sae(CDQ) sae(CQO);
+							sae(CWDE) sae(CDQE) sae(CWD) sae(CDQ) sae(CQO)
+								sae(INC) sae(DEC);
 
 // #############################################################################
 
@@ -272,6 +273,7 @@ void indent_line(struct Gner *g, struct BList *l);
 void write_fun(struct Gner *g);
 void gen_linux_text(struct Gner *);
 
+void gen_opted(Gg, struct LocalExpr *e);
 void gen_block(Gg, struct PList *os);
 void gen_local_linux(struct Gner *g, struct Inst *in);
 struct BList *gen_glob_expr_linux(struct Gner *g, struct GlobExpr *e);
@@ -399,9 +401,13 @@ void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 	 : (le) == LE_BIN_EQUALS	 ? LE_BIN_NOT_EQUALS                           \
 	 : (le) == LE_BIN_NOT_EQUALS ? LE_BIN_EQUALS                               \
 								 : (le))
-#define free_reg_rf_if_not_zero(r)                                             \
-	if ((r))                                                                   \
-		free_reg_family((r)->rf);
+#define free_reg_or_rf_if_not_zero(r)                                          \
+	if ((r)) {                                                                 \
+		if (is_xmm((r)))                                                       \
+			free_reg((r));                                                     \
+		else                                                                   \
+			free_reg_family((r)->rf);                                          \
+	}
 int is_mem(struct LocalExpr *e);
 void inner_mem(Gg, struct LocalExpr *e);
 void mem_(Gg, struct LocalExpr *e, int of_size);

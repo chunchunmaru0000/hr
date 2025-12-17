@@ -18,8 +18,8 @@ void cmp_bool(Gg, struct LocalExpr *e) {
 		r1 = gen_to_reg(g, e, 0);
 		op_reg_reg(TEST, r1, r1);
 	}
-	free_reg_rf_if_not_zero(r1);
-	free_reg_rf_if_not_zero(r2);
+	free_reg_or_rf_if_not_zero(r1);
+	free_reg_or_rf_if_not_zero(r2);
 }
 
 //	LE_BIN_LESS 		setl 	setb

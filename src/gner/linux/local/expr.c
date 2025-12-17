@@ -252,19 +252,18 @@ void gen_local_expr_inst_linux(struct Gner *g, struct Inst *in) {
 	}
 }
 
+void gen_opted(Gg, struct LocalExpr *e) {
+	struct PList *es = opt_local_expr(e);
+	for (u32 i = 0; i < es->size; i++)
+		gen_local_expr_linux(g, plist_get(es, i));
+}
+
 void gen_tuple_of(Gg, struct LocalExpr *e) {
 	if (!e->tuple)
 		return;
-	u32 i, j;
-	struct PList *es;
-
 	g->indent_level++;
-	for (i = 0; i < e->tuple->size; i++) {
-		es = opt_local_expr(plist_get(e->tuple, i));
-
-		for (j = 0; j < es->size; j++)
-			gen_local_expr_linux(g, plist_get(es, j));
-	}
+	for (u32 i = 0; i < e->tuple->size; i++)
+		gen_opted(g, plist_get(e->tuple, i));
 	g->indent_level--;
 }
 
@@ -474,7 +473,7 @@ struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
 		blist_clear_free(field_full_name);
 	}
 
-	free_reg_rf_if_not_zero(r2);
+	free_reg_or_rf_if_not_zero(r2);
 	return r1;
 }
 
