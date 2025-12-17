@@ -191,6 +191,7 @@ enum TypeCode {
 
 	TC_ARR = 14,
 	TC_STRUCT = 15,
+	TC_TUPLE = 16,
 };
 
 struct TypeWord {
@@ -203,6 +204,7 @@ union TypeData {
 	struct TypeExpr *ptr_target;
 	struct BList *name;
 	struct PList *args_types;
+	struct PList *items;
 	struct PList *arr;
 };
 
@@ -217,6 +219,7 @@ struct TypeExpr {
 	 * if [[ ptr ]] -> TypeExpr *
 	 * if [[ struct ]] -> name blist
 	 * if [[ fun ]] -> plist of TypeExpr * where last type is return type
+	 * if [[ tuple ]] -> plist of TypeExpr * items
 	 * if [[ arr ]] -> plist with two items
 	 * - first item is TypeExpr *
 	 * - second item is long that is len of arr, if len is -1 then any len
@@ -237,6 +240,7 @@ struct TypeExpr {
 #define fun_args(t) ((struct PList *)((t)->data.args_types))
 #define find_return_type(t)                                                    \
 	((struct TypeExpr *)plist_get(fun_args((t)), fun_args((t))->size - 1))
+#define tup_itms(t) ((t)->data.items)
 
 #define is_void_ptr(t) ((t)->code == TC_PTR && ptr_targ((t))->code == TC_VOID)
 #define is_fun(t) ((t)->code == TC_FUN)

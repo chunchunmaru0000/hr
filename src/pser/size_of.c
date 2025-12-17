@@ -25,6 +25,8 @@ int unsafe_size_of_type(struct TypeExpr *type) {
 	enum TypeCode c = type->code;
 	long arr_length;
 
+	if (c == TC_TUPLE)
+		exit(51);
 	if (c == TC_ARR) {
 		arr_length = (long)arr_len(type);
 		if (arr_length < 0)
@@ -64,6 +66,8 @@ int size_of_type(struct Pser *p, struct TypeExpr *type) {
 	enum TypeCode c = type->code;
 	long arr_length;
 
+	if (c == TC_TUPLE)
+		exit(50);
 	if (c == TC_ARR) {
 		arr_length = (long)arr_len(type);
 		if (arr_length < 0)

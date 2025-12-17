@@ -171,7 +171,6 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 
 	struct SameNameFuns *snf;
 	struct Arg *arg;
-	struct TypeExpr *type;
 	struct GlobVar *fun_variable = malloc(sizeof(struct GlobVar)), *tmp_var;
 	struct TypeExpr *fun_type = new_type_expr(TC_FUN);
 	u64 fun_flags = 0;
@@ -230,8 +229,7 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 		eet(fun_variable->name, TOO_MUCH_ARGS_FOR_NOW, SUGGEST_CUT_ARGS_SIZE);
 
 	// if there is no type then its void type
-	type = pser_cur(p)->code == PAR_L ? new_type_expr(TC_VOID) : type_expr(p);
-	plist_add(fun_type->data.args_types, type);
+	plist_add(fun_type->data.args_types, type_expr(p));
 
 	plist_set(os, 0, fun_variable);
 	plist_add(os, 0); // args terminator

@@ -33,7 +33,7 @@ struct BList *lay_down_int(struct Gner *g, struct GlobExpr *e) {
 		iprint_gen(SA_LET_32);
 	else if (code == TC_I64 || code == TC_U64 || code == TC_VOID)
 		iprint_gen(SA_LET_64);
-	else if (code == TC_PTR)
+	else if (code == TC_PTR || code == TC_FUN)
 		iprint_gen(SA_LET_64);
 	else {
 		printf("#ERR_INFO. e->type->code was %d\n", code);

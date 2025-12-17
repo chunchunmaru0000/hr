@@ -293,7 +293,7 @@ struct GlobExpr *unary_g_expression(struct Pser *p) {
 
 			// cast of int to ptr done here, cuz check_global_type_compatibility
 			// allow cast to ptr only if e->tvar->num is 0
-			if (!(type->code == TC_PTR && e->code == CT_INT))
+			if (!(is_ptr_type(type) && e->code == CT_INT))
 				check_global_type_compatibility(p, type, e);
 
 			if (e->type)

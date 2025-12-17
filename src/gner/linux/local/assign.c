@@ -163,12 +163,16 @@ void tuple_to_tuple_assign(Gg, struct LocalExpr *e) {
 	}
 }
 
+void tuple_call_assign(Gg, struct LocalExpr *e) {}
+
 void gen_assign(struct Gner *g, struct LocalExpr *e) {
 	struct LocalExpr *assignee = e->l, *trailed;
 
 	if (assignee->tuple && e->r->tuple &&
 		assignee->tuple->size == e->r->tuple->size && assignee->tuple->size > 0)
 		tuple_to_tuple_assign(g, e);
+	else if (e->r->type->code == TC_TUPLE)
+		tuple_call_assign(g, e);
 	else if (is_mem(assignee))
 		assign_to_mem(g, e);
 	else if ((trailed = is_not_assignable_or_trailed(assignee)))

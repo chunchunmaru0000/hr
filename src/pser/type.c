@@ -39,7 +39,7 @@ struct TypeExpr *copy_type_expr(struct TypeExpr *type) {
 	} else if (type->code == TC_PTR) {
 		// * if [[ ptr ]] -> TypeExpr *
 		copy->data.ptr_target = copy_type_expr(ptr_targ(type));
-	} else if (type->code == TC_FUN) {
+	} else if (type->code == TC_FUN || type->code == TC_TUPLE) {
 		// * if [[ fun ]] -> plist of TypeExpr * where last type is return type
 		copy->data.args_types = new_plist(fun_args(type)->size);
 
@@ -107,13 +107,15 @@ struct BList *type_to_blist_from_str(struct TypeExpr *type) {
 		}
 
 		blist_add(str, ']');
-	} else if (type->code == TC_FUN) {
+	} else if (type->code == TC_FUN || type->code == TC_TUPLE) {
+		char items_space = type->code == TC_FUN ? '_' : ',';
+
 		// blat(str, (uc *)TYPE_WORD_FUN.view, TYPE_WORD_FUN.view_len);
 		blist_add(str, '{');
 		// -1 cuz lasr itteration after it
 		for (i = 0; i < type->data.args_types->size - 1; i++) {
 			add_type_str_to_str(str, plist_get(type->data.args_types, i));
-			blist_add(str, '_');
+			blist_add(str, items_space);
 		}
 		// this is last itteration, i just dont wanna do if in the loop above
 		add_type_str_to_str(str, plist_get(type->data.args_types, i));
@@ -161,7 +163,7 @@ void get_fun_signature_considering_args(struct PList *os, struct GlobVar *var) {
 			break;
 
 		if (arg->offset == next_arg->offset)
-			blist_add(signature, ',');
+			blist_add(signature, '.');
 		else
 			blist_add(signature, '_');
 	}
@@ -248,7 +250,7 @@ void free_type(struct TypeExpr *type) {
 		free_type(arr_type(type));
 		plist_free(type->data.arr);
 
-	} else if (type->code == TC_FUN) {
+	} else if (type->code == TC_FUN || type->code == TC_TUPLE) {
 		for (i = 0; i < type->data.args_types->size; i++)
 			free_type(plist_get(type->data.args_types, i));
 		plist_free(type->data.args_types);
@@ -355,21 +357,58 @@ struct TypeExpr *type_expr(struct Pser *p) {
 		texpr->data.args_types = new_plist(2);
 
 		cur = absorb(p);
-		while (cur->code != PAR_R && cur->code != EXCL && cur->code != EF) {
-			plist_add(texpr->data.args_types, type_expr(p));
-			cur = pser_cur(p);
-		}
-		if (cur->code == EXCL) {
-			consume(p); // consume !
-			plist_add(texpr->data.args_types, type_expr(p));
 
-			expect(pser_cur(p), PAR_R); // expect )
+		if (cur->code == EXCL) {
+			consume(p); // consume '!'
+			plist_add(texpr->data.args_types, type_expr(p));
+			expect(pser_cur(p), PAR_R); // expect ')'
+			goto ret_type_expr;
 
 		} else if (cur->code == PAR_R) {
-			if (texpr->data.args_types->size == 0)
-				eet(cur, FUN_ZERO_ARGS, SUGGEST_ADD_ARGS);
-		} else
-			eet(cur, FUN_TYPE_END_OF_FILE, 0);
+			eet(cur, FUN_ZERO_ARGS, SUGGEST_ADD_ARGS);
+		}
+
+		plist_add(texpr->data.args_types, type_expr(p));
+		cur = pser_cur(p);
+
+		if (cur->code == COMMA) {
+			texpr->code = TC_TUPLE;
+			consume(p); // skip ','
+			while (cur->code != PAR_R && cur->code != EF) {
+				plist_add(texpr->data.items, type_expr(p));
+				if ((cur = pser_cur(p))->code == COMMA)
+					cur = absorb(p);
+			}
+			if (cur->code != PAR_R)
+				eet(cur, FUN_TYPE_END_OF_FILE, 0);
+		} else {
+			while (cur->code != PAR_R && cur->code != EXCL && cur->code != EF) {
+				plist_add(texpr->data.args_types, type_expr(p));
+				cur = pser_cur(p);
+			}
+			if (cur->code == EXCL) {
+				consume(p); // consume !
+				plist_add(texpr->data.args_types, type_expr(p));
+				expect(pser_cur(p), PAR_R); // expect )
+			} else if (cur->code != PAR_R)
+				eet(cur, FUN_TYPE_END_OF_FILE, 0);
+		}
+
+		// 		while (cur->code != PAR_R && cur->code != EXCL && cur->code !=
+		// EF) { 			plist_add(texpr->data.args_types, type_expr(p));
+		// cur = pser_cur(p);
+		// 		}
+		// 		if (cur->code == EXCL) {
+		// 			consume(p); // consume !
+		// 			plist_add(texpr->data.args_types, type_expr(p));
+		//
+		// 			expect(pser_cur(p), PAR_R); // expect )
+		//
+		// 		} else if (cur->code == PAR_R) {
+		// 			if (texpr->data.args_types->size == 0)
+		// 				eet(cur, FUN_ZERO_ARGS, SUGGEST_ADD_ARGS);
+		// 		} else
+		// 			eet(cur, FUN_TYPE_END_OF_FILE, 0);
 	} else
 		eet(cur, NOT_A_TYPE_WORD, 0);
 

@@ -24,6 +24,12 @@ constr FUN_WITH_SUCH_NAME_WASNT_FOUND =
 constr CANT_BIN_ON_PTRS =
 	"Нельзя применять бинарные операции к двум указателям.";
 constr PTRS_TARGETS_WASNT_EQUAL = "Указываемые типы не были равны.";
+constr UNEQUAL_TUPLES_ITEMS =
+	"Количество назначаемых выражний в связке и количество "
+	"возвращаемых выражений в связке не равны.";
+constr EXPECTED_TUPLE_FOR_TUPLE_CALL_ASSIGN =
+	"Ожидалась связка выражений, так как возвращаемый тип функции тоже "
+	"сваязка выражений.";
 
 void define_var_type(struct LocalExpr *e) {
 	struct LocalVar *lvar;
@@ -298,6 +304,12 @@ void define_le_type(struct LocalExpr *e) {
 		e->type = copy_type_expr(e->l->type);
 		e->flags |= LEF_SIDE_EFFECT_MEMCH;
 
+		if (e->r->type->code == TC_TUPLE) {
+			if (!e->l->tuple)
+				eet(e->tvar, EXPECTED_TUPLE_FOR_TUPLE_CALL_ASSIGN, 0);
+			if (e->l->tuple->size + 1 != tup_itms(e->r->type)->size)
+				eet(e->tvar, UNEQUAL_TUPLES_ITEMS, 0);
+		}
 	} else if (lce(PRIMARY_INT)) {
 		e->type = new_type_expr(TC_I32);
 	} else if (lce(PRIMARY_REAL)) {
