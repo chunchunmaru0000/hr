@@ -7,87 +7,8 @@ constr NOT_ASSIGNABLE = "Данное выражение не может быт�
 	(lceeu((r), AMPER) && lceep((r)->l, VAR) &&                                \
 	 (gvar = find_glob_Var(g, (r)->l->tvar->view)))
 
-void assign_to_mem(Gg, struct LocalExpr *e) {
-	struct LocalExpr *mem = e->l, *assignable = e->r;
-	int assignee_size = unsafe_size_of_type(mem->type);
-	struct GlobVar *gvar;
-	struct Reg *reg;
-
-	gen_mem_tuple(g, mem);
-
-	if (is_mov_mem_gvar_signature(assignable)) {
-		op_mem_(MOV, mem, 0);
-		blat_ft(gvar->signature), ft_add('\n');
-
-	} else if (lceep(assignable, INT)) {
-		gen_tuple_of(g, assignable);
-		op_mem_(MOV, mem, 0);
-		add_int_with_hex_comm(fun_text, assignable->tvar->num);
-
-	} else if (lceep(assignable, REAL)) {
-		// TODO: mov r, sd; mov mem, r
-		gen_tuple_of(g, assignable);
-		op_mem_(MOV, mem, 0);
-		real_add_enter(fun_text, assignable->tvar->real);
-
-	} else {
-		reg = gen_to_reg(g, assignable, assignee_size);
-
-		if (is_xmm(reg)) {
-			op_mem_(MOV_XMM, mem, 0);
-			reg_enter(reg->reg_code);
-			free_reg(reg);
-		} else {
-			reg = get_reg_to_size(g, reg, assignee_size);
-			op_mem_(MOV, mem, 0);
-			reg_enter(reg->reg_code);
-			free_reg_family(reg->rf);
-		}
-	}
-}
-
-void assign_to_last_mem(Gg, struct LocalExpr *assignee,
-						struct LocalExpr *trailed, struct LocalExpr *right) {
-	int assignee_size = unsafe_size_of_type(assignee->type);
-	struct BList *last_mem_str = 0;
-	struct Reg *r1 = 0, *r2 = 0;
-	struct GlobVar *gvar;
-
-	r1 = gen_to_reg_with_last_mem(g, assignee, trailed, &last_mem_str);
-
-	if (is_mov_mem_gvar_signature(right)) {
-		op_last_mem_(MOV, last_mem_str);
-		blat_ft(gvar->signature), ft_add('\n');
-
-	} else if (is_num_le(right)) {
-		if (lceep(right, INT)) {
-			op_last_mem_(MOV, last_mem_str);
-			add_int_with_hex_comm(fun_text, right->tvar->num);
-		} else if (is_ss(right->type)) {
-			op_last_mem_(MOV, last_mem_str);
-			real_add_enter(fun_text, right->tvar->real);
-		} else {
-			r2 = try_borrow_reg(right->tvar, g, QWORD);
-			op_reg_(MOV, r2->reg_code);
-			real_add_enter(fun_text, right->tvar->real);
-
-			op_last_mem_(MOV, last_mem_str);
-			reg_enter(r2->reg_code);
-		}
-	} else {
-		r2 = gen_to_reg(g, right, assignee_size);
-		if (!is_xmm(r2))
-			r2 = get_reg_to_size(g, r2, assignee_size);
-		op_last_mem_(MOV, last_mem_str);
-		reg_enter(r2->reg_code);
-	}
-
-	free_reg_or_rf_if_not_zero(r1);
-	free_reg_or_rf_if_not_zero(r2);
-	blist_clear_free(last_mem_str);
-}
-
-void assign_from_reg(Gg, struct LocalExpr *assignee, struct Reg *r1) {
+int to_free_value_reg = 1;
+struct Reg *assign_from_reg(Gg, struct LocalExpr *assignee, struct Reg *r1) {
 	struct Reg *r2;
 	struct LocalExpr *trailed;
 
@@ -113,7 +34,37 @@ void assign_from_reg(Gg, struct LocalExpr *assignee, struct Reg *r1) {
 		free_reg_or_rf_if_not_zero(r2);
 	} else
 		eet(assignee->tvar, NOT_ASSIGNABLE, 0);
-	free_reg_or_rf_if_not_zero(r1);
+
+	if (to_free_value_reg) {
+		free_reg_or_rf_if_not_zero(r1);
+	}
+	to_free_value_reg = 1;
+	return r1;
+}
+
+void assign_from_literal(Gg, struct LocalExpr *assignee,
+						 struct LocalExpr *literal, struct GlobVar *gvar) {
+	struct Reg *r2;
+	struct LocalExpr *trailed;
+
+	if (is_mem(assignee)) {
+		op_mem_(MOV, assignee, 0);
+	} else if ((trailed = is_not_assignable_or_trailed(assignee))) {
+		struct BList *last_mem_str = 0;
+		r2 = gen_to_reg_with_last_mem(g, assignee, trailed, &last_mem_str);
+		op_last_mem_(MOV, last_mem_str);
+		free_reg_or_rf_if_not_zero(r2);
+	} else
+		eet(assignee->tvar, NOT_ASSIGNABLE, 0);
+
+	if (lceep(literal, INT)) {
+		add_int_with_hex_comm(fun_text, literal->tvar->num);
+	} else if (lceep(literal, REAL)) {
+		real_add_enter(fun_text, literal->tvar->real);
+	} else if (gvar) {
+		blat_ft(gvar->signature), ft_add('\n');
+	} else
+		exit(55);
 }
 
 void tuple_to_tuple_assign(Gg, struct LocalExpr *e) {
@@ -205,51 +156,24 @@ void tuple_call_assign(Gg, struct LocalExpr *e) {
 }
 
 void gen_assign(struct Gner *g, struct LocalExpr *e) {
-	struct LocalExpr *assignee = e->l, *trailed;
+	struct LocalExpr *assignee = e->l;
+	struct GlobVar *gvar;
 
 	if (assignee->tuple && e->r->tuple &&
 		assignee->tuple->size == e->r->tuple->size && assignee->tuple->size > 0)
 		tuple_to_tuple_assign(g, e);
 	else if (e->r->type->code == TC_TUPLE)
 		tuple_call_assign(g, e);
-	else if (is_mem(assignee))
-		assign_to_mem(g, e);
-	else if ((trailed = is_not_assignable_or_trailed(assignee)))
-		assign_to_last_mem(g, assignee, trailed, e->r);
+	else if (is_num_le(e->r) || is_mov_mem_gvar_signature(e->r))
+		assign_from_literal(g, assignee, e->r, gvar);
 	else
-		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
+		assign_from_reg(
+			g, assignee,
+			gen_to_reg(g, e->r, unsafe_size_of_type(assignee->type)));
 }
 
 struct Reg *assign_to_reg(Gg, struct LocalExpr *e) {
-	struct LocalExpr *assignee = e->l, *trailed;
-	int assignee_size = unsafe_size_of_type(assignee->type);
-	struct BList *last_mem_str = 0;
-	struct Reg *r1, *r2 = 0;
-
-	r1 = gen_to_reg(g, e->r, 0);
-	if (!is_xmm(r1))
-		r1 = get_reg_to_size(g, r1, assignee_size);
-
-	if (is_mem(assignee)) {
-		gen_mem_tuple(g, assignee);
-
-		if (is_xmm(r1)) {
-			op_mem_(MOV_XMM, assignee, 0);
-			reg_enter(r1->reg_code);
-		} else {
-			op_mem_(MOV, assignee, 0);
-			reg_enter(r1->reg_code);
-		}
-
-	} else if ((trailed = is_not_assignable_or_trailed(assignee))) {
-		r2 = gen_to_reg_with_last_mem(g, assignee, trailed, &last_mem_str);
-		op_last_mem_(MOV, last_mem_str);
-		reg_enter(r1->reg_code);
-		// TODO: is xmm
-	} else
-		// TODO: else if is_le_num(assignee, 0)
-		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
-
-	free_reg_or_rf_if_not_zero(r2);
-	return r1;
+	to_free_value_reg = 0;
+	return assign_from_reg(
+		g, e->l, gen_to_reg(g, e->r, unsafe_size_of_type(e->l->type)));
 }
