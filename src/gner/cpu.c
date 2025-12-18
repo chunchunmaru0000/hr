@@ -194,7 +194,6 @@ void free_byte_reg(struct Reg *r) {
 	free_reg(rf->r);
 }
 
-#define as_rfs(cpu) ((struct RegisterFamily **)(cpu))
 #define r_code(reg) ((reg)->r->reg_code)
 
 void free_all_regs(struct CPU *cpu) {

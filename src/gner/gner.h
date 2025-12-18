@@ -46,6 +46,7 @@ struct CPU {
 	: (sz) == WORD	? (rf)->x                                                  \
 	: (sz) == DWORD ? (rf)->e                                                  \
 					: (rf)->r
+#define as_rfs(cpu) ((struct RegisterFamily **)(cpu))
 
 struct CPU *new_cpu();
 struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code);

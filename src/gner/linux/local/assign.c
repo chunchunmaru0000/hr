@@ -87,24 +87,48 @@ void assign_to_last_mem(Gg, struct LocalExpr *assignee,
 	blist_clear_free(last_mem_str);
 }
 
+void assign_from_reg(Gg, struct LocalExpr *assignee, struct Reg *r1) {
+	struct Reg *r2;
+	struct LocalExpr *trailed;
+
+	if (is_mem(assignee)) {
+		if (is_xmm(r1)) {
+			op_mem_(MOV_XMM, assignee, 0);
+			reg_enter(r1->reg_code);
+		} else {
+			op_mem_(MOV, assignee, 0);
+			reg_enter(r1->reg_code);
+		}
+	} else if ((trailed = is_not_assignable_or_trailed(assignee))) {
+		struct BList *last_mem_str = 0;
+		r2 = gen_to_reg_with_last_mem(g, assignee, trailed, &last_mem_str);
+		r1 = get_reg_to_size(g, r1, unsafe_size_of_type(assignee->type));
+		if (is_xmm(r1)) {
+			op_last_mem_(MOV_XMM, last_mem_str); // not sure 'bout this
+		} else {
+			op_last_mem_(MOV, last_mem_str);
+		}
+		reg_enter(r1->reg_code);
+
+		free_reg_or_rf_if_not_zero(r2);
+	} else
+		eet(assignee->tvar, NOT_ASSIGNABLE, 0);
+	free_reg_or_rf_if_not_zero(r1);
+}
+
 void tuple_to_tuple_assign(Gg, struct LocalExpr *e) {
 	struct PList *assignee_tuple = e->l->tuple;
 	struct PList *assignable_tuple = e->r->tuple;
 
-	struct LocalExpr *tmp;
-	tmp = malloc(sizeof(*tmp));
-	memcpy(tmp, e->l, sizeof(*tmp));
-	tmp->tuple = 0;
-	plist_add(assignee_tuple, tmp);
+	e->l->tuple = 0;
+	plist_add(assignee_tuple, e->l);
 
-	tmp = malloc(sizeof(*tmp));
-	memcpy(tmp, e->r, sizeof(*tmp));
-	tmp->tuple = 0;
-	plist_add(assignable_tuple, tmp);
+	e->r->tuple = 0;
+	plist_add(assignable_tuple, e->r);
 
-	struct LocalExpr *l, *r, *sub_assign, *trailed;
+	struct LocalExpr *l, *r, *sub_assign;
 	struct PList *regs = new_plist(assignable_tuple->size);
-	struct Reg *r1, *r2;
+	struct Reg *r1;
 	u32 i;
 
 	for (i = 0; i < assignable_tuple->size; i++) {
@@ -127,31 +151,7 @@ void tuple_to_tuple_assign(Gg, struct LocalExpr *e) {
 			continue;
 
 		if ((r1 = plist_get(regs, i))) {
-			if (is_mem(l)) {
-				if (is_xmm(r1)) {
-					op_mem_(MOV_XMM, l, 0);
-					reg_enter(r1->reg_code);
-					free_reg(r1);
-				} else {
-					op_mem_(MOV, l, 0);
-					reg_enter(r1->reg_code);
-					free_reg_family(r1->rf);
-				}
-			} else if ((trailed = is_not_assignable_or_trailed(l))) {
-				struct BList *last_mem_str = 0;
-				r2 = gen_to_reg_with_last_mem(g, l, trailed, &last_mem_str);
-				r1 = get_reg_to_size(g, r1, unsafe_size_of_type(l->type));
-				if (is_xmm(r1)) {
-					op_last_mem_(MOV_XMM, last_mem_str); // not sure 'bout this
-				} else {
-					op_last_mem_(MOV, last_mem_str);
-				}
-				reg_enter(r1->reg_code);
-
-				free_reg_or_rf_if_not_zero(r2);
-				free_reg_or_rf_if_not_zero(r1);
-			} else
-				eet(e->l->tvar, NOT_ASSIGNABLE, 0);
+			assign_from_reg(g, l, r1);
 		} else {
 			r = plist_get(assignable_tuple, i);
 
@@ -163,7 +163,46 @@ void tuple_to_tuple_assign(Gg, struct LocalExpr *e) {
 	}
 }
 
-void tuple_call_assign(Gg, struct LocalExpr *e) {}
+int reg_index[MAX_ARGS_ON_REGISTERS] = {0, 1, 2, 3, 8, 9, 10};
+
+void tuple_call_assign(Gg, struct LocalExpr *e) {
+	gen_call(g, e->r);
+
+	struct PList *returned_items_types = tup_itms(e->r->type);
+	struct PList *regs = new_plist(returned_items_types->size);
+	struct Reg *r1;
+	struct PList *assignee_tuple = e->l->tuple;
+
+	e->l->tuple = 0;
+	plist_add(assignee_tuple, e->l);
+
+	struct RegisterFamily *rf;
+	struct TypeExpr *item_type;
+	struct LocalExpr *assignee;
+	u32 i;
+
+	for (i = 0; i < returned_items_types->size; i++) {
+		item_type = plist_get(returned_items_types, i);
+		assignee = plist_get(assignee_tuple, i);
+		define_le_type(assignee);
+
+		int assignee_size = unsafe_size_of_type(assignee->type);
+		int item_type_size = unsafe_size_of_type(item_type);
+		rf = as_rfs(g->cpu)[reg_index[i]];
+
+		if (!(r1 = alloc_reg_of_size(rf, item_type_size))) {
+			r1 = try_borrow_reg(assignee->tvar, g, item_type_size);
+			get_reg_to_rf(e->tvar, g, r1, rf);
+		}
+		plist_add(regs, get_reg_to_size(g, r1, assignee_size));
+	}
+
+	for (i = 0; i < assignee_tuple->size; i++) {
+		assignee = plist_get(assignee_tuple, i);
+		r1 = plist_get(regs, i);
+		assign_from_reg(g, assignee, r1);
+	}
+}
 
 void gen_assign(struct Gner *g, struct LocalExpr *e) {
 	struct LocalExpr *assignee = e->l, *trailed;

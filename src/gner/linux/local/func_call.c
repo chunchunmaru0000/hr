@@ -80,6 +80,8 @@ void gen_call(Gg, struct LocalExpr *e) {
 }
 
 struct Reg *call_to_reg(Gg, struct LocalExpr *e) {
+	if (e->type->code == TC_TUPLE)
+		exit(53);
 	gen_call(g, e);
 
 	struct Reg *r = try_borrow_reg(e->tvar, g, unsafe_size_of_type(e->type));
