@@ -176,6 +176,7 @@ void gen_return(Gg, struct LocalExpr *e) {
 	if (!e) {
 		if (return_type->code != TC_VOID)
 			eet(e->tvar, CANT_CAST_E_TYPE_TOO_RETURN_TYPE, 0);
+	} else if (return_type->code == TC_TUPLE) {
 	} else {
 		struct Reg *r;
 
