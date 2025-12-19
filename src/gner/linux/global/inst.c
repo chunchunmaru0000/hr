@@ -133,6 +133,8 @@ void gen_linux_text(struct Gner *g) {
 					gen_local_linux(g, local_in);
 			}
 			// free stack in return statement if wasnt return
+			if (g->label_to_ret)
+				add_label(g->label_to_ret);
 			write_flags_and_end_stack_frame(g);
 		skip_everything_after_return:
 

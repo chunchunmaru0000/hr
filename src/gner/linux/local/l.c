@@ -83,7 +83,7 @@ struct Reg *assignable_to_reg(Gg, struct LocalExpr *e,
 		xmm = try_borrow_xmm_reg(e->tvar, g);
 		mov_xmm_reg_(xmm->reg_code);
 
-		free_reg_family(r->rf), r = xmm;
+		free_register(r), r = xmm;
 	} else {
 		op_reg_(MOV, r->reg_code);
 	}
@@ -115,7 +115,7 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		mov_xmm_reg_(xmm->reg_code);
 		reg_enter(reg->reg_code);
 
-		free_reg_family(reg->rf);
+		free_register(reg);
 		reg = xmm;
 
 	} else if (lcep(INT)) {
@@ -223,7 +223,7 @@ struct Reg *cvt_to_xmm(Gg, struct LocalExpr *not_xmm_e, struct Reg *not_xmm,
 	reg_(xmm->reg_code);
 	reg_enter(not_xmm->reg_code);
 
-	free_reg_family(not_xmm->rf);
+	free_register(not_xmm);
 	return xmm;
 }
 
@@ -336,7 +336,7 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e) {
 		reg_(r1->reg_code);
 		reg_enter(r2->reg_code);
 
-		free_reg_family(r2->rf);
+		free_register(r2);
 		return r1;
 	}
 	exit(157);

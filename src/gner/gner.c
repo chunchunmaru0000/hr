@@ -188,6 +188,7 @@ void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 		} else {
 			free_reg_family(reg->rf);
 			swap_basic_regs(g, reg->rf, rf, DO_MOV);
+			alloc_all_family_reg(rf);
 		}
 	}
 }
@@ -200,8 +201,16 @@ struct Reg *get_reg_to_size(Gg, struct Reg *r, int wanna_size) {
 	if (r->size == wanna_size)
 		;
 	else if (r->size > wanna_size) {
+		if (wanna_size == BYTE && r->rf->h)
+			r->rf->h->allocated = 0;
 		r = reg_of_sz(r->rf, wanna_size);
-	} else {
+	} else if (r->size < wanna_size) {
+		// BYTE is smallest size so it will be allocated anyway
+		if (r->rf->h)
+			r->rf->h->allocated = 1;
+		if (r->rf->l)
+			r->rf->l->allocated = 1;
+
 		if (r->rf->r->reg_code == R_RAX) {
 			if (r->reg_code == R_AL && wanna_size == WORD) {
 				op_(CBW);
@@ -216,9 +225,9 @@ struct Reg *get_reg_to_size(Gg, struct Reg *r, int wanna_size) {
 				printf("%s %d\n", bs(r->name), wanna_size);
 				exit(203); // ah
 			} else
-				goto just_movzx;
+				goto just_movsx;
 		} else {
-		just_movzx:
+		just_movsx:
 			r_was = r;
 			r = reg_of_sz(r->rf, wanna_size);
 			op_reg_(MOV, r->reg_code);

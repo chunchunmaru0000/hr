@@ -62,7 +62,7 @@ void gen_call(Gg, struct LocalExpr *e) {
 			e->tvar, g, fun_args(fun_expr->type), e->co.ops);
 
 		op_reg_enter(CALL, r->reg_code);
-		free_reg_family(r->rf);
+		free_register(r);
 	} else {
 		struct GlobVar *fun_gvar = (void *)e->r;
 		gen_tuple_of(g, fun_expr);
@@ -75,7 +75,7 @@ void gen_call(Gg, struct LocalExpr *e) {
 	}
 
 	for (u32 i = 0; i < ops_regs->size; i++)
-		free_reg_family(((struct Reg *)plist_get(ops_regs, i))->rf);
+		free_register(plist_get(ops_regs, i));
 	plist_free(ops_regs);
 }
 

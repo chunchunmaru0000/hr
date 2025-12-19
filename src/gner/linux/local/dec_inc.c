@@ -40,7 +40,7 @@ void gen_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 		blat_ft(last_mem_str);
 		add_int_with_hex_comm(fun_text, add_of_type(e->tvar, e->type));
 
-		free_reg_or_rf_if_not_zero(r1);
+		free_register(r1);
 		blist_clear_free(last_mem_str);
 	} else
 		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
@@ -92,7 +92,7 @@ struct Reg *unary_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 	} else
 		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
 
-	free_reg_or_rf_if_not_zero(r2);
+	free_register(r2);
 	return r1;
 }
 
@@ -152,7 +152,7 @@ struct Reg *after_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 	} else
 		eet(e->l->tvar, NOT_ASSIGNABLE, 0);
 
-	free_reg_or_rf_if_not_zero(r2);
-	free_reg_or_rf_if_not_zero(r3);
+	free_register(r2);
+	free_register(r3);
 	return r1;
 }

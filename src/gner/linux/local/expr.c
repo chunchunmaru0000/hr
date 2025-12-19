@@ -470,7 +470,7 @@ struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
 		blist_clear_free(field_full_name);
 	}
 
-	free_reg_or_rf_if_not_zero(r2);
+	free_register(r2);
 	return r1;
 }
 

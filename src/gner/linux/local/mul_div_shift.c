@@ -72,7 +72,7 @@ struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 	shl_and_shr_or_sal_and_sar;
 	reg_enter(r1->reg_code);
 
-	free_reg_family(r2->rf);
+	free_register(r2);
 	return r1;
 }
 
@@ -167,8 +167,7 @@ struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
 		return div_on_reg(g, e, r1, r2);
 	}
 
-	if (r2)
-		free_reg_family(r2->rf);
+	free_register(r2);
 	return r1;
 }
 

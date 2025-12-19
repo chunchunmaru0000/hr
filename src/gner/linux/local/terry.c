@@ -14,7 +14,7 @@ struct Reg *terry_to_reg(Gg, struct LocalExpr *e) {
 
 	// l
 	r1 = gen_to_reg(g, e->l, res_size);
-	free_reg_family(r1->rf);
+	free_register(r1);
 	// jmp exit
 	jmp_(exit_label);
 	// r

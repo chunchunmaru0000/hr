@@ -188,7 +188,7 @@ struct Reg *try_return_to(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
 		real_add_enter(fun_text, e->tvar->real);
 
 		if (is_xmm(r))
-			exit(98); // TODO: return xmm reg to rax
+			exit(98); // TODO: return xmm reg to rf
 	} else {
 		r = gen_to_reg(g, e, return_type_size);
 	}
@@ -227,7 +227,7 @@ void try_return_tuple(Gg, struct TypeExpr *return_type, struct LocalExpr *e) {
 	}
 	for (i = 0; i < regs->size; i++) {
 		r = plist_get(regs, i);
-		free_reg_family(r->rf);
+		free_register(r);
 	}
 	plist_free(regs);
 }
@@ -249,7 +249,7 @@ void gen_return(Gg, struct LocalExpr *e) {
 
 	return_type->code == TC_TUPLE
 		? try_return_tuple(g, return_type, e)
-		: free_reg_family(try_return_to(g, return_type, e, g->cpu->a)->rf);
+		: free_register(try_return_to(g, return_type, e, g->cpu->a));
 
 ret_or_jmp:
 	if (function_body_return) {

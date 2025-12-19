@@ -180,15 +180,30 @@ void free_reg_family(struct RegisterFamily *rf) {
 		free_reg(rf->l);
 }
 
-void free_byte_reg(struct Reg *r) {
-	struct RegisterFamily *rf = r->rf;
-	if (r == rf->h)
-		free_reg(rf->h);
-	else if (r == rf->l)
-		free_reg(rf->l);
-
-	if ((rf->h && rf->h->allocated) || (rf->l && rf->l->allocated))
+void free_register(struct Reg *r) {
+	if (!r)
 		return;
+	if (is_xmm(r)) {
+		free_reg(r);
+		return;
+	}
+
+	struct RegisterFamily *rf = r->rf;
+
+	if (r->size > BYTE) {
+		free_reg_family(rf);
+		return;
+	}
+
+	if (r == rf->h) {
+		free_reg(rf->h);
+		if (rf->l && rf->l->allocated)
+			return;
+	} else if (r == rf->l) {
+		free_reg(rf->l);
+		if (rf->h && rf->h->allocated)
+			return;
+	}
 	free_reg(rf->e);
 	free_reg(rf->x);
 	free_reg(rf->r);
@@ -213,16 +228,15 @@ void free_all_regs(struct CPU *cpu) {
 		(reg)->allocated = 1;                                                  \
 		(reg)->is_value_active = 0;                                            \
 	} while (0)
-#define alloc_all_family_reg(rf)                                               \
-	do {                                                                       \
-		alloc_reg((rf)->r);                                                    \
-		alloc_reg((rf)->e);                                                    \
-		alloc_reg((rf)->x);                                                    \
-		if ((rf)->h)                                                           \
-			alloc_reg((rf)->h);                                                \
-		if ((rf)->l)                                                           \
-			alloc_reg((rf)->l);                                                \
-	} while (0)
+void alloc_all_family_reg(struct RegisterFamily *rf) {
+	alloc_reg(rf->r);
+	alloc_reg(rf->e);
+	alloc_reg(rf->x);
+	if (rf->h)
+		alloc_reg(rf->h);
+	if (rf->l)
+		alloc_reg(rf->l);
+}
 
 struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size) {
 	struct RegisterFamily **rfs = as_rfs(cpu);
@@ -244,7 +258,10 @@ struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size) {
 				return rf->l;
 			}
 			if (rf->h && !rf->h->allocated) {
-				continue; // TODO: h regs dont work
+				// TODO: h regs even work not not with swap_regs and
+				// get_reg_to_rf cuz if l is alloced and h to and get_h_to_rf
+				// then l will be lost and rf->l wont be h cuz rf->x will be x
+				continue;
 				rf->r->allocated = 1;
 				rf->e->allocated = 1;
 				rf->x->allocated = 1;
@@ -310,13 +327,15 @@ struct Reg *borrow_xmm_reg(struct CPU *cpu) {
 struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code) {
 	struct RegisterFamily *rf;
 
+	if (is_r8h(code)) {
+		rf = as_rfs(cpu)[((code - (code > R_BL && code < R_R8B) * 4) - 1) % 16];
+		return rf->h;
+	}
 	if (code < R_XMM0) {
 		rf = as_rfs(cpu)[(code - 1) % 16];
 		return is_r64(code)	  ? rf->r
 			   : is_r32(code) ? rf->e
-			   : is_r8h(code) ? rf->h
 			   : is_r8(code)  ? rf->l
-			   : is_r8h(code) ? rf->h
 							  : rf->x;
 	}
 	return cpu->xmm[code - R_XMM0];

@@ -31,12 +31,12 @@ struct Reg *assign_from_reg(Gg, struct LocalExpr *assignee, struct Reg *r1) {
 		}
 		reg_enter(r1->reg_code);
 
-		free_reg_or_rf_if_not_zero(r2);
+		free_register(r2);
 	} else
 		eet(assignee->tvar, NOT_ASSIGNABLE, 0);
 
 	if (to_free_value_reg) {
-		free_reg_or_rf_if_not_zero(r1);
+		free_register(r1);
 	}
 	to_free_value_reg = 1;
 	return r1;
@@ -53,7 +53,7 @@ void assign_from_literal(Gg, struct LocalExpr *assignee,
 		struct BList *last_mem_str = 0;
 		r2 = gen_to_reg_with_last_mem(g, assignee, trailed, &last_mem_str);
 		op_last_mem_(MOV, last_mem_str);
-		free_reg_or_rf_if_not_zero(r2);
+		free_register(r2);
 	} else
 		eet(assignee->tvar, NOT_ASSIGNABLE, 0);
 

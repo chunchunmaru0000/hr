@@ -55,7 +55,8 @@ struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code);
 
 void free_all_regs(struct CPU *cpu);
 void free_reg_family(struct RegisterFamily *rf);
-void free_byte_reg(struct Reg *r);
+void free_register(struct Reg *r);
+void alloc_all_family_reg(struct RegisterFamily *rf);
 
 struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size);
 struct Reg *borrow_xmm_reg(struct CPU *cpu);
