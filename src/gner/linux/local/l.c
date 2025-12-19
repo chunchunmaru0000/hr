@@ -60,12 +60,12 @@ struct Reg *mem_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 	if (is_real_type(e->type)) {
 		r = try_borrow_xmm_reg(e->tvar, g);
-		mov_xmm_reg_(r->reg_code);
+		mov_xmm_reg_(r);
 	} else {
 		if (!reg_size)
 			reg_size = unsafe_size_of_type(e->type);
 		r = try_borrow_reg(e->tvar, g, reg_size);
-		op_reg_(MOV, r->reg_code);
+		op_reg_(MOV, r);
 	}
 	mem_enter(e, 0);
 
@@ -81,11 +81,11 @@ struct Reg *assignable_to_reg(Gg, struct LocalExpr *e,
 	r = gen_to_reg_with_last_mem(g, e, trailed, &last_mem_str);
 	if (is_real_type(e->type)) {
 		xmm = try_borrow_xmm_reg(e->tvar, g);
-		mov_xmm_reg_(xmm->reg_code);
+		mov_xmm_reg_(xmm);
 
 		free_register(r), r = xmm;
 	} else {
-		op_reg_(MOV, r->reg_code);
+		op_reg_(MOV, r);
 	}
 	last_mem_enter(last_mem_str);
 
@@ -105,15 +105,15 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 
 		reg = try_borrow_reg(e->tvar, g, unit_size);
 		if (e->tvar->real) {
-			op_reg_(MOV, reg->reg_code);
+			op_reg_(MOV, reg);
 			real_add_enter(fun_text, e->tvar->real);
 		} else {
 			op_reg_reg(XOR, reg, reg);
 		}
 
 		xmm = try_borrow_xmm_reg(e->tvar, g);
-		mov_xmm_reg_(xmm->reg_code);
-		reg_enter(reg->reg_code);
+		mov_xmm_reg_(xmm);
+		reg_enter(reg);
 
 		free_register(reg);
 		reg = xmm;
@@ -125,9 +125,9 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 			op_reg_reg(XOR, reg, reg);
 		} else if (e->tvar->num == 1 && reg->size > BYTE) {
 			op_reg_reg(XOR, reg, reg);
-			op_reg_enter(INC, reg->reg_code);
+			op_reg_enter(INC, reg);
 		} else {
-			op_reg_(MOV, reg->reg_code);
+			op_reg_(MOV, reg);
 			add_int_with_hex_comm(fun_text, e->tvar->num);
 		}
 	} else
@@ -142,13 +142,13 @@ struct Reg *dereference(Gg, struct LocalExpr *e) {
 	if (is_mem(e)) {
 		r = try_borrow_reg(e->tvar, g, QWORD);
 		gen_mem_tuple(g, e);
-		op_reg_(LEA, r->reg_code);
+		op_reg_(LEA, r);
 		mem_enter(e, QWORD);
 	} else if ((trailed = is_not_assignable_or_trailed(e))) {
 		struct BList *last_mem_str = 0;
 		lm_size = QWORD;
 		r = gen_to_reg_with_last_mem(g, e, trailed, &last_mem_str);
-		op_reg_(LEA, r->reg_code);
+		op_reg_(LEA, r);
 		last_mem_enter(last_mem_str);
 		blist_clear_free(last_mem_str);
 	}
@@ -164,7 +164,7 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e) {
 
 	if (lceu(MINUS)) {
 		reg = gen_to_reg(g, e->l, 0);
-		op_reg_enter(NEG, reg->reg_code);
+		op_reg_enter(NEG, reg);
 	} else if (lceu(INC) || lceu(DEC)) {
 		reg = unary_dec_inc(g, e->l, lceu(INC));
 	} else if (lceu(NOT) || lce(BOOL)) {
@@ -174,16 +174,16 @@ struct Reg *unary_to_reg(Gg, struct LocalExpr *e) {
 			op_(SETN0);
 		else
 			op_(SET0);
-		reg_enter(reg->reg_code);
+		reg_enter(reg);
 	} else if (lceu(BIT_NOT)) {
 		reg = gen_to_reg(g, e->l, 0);
-		op_reg_enter(NOT, reg->reg_code);
+		op_reg_enter(NOT, reg);
 	} else if (lceu(AMPER)) {
 		reg = dereference(g, e->l);
 	} else if (lceu(ADDR)) {
 		unit_size = unsafe_size_of_type(e->type);
 		reg = gen_to_reg(g, e->l, 0); // QWORD by itself
-		op_reg_(MOV, reg->reg_code);
+		op_reg_(MOV, reg);
 		sib(g, unit_size, 0, 0, reg->reg_code, 0, 0), ft_add('\n');
 	}
 
@@ -202,8 +202,8 @@ struct Reg *cvt_from_xmm(Gg, struct LocalExpr *e, struct Reg *xmm_reg) {
 		op_(CVTSD2SI);
 		r = try_borrow_reg(e->tvar, g, QWORD);
 	}
-	reg_(r->reg_code);
-	reg_enter(xmm_reg->reg_code);
+	reg_(r);
+	reg_enter(xmm_reg);
 	free_reg(xmm_reg);
 	return r;
 }
@@ -220,8 +220,8 @@ struct Reg *cvt_to_xmm(Gg, struct LocalExpr *not_xmm_e, struct Reg *not_xmm,
 	struct Reg *xmm = try_borrow_xmm_reg(not_xmm_e->tvar, g);
 
 	ss_or_sd;
-	reg_(xmm->reg_code);
-	reg_enter(not_xmm->reg_code);
+	reg_(xmm);
+	reg_enter(not_xmm);
 
 	free_register(not_xmm);
 	return xmm;
@@ -237,14 +237,14 @@ struct Reg *xmm_bin_to_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 		r2 = cvt_to_xmm(g, e->r, r2, is_ss);
 	if (!is_ss) {
 		if (is_ss(e->l->type))
-			cvt_ss_to_sd(r1->reg_code);
+			cvt_ss_to_sd(r1);
 		if (is_ss(e->r->type))
-			cvt_ss_to_sd(r2->reg_code);
+			cvt_ss_to_sd(r2);
 	}
 
 	iprint_xmm_op(g, e->code, is_ss);
-	reg_(r1->reg_code);
-	reg_enter(r2->reg_code);
+	reg_(r1);
+	reg_enter(r2);
 
 	free_reg(r2);
 	return r1;
@@ -300,9 +300,9 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e) {
 			return shift_on_int(g, e, r1);
 
 		iprint_op(g, e->code);
-		reg_(r1->reg_code);
+		reg_(r1);
 		if (lceb(MUL))
-			reg_(r1->reg_code);
+			reg_(r1);
 
 		if (lceep(int_or_mem, INT)) {
 			add_int_with_hex_comm(fun_text, int_or_mem->tvar->num);
@@ -333,8 +333,8 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e) {
 			return mod_on_reg(g, e, r1, r2);
 
 		iprint_op(g, e->code);
-		reg_(r1->reg_code);
-		reg_enter(r2->reg_code);
+		reg_(r1);
+		reg_enter(r2);
 
 		free_register(r2);
 		return r1;

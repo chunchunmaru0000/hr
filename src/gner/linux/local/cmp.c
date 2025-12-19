@@ -70,7 +70,7 @@ void just_cmp(Gg, struct LocalExpr *e) {
 		} else {
 			r1 = gen_to_reg(g, l, 0);
 			gen_tuple_of(g, r);
-			op_reg_(CMP, r1->reg_code);
+			op_reg_(CMP, r1);
 		}
 		add_int_with_hex_comm(fun_text, r->tvar->num);
 
@@ -78,7 +78,7 @@ void just_cmp(Gg, struct LocalExpr *e) {
 		r1 = gen_to_reg(g, l, 0);
 		gen_mem_tuple(g, r);
 
-		op_reg_(CMP, r1->reg_code);
+		op_reg_(CMP, r1);
 		mem_enter(r, 0);
 
 	} else if (is_mem(l) && !have_any_side_effect(l)) {
@@ -86,7 +86,7 @@ void just_cmp(Gg, struct LocalExpr *e) {
 		r1 = gen_to_reg(g, r, 0);
 
 		op_mem_(CMP, l, 0);
-		reg_enter(r1->reg_code);
+		reg_enter(r1);
 
 	} else {
 		if (!have_any_side_effect(l) && le_depth(l) < le_depth(r)) {
@@ -114,7 +114,7 @@ struct Reg *cmp_with_set(Gg, struct LocalExpr *e) {
 
 		iprint_set(g, e->code, is_u_type(e->type->code));
 		r1 = try_borrow_reg(e->tvar, g, BYTE);
-		reg_enter(r1->reg_code);
+		reg_enter(r1);
 	} else {
 	}
 	if (!r1)

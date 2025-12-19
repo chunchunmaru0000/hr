@@ -63,30 +63,30 @@ struct Reg *unary_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 	if (is_mem(e)) {
 		gen_mem_tuple(g, e);
 		// mov r, mem
-		op_reg_(MOV, r1->reg_code);
+		op_reg_(MOV, r1);
 		mem_enter(e, 0);
 		// dec / inc r, unit
 		add_or_sub;
-		reg_(r1->reg_code);
+		reg_(r1);
 		add_int_with_hex_comm(fun_text, unit);
 		// mov mem, r
 		op_mem_(MOV, e, 0);
-		reg_enter(r1->reg_code);
+		reg_enter(r1);
 
 	} else if ((trailed = is_not_assignable_or_trailed(e))) {
 		struct BList *last_mem_str = 0;
 		r2 = gen_to_reg_with_last_mem(g, e, trailed, &last_mem_str);
 
 		// mov r, mem
-		op_reg_(MOV, r1->reg_code);
+		op_reg_(MOV, r1);
 		last_mem_enter(last_mem_str);
 		// dec / inc r, unit
 		add_or_sub;
-		reg_(r1->reg_code);
+		reg_(r1);
 		add_int_with_hex_comm(fun_text, unit);
 		// mov mem, r
 		op_last_mem_(MOV, last_mem_str);
-		reg_enter(r1->reg_code);
+		reg_enter(r1);
 
 		blist_clear_free(last_mem_str);
 	} else
@@ -119,34 +119,34 @@ struct Reg *after_dec_inc(Gg, struct LocalExpr *e, uc is_inc) {
 	if (is_mem(e)) {
 		gen_mem_tuple(g, e);
 		// mov r1, mem
-		op_reg_(MOV, r1->reg_code);
+		op_reg_(MOV, r1);
 		mem_enter(e, 0);
 		// mov r2, r1
 		op_reg_reg(MOV, r2, r1);
 		// dec / inc r2, unit
 		add_or_sub;
-		reg_(r2->reg_code);
+		reg_(r2);
 		add_int_with_hex_comm(fun_text, unit);
 		// mov mem, r2
 		op_mem_(MOV, e, 0);
-		reg_enter(r2->reg_code);
+		reg_enter(r2);
 
 	} else if ((trailed = is_not_assignable_or_trailed(e))) {
 		struct BList *last_mem_str = 0;
 		r3 = gen_to_reg_with_last_mem(g, e, trailed, &last_mem_str);
 
 		// mov r1, mem
-		op_reg_(MOV, r1->reg_code);
+		op_reg_(MOV, r1);
 		last_mem_enter(last_mem_str);
 		// mov r2, r1
 		op_reg_reg(MOV, r2, r1);
 		// dec / inc r2, unit
 		add_or_sub;
-		reg_(r2->reg_code);
+		reg_(r2);
 		add_int_with_hex_comm(fun_text, unit);
 		// mov mem, r2
 		op_last_mem_(MOV, last_mem_str);
-		reg_enter(r2->reg_code);
+		reg_enter(r2);
 
 		blist_clear_free(last_mem_str);
 	} else

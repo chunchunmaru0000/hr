@@ -367,8 +367,11 @@ void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label);
 #define declare_lvar_gvar                                                      \
 	struct LocalVar *lvar = 0;                                                 \
 	struct GlobVar *gvar = 0;
-#define reg_(reg) blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add(' ')
-#define reg_enter(reg) blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add('\n')
+#define reg_rc_(reg) blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add(' ')
+#define reg_rc_enter(reg)                                                      \
+	blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add('\n')
+#define reg_(reg) blat_ft((reg)->name), ft_add(' ')
+#define reg_enter(reg) blat_ft((reg)->name), ft_add('\n')
 void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 		 enum RegCode index, long disp, uc is_disp_blist);
 #define sib_(size, base, scale, index, disp, is_disp_bl)                       \
@@ -380,14 +383,14 @@ void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 #define op_ isprint_ft
 #define op_reg_(op, reg)                                                       \
 	op_(op);                                                                   \
-	reg_((reg));
+	reg_(reg);
 #define op_reg_enter(op, reg)                                                  \
 	op_(op);                                                                   \
-	reg_enter((reg));
+	reg_enter(reg);
 #define op_reg_reg(op, r1, r2)                                                 \
 	op_(op);                                                                   \
-	reg_((r1)->reg_code);                                                      \
-	reg_enter((r2)->reg_code);
+	reg_(r1);                                                                  \
+	reg_enter(r2);
 #define mov_xmm_reg_(reg)                                                      \
 	op_(MOV_XMM);                                                              \
 	reg_(reg);

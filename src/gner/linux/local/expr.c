@@ -280,7 +280,7 @@ void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 	blat_fun_text(size_str(size));
 	ft_add('(');
 	if (base) {
-		reg_(base);
+		reg_rc_(base);
 	}
 	if (scale > 1) {
 		int_add(g->fun_text, scale);
@@ -333,7 +333,7 @@ void inner_mem(Gg, struct LocalExpr *e) {
 		declare_lvar_gvar;
 		get_assignee_size(g, e, &gvar, &lvar);
 		if (lvar) {
-			reg_(R_RBP);
+			reg_rc_(R_RBP);
 			blat_ft(lvar->name->view);
 		} else {
 			blat_ft(gvar->signature);

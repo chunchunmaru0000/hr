@@ -230,8 +230,8 @@ struct Reg *get_reg_to_size(Gg, struct Reg *r, int wanna_size) {
 		just_movsx:
 			r_was = r;
 			r = reg_of_sz(r->rf, wanna_size);
-			op_reg_(MOV, r->reg_code);
-			reg_enter(r_was->reg_code);
+			op_reg_(MOV, r);
+			reg_enter(r_was);
 		}
 	}
 	if (!r)

@@ -15,10 +15,10 @@ struct Reg *assign_from_reg(Gg, struct LocalExpr *assignee, struct Reg *r1) {
 	if (is_mem(assignee)) {
 		if (is_xmm(r1)) {
 			op_mem_(MOV_XMM, assignee, 0);
-			reg_enter(r1->reg_code);
+			reg_enter(r1);
 		} else {
 			op_mem_(MOV, assignee, 0);
-			reg_enter(r1->reg_code);
+			reg_enter(r1);
 		}
 	} else if ((trailed = is_not_assignable_or_trailed(assignee))) {
 		struct BList *last_mem_str = 0;
@@ -29,7 +29,7 @@ struct Reg *assign_from_reg(Gg, struct LocalExpr *assignee, struct Reg *r1) {
 		} else {
 			op_last_mem_(MOV, last_mem_str);
 		}
-		reg_enter(r1->reg_code);
+		reg_enter(r1);
 
 		free_register(r2);
 	} else

@@ -54,10 +54,10 @@ struct Reg *shift_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
 				op_(SAL1);
 			}
 		}
-		reg_enter(r1->reg_code);
+		reg_enter(r1);
 	} else {
 		shl_and_shr_or_sal_and_sar;
-		reg_enter(r1->reg_code);
+		reg_enter(r1);
 		add_int_with_hex_comm(fun_text, shift_on);
 	}
 	return r1;
@@ -70,7 +70,7 @@ struct Reg *shift_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 	get_reg_to_rf(e->tvar, g, r2, g->cpu->c);
 
 	shl_and_shr_or_sal_and_sar;
-	reg_enter(r1->reg_code);
+	reg_enter(r1);
 
 	free_register(r2);
 	return r1;
@@ -82,14 +82,14 @@ struct Reg *mul_on_int(Gg, struct Reg *r1, long mul_on) {
 	if (is_pow_of_two(mul_on)) {
 		mul_on = find_pow_of_2(mul_on);
 		if (mul_on == 1) {
-			op_reg_enter(SAL1, r1->reg_code);
+			op_reg_enter(SAL1, r1);
 		} else {
-			op_reg_(SAL, r1->reg_code);
+			op_reg_(SAL, r1);
 			add_int_with_hex_comm(fun_text, mul_on);
 		}
 	} else {
-		op_reg_(IMUL, r1->reg_code);
-		reg_(r1->reg_code);
+		op_reg_(IMUL, r1);
+		reg_(r1);
 		add_int_with_hex_comm(fun_text, mul_on);
 	}
 	return r1;
@@ -110,15 +110,15 @@ struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
 
 		if (is_unsigned) {
 			if (div_on == 1) {
-				op_reg_enter(SHR1, r1->reg_code);
+				op_reg_enter(SHR1, r1);
 			} else {
-				op_reg_(SHR, r1->reg_code);
+				op_reg_(SHR, r1);
 				add_int_with_hex_comm(fun_text, pow);
 			}
 		} else {
 			r2 = try_borrow_reg(e->tvar, g, r1->size);
 
-			op_reg_(LEA, r2->rf->r->reg_code);
+			op_reg_(LEA, r2->rf->r);
 			sib(g, QWORD, 0, 0, r1->rf->r->reg_code, div_on - 1, 0),
 				ft_add('\n');
 
@@ -126,14 +126,14 @@ struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
 			op_reg_reg(CMOVS, r1, r2);
 
 			if (div_on == 1) {
-				op_reg_enter(SAR1, r1->reg_code);
+				op_reg_enter(SAR1, r1);
 			} else {
-				op_reg_(SAR, r1->reg_code);
+				op_reg_(SAR, r1);
 				add_int_with_hex_comm(fun_text, pow);
 			}
 		}
 		if (need_neg) {
-			op_reg_enter(NEG, r1->reg_code);
+			op_reg_enter(NEG, r1);
 		}
 
 	} else {
@@ -148,14 +148,14 @@ struct Reg *div_on_int(Gg, struct LocalExpr *e, struct Reg *r1) {
 		// 		r2 = try_borrow_reg(e->tvar, g, QWORD);
 		// 		op_reg_reg(MOV, r2, r1);
 		// 		// a >> k - 1
-		// 		op_reg_(SAR, r1->reg_code);
+		// 		op_reg_(SAR, r1);
 		// 		add_int_with_hex_comm(fun_text, k - 1);
 		// 		// a * m
-		// 		op_reg_(IMUL, r1->reg_code);
-		// 		reg_(r1->reg_code);
+		// 		op_reg_(IMUL, r1);
+		// 		reg_(r1);
 		// 		add_int_with_hex_comm(fun_text, m);
 		// 		// (a * m) >> k
-		// 		op_reg_(SAR, r1->reg_code);
+		// 		op_reg_(SAR, r1);
 		// 		add_int_with_hex_comm(fun_text, k + 1);
 		// 		// -
 		//
@@ -241,7 +241,7 @@ void divide_on_reg(Gg, struct LocalExpr *e, struct Reg **to_rAX,
 		op_(CDQ);
 	else if (r1->size == QWORD)
 		op_(CQO);
-	op_reg_enter(IDIV, r2->reg_code);
+	op_reg_enter(IDIV, r2);
 
 	if (r2->rf != g->cpu->d)
 		free_reg_family(r2->rf);

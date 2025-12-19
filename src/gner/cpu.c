@@ -380,8 +380,8 @@ void swap_basic_regs(Gg, struct RegisterFamily *rf1, struct RegisterFamily *rf2,
 	} else {
 		op_(XCHG);
 	}
-	reg_(rf2->r->reg_code);
-	reg_enter(rf1->r->reg_code);
+	reg_(rf2->r);
+	reg_enter(rf1->r);
 }
 
 #define r13 cpu->rex[13 - 8]

@@ -184,7 +184,7 @@ struct Reg *try_return_to(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
 	if (lceep(e, REAL)) {
 		gen_tuple_of(g, e);
 		r = try_borrow_reg(e->tvar, g, return_type_size);
-		op_reg_(MOV, r->reg_code);
+		op_reg_(MOV, r);
 		real_add_enter(fun_text, e->tvar->real);
 
 		if (is_xmm(r))

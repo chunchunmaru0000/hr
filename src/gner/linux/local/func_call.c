@@ -25,7 +25,7 @@ struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 			r = try_borrow_reg(
 				place, g, argument->type->code == TC_SINGLE ? DWORD : QWORD);
 			if (argument->tvar->real) {
-				op_reg_(MOV, r->reg_code);
+				op_reg_(MOV, r);
 				real_add_enter(fun_text, argument->tvar->real);
 			} else {
 				op_reg_reg(XOR, r, r);
@@ -61,7 +61,7 @@ void gen_call(Gg, struct LocalExpr *e) {
 		ops_regs = mov_ops_regs_to_args_regs(
 			e->tvar, g, fun_args(fun_expr->type), e->co.ops);
 
-		op_reg_enter(CALL, r->reg_code);
+		op_reg_enter(CALL, r);
 		free_register(r);
 	} else {
 		struct GlobVar *fun_gvar = (void *)e->r;
