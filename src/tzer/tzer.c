@@ -320,8 +320,8 @@ enum TCode usable_token(struct Tzer *t, struct Token *token) {
 			vn2("-=", MINUSE);
 		else if (n == '-')
 			vn2("--", DEC);
-		else if (n == '@')
-			vn2("-@", SOBAKA_ARROW);
+		else if (n == '.')
+			vn2("-.", SOBAKA_ARROW);
 		else
 			vn1("-", MINUS);
 		break;

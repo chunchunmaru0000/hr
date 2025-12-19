@@ -83,7 +83,7 @@ enum TCode {
 
 	WHOLE_DIV,	  // /:
 	FIELD_ARROW,  // ->
-	SOBAKA_ARROW, // -@
+	SOBAKA_ARROW, // -. old one was -@
 	PIPE_LINE,	  // |>
 	DOT,		  // .
 	QQ,			  // ??
