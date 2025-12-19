@@ -84,9 +84,7 @@ void tuple_to_tuple_assign(Gg, struct LocalExpr *e) {
 
 	for (i = 0; i < assignable_tuple->size; i++) {
 		l = plist_get(assignee_tuple, i);
-		define_le_type(l);
 		r = plist_get(assignable_tuple, i);
-		define_le_type(r);
 
 		if (is_le_num(l, 0))
 			gen_opted(g, r), plist_add(regs, 0);
@@ -112,9 +110,10 @@ void tuple_to_tuple_assign(Gg, struct LocalExpr *e) {
 			free(sub_assign);
 		}
 	}
+	plist_free(regs);
 }
 
-int reg_index[MAX_ARGS_ON_REGISTERS] = {0, 1, 2, 3, 8, 9, 10};
+int return_tuple_regs_indeces[MAX_ARGS_ON_REGISTERS] = {0, 1, 2, 3, 8, 9, 10};
 
 void tuple_call_assign(Gg, struct LocalExpr *e) {
 	gen_call(g, e->r);
@@ -135,7 +134,6 @@ void tuple_call_assign(Gg, struct LocalExpr *e) {
 	for (i = 0; i < returned_items_types->size; i++) {
 		item_type = plist_get(returned_items_types, i);
 		assignee = plist_get(assignee_tuple, i);
-		define_le_type(assignee);
 
 		if (is_le_num(assignee, 0)) {
 			plist_add(regs, 0);
@@ -144,7 +142,7 @@ void tuple_call_assign(Gg, struct LocalExpr *e) {
 
 		int assignee_size = unsafe_size_of_type(assignee->type);
 		int item_type_size = unsafe_size_of_type(item_type);
-		rf = as_rfs(g->cpu)[reg_index[i]];
+		rf = as_rfs(g->cpu)[return_tuple_regs_indeces[i]];
 
 		if (!(r1 = alloc_reg_of_size(rf, item_type_size))) {
 			r1 = try_borrow_reg(assignee->tvar, g, item_type_size);
@@ -158,6 +156,7 @@ void tuple_call_assign(Gg, struct LocalExpr *e) {
 		if ((r1 = plist_get(regs, i)))
 			assign_from_reg(g, assignee, r1);
 	}
+	plist_free(regs);
 }
 
 void gen_assign(struct Gner *g, struct LocalExpr *e) {

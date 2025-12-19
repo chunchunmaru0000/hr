@@ -121,11 +121,14 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	} else if (lcep(INT)) {
 		reg = try_borrow_reg(e->tvar, g, reg_size);
 
-		if (e->tvar->num) {
+		if (e->tvar->num == 0) {
+			op_reg_reg(XOR, reg, reg);
+		} else if (e->tvar->num == 1 && reg->size > BYTE) {
+			op_reg_reg(XOR, reg, reg);
+			op_reg_enter(INC, reg->reg_code);
+		} else {
 			op_reg_(MOV, reg->reg_code);
 			add_int_with_hex_comm(fun_text, e->tvar->num);
-		} else {
-			op_reg_reg(XOR, reg, reg);
 		}
 	} else
 		exit(145);

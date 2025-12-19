@@ -208,15 +208,12 @@ struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 }
 
 void gen_local_expr_linux(Gg, struct LocalExpr *e) {
-	struct BList *expr_view;
-	// if e wa cut from other then e can have a tuple
-
 	indent_line(g, g->fun_text), ft_add(';'), ft_add(' ');
-	expr_view = zero_term_blist(bprint_le(e, 1));
+	struct BList *expr_view = zero_term_blist(bprint_le(e, 1));
 	blat_fun_text(expr_view);
 	blist_clear_free(expr_view);
-
 	print_le(e, 1);
+
 	gen_tuple_of(g, e);
 
 	if (lceb(ASSIGN))

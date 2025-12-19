@@ -8,10 +8,13 @@ constr CHANGE_VAR_NAME_OR_DELETE_VAR = "изменить имя переменн
 constr CHANGE_LABEL_NAME_OR_DELETE_LABEL = "изменить имя метки или удалить ее";
 constr REDEFINING_OF_LOCAL_VAR = "Переопределение локальной переменной.";
 constr REDEFINING_OF_LOCAL_LABEL = "Переопределение локальной метки.";
-constr CANT_CAST_E_TYPE_TOO_RETURN_TYPE =
+constr CANT_CAST_E_TYPE_TO_RETURN_TYPE =
 	"Тип возвращаемого выражения несовместим с возвращаемым типом функции.";
 constr EXPRESSION_ISNT_CALCULABLE =
 	"Вычисляемое выражение не может возвращать результат.";
+constr EXPECTED_EXPR_TO_HAVE_TUPLE = "Ожидалась связка выражений.";
+constr WRONG_RETURN_TUPLES_ITEMS =
+	"Неверные возвращаемая связка выражений для данной сигнатуры функции.";
 
 void gen_block(Gg, struct PList *os) {
 	struct Inst *block_in;
@@ -169,42 +172,88 @@ int can_cast_type(struct LocalExpr *e, struct TypeExpr *cast_type) {
 			   : is_num_type(cast_type) && is_num_type(from_type);
 }
 
+struct Reg *try_return_to(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
+						  struct RegisterFamily *to_rf) {
+	print_local_expr_to_file(e);
+
+	struct Reg *r;
+	if (!can_cast_type(e, return_type))
+		eet(e->tvar, CANT_CAST_E_TYPE_TO_RETURN_TYPE, 0);
+	int return_type_size = unsafe_size_of_type(return_type);
+
+	if (lceep(e, REAL)) {
+		gen_tuple_of(g, e);
+		r = try_borrow_reg(e->tvar, g, return_type_size);
+		op_reg_(MOV, r->reg_code);
+		real_add_enter(fun_text, e->tvar->real);
+
+		if (is_xmm(r))
+			exit(98); // TODO: return xmm reg to rax
+	} else {
+		r = gen_to_reg(g, e, return_type_size);
+	}
+
+	printf("here1 %s -> %s\n", bs(r->name), bs(to_rf->r->name));
+	get_reg_to_rf(e->tvar, g, r, to_rf);
+	printf("here2 %ld\n", sizeof(*g->cpu));
+	return r;
+}
+
+void try_return_tuple(Gg, struct TypeExpr *return_type, struct LocalExpr *e) {
+	if (!e->tuple)
+		eet(e->tvar, EXPECTED_EXPR_TO_HAVE_TUPLE, 0);
+	if (e->tuple->size + 1 != tup_itms(return_type)->size)
+		eet(e->tvar, WRONG_RETURN_TUPLES_ITEMS, 0);
+
+	print_local_expr_to_file(e);
+
+	struct PList *return_tuple_types = tup_itms(return_type);
+	struct PList *return_tuple = e->tuple;
+	plist_add(return_tuple, e);
+	e->tuple = 0;
+
+	struct PList *regs = new_plist(return_tuple->size);
+	u32 i;
+	struct Reg *r;
+	struct RegisterFamily *rf;
+	struct LocalExpr *return_item;
+	struct TypeExpr *return_item_type;
+
+	for (i = 0; i < return_tuple->size; i++) {
+		rf = as_rfs(g->cpu)[return_tuple_regs_indeces[i]];
+		return_item_type = plist_get(return_tuple_types, i);
+		return_item = plist_get(return_tuple, i);
+
+		r = try_return_to(g, return_item_type, return_item, rf);
+		plist_add(regs, r);
+	}
+	for (i = 0; i < regs->size; i++) {
+		r = plist_get(regs, i);
+		free_reg_family(r->rf);
+	}
+	plist_free(regs);
+}
+
 uc function_body_return = 0;
 void gen_return(Gg, struct LocalExpr *e) {
 	struct TypeExpr *return_type = find_return_type(g->current_function->type);
 
 	if (!e) {
 		if (return_type->code != TC_VOID)
-			eet(e->tvar, CANT_CAST_E_TYPE_TOO_RETURN_TYPE, 0);
-	} else if (return_type->code == TC_TUPLE) {
-	} else {
-		struct Reg *r;
-
-		define_type_and_copy_flags_to_e(e);
-		if (!e->type)
-			eet(e->tvar, EXPRESSION_ISNT_CALCULABLE, 0);
-		opt_bin_constant_folding(e);
-
-		if (!can_cast_type(e, return_type))
-			eet(e->tvar, CANT_CAST_E_TYPE_TOO_RETURN_TYPE, 0);
-
-		int return_type_size = unsafe_size_of_type(return_type);
-
-		if (lceep(e, REAL)) {
-			gen_tuple_of(g, e);
-			r = try_borrow_reg(e->tvar, g, return_type_size);
-			op_reg_(MOV, r->reg_code);
-			real_add_enter(fun_text, e->tvar->real);
-
-			if (is_xmm(r))
-				exit(98); // TODO: return xmm reg to rax
-		} else {
-			r = gen_to_reg(g, e, return_type_size);
-		}
-
-		get_reg_to_rf(e->tvar, g, r, g->cpu->a);
+			eet(e->tvar, CANT_CAST_E_TYPE_TO_RETURN_TYPE, 0);
+		goto ret_or_jmp;
 	}
 
+	define_type_and_copy_flags_to_e(e);
+	if (!e->type)
+		eet(e->tvar, EXPRESSION_ISNT_CALCULABLE, 0);
+	opt_bin_constant_folding(e);
+
+	return_type->code == TC_TUPLE
+		? try_return_tuple(g, return_type, e)
+		: free_reg_family(try_return_to(g, return_type, e, g->cpu->a)->rf);
+
+ret_or_jmp:
 	if (function_body_return) {
 		if (g->label_to_ret)
 			add_label(g->label_to_ret);

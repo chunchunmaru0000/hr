@@ -244,6 +244,7 @@ struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size) {
 				return rf->l;
 			}
 			if (rf->h && rf->h->size == of_size && !rf->h->allocated) {
+				continue; // TODO: h regs dont work
 				rf->r->allocated = 1;
 				rf->e->allocated = 1;
 				rf->x->allocated = 1;

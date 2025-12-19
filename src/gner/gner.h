@@ -36,6 +36,8 @@ struct CPU {
 	// used when try borrow, may be used to gen in prefered register
 };
 
+extern int return_tuple_regs_indeces[MAX_ARGS_ON_REGISTERS];
+
 #define free_reg(reg)                                                          \
 	do {                                                                       \
 		(reg)->allocated = 0;                                                  \
@@ -174,6 +176,17 @@ sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
 // #############################################################################
 
 void indent_line(struct Gner *g, struct BList *l);
+struct BList *bprint_le(struct LocalExpr *e, int with_n);
+void print_le(struct LocalExpr *e, int with_n);
+
+#define print_local_expr_to_file(e)                                            \
+	do {                                                                       \
+		indent_line(g, g->fun_text), ft_add(';'), ft_add(' ');                 \
+		struct BList *expr_view = zero_term_blist(bprint_le((e), 1));          \
+		blat_fun_text(expr_view);                                              \
+		blist_clear_free(expr_view);                                           \
+		print_le((e), 1);                                                      \
+	} while (0)
 
 #define iprint_(str, funs_name, list)                                          \
 	do {                                                                       \

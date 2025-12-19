@@ -346,6 +346,11 @@ void define_le_type(struct LocalExpr *e) {
 		free(other);
 		e->tuple->size--;
 
+		for (i = 0; i < e->tuple->size; i++) {
+			other = plist_get(e->tuple, i);
+			define_type_and_copy_flags_to_e(other);
+		}
+
 	} else if (is_unary(e) || lce(BOOL)) {
 		define_type_and_copy_flags_to_e(e->l);
 
