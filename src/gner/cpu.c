@@ -235,7 +235,7 @@ struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size) {
 			continue;
 
 		if (of_size == BYTE) {
-			if (rf->l && rf->l->size == of_size && !rf->l->allocated) {
+			if (rf->l && !rf->l->allocated) {
 				rf->r->allocated = 1;
 				rf->e->allocated = 1;
 				rf->x->allocated = 1;
@@ -243,7 +243,7 @@ struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size) {
 				rf->l->allocated = 1;
 				return rf->l;
 			}
-			if (rf->h && rf->h->size == of_size && !rf->h->allocated) {
+			if (rf->h && !rf->h->allocated) {
 				continue; // TODO: h regs dont work
 				rf->r->allocated = 1;
 				rf->e->allocated = 1;
@@ -253,15 +253,15 @@ struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size) {
 				return rf->h;
 			}
 		}
-		if (of_size == WORD && rf->x->size == of_size && !rf->x->allocated) {
+		if (of_size == WORD && !rf->x->allocated) {
 			alloc_all_family_reg(rf);
 			return rf->x;
 		}
-		if (of_size == DWORD && rf->e->size == of_size && !rf->e->allocated) {
+		if (of_size == DWORD && !rf->e->allocated) {
 			alloc_all_family_reg(rf);
 			return rf->e;
 		}
-		if (of_size == QWORD && rf->r->size == of_size && !rf->r->allocated) {
+		if (of_size == QWORD && !rf->r->allocated) {
 			alloc_all_family_reg(rf);
 			return rf->r;
 		}
@@ -328,7 +328,7 @@ struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code) {
 		memcpy((m1), (m2), sizeof(type));                                      \
 		memcpy((m2), (tmp), sizeof(type));                                     \
 	} while (0)
-#define xchg_reg_reg(r1, r2) xchg_mem((r1), (r2), tmp_reg, struct Reg)
+#define xchg_reg_reg(r1, r2) xchg_mem((r1), (r2), &tmp_reg_mem, struct Reg)
 
 void swap_basic_regs(Gg, struct RegisterFamily *rf1, struct RegisterFamily *rf2,
 					 int do_mov) {

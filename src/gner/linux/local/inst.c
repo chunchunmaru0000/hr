@@ -193,9 +193,7 @@ struct Reg *try_return_to(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
 		r = gen_to_reg(g, e, return_type_size);
 	}
 
-	printf("here1 %s -> %s\n", bs(r->name), bs(to_rf->r->name));
 	get_reg_to_rf(e->tvar, g, r, to_rf);
-	printf("here2 %ld\n", sizeof(*g->cpu));
 	return r;
 }
 
