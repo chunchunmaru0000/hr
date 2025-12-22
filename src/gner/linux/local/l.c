@@ -250,13 +250,59 @@ struct Reg *xmm_bin_to_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 	return r1;
 }
 
+void to_ptr_arithmetic(struct LocalExpr **index, struct Pos *pos,
+					   int ptr_targ_size) {
+	struct Token *tok = new_tok(copy_blist_from_str("*"), MUL, pos);
+	struct LocalExpr *ptr_arithmetic =
+		new_local_expr(LE_BIN_MUL, copy_type_expr((*index)->type), tok);
+
+	tok = new_tok(0, INT, pos);
+	tok->num = ptr_targ_size, tok->view = int_to_str(ptr_targ_size);
+
+	ptr_arithmetic->l = *index;
+	ptr_arithmetic->r =
+		new_local_expr(LE_PRIMARY_INT, new_type_expr(TC_I32), tok);
+
+	opt_bin_constant_folding(ptr_arithmetic);
+	*index = ptr_arithmetic;
+}
+
+void test_if_ptr_arithmetic(struct LocalExpr *e) {
+	int ptr_targ_size;
+
+	if (e->l->type->code == TC_PTR) {
+		if (is_INT_le(e->r)) {
+			e->r->tvar->num *= unsafe_size_of_type(ptr_targ(e->l->type));
+			update_int_view(e->r);
+
+		} else if (is_num_int_type(e->r->type)) {
+			ptr_targ_size = unsafe_size_of_type(ptr_targ(e->l->type));
+			to_ptr_arithmetic(&e->r, e->tvar->p, ptr_targ_size);
+		}
+	} else if (e->r->type->code == TC_PTR) {
+		if (is_INT_le(e->l)) {
+			e->l->tvar->num *= unsafe_size_of_type(ptr_targ(e->r->type));
+			update_int_view(e->l);
+
+		} else if (is_num_int_type(e->l->type)) {
+			ptr_targ_size = unsafe_size_of_type(ptr_targ(e->r->type));
+			to_ptr_arithmetic(&e->l, e->tvar->p, ptr_targ_size);
+		}
+	}
+}
+
 struct Reg *bin_to_reg(Gg, struct LocalExpr *e) {
 	struct Reg *r1 = 0, *r2 = 0;
-	struct LocalExpr *l = e->l, *r = e->r;
+	struct LocalExpr *l, *r;
 	struct LocalExpr *int_or_mem, *not_num;
 
-	if (is_num_le(l) && is_num_le(r))
+	if (is_num_le(e->l) && is_num_le(e->r))
 		exit(156);
+
+	if (lceb(ADD) || lceb(SUB))
+		test_if_ptr_arithmetic(e);
+
+	l = e->l, r = e->r;
 
 	if (is_num_le(l) && is_commut(e->code) ? (int_or_mem = l, not_num = r)
 		: is_num_le(r)					   ? (int_or_mem = r, not_num = l)
@@ -268,11 +314,13 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e) {
 		// is mem size is not equal to reg_size then can as well just get mem to
 		// reg and do bin with other reg cuz may lose data if mem size is less
 		int int_or_mem_size = unsafe_size_of_type(int_or_mem->type);
+
 		if (!is_num_le(int_or_mem) && int_or_mem_size != r1->size) {
 			r2 = gen_to_reg(g, int_or_mem, 0);
 			goto two_regs;
 		} else if (!is_xmm(r1))
 			r1 = get_reg_to_size(g, r1, int_or_mem_size);
+
 		// gen_mem_tuple can safely gen tuple for int or real too
 		gen_mem_tuple(g, int_or_mem);
 
