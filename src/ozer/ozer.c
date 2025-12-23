@@ -81,7 +81,6 @@ int lee(struct LocalExpr *l, struct LocalExpr *r) {
 void opt_bin_constant_folding(struct LocalExpr *e) {
 	struct LocalExpr *l, *r, *cond;
 
-	// TODO: here lacks a lot of just opt_bin_constant_folding
 	if (is_bin_le(e)) {
 		l = e->l, r = e->r;
 		opt_bin_constant_folding(l);

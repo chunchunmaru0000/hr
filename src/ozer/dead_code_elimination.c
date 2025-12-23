@@ -37,9 +37,6 @@ void cut(struct PList *es, struct LocalExpr *e) {
 
 struct PList *eliminate_dead_code_from_le(struct LocalExpr *e) {
 	struct PList *es = new_plist(1);
-
-	// gen_tuple_of(ogner, e); TODO: why was it here
 	cut(es, e);
-
 	return es;
 }

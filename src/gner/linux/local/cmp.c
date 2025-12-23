@@ -8,7 +8,7 @@ void cmp_bool(Gg, struct LocalExpr *e) {
 	} else if (lceb(ADD) && lceeu(e->r, MINUS)) {
 		// 	// e - n -> e - n
 		gen_tuple_of(g, e->r);
-		e->r = e->r->l; // TODO: here may lose tuple
+		e->r = e->r->l;
 		just_cmp(g, e);
 	} else if (lceb(ADD) && lceep(e->r, INT)) {
 		// 	// e + n -> e - -n
