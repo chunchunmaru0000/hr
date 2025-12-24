@@ -317,10 +317,8 @@ void define_le_type(struct LocalExpr *e) {
 	} else if (lce(PRIMARY_VAR)) {
 		define_var_type(e);
 	} else if (lce(PRIMARY_STR)) {
-		e->type = new_type_expr(TC_ARR);
-		e->type->data.arr = new_plist(2);
-		plist_add(e->type->data.arr, new_type_expr(TC_U8));
-		plist_add(e->type->data.arr, (void *)(i = e->tvar->str->size + 1));
+		e->type = new_type_expr(TC_PTR);
+		ptr_targ(e->type) = new_type_expr(TC_U8);
 
 	} else if (lce(PRIMARY_ARR)) {
 		for (i = 0; i < e->co.ops->size; i++) {

@@ -26,6 +26,7 @@ struct Gner *new_gner(struct Pser *p, enum Target tget, uc debug) {
 	g->after_stack_frame = new_blist(128);
 	g->fun_text = new_blist(128);
 
+	g->strs = new_plist(64);
 	g->global_vars = p->global_vars;
 	g->same_name_funs = p->same_name_funs;
 	g->local_vars = new_plist(16);
@@ -50,7 +51,7 @@ void reset_flags(struct Gner *g) {
 	f->is_r15_used = 0;
 	f->need_save_args_on_stack_count = 0;
 	f->is_args_in_regs = 1;
-	f->is_data_segment_used = 0;
+	//f->is_data_segment_used = 0; // its not func related
 }
 
 void gen(struct Gner *g) {

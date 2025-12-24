@@ -49,24 +49,11 @@ struct Loop {
 struct Loop *new_loop(struct BList *brek, struct BList *cont);
 
 enum L_Code {
-	LC_LOOP,
-	LC_WHILE,
-	LC_FOR,
-	LC_IF,
-	LC_ELSE,
-	LC_PTR,
+	LC_PTR = 0,
+	LC_ELSE = 1,
+	LC_LOOP = 2,
+	LC_STR = 3,
 };
-
-struct Lbls {
-	u32 loops;
-	u32 whiles;
-	u32 fors;
-	u32 ifs;
-	u32 elses;
-	u32 ptrs;
-};
-
-extern struct Lbls *labels;
 struct BList *take_label(enum L_Code label_code);
 
 struct Pser {
@@ -236,7 +223,7 @@ struct TypeExpr {
 	  (t)->code != TC_STRUCT))
 #define arr_type(t) (((struct TypeExpr *)plist_get((t)->data.arr, 0)))
 #define arr_len(t) (plist_get((t)->data.arr, 1))
-#define ptr_targ(t) (((struct TypeExpr *)(t)->data.ptr_target))
+#define ptr_targ(t) (((t)->data.ptr_target))
 #define fun_args(t) ((struct PList *)((t)->data.args_types))
 #define find_return_type(t)                                                    \
 	((struct TypeExpr *)plist_get(fun_args((t)), fun_args((t))->size - 1))

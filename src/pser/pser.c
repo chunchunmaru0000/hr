@@ -364,56 +364,28 @@ struct PList *pse(struct Pser *p) {
 
 // # - число
 // _в# - вечно
-// _п# - пока
-// _д# - для
-// _е# - если
 // _и# - иначе
+// _с# - стр
+// _у# - ук
 #define LETTER_LEN 3
-constr LETTER_LOOP = "_в";
-constr LETTER_WHILE = "_п";
-constr LETTER_FOR = "_д";
-constr LETTER_IF = "_е";
-constr LETTER_ELSE = "_и";
 constr LETTER_PTR = "_у";
+constr LETTER_ELSE = "_и";
+constr LETTER_LOOP = "_в";
+constr LETTER_STR = "_с";
+constr letters[4] = {
+	LETTER_PTR,
+	LETTER_ELSE,
+	LETTER_LOOP,
+	LETTER_STR,
+};
+u32 labels[4] = {0, 0, 0, 0};
 
-struct Lbls *labels = &(struct Lbls){0, 0, 0, 0, 0, 0};
 struct BList *take_label(enum L_Code label_code) {
 	struct BList *label = new_blist(8), *num;
-	switch (label_code) {
-	case LC_LOOP:
-		num = int_to_str(labels->loops);
-		blat(label, (uc *)LETTER_LOOP, LETTER_LEN);
-		labels->loops++;
-		break;
-	case LC_WHILE:
-		num = int_to_str(labels->whiles);
-		blat(label, (uc *)LETTER_WHILE, LETTER_LEN);
-		labels->whiles++;
-		break;
-	case LC_FOR:
-		num = int_to_str(labels->fors);
-		blat(label, (uc *)LETTER_FOR, LETTER_LEN);
-		labels->fors++;
-		break;
-	case LC_IF:
-		num = int_to_str(labels->ifs);
-		blat(label, (uc *)LETTER_IF, LETTER_LEN);
-		labels->ifs++;
-		break;
-	case LC_ELSE:
-		num = int_to_str(labels->elses);
-		blat(label, (uc *)LETTER_ELSE, LETTER_LEN);
-		labels->elses++;
-		break;
-	case LC_PTR:
-		num = int_to_str(labels->ptrs);
-		blat(label, (uc *)LETTER_PTR, LETTER_LEN);
-		labels->ptrs++;
-		break;
-	default:
-		printf("asdf 228\n");
-		exit(228);
-	}
+
+	num = int_to_str(labels[label_code]++);
+	blat(label, (uc *)(letters[label_code]), LETTER_LEN);
+
 	blat_blist(label, num);
 	blist_clear_free(num);
 

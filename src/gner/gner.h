@@ -79,6 +79,11 @@ struct Fggs {
 };
 extern uc function_body_return;
 
+struct LocalString {
+	struct BList *str;
+	struct BList *ptr_to_str;
+};
+
 struct Gner {
 	enum Target t;
 	uc debug;
@@ -91,6 +96,7 @@ struct Gner {
 	long stack_counter;
 	struct Fggs *flags;
 
+	struct PList *strs; // plist of struct LocalString's
 	struct PList *is;
 	struct PList *enums; // // struct Enum's
 	struct PList *global_vars;
@@ -172,7 +178,7 @@ sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
 					sae(PUSH_R15) sae(PUSH_R14) sae(PUSH_R13) sae(POP_R15)
 						sae(POP_R14) sae(POP_R13) sae(MEM_PLUS) sae(CBW)
 							sae(CWDE) sae(CDQE) sae(CWD) sae(CDQ) sae(CQO)
-								sae(INC) sae(DEC);
+								sae(INC) sae(DEC) sae(LET);
 
 // #############################################################################
 

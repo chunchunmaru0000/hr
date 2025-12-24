@@ -93,6 +93,44 @@ struct Reg *assignable_to_reg(Gg, struct LocalExpr *e,
 	return r;
 }
 
+struct LocalString *isnt_uniq_str(Gg, struct BList *str) {
+	for (u32 i = 0; i < g->strs->size; i++) {
+		struct LocalString *local_str = plist_get(g->strs, i);
+		if (sc(bs(str), bs(local_str->str)))
+			return local_str;
+	}
+	return 0;
+}
+
+struct Reg *prime_str(Gg, struct LocalExpr *e) {
+	struct LocalString *local_str;
+	struct BList *str = e->tvar->str;
+	struct Reg *r = try_borrow_reg(e->tvar, g, QWORD);
+
+	if (!(local_str = isnt_uniq_str(g, str))) {
+		local_str = malloc(sizeof(struct LocalString));
+		local_str->str = str;
+		local_str->ptr_to_str = take_label(LC_STR);
+		plist_add(g->strs, local_str);
+
+		if (!g->flags->is_data_segment_used) {
+			iprint_prol(SA_SEGMENT_READ_WRITE);
+			g->flags->is_data_segment_used = 1;
+		}
+
+		blat_str_aprol(SA_LET);
+		blat_aprol(local_str->ptr_to_str), aprol_add(' ');
+		blat_str_aprol(SA_BYTE);
+		blat_aprol(e->tvar->view);
+		print_aprol(SA_ZERO_TERMINATOR);
+	}
+
+	op_reg_(MOV, r);
+	blat_ft(local_str->ptr_to_str), ft_add('\n');
+
+	return r;
+}
+
 struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	struct Reg *reg = 0, *xmm;
 	int unit_size;
@@ -130,6 +168,8 @@ struct Reg *prime_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 			op_reg_(MOV, reg);
 			add_int_with_hex_comm(fun_text, e->tvar->num);
 		}
+	} else if (lcep(STR)) {
+		reg = prime_str(g, e);
 	} else
 		exit(145);
 	return reg;
