@@ -181,7 +181,11 @@ struct Reg *try_return_to(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
 		eet(e->tvar, CANT_CAST_E_TYPE_TO_RETURN_TYPE, 0);
 	int return_type_size = unsafe_size_of_type(return_type);
 
-	if (lceep(e, REAL)) {
+	if (lcep(INT) && is_real_type(return_type)) {
+		e->tvar->real = e->tvar->num;
+		goto real;
+	} else if (lcep(REAL)) {
+	real:
 		gen_tuple_of(g, e);
 		r = try_borrow_reg(e->tvar, g, return_type_size);
 		op_reg_(MOV, r);
@@ -196,11 +200,16 @@ struct Reg *try_return_to(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
 	}
 
 	if (is_xmm(r)) {
-		struct Reg *r2 = try_borrow_reg(e->tvar, g, return_type_size);
-		op_reg_reg(MOV_XMM, r2, r);
-		free_reg(r);
-		r = r2;
+		if (is_int_type(return_type)) {
+			r = cvt_from_xmm(g, e, r);
+		} else {
+			struct Reg *r2 = try_borrow_reg(e->tvar, g, return_type_size);
+			op_reg_reg(MOV_XMM, r2, r);
+			free_reg(r);
+			r = r2;
+		}
 	}
+	r = get_reg_to_size(g, r, return_type_size);
 	get_reg_to_rf(e->tvar, g, r, to_rf);
 	return r;
 }

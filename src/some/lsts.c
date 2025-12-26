@@ -282,12 +282,22 @@ struct BList *int_to_str(long num) {
 
 struct BList *real_to_str(double num) {
 	u32 num_with_dot_len;
-	long before_dot = num;
-	int minus_flag = before_dot < 0;
+	long before_dot;
+	struct BList *num_str;
 
-	struct BList *num_str = int_to_str(num);
+	if (num < 0) {
+		before_dot = (num = -num);
+
+		num_str = copy_blist_from_str("-");
+		blat_blist(num_str, int_to_str(before_dot));
+	} else {
+		before_dot = num;
+		num_str = int_to_str(num);
+	}
+	// printf("### real_to_str %s\n", bs(num_str));
+
 	blist_add(num_str, '.');
-	num_with_dot_len = num_str->size - minus_flag;
+	num_with_dot_len = num_str->size;
 
 	num -= before_dot;
 	num *= 10;
@@ -298,9 +308,9 @@ struct BList *real_to_str(double num) {
 		num -= before_dot;
 		num *= 10;
 
-		if (num_str->size - num_with_dot_len - minus_flag >= 10)
+		if (num_str->size - num_with_dot_len >= 10)
 			break;
 	}
 
-	return num_str;
+	return zero_term_blist(num_str);
 }

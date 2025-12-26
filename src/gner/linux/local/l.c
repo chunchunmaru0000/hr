@@ -7,14 +7,15 @@ struct Reg *mem_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 	if (is_real_type(e->type)) {
 		r = try_borrow_xmm_reg(e->tvar, g);
 		mov_xmm_reg_(r);
+		mem_enter(e, 0);
 	} else {
-		if (!reg_size)
-			reg_size = unsafe_size_of_type(e->type);
-		r = try_borrow_reg(e->tvar, g, reg_size);
+		reg_size = unsafe_size_of_type(e->type);
+		r = try_borrow_reg(e->tvar, g, unsafe_size_of_type(e->type));
 		op_reg_(MOV, r);
+		mem_enter(e, 0);
+		if (reg_size)
+			r = get_reg_to_size(g, r, reg_size);
 	}
-	mem_enter(e, 0);
-
 	return r;
 }
 
