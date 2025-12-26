@@ -182,6 +182,10 @@ struct Reg *try_alloc_reg(struct Token *tvar, struct RegisterFamily *rf,
 
 void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 				   struct RegisterFamily *rf) {
+	if (is_xmm(reg)) {
+		printf("%s <-> %s\n", bs(reg->name), bs(rf->r->name));
+		exit(66);
+	}
 	if (reg->rf != rf) {
 		if (rf->r->allocated) {
 			// reg is now points to rf's reg

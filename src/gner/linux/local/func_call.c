@@ -9,7 +9,6 @@ struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 										struct PList *ops) {
 	struct RegisterFamily **cpu_regs;
 	struct LocalExpr *argument;
-	int fun_arg_size;
 	struct Reg *r;
 	u32 i;
 	//  save changable regs before call
@@ -18,32 +17,8 @@ struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 
 	for (i = 0, cpu_regs = &rsi; i < ops->size; i++, cpu_regs++) {
 		argument = plist_get(ops, i);
-		fun_arg_size = unsafe_size_of_type(plist_get(fun_args_types, i));
-		// gen reg
-		if (lceep(argument, REAL)) {
-			gen_tuple_of(g, argument);
-			r = try_borrow_reg(
-				place, g, argument->type->code == TC_SINGLE ? DWORD : QWORD);
-			if (argument->tvar->real) {
-				op_reg_(MOV, r);
-				real_add_enter(fun_text, argument->tvar->real);
-			} else {
-				op_reg_reg(XOR, r, r);
-			}
-		} else
-			r = gen_to_reg(g, argument, fun_arg_size);
-		// change reg to basic if its xmm
-		if (is_xmm(r))
-			r = cvt_from_xmm(g, plist_get(ops, i), r);
-		else
-			r = get_reg_to_size(g, r, fun_arg_size);
-
+		r = try_return_to(g, plist_get(fun_args_types, i), argument, *cpu_regs);
 		plist_add(ops_regs, r);
-	}
-	for (i = 0, cpu_regs = &rsi; i < ops->size; i++, cpu_regs++) {
-		r = plist_get(ops_regs, i);
-		get_reg_to_rf(place, g, r, *cpu_regs);
-		plist_set(ops_regs, i, (*cpu_regs)->r);
 	}
 
 	return ops_regs;

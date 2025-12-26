@@ -168,7 +168,8 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 		tuple_to_tuple_assign(g, e);
 	else if (e->r->type->code == TC_TUPLE)
 		tuple_call_assign(g, e);
-	else if (is_num_le(e->r) || is_mov_mem_gvar_signature(e->r))
+	else if ((is_num_le(e->r) || is_mov_mem_gvar_signature(e->r)) &&
+			 !(lceep(e->r, REAL) && (is_sd(e->r->type) || is_sd(e->l->type))))
 		assign_from_literal(g, assignee, e->r, gvar);
 	else
 		assign_from_reg(

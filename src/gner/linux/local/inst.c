@@ -185,14 +185,22 @@ struct Reg *try_return_to(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
 		gen_tuple_of(g, e);
 		r = try_borrow_reg(e->tvar, g, return_type_size);
 		op_reg_(MOV, r);
-		real_add_enter(fun_text, e->tvar->real);
-
-		if (is_xmm(r))
-			exit(98); // TODO: return xmm reg to rf
+		if (is_int_type(return_type)) {
+			e->tvar->num = e->tvar->real;
+			add_int_with_hex_comm(fun_text, e->tvar->num);
+		} else {
+			real_add_enter(fun_text, e->tvar->real);
+		}
 	} else {
 		r = gen_to_reg(g, e, return_type_size);
 	}
 
+	if (is_xmm(r)) {
+		struct Reg *r2 = try_borrow_reg(e->tvar, g, return_type_size);
+		op_reg_reg(MOV_XMM, r2, r);
+		free_reg(r);
+		r = r2;
+	}
 	get_reg_to_rf(e->tvar, g, r, to_rf);
 	return r;
 }
