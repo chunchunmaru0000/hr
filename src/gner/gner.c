@@ -209,7 +209,7 @@ void get_xmm_to_xmm(Gg, struct Reg *xmm, struct Reg *save_to_xmm) {
 	} else {
 		free_reg(xmm);
 		swap_xmm_regs(g, xmm, save_to_xmm, DO_MOV);
-		save_to_xmm->allocated = 1;
+		xmm->allocated = 1;
 	}
 }
 

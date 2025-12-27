@@ -114,6 +114,7 @@ void tuple_to_tuple_assign(Gg, struct LocalExpr *e) {
 }
 
 int return_tuple_regs_indeces[MAX_ARGS_ON_REGISTERS] = {0, 1, 2, 3, 8, 9, 10};
+int return_tuple_xmm_indeces[MAX_ARGS_ON_REGISTERS] = {0, 1, 2, 3, 4, 5, 6};
 
 void tuple_call_assign(Gg, struct LocalExpr *e) {
 	gen_call(g, e->r);

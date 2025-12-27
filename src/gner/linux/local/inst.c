@@ -172,20 +172,19 @@ int can_cast_type(struct LocalExpr *e, struct TypeExpr *cast_type) {
 			   : is_num_type(cast_type) && is_num_type(from_type);
 }
 
-struct Reg *try_return_to(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
-						  struct RegisterFamily *to_rf) {
+struct Reg *return_to_rf(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
+						 struct RegisterFamily *to_rf) {
 	print_local_expr_to_file(e);
 
 	struct Reg *r;
 	if (!can_cast_type(e, return_type))
 		eet(e->tvar, CANT_CAST_E_TYPE_TO_RETURN_TYPE, 0);
+	if (is_real_type(return_type))
+		exit(67);
+
 	int return_type_size = unsafe_size_of_type(return_type);
 
-	if (lcep(INT) && is_real_type(return_type)) {
-		e->tvar->real = e->tvar->num;
-		goto real;
-	} else if (lcep(REAL)) {
-	real:
+	if (lcep(REAL)) {
 		gen_tuple_of(g, e);
 		r = try_borrow_reg(e->tvar, g, return_type_size);
 		op_reg_(MOV, r);
@@ -199,19 +198,32 @@ struct Reg *try_return_to(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
 		r = gen_to_reg(g, e, return_type_size);
 	}
 
-	if (is_xmm(r)) {
-		if (is_int_type(return_type)) {
-			r = cvt_from_xmm(g, e, r);
-		} else {
-			struct Reg *r2 = try_borrow_reg(e->tvar, g, return_type_size);
-			op_reg_reg(MOV_XMM, r2, r);
-			free_reg(r);
-			r = r2;
-		}
-	}
+	if (is_xmm(r))
+		r = cvt_from_xmm(g, e, r);
 	r = get_reg_to_size(g, r, return_type_size);
 	get_reg_to_rf(e->tvar, g, r, to_rf);
 	return r;
+}
+
+struct Reg *return_to_xmm(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
+						  struct Reg *to_xmm) {
+	print_local_expr_to_file(e);
+
+	if (!can_cast_type(e, return_type))
+		eet(e->tvar, CANT_CAST_E_TYPE_TO_RETURN_TYPE, 0);
+	if (is_int_type(return_type)) {
+		print_le(e, 1);
+		exit(68);
+	}
+
+	int return_type_size = is_ss(return_type) ? DWORD : QWORD;
+	struct Reg *xmm = gen_to_reg(g, e, return_type_size);
+
+	if (!is_xmm(xmm))
+		xmm = cvt_to_xmm(g, e, xmm, return_type_size == DWORD);
+	get_xmm_to_xmm(g, xmm, to_xmm);
+
+	return xmm;
 }
 
 void try_return_tuple(Gg, struct TypeExpr *return_type, struct LocalExpr *e) {
@@ -228,23 +240,28 @@ void try_return_tuple(Gg, struct TypeExpr *return_type, struct LocalExpr *e) {
 	e->tuple = 0;
 
 	struct PList *regs = new_plist(return_tuple->size);
-	u32 i;
-	struct Reg *r;
+	u32 i, regov = 0, xmmov = 0;
+	struct Reg *r, *to_xmm;
 	struct RegisterFamily *rf;
-	struct LocalExpr *return_item;
-	struct TypeExpr *return_item_type;
+	struct LocalExpr *item;
+	struct TypeExpr *item_type;
 
 	for (i = 0; i < return_tuple->size; i++) {
-		rf = as_rfs(g->cpu)[return_tuple_regs_indeces[i]];
-		return_item_type = plist_get(return_tuple_types, i);
-		return_item = plist_get(return_tuple, i);
+		item_type = plist_get(return_tuple_types, i);
+		item = plist_get(return_tuple, i);
 
-		r = try_return_to(g, return_item_type, return_item, rf);
+		if (is_real_type(item_type)) {
+			to_xmm = (as_xmms(g->cpu) + 16)[return_tuple_xmm_indeces[xmmov++]];
+			r = return_to_xmm(g, item_type, item, to_xmm);
+		} else {
+			rf = as_rfs(g->cpu)[return_tuple_regs_indeces[regov++]];
+			r = return_to_rf(g, item_type, item, rf);
+		}
+
 		plist_add(regs, r);
 	}
 	for (i = 0; i < regs->size; i++) {
-		r = plist_get(regs, i);
-		free_register(r);
+		free_register(plist_get(regs, i));
 	}
 	plist_free(regs);
 }
@@ -266,7 +283,9 @@ void gen_return(Gg, struct LocalExpr *e) {
 
 	return_type->code == TC_TUPLE
 		? try_return_tuple(g, return_type, e)
-		: free_register(try_return_to(g, return_type, e, g->cpu->a));
+		: free_register(is_real_type(return_type)
+							? return_to_xmm(g, return_type, e, g->cpu->xmm[0])
+							: return_to_rf(g, return_type, e, g->cpu->a));
 
 ret_or_jmp:
 	if (function_body_return) {

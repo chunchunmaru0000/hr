@@ -391,7 +391,7 @@ void swap_xmm_regs(Gg, struct Reg *to_x, struct Reg *from_x, int do_mov) {
 
 	struct Reg **fst = 0, **snd = 0, **xmms;
 	u32 i;
-	for (i = 0, xmms = ((struct Reg **)&g->cpu) + 16; i < 16; i++, xmms++) {
+	for (i = 0, xmms = as_xmms(g->cpu) + 16; i < 16; i++, xmms++) {
 		if (to_x == *xmms)
 			fst = xmms;
 		else if (from_x == *xmms)
@@ -406,7 +406,7 @@ void swap_xmm_regs(Gg, struct Reg *to_x, struct Reg *from_x, int do_mov) {
 	*snd = to_x;
 
 	if (do_mov == DO_MOV) {
-		op_reg_reg(MOV_XMM, from_x, to_x);
+		op_reg_reg(MOV_XMM, to_x, from_x);
 	} else {
 		op_reg_reg(PXOR, from_x, to_x);
 		op_reg_reg(PXOR, to_x, from_x);
@@ -422,14 +422,13 @@ void swap_xmm_regs(Gg, struct Reg *to_x, struct Reg *from_x, int do_mov) {
 	g->flags->is_r##num##_used = 1;                                            \
 	get_reg_to_rf(place, g, rf->r, r##num);                                    \
 	continue;
+int try_save_xmm_to_xmm(Gg, struct Reg *xmm);
 
 void save_allocated_regs(Gg, struct Token *place) {
 	struct CPU *cpu = g->cpu;
-	struct RegisterFamily **rfs;
-	struct RegisterFamily *rf;
-	struct Reg **xmms, **save_to_xmms;
-	struct Reg *xmm, *save_to_xmm;
-	u32 i, j;
+	struct RegisterFamily **rfs, *rf;
+	struct Reg **xmms, *xmm;
+	u32 i;
 
 	for (i = 0, rfs = as_rfs(cpu); i < 4; i++, rfs++) { // 4 is rbp
 		rf = *rfs;
@@ -447,21 +446,28 @@ void save_allocated_regs(Gg, struct Token *place) {
 		// TODO: 3 regs on stack
 		eet(place, "а все, нет регистров", 0);
 	}
-	for (i = 0, xmms = (struct Reg **)(cpu) + 16; i < 9; i++, rfs++) { // < xmm9
+	for (i = 0, xmms = as_xmms(cpu) + 16; i < 9; i++, xmms++) { // < xmm9
 		xmm = *xmms;
 		if (!xmm->allocated)
 			continue;
-		for (j = 15, save_to_xmms = (struct Reg **)(cpu) + 31; j > 9;
-			 j--, save_to_xmms--) {
-			save_to_xmm = *save_to_xmms;
-
-			if (!save_to_xmm->allocated) {
-				g->flags->used_xmm |= 1 << (save_to_xmm->reg_code - R_XMM9);
-				get_xmm_to_xmm(g, xmm, save_to_xmm);
-				goto good_xmm_save;
-			}
-		}
+		if (try_save_xmm_to_xmm(g, xmm))
+			continue;
 		eet(place, "а все, нет э регистров", 0);
-	good_xmm_save:;
 	}
+}
+
+int try_save_xmm_to_xmm(Gg, struct Reg *xmm) {
+	u32 i;
+	struct Reg **to_xmms, *to_xmm;
+
+	for (i = 15, to_xmms = as_xmms(g->cpu) + 31; i > 8; i--, to_xmms--) {
+		to_xmm = *to_xmms;
+
+		if (!to_xmm->allocated) {
+			g->flags->used_xmm |= 1 << (to_xmm->reg_code - R_XMM9);
+			get_xmm_to_xmm(g, xmm, to_xmm);
+			return 1;
+		}
+	}
+	return 0;
 }

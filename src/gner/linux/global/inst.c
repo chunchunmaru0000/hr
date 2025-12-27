@@ -207,7 +207,9 @@ void write_flags_and_end_stack_frame(Gg) {
 				struct Reg *tmp =
 					try_borrow_reg(g->current_inst->start_token, g, QWORD);
 
-				op_reg_reg(MOV_XMM, tmp, xmm);
+				iprint_stack_frame(SA_MOV_XMM);
+				blat_stack_frame(tmp->name), stack_frame_add(' ');
+				blat_stack_frame(xmm->name), stack_frame_add('\n');
 				iprint_stack_frame(SA_PUSH);
 				blat_stack_frame(tmp->name), stack_frame_add('\n');
 

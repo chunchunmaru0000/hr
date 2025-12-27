@@ -37,6 +37,7 @@ struct CPU {
 };
 
 extern int return_tuple_regs_indeces[MAX_ARGS_ON_REGISTERS];
+extern int return_tuple_xmm_indeces[MAX_ARGS_ON_REGISTERS];
 
 #define free_reg(reg)                                                          \
 	do {                                                                       \
@@ -49,6 +50,7 @@ extern int return_tuple_regs_indeces[MAX_ARGS_ON_REGISTERS];
 	: (sz) == DWORD ? (rf)->e                                                  \
 					: (rf)->r
 #define as_rfs(cpu) ((struct RegisterFamily **)(cpu))
+#define as_xmms(cpu) ((struct Reg **)(cpu))
 
 struct CPU *new_cpu();
 struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code);
@@ -335,8 +337,12 @@ struct Inst *find_struct(struct BList *name);
 struct BList *size_str(uc size);
 int le_depth(struct LocalExpr *e);
 void iprint_jmp(Gg, enum LE_Code le, int is_u);
-struct Reg *try_return_to(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
-						  struct RegisterFamily *to_rf);
+struct Reg *return_to_rf(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
+						 struct RegisterFamily *to_rf);
+struct Reg *return_to_xmm(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
+						  struct Reg *to_xmm);
+struct Reg *cvt_to_xmm(Gg, struct LocalExpr *not_xmm_e, struct Reg *not_xmm,
+					   uc to_ss);
 
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size);
 void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);
