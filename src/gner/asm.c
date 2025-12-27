@@ -116,6 +116,9 @@ sa(CDQ, "превчв\n");
 sa(CQO, "преввш\n");
 sa(INC, "++");
 sa(DEC, "--");
+sa(PXOR, "уискл ");
+sa(POP, "выт ");
+sa(PUSH, "толк ");
 
 sa(L_PAR, "(");
 sa(R_PAR, ") ");

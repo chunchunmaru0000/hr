@@ -49,9 +49,10 @@ void reset_flags(struct Gner *g) {
 	f->is_r13_used = 0;
 	f->is_r14_used = 0;
 	f->is_r15_used = 0;
+	f->used_xmm = 0;
 	f->need_save_args_on_stack_count = 0;
 	f->is_args_in_regs = 1;
-	//f->is_data_segment_used = 0; // its not func related
+	// f->is_data_segment_used = 0; // its not func related
 }
 
 void gen(struct Gner *g) {
@@ -155,6 +156,8 @@ struct Reg *try_borrow_xmm_reg(struct Token *place, Gg) {
 	struct Reg *reg = borrow_xmm_reg(g->cpu);
 	if (reg == 0)
 		eet(place, TOO_COMPLEX_EXPR, MAKE_SIMPLER_EXPR);
+	if (reg->reg_code > R_XMM8)
+		g->flags->used_xmm |= 1 << (reg->reg_code - R_XMM9);
 	return reg;
 }
 
@@ -186,15 +189,27 @@ void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 		printf("%s <-> %s\n", bs(reg->name), bs(rf->r->name));
 		exit(66);
 	}
-	if (reg->rf != rf) {
-		if (rf->r->allocated) {
-			// reg is now points to rf's reg
-			swap_basic_regs(g, rf, reg->rf, DO_XCHG);
-		} else {
-			free_reg_family(reg->rf);
-			swap_basic_regs(g, reg->rf, rf, DO_MOV);
-			alloc_all_family_reg(rf);
-		}
+	if (reg->rf == rf)
+		return;
+	if (rf->r->allocated) {
+		// reg is now points to rf's reg
+		swap_basic_regs(g, rf, reg->rf, DO_XCHG);
+	} else {
+		free_reg_family(reg->rf);
+		swap_basic_regs(g, reg->rf, rf, DO_MOV);
+		alloc_all_family_reg(rf);
+	}
+}
+
+void get_xmm_to_xmm(Gg, struct Reg *xmm, struct Reg *save_to_xmm) {
+	if (xmm == save_to_xmm)
+		return;
+	if (save_to_xmm->allocated) {
+		swap_xmm_regs(g, xmm, save_to_xmm, DO_PXOR);
+	} else {
+		free_reg(xmm);
+		swap_xmm_regs(g, xmm, save_to_xmm, DO_MOV);
+		save_to_xmm->allocated = 1;
 	}
 }
 

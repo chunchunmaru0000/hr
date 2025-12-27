@@ -201,6 +201,21 @@ void write_flags_and_end_stack_frame(Gg) {
 			iprint_stack_frame(SA_PUSH_R13);
 			op_(POP_R13);
 		}
+		for (int i = 6; i >= 0; i--) {
+			if (g->flags->used_xmm & (1 << i)) {
+				struct Reg *xmm = g->cpu->xmm[9 + i];
+				struct Reg *tmp =
+					try_borrow_reg(g->current_inst->start_token, g, QWORD);
+
+				op_reg_reg(MOV_XMM, tmp, xmm);
+				iprint_stack_frame(SA_PUSH);
+				blat_stack_frame(tmp->name), stack_frame_add('\n');
+
+				op_reg_enter(POP, tmp);
+				op_reg_reg(MOV_XMM, xmm, tmp);
+				free_register(tmp);
+			}
+		}
 
 		op_(LEAVE);
 	} else

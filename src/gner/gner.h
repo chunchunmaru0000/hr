@@ -64,12 +64,21 @@ struct Reg *borrow_xmm_reg(struct CPU *cpu);
 void set_value_to_reg(struct Reg *reg, long value);
 struct Reg *alloc_reg_of_size(struct RegisterFamily *rf, int size);
 
+#define IS_XMM9_USED 1 << 0
+#define IS_XMM10_USED 1 << 1
+#define IS_XMM11_USED 1 << 2
+#define IS_XMM12_USED 1 << 3
+#define IS_XMM13_USED 1 << 4
+#define IS_XMM14_USED 1 << 5
+#define IS_XMM15_USED 1 << 6
+
 struct Fggs {
 	uc is_stack_used;
 
 	uc is_r13_used;
 	uc is_r14_used;
 	uc is_r15_used;
+	uc used_xmm;
 	uc need_save_args_on_stack_count;
 	// arguments only in registers, can be only done if there is no other args
 	// in the function and no stack usage
@@ -128,6 +137,7 @@ struct Reg *try_borrow_reg(struct Token *place, struct Gner *g, uc of_size);
 struct Reg *try_borrow_xmm_reg(struct Token *place, struct Gner *g);
 #define DO_XCHG 0
 #define DO_MOV 1
+#define DO_PXOR 2
 void swap_basic_regs(struct Gner *g, struct RegisterFamily *rf1,
 					 struct RegisterFamily *rf2, int do_mov);
 struct Reg *try_alloc_reg(struct Token *tvar, struct RegisterFamily *rf,
@@ -137,6 +147,8 @@ void save_allocated_regs(Gg, struct Token *place);
 void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 				   struct RegisterFamily *rf);
 struct Reg *get_reg_to_size(Gg, struct Reg *r, int wanna_size);
+void swap_xmm_regs(Gg, struct Reg *to_x, struct Reg *from_x, int do_mov);
+void get_xmm_to_xmm(Gg, struct Reg *xmm, struct Reg *save_to_xmm);
 
 struct Gner *new_gner(struct Pser *, enum Target, uc);
 void reset_flags(struct Gner *g);
@@ -152,33 +164,25 @@ void gen(struct Gner *);
 // #############################################################################
 // 									SA - Str Asm
 // #############################################################################
-sae(LET_8) sae(LET_16) sae(LET_32) sae(LET_64) sae(RAX) sae(RBP)
-	sae(REZERV_ZERO) sae(SEGMENT_READ_WRITE) sae(SEGMENT_READ_EXECUTE) sae(
-		LABEL_END) sae(ZERO_TERMINATOR) sae(START_COMMENT) sae(EQU) sae(COMM)
-		sae(PUSH_RBP) sae(MOV_RBP_RSP) sae(MOV_MEM_RBP_OPEN) sae(SUB_RSP) sae(
-			POP_RBP) sae(LEAVE) sae(RET) sae(STR_XOR_EAX_EAX) sae(MOV_RAX)
-			sae(BYTE) sae(WORD) sae(DWORD) sae(QWORD) sae(MOV) sae(L_PAR)
-				sae(R_PAR) sae(PAR_RBP) sae(OFF_RAX) sae(JMP) sae(LEA) sae(IMUL)
-					sae(IDIV) sae(ADD) sae(SUB) sae(SHL) sae(SHR) sae(BIT_AND)
-						sae(BIT_XOR) sae(BIT_OR) sae(NEG) sae(NOT) sae(SET0)
-							sae(SETN0) sae(CMP) sae(MOV_XMM) sae(CVTSI2SS)
-								sae(CVTSI2SD) sae(CVTSS2SD) sae(MUL_SS)
-									sae(DIV_SS) sae(ADD_SS) sae(SUB_SS)
-										sae(BIT_AND_PS) sae(BIT_XOR_PS)
-											sae(BIT_OR_PS) sae(MUL_SD)
-												sae(DIV_SD) sae(ADD_SD)
-													sae(SUB_SD) sae(BIT_AND_PD)
-														sae(BIT_XOR_PD)
-															sae(BIT_OR_PD);
-sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST) sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1)
-	sae(SAR1) sae(XOR) sae(SETB) sae(SETBE) sae(SETA) sae(SETAE) sae(SETL)
-		sae(SETLE) sae(SETG) sae(SETGE) sae(SETE) sae(SETNE) sae(J0) sae(JN0)
-			sae(JB) sae(JBE) sae(JA) sae(JAE) sae(JL) sae(JLE) sae(JG) sae(JGE)
-				sae(JE) sae(JNE) sae(CALL) sae(CVTSS2SI) sae(CVTSD2SI)
-					sae(PUSH_R15) sae(PUSH_R14) sae(PUSH_R13) sae(POP_R15)
-						sae(POP_R14) sae(POP_R13) sae(MEM_PLUS) sae(CBW)
-							sae(CWDE) sae(CDQE) sae(CWD) sae(CDQ) sae(CQO)
-								sae(INC) sae(DEC) sae(LET);
+sae(LET_8) sae(LET_16) sae(LET_32) sae(LET_64) sae(RAX) sae(RBP);
+sae(REZERV_ZERO) sae(SEGMENT_READ_WRITE) sae(SEGMENT_READ_EXECUTE);
+sae(LABEL_END) sae(ZERO_TERMINATOR) sae(START_COMMENT) sae(EQU) sae(COMM);
+sae(PUSH_RBP) sae(MOV_RBP_RSP) sae(MOV_MEM_RBP_OPEN) sae(SUB_RSP) sae(POP_RBP);
+sae(LEAVE) sae(RET) sae(STR_XOR_EAX_EAX) sae(MOV_RAX) sae(BYTE) sae(WORD);
+sae(DWORD) sae(QWORD) sae(MOV) sae(L_PAR) sae(R_PAR) sae(PAR_RBP) sae(OFF_RAX);
+sae(JMP) sae(LEA) sae(IMUL) sae(IDIV) sae(ADD) sae(SUB) sae(SHL) sae(SHR);
+sae(BIT_AND) sae(BIT_XOR) sae(BIT_OR) sae(NEG) sae(NOT) sae(SET0) sae(SETN0);
+sae(CMP) sae(MOV_XMM) sae(CVTSI2SS) sae(CVTSI2SD) sae(CVTSS2SD) sae(MUL_SS);
+sae(DIV_SS) sae(ADD_SS) sae(SUB_SS) sae(BIT_AND_PS) sae(BIT_XOR_PS);
+sae(BIT_OR_PS) sae(MUL_SD) sae(DIV_SD) sae(ADD_SD) sae(SUB_SD) sae(BIT_AND_PD);
+sae(BIT_XOR_PD) sae(BIT_OR_PD) sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST);
+sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1) sae(SAR1) sae(XOR) sae(SETB) sae(SETBE);
+sae(SETA) sae(SETAE) sae(SETL) sae(SETLE) sae(SETG) sae(SETGE) sae(SETE);
+sae(SETNE) sae(J0) sae(JN0) sae(JB) sae(JBE) sae(JA) sae(JAE) sae(JL) sae(JLE);
+sae(JG) sae(JGE) sae(JE) sae(JNE) sae(CALL) sae(CVTSS2SI) sae(CVTSD2SI);
+sae(PUSH_R15) sae(PUSH_R14) sae(PUSH_R13) sae(POP_R15) sae(POP_R14);
+sae(POP_R13) sae(MEM_PLUS) sae(CBW) sae(CWDE) sae(CDQE) sae(CWD) sae(CDQ);
+sae(CQO) sae(INC) sae(DEC) sae(LET) sae(PXOR) sae(POP) sae(PUSH);
 
 // #############################################################################
 
