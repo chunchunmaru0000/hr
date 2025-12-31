@@ -11,6 +11,8 @@ constr EXPECTED_STR_AS_AN_INCLUDE_PATH =
 constr ALREADY_INCLUDED = "Файл уже однажды включен.";
 constr EXPECTED_INCLUDES_CLOSE_PAR =
 	"Встречен конец файла, а скобка так и не была закрыта.";
+constr EXPECTED_PATH_TO_BE_ALREADY_INCLUDED =
+	"Файл с таким путем ожидался быть уже включенным.";
 
 struct BList *get_dir(struct BList *path) {
 	int i;
@@ -209,6 +211,35 @@ struct NodeToken *parse_include(struct Prep *pr, struct NodeToken *c) {
 
 	eet(path_name->token, EXPECTED_STR_AS_AN_INCLUDE_PATH_OR_PAR_L, 0);
 	return (void *)-1;
+}
+
+// fst is #, c is надо
+struct NodeToken *parse_need(struct NodeToken *c) {
+	struct NodeToken *path_name = take_guaranteed_next(c);
+	struct BList *need_path, *loop_path;
+	u32 i;
+	if (path_name->token->code != STR)
+		eet(path_name->token, EXPECTED__STR, 0);
+
+	loop_path = copy_blist_from_str((char *)path_name->token->p->f->path);
+	need_path = get_dir(loop_path);
+	blist_clear_free(loop_path);
+	blat_blist(need_path, path_name->token->str), zero_term_blist(need_path);
+
+	while (smooth_some_path(need_path))
+		;
+	zero_term_blist(need_path);
+
+	foreach_begin(loop_path, included_files) {
+		if (sc(bs(loop_path), bs(need_path)))
+			goto skip_showing_error;
+	}
+	foreach_end;
+
+	eet(path_name->token, EXPECTED_PATH_TO_BE_ALREADY_INCLUDED, 0);
+skip_showing_error:
+
+	return path_name;
 }
 
 struct NodeToken *gen_node_tokens(struct PList *tokens) {

@@ -362,6 +362,7 @@ constr STR_VOT = "вот";
 constr STR_SE = "се";
 constr STR_INCLUDE = "влечь";
 constr STR_SENTENCE = "буки";
+constr STR_NEED = "надо";
 
 // TODO: if redefine then free last one
 struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
@@ -376,6 +377,9 @@ struct NodeToken *try_parse_sh(struct Prep *pr, struct NodeToken *name) {
 
 	if (vcs(name->token, STR_INCLUDE))
 		return parse_include(pr, name);
+
+	if (vcs(name->token, STR_NEED))
+		return parse_need(name);
 
 	if (vcs(name->token, STR_SENTENCE))
 		return parse_sent(pr, name);
