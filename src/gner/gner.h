@@ -473,6 +473,8 @@ extern int lm_size;
 // 									OZER
 // ############################################################################
 extern constr EXPECTED_PTR_TYPE;
+void define_call_type(struct LocalExpr *e);
+void define_numerous_call(struct LocalExpr *e);
 
 extern struct Gner *ogner;
 struct PList *opt_local_expr(struct LocalExpr *e);
