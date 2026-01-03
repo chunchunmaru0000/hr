@@ -2,14 +2,14 @@
 #include <stdio.h>
 
 #define rsi g->cpu->si
-#define xmm9 g->cpu->xmm[9]
+#define xmm0 g->cpu->xmm[0]
 
 // returns PList of Reg's
 struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 										struct PList *fun_args_types,
 										struct PList *ops) {
 	struct RegisterFamily **rfs_regs = &rsi;
-	struct Reg **xmm_regs = &xmm9;
+	struct Reg **xmm_regs = &xmm0;
 
 	struct LocalExpr *argument;
 	struct TypeExpr *arg_type;
