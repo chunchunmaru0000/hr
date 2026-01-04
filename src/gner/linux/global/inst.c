@@ -37,14 +37,19 @@ const struct Register argument_regs_QWORD[7] = {
 	{"р12", 4, R_R12, QWORD},
 };
 
+constr ENTRY_POINT_YET_EXISTS = "Входных точек не может быть две.";
+constr NEED_ENTRY_POINT = "Входная точка не была найдена, ее надо обозначить "
+						  "флагом функции '__ВХОД'.";
+
 void gen_linux_text(struct Gner *g) {
-	uint32_t i, j, local_i;
+	u32 i, j, local_i;
 	struct Inst *in, *local_in;
-	struct Token *tok, *tok2;
+	struct Token *tok;
 	struct GlobVar *global_var;
 	struct Enum *enum_obj;
 
 	g->flags->is_data_segment_used = 0;
+	g->flags->entry_point_already_exists = 0;
 
 	for (i = 0; i < g->is->size; i++) {
 		in = plist_get(g->is, i);
@@ -107,8 +112,18 @@ void gen_linux_text(struct Gner *g) {
 			g->label_to_ret = 0;
 			// reset flags
 			reset_flags(g);
-			// begin stack frame
 			global_var = g->current_function;
+			// create entry point
+			if (global_var->name->num & IS_ENTRY_POINT) {
+				if (g->flags->entry_point_already_exists)
+					eet(global_var->name, ENTRY_POINT_YET_EXISTS, 0);
+				g->flags->entry_point_already_exists = 1;
+
+				blat_str_stack_frame(SA_ENTRY);
+				blat_stack_frame(global_var->signature);
+				stack_frame_add('\n');
+			}
+			// begin stack frame
 			blat_stack_frame(global_var->signature); // fun label
 			blat_str_stack_frame(SA_LABEL_END);		 // :
 			g->indent_level++;
@@ -176,6 +191,15 @@ end_gen_text_loop:;
 
 	aprol_add('\n');
 	iprint_aprol(SA_SEGMENT_READ_EXECUTE);
+
+	if (!g->flags->entry_point_already_exists) {
+		if (in)
+			eei(in, NEED_ENTRY_POINT, 0);
+		else {
+			printf("...%s%s%s\n", COLOR_RED, NEED_ENTRY_POINT, COLOR_RESET);
+			exit(1);
+		}
+	}
 }
 
 void write_flags_and_end_stack_frame(Gg) {

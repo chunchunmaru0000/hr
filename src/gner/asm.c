@@ -119,6 +119,7 @@ sa(DEC, "--");
 sa(PXOR, "уискл ");
 sa(POP, "выт ");
 sa(PUSH, "толк ");
+sa(ENTRY, "вход ");
 
 sa(L_PAR, "(");
 sa(R_PAR, ") ");

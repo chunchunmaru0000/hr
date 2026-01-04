@@ -362,6 +362,7 @@ struct GlobVar {
 	int gvar_size;
 };
 #define DO_NOT_CREATE_STACK_FRAME 1 << 0
+#define IS_ENTRY_POINT 1 << 1
 
 #define types_sizes_do_match(t1, t2)                                           \
 	(((t1) >= TC_VOID && (t2) >= TC_VOID) ||                                   \

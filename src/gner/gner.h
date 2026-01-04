@@ -87,6 +87,7 @@ struct Fggs {
 	uc is_args_in_regs;
 
 	uc is_data_segment_used;
+	uc entry_point_already_exists;
 };
 extern uc function_body_return;
 
@@ -184,7 +185,7 @@ sae(SETNE) sae(J0) sae(JN0) sae(JB) sae(JBE) sae(JA) sae(JAE) sae(JL) sae(JLE);
 sae(JG) sae(JGE) sae(JE) sae(JNE) sae(CALL) sae(CVTSS2SI) sae(CVTSD2SI);
 sae(PUSH_R15) sae(PUSH_R14) sae(PUSH_R13) sae(POP_R15) sae(POP_R14);
 sae(POP_R13) sae(MEM_PLUS) sae(CBW) sae(CWDE) sae(CDQE) sae(CWD) sae(CDQ);
-sae(CQO) sae(INC) sae(DEC) sae(LET) sae(PXOR) sae(POP) sae(PUSH);
+sae(CQO) sae(INC) sae(DEC) sae(LET) sae(PXOR) sae(POP) sae(PUSH) sae(ENTRY);
 
 // #############################################################################
 

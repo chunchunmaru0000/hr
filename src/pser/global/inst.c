@@ -159,6 +159,7 @@ enum IP_Code inst_pser_struct(struct Pser *p, struct PList *os) {
 }
 
 constr FF_DO_NOT_CREATE_STACK_FRAME = "__АСМ";
+constr FF_IS_ENTRY_POINT = "__ВХОД";
 
 // ### os explanation:
 //   _ - GlobVar with name and type
@@ -181,6 +182,10 @@ enum IP_Code inst_pser_dare_fun(struct Pser *p, struct PList *os) {
 	for (cur = absorb(p); 1; cur = absorb(p)) { // skip фц
 		if (sc(vs(cur), FF_DO_NOT_CREATE_STACK_FRAME)) {
 			fun_flags |= DO_NOT_CREATE_STACK_FRAME;
+			continue;
+		}
+		if (sc(vs(cur), FF_IS_ENTRY_POINT)) {
+			fun_flags |= IS_ENTRY_POINT;
 			continue;
 		}
 		break;
