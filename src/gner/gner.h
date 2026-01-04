@@ -182,7 +182,7 @@ sae(BIT_XOR_PD) sae(BIT_OR_PD) sae(XCHG) sae(SHL1) sae(SHR1) sae(TEST);
 sae(CMOVS) sae(SAL) sae(SAR) sae(SAL1) sae(SAR1) sae(XOR) sae(SETB) sae(SETBE);
 sae(SETA) sae(SETAE) sae(SETL) sae(SETLE) sae(SETG) sae(SETGE) sae(SETE);
 sae(SETNE) sae(J0) sae(JN0) sae(JB) sae(JBE) sae(JA) sae(JAE) sae(JL) sae(JLE);
-sae(JG) sae(JGE) sae(JE) sae(JNE) sae(CALL) sae(CVTSS2SI) sae(CVTSD2SI);
+sae(JG) sae(JGE) sae(JE) sae(JNE) sae(CALL) sae(CVTTSS2SI) sae(CVTTSD2SI);
 sae(PUSH_R15) sae(PUSH_R14) sae(PUSH_R13) sae(POP_R15) sae(POP_R14);
 sae(POP_R13) sae(MEM_PLUS) sae(CBW) sae(CWDE) sae(CDQE) sae(CWD) sae(CDQ);
 sae(CQO) sae(INC) sae(DEC) sae(LET) sae(PXOR) sae(POP) sae(PUSH) sae(ENTRY);

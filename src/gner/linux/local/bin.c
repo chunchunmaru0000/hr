@@ -59,10 +59,10 @@ struct Reg *cvt_from_xmm(Gg, struct LocalExpr *e, struct Reg *xmm_reg) {
 	struct Reg *r;
 
 	if (is_ss(e->type)) {
-		op_(CVTSS2SI);
+		op_(CVTTSS2SI);
 		r = try_borrow_reg(e->tvar, g, DWORD);
 	} else {
-		op_(CVTSD2SI);
+		op_(CVTTSD2SI);
 		r = try_borrow_reg(e->tvar, g, QWORD);
 	}
 	reg_(r);
