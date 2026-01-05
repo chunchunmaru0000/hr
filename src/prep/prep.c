@@ -9,7 +9,7 @@ void replace_token(struct Token *dst, struct Token *src);
 constr WASNT_EXPECTING_EOF = "Неожиданно встречен конец файла.";
 constr WAS_EXPECTING_PREP_INST_WORD =
 	"После токена '#' ожидалось одно из ключевых слов препроцессора: "
-	"'вот', 'влечь' или 'се'.";
+	"'вот', 'влечь', 'надо' или 'се'.";
 constr EXPCEPTED_PAR_L_OR_SH_L =
 	"В объявлении макро ожидалось либо '(' для начала аргументов либо '(#' для "
 	"начало текста макро.";

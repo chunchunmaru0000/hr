@@ -1,0 +1,18 @@
+
+лик Ряд (
+	*стр нч
+	ц32 запасено
+	ц32 размер
+)
+
+лик Ряд новый_ряд(начальный_размер: ц32) (
+	пусть 
+)
+struct PList *new_plist(uint32_t cap_pace) {
+	struct PList *l = malloc(sizeof(struct PList));
+	l->cap_pace = cap_pace ? cap_pace : 2;
+	l->cap = cap_pace;
+	l->size = 0;
+	l->st = malloc(cap_pace * sizeof(void *));
+	return l;
+}

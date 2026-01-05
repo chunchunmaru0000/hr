@@ -1,0 +1,72 @@
+#надо "ряд.ср"
+#надо "../../память/пласт.ср"
+
+;;
+Приставка рп значит Ряд Пласт
+;;
+
+#define plist_clear(l) ((l)->size = 0)
+#define p_last(l) (plist_get((l), (l)->size - 1))
+#define plat_plist(l, o) (plat((l), (o)->st, (o)->size))
+
+void plist_free(struct PList *l) {
+	free(l->st);
+	free(l);
+}
+
+void plist_re(struct PList *l) {
+	if (l->cap != l->cap_pace) {
+		l->cap = l->cap_pace;
+		l->st = realloc(l->st, l->cap_pace * sizeof(void *));
+	}
+	l->size = 0;
+}
+
+void plist_clear_items_free(struct PList *l) {
+	for (uint32_t i = 0; i < l->size; i++)
+		free(plist_get(l, i));
+	plist_clear(l);
+}
+
+void plist_free_items_free(struct PList *l) {
+	for (uint32_t i = 0; i < l->size; i++)
+		free(plist_get(l, i));
+	plist_free(l);
+}
+
+uint32_t plist_cut(struct PList *l) {
+	if (!l->size)
+		return 0;
+	l->cap = l->size;
+	l->st = realloc(l->st, l->size * sizeof(void *));
+	return l->size;
+}
+
+uint32_t plist_add(struct PList *l, void *p) {
+	if (l->size >= l->cap) {
+		l->cap += l->cap_pace;
+		l->st = realloc(l->st, l->cap * sizeof(void *));
+	}
+	l->st[l->size] = p;
+	l->size++;
+	return l->size;
+}
+
+void *plist_get(struct PList *l, uint32_t i) { return l->st[i]; }
+
+void *plist_set(struct PList *l, uint32_t i, void *p) {
+	void *old = l->st[i];
+	l->st[i] = p;
+	return old;
+}
+
+void plat(struct PList *l, void **s, u32 t) {
+	if (t <= 0)
+		return;
+	if (l->cap < l->size + t) {
+		l->cap = l->size + t + l->cap_pace;
+		l->st = realloc(l->st, l->cap * sizeof(void *));
+	}
+	memcpy(l->st + l->size, s, t * sizeof(void *));
+	l->size += t;
+}

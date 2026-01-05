@@ -1,7 +1,7 @@
 #include "../../gner.h"
 #include <stdio.h>
 
-void put_vars_on_the_stack(struct Gner *g, struct Inst *in);
+void put_vars_on_the_stack(struct Gner *g, struct PList *os);
 void gen_return(Gg, struct LocalExpr *e);
 
 constr CHANGE_VAR_NAME_OR_DELETE_VAR = "изменить имя переменной или удалить ее";
@@ -34,6 +34,9 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 	struct Token *tok, *name, *str;
 	struct BList *string;
 	struct Loop *loop;
+	struct Arg *var_arg;
+	struct PList *some_os;
+	struct LocalExpr *le;
 	uint32_t i = 0;
 
 	switch (in->code) {
@@ -48,7 +51,7 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 		// ### os explanation
 		// ... - Arg's
 
-		put_vars_on_the_stack(g, in);
+		put_vars_on_the_stack(g, in->os);
 		break;
 	case IP_DECLARE_LABEL:
 		// ### os explanation
@@ -107,6 +110,35 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 	case IP_LOCAL_EXPRESSION:
 		gen_local_expr_inst_linux(g, in);
 		break;
+	case IP_IS:
+		// ### os explanation
+		//   _ - struct Token *name
+		//   _ - struct Type *
+		//   _ - struct LocalExpr *
+
+		name = plist_get(in->os, 0);
+
+		// declare var
+		var_arg = new_arg(); // offset gonna be 0
+		plist_add(var_arg->names, name);
+		var_arg->type = plist_get(in->os, 1);
+		var_arg->arg_size = unsafe_size_of_type(var_arg->type);
+
+		plist_add(some_os = new_plist(1), var_arg);
+		put_vars_on_the_stack(g, some_os);
+
+		// assign to var
+		le = plist_get(in->os, 2);
+		le =
+			new_local_expr(LE_BIN_ASSIGN, 0,
+						   new_tok(copy_blist_from_str("="), EQU, le->tvar->p));
+		le->l = new_local_expr(LE_PRIMARY_VAR, 0, name);
+		le->r = plist_get(in->os, 2);
+
+		define_le_type(le);
+		opt_bin_constant_folding(le);
+		gen_local_expr_linux(g, le);
+		break;
 	case IP_BREAK:
 	case IP_CONTINUE:
 		// ### os explanation
@@ -128,14 +160,14 @@ void gen_local_linux(struct Gner *g, struct Inst *in) {
 	}
 }
 
-void put_vars_on_the_stack(struct Gner *g, struct Inst *in) {
+void put_vars_on_the_stack(struct Gner *g, struct PList *os) {
 	uint32_t i, j, vars;
 	struct Arg *arg;
 	struct LocalVar *var, *tmp_var;
 	long last_offset = -1;
 
-	for (i = 0; i < in->os->size; i++) {
-		arg = plist_get(in->os, i);
+	for (i = 0; i < os->size; i++) {
+		arg = plist_get(os, i);
 		if (arg->offset != last_offset)
 			g->stack_counter -= arg->arg_size;
 

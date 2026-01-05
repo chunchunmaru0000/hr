@@ -104,9 +104,25 @@ enum IP_Code pser_local_inst_return(struct Pser *p, struct PList *os) {
 	return IP_RETURN;
 }
 
+// ### os explanation
+//   _ - struct Token *name
+//   _ - struct Type *
+//   _ - struct LocalExpr *
+enum IP_Code pser_local_inst_is(struct Pser *p, struct PList *os,
+								struct Token *name) {
+	plist_add(os, name);				// name
+	consume(p);							// skip name
+	consume(p);							// skip есть
+	plist_add(os, type_expr(p));		// type
+	match(pser_cur(p), EQU);			// skip '='
+	plist_add(os, local_expression(p)); // value
+	return IP_IS;
+}
+
 constr STR_BREAK = "обрыв";
 constr STR_CONTINUE = "миновать";
 constr STR_RETURN = "воздать";
+constr STR_IS = "есть";
 
 struct Inst *get_local_inst(struct Pser *p) {
 	struct Token *c = pser_cur(p), *n;
@@ -140,11 +156,13 @@ struct Inst *get_local_inst(struct Pser *p) {
 			code = pser_local_inst_continue(p, os);
 		else if (sc(cv, STR_RETURN))
 			code = pser_local_inst_return(p, os);
+		else if (sc(cv, STR_LOOP))
+			code = pser_local_inst_loop(p, os);
 
 		else if (n->code == COLO)
 			code = pser_local_inst_label(p, os, c);
-		else if (sc(cv, STR_LOOP))
-			code = pser_local_inst_loop(p, os);
+		else if (sc(vs(n), STR_IS))
+			code = pser_local_inst_is(p, os, c);
 
 		if (code != IP_NONE)
 			break;

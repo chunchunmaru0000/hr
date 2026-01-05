@@ -119,6 +119,7 @@ enum IP_Code {
 	IP_DECLARE_FUNCTION,
 	// local level
 	IP_LET,
+	IP_IS,
 
 	IP_DECLARE_LABEL,
 	IP_GOTO,
@@ -248,6 +249,7 @@ struct Arg {
 	struct TypeExpr *type;
 	int arg_size;
 };
+struct Arg *new_arg();
 
 struct PLocalVar {
 	struct Token *name; // name is equ of offset in asm so dont need off in here
