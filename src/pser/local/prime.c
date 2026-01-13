@@ -1,4 +1,5 @@
 #include "../pser.h"
+#include <stdio.h>
 
 #define set_e_code_and_consume(code_to_set)                                    \
 	do {                                                                       \
@@ -72,7 +73,7 @@ return_e:
 			e = unary_l_expression(p);                                         \
 			unary = new_local_expr((le_code), 0, c);                           \
 			unary->l = e;                                                      \
-			goto unary_return;                                                 \
+			return unary;                                                      \
 		}                                                                      \
 	} while (0)
 #define annihilate_one_on_other(ccode, one, other)                             \
@@ -87,7 +88,7 @@ return_e:
 				unary = new_local_expr(LE_UNARY_##other, 0, c);                \
 				unary->l = e;                                                  \
 			}                                                                  \
-			goto unary_return;                                                 \
+			return unary;                                                      \
 		}                                                                      \
 	} while (0)
 
@@ -117,7 +118,7 @@ struct LocalExpr *unary_l_expression(struct Pser *p) {
 		e = unary_l_expression(p);
 		unary = new_local_expr(LE_UNARY_MINUS, 0, last_minus);
 		unary->l = e;
-		goto unary_return;
+		return unary;
 	}
 	// these are annihilate one on other, dont care more in here(parser)
 	annihilate_one_on_other(MUL, AMPER, ADDR);
@@ -138,17 +139,34 @@ struct LocalExpr *unary_l_expression(struct Pser *p) {
 			unary = new_local_expr(LE_UNARY_NOT, 0, c);
 			unary->l = e;
 		}
-		goto unary_return;
+		return unary;
 	}
 
 	// these are good
 	one_token_unary(INC, LE_UNARY_INC);
 	one_token_unary(DEC, LE_UNARY_DEC);
 
+	if (c->code == ID) {
+		if (sc(vs(c), STR_SIZE_OF)) {
+			consume(p);
+			unary = new_local_expr(LE_SIZE_OF, 0, c);
+			unary->l = (void *)type_expr(p);
+		} else if (sc(vs(c), STR_SIZE_OF_VAL)) {
+			consume(p);
+			unary = new_local_expr(LE_SIZE_OF_VAL, 0, c);
+			unary->l = local_expression(p);
+		} else if (sc(vs(c), STR_AS)) {
+			consume(p);
+			unary = new_local_expr(LE_AS, 0, c);
+			unary->l = (void *)type_expr(p);
+			unary->r = local_expression(p);
+		} else
+			goto default_return;
+		return unary;
+	}
+
 default_return:
 	return after_l_expression(p);
-unary_return:
-	return unary;
 unary_expression_return:
 	return unary_l_expression(p);
 }

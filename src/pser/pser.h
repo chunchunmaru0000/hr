@@ -505,6 +505,9 @@ enum LE_Code {
 	LE_IF_ELSE = 46,
 	LE_NUMEROUS_CALL = 47,
 	LE_RANGE_LOOP = 48,
+	LE_SIZE_OF = 49,
+	LE_SIZE_OF_VAL = 50,
+	LE_AS = 51,
 };
 #define LOOP_DDD 1 << 0
 #define LOOP_DDE 1 << 1

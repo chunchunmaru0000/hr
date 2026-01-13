@@ -467,7 +467,7 @@ struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
 		r1 = gen_to_reg(g, left, 0);
 
 		imt_reg_(r1->reg_code), blat_imt(field_full_name);
-		blist_clear_free(field_full_name);
+		// blist_clear_free(field_full_name);
 	}
 
 	free_register(r2);
@@ -492,7 +492,7 @@ void trail_last_inner_mem(Gg, struct LocalExpr *e, struct LocalExpr *trailed,
 		struct BList *field_full_name = (struct BList *)(long)e->tvar->real;
 
 		sprint_imt(MEM_PLUS), blat_imt(field_full_name);
-		blist_clear_free(field_full_name);
+		// blist_clear_free(field_full_name);
 	} else
 		exit(123);
 }

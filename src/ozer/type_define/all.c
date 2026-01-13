@@ -318,6 +318,17 @@ void define_le_type(struct LocalExpr *e) {
 		define_le_type(e->r);
 		if (e->co.cond)
 			define_le_type(e->co.cond);
+	} else if (lce(SIZE_OF)) {
+		e->code = LE_PRIMARY_INT, e->type = new_type_expr(TC_I32);
+		e->tvar->num = unsafe_size_of_type((void *)e->l);
+		update_int_view(e);
+	} else if (lce(SIZE_OF_VAL)) {
+		e->code = LE_PRIMARY_INT, e->type = new_type_expr(TC_I32);
+		define_le_type(e->l);
+		e->tvar->num = unsafe_size_of_type(e->l->type);
+		update_int_view(e);
+	} else if (lce(AS)) {
+		exit(88); // TODO: cast
 	} else
 		exit(87);
 }
