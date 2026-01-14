@@ -186,6 +186,7 @@ sae(JG) sae(JGE) sae(JE) sae(JNE) sae(CALL) sae(CVTTSS2SI) sae(CVTTSD2SI);
 sae(PUSH_R15) sae(PUSH_R14) sae(PUSH_R13) sae(POP_R15) sae(POP_R14);
 sae(POP_R13) sae(MEM_PLUS) sae(CBW) sae(CWDE) sae(CDQE) sae(CWD) sae(CDQ);
 sae(CQO) sae(INC) sae(DEC) sae(LET) sae(PXOR) sae(POP) sae(PUSH) sae(ENTRY);
+sae(CVTSD2SS);
 
 // #############################################################################
 

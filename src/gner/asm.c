@@ -59,6 +59,7 @@ sa(MOV_XMM, "бытьэ ");
 sa(CVTSI2SS, "пресч2со ");
 sa(CVTSI2SD, "пресч2сд ");
 sa(CVTSS2SD, "пресо2сд ");
+sa(CVTSD2SS, "пресд2со ");
 sa(CVTTSS2SI, "преосо2зч ");
 sa(CVTTSD2SI, "преосд2зч ");
 sa(XCHG, "обмн ");

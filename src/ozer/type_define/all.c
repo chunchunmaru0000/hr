@@ -328,7 +328,8 @@ void define_le_type(struct LocalExpr *e) {
 		e->tvar->num = unsafe_size_of_type(e->l->type);
 		update_int_view(e);
 	} else if (lce(AS)) {
-		exit(88); // TODO: cast
+		define_type_and_copy_flags_to_e(e->r);
+		e->type = (void *)e->l, e->l = e->r;
 	} else
 		exit(87);
 }

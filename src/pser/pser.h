@@ -241,6 +241,7 @@ struct TypeExpr *copy_type_expr(struct TypeExpr *type);
 void free_type(struct TypeExpr *type);
 int size_of_type(struct Pser *p, struct TypeExpr *type);
 int unsafe_size_of_type(struct TypeExpr *type);
+struct BList *type_to_blist_from_str(struct TypeExpr *type);
 
 struct Arg {
 	struct PList *names; // PList of Tokens

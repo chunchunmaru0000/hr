@@ -145,6 +145,41 @@ struct Reg *dereference(Gg, struct LocalExpr *e) {
 	return r;
 }
 
+constr CANT_CAST_PTR_TO_SINGLE =
+	"Нельзя 'окак' выражение типа 'в32' в указатель.";
+
+struct Reg *cast_to_type(Gg, struct TypeExpr *cast_type,
+						 struct LocalExpr *cast_value) {
+	struct Reg *r = gen_to_reg(g, cast_value, 0);
+
+	if (is_ptr_type(cast_type)) {
+		if (is_xmm(r)) {
+			if (is_ss(cast_value->type))
+				eet(cast_value->tvar, CANT_CAST_PTR_TO_SINGLE, 0);
+
+			struct Reg *r2 = try_borrow_reg(cast_value->tvar, g, QWORD);
+			op_reg_reg(MOV_XMM, r2, r);
+			free_register(r), r = r2;
+		} else
+			r = get_reg_to_size(g, r, QWORD);
+	} else if (is_num_int_type(cast_type)) {
+		r = is_xmm(r) ? get_reg_to_size(g, cvt_from_xmm(g, cast_value, r),
+										unsafe_size_of_type(cast_type))
+					  : get_reg_to_size(g, r, unsafe_size_of_type(cast_type));
+	} else if (is_real_type(cast_type)) {
+		if (!is_xmm(r))
+			r = cvt_to_xmm(g, cast_value, r, is_ss(cast_type));
+		else if (cast_type->code > cast_value->type->code) // to DOUBLE
+			cvt_ss_to_sd(r);
+		else if (cast_type->code < cast_value->type->code) { // to SINGLE
+			op_reg_reg(CVTSD2SS, r, r);
+		}
+	} else
+		exit(44);
+
+	return r;
+}
+
 struct Reg *unary_to_reg(Gg, struct LocalExpr *e) {
 	struct Reg *reg = 0;
 	int unit_size;
@@ -200,6 +235,8 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 		res_reg = prime_to_reg(g, e, reg_size);
 	else if (is_unary(e) || lce(BOOL))
 		res_reg = unary_to_reg(g, e);
+	else if (lce(AS))
+		res_reg = cast_to_type(g, e->type, e->l);
 	else if (lcea(CALL))
 		res_reg = call_to_reg(g, e);
 	else if (lcea(INC) || lcea(DEC))

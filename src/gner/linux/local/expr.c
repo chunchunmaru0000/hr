@@ -99,6 +99,12 @@ void print_le(struct LocalExpr *e, int with_n) {
 		if (e->flags & LOOP_IS_BACKWARD)
 			printf(" назад");
 		printf("%s)%s ( ... )", remove_color_level(), COLOR_RESET);
+	} else if (lce(AS)) {
+		struct BList *other = zero_term_blist(type_to_blist_from_str(e->type));
+		printf("%s(%sокак %s ", take_color_level(), COLOR_RESET, bs(other));
+		blist_clear_free(other);
+		print_le(e->l, 0);
+		printf("%s)%s", remove_color_level(), COLOR_RESET);
 	} else {
 		printf("%s", vs(e->tvar));
 	}
@@ -195,6 +201,13 @@ struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 		if (e->flags & LOOP_IS_BACKWARD)
 			print_str(" назад");
 		print_str(") ( ... )");
+	} else if (lce(AS)) {
+		print_str("(окак ");
+		other = zero_term_blist(type_to_blist_from_str(e->type));
+		print_str(bs(other)), blist_clear_free(other);
+		print_str(" ");
+		print_orher(e->l);
+		print_str(")");
 	} else {
 		print_tvar(e);
 	}
