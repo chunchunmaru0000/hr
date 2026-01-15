@@ -345,6 +345,10 @@ struct Reg *return_to_xmm(Gg, struct TypeExpr *return_type, struct LocalExpr *e,
 						  struct Reg *to_xmm);
 struct Reg *cvt_to_xmm(Gg, struct LocalExpr *not_xmm_e, struct Reg *not_xmm,
 					   uc to_ss);
+struct Reg *cast_to_type(Gg, struct TypeExpr *cast_type,
+						 struct LocalExpr *cast_value);
+struct Reg *cast_reg_to_type(Gg, struct TypeExpr *cast_type,
+							 struct LocalExpr *cast_value, struct Reg *r);
 
 struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size);
 void gen_dec_inc(struct Gner *g, struct LocalExpr *e, uc is_inc);

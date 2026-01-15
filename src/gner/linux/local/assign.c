@@ -58,9 +58,19 @@ void assign_from_literal(Gg, struct LocalExpr *assignee,
 		eet(assignee->tvar, NOT_ASSIGNABLE, 0);
 
 	if (lceep(literal, INT)) {
-		add_int_with_hex_comm(fun_text, literal->tvar->num);
+		if (is_real_type(assignee->type) && literal->tvar->num) {
+			literal->tvar->real = literal->tvar->num;
+			real_add_enter(fun_text, literal->tvar->real);
+		} else {
+			add_int_with_hex_comm(fun_text, literal->tvar->num);
+		}
 	} else if (lceep(literal, REAL)) {
-		real_add_enter(fun_text, literal->tvar->real);
+		if (is_real_type(assignee->type) && literal->tvar->real) {
+			real_add_enter(fun_text, literal->tvar->real);
+		} else {
+			literal->tvar->num = literal->tvar->real;
+			add_int_with_hex_comm(fun_text, literal->tvar->num);
+		}
 	} else if (gvar) {
 		blat_ft(gvar->signature), ft_add('\n');
 	} else
@@ -89,10 +99,8 @@ void tuple_to_tuple_assign(Gg, struct LocalExpr *e) {
 		if (is_le_num(l, 0))
 			gen_opted(g, r), plist_add(regs, 0);
 		else
-			plist_add(regs,
-					  is_num_le(r)
-						  ? 0
-						  : gen_to_reg(g, r, unsafe_size_of_type(l->type)));
+			plist_add(regs, is_num_le(r) ? 0 : cast_to_type(g, l->type, r));
+		//: gen_to_reg(g, r, unsafe_size_of_type(l->type)));
 	}
 	for (i = 0; i < assignee_tuple->size; i++) {
 		l = plist_get(assignee_tuple, i);
@@ -103,11 +111,7 @@ void tuple_to_tuple_assign(Gg, struct LocalExpr *e) {
 			assign_from_reg(g, l, r1);
 		} else {
 			r = plist_get(assignable_tuple, i);
-
-			sub_assign = new_local_expr(LE_BIN_ASSIGN, 0, e->tvar);
-			sub_assign->l = l, sub_assign->r = r;
-			gen_assign(g, e);
-			free(sub_assign);
+			assign_from_literal(g, l, r, 0);
 		}
 	}
 	plist_free(regs);
@@ -129,7 +133,7 @@ void tuple_call_assign(Gg, struct LocalExpr *e) {
 
 	struct RegisterFamily *rf;
 	struct TypeExpr *item_type;
-	struct LocalExpr *assignee;
+	struct LocalExpr *assignee, *cast_e;
 	u32 i;
 
 	for (i = 0; i < returned_items_types->size; i++) {
@@ -152,12 +156,20 @@ void tuple_call_assign(Gg, struct LocalExpr *e) {
 		plist_add(regs, get_reg_to_size(g, r1, assignee_size));
 	}
 
+	cast_e = malloc(sizeof(struct LocalExpr));
+	paste_le(cast_e, e->r);
+
 	for (i = 0; i < assignee_tuple->size; i++) {
 		assignee = plist_get(assignee_tuple, i);
+		cast_e->type = plist_get(returned_items_types, i);
+
 		if ((r1 = plist_get(regs, i)))
-			assign_from_reg(g, assignee, r1);
+			assign_from_reg(g, assignee,
+							cast_reg_to_type(g, assignee->type, cast_e, r1));
+		// assign_from_reg(g, assignee, r1);
 	}
 	plist_free(regs);
+	free(cast_e);
 }
 
 void gen_assign(struct Gner *g, struct LocalExpr *e) {
@@ -173,13 +185,12 @@ void gen_assign(struct Gner *g, struct LocalExpr *e) {
 			 !(lceep(e->r, REAL) && (is_sd(e->r->type) || is_sd(e->l->type))))
 		assign_from_literal(g, assignee, e->r, gvar);
 	else
-		assign_from_reg(
-			g, assignee,
-			gen_to_reg(g, e->r, unsafe_size_of_type(assignee->type)));
+		assign_from_reg(g, assignee, cast_to_type(g, assignee->type, e->r));
+	// assign_from_reg(g, assignee, gen_to_reg(g, e->r,
+	// unsafe_size_of_type(assignee->type)));
 }
 
 struct Reg *assign_to_reg(Gg, struct LocalExpr *e) {
 	to_free_value_reg = 0;
-	return assign_from_reg(
-		g, e->l, gen_to_reg(g, e->r, unsafe_size_of_type(e->l->type)));
+	return assign_from_reg(g, e->l, cast_to_type(g, e->l->type, e->r));
 }

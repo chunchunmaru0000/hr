@@ -148,10 +148,8 @@ struct Reg *dereference(Gg, struct LocalExpr *e) {
 constr CANT_CAST_PTR_TO_SINGLE =
 	"Нельзя 'окак' выражение типа 'в32' в указатель.";
 
-struct Reg *cast_to_type(Gg, struct TypeExpr *cast_type,
-						 struct LocalExpr *cast_value) {
-	struct Reg *r = gen_to_reg(g, cast_value, 0);
-
+struct Reg *cast_reg_to_type(Gg, struct TypeExpr *cast_type,
+							 struct LocalExpr *cast_value, struct Reg *r) {
 	if (is_ptr_type(cast_type)) {
 		if (is_xmm(r)) {
 			if (is_ss(cast_value->type))
@@ -178,6 +176,12 @@ struct Reg *cast_to_type(Gg, struct TypeExpr *cast_type,
 		exit(44);
 
 	return r;
+}
+
+struct Reg *cast_to_type(Gg, struct TypeExpr *cast_type,
+						 struct LocalExpr *cast_value) {
+	return cast_reg_to_type(g, cast_type, cast_value,
+							gen_to_reg(g, cast_value, 0));
 }
 
 struct Reg *unary_to_reg(Gg, struct LocalExpr *e) {
