@@ -184,6 +184,29 @@ struct Reg *cast_to_type(Gg, struct TypeExpr *cast_type,
 							gen_to_reg(g, cast_value, 0));
 }
 
+void *var_os_data = 0;
+struct PList *some_os = &(struct PList){&var_os_data, 1, 1, 1};
+
+void delcare_var_from_LE_DECLARE_VAR(Gg, struct LocalExpr *data) {
+	struct Arg *arg = new_arg(); // offset gonna be 0
+	plist_add(arg->names, data->l->tvar);
+	arg->type = data->type;
+	arg->arg_size = unsafe_size_of_type(arg->type);
+
+	some_os->st[0] = arg;
+	put_vars_on_the_stack(g, some_os);
+
+	// erase declare_var to just var
+	paste_le(data, data->l);
+}
+
+struct Reg *le_declare_var(Gg, struct LocalExpr *data) {
+	// declare var
+	delcare_var_from_LE_DECLARE_VAR(g, data);
+	// eval var
+	return mem_to_reg(g, data, 0);
+}
+
 struct Reg *unary_to_reg(Gg, struct LocalExpr *e) {
 	struct Reg *reg = 0;
 	int unit_size;
@@ -241,6 +264,8 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 		res_reg = unary_to_reg(g, e);
 	else if (lce(AS))
 		res_reg = cast_to_type(g, e->type, e->l);
+	else if (lce(DECLARE_VAR))
+		res_reg = le_declare_var(g, e);
 	else if (lcea(CALL))
 		res_reg = call_to_reg(g, e);
 	else if (lcea(INC) || lcea(DEC))

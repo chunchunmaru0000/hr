@@ -4,7 +4,7 @@
 	((e)->code == LE_UNARY_DEC || (e)->code == LE_UNARY_INC ||                 \
 	 (e)->code == LE_AFTER_DEC || (e)->code == LE_AFTER_INC ||                 \
 	 (e)->code == LE_AFTER_CALL || (e)->code == LE_BIN_ASSIGN || is_if((e)) || \
-	 (e)->code == LE_RANGE_LOOP)
+	 (e)->code == LE_RANGE_LOOP || e->code == LE_DECLARE_VAR)
 
 void try_cut_even_when_side_effects(struct PList *es, struct LocalExpr *e) {
 	if (lceb(ASSIGN) && both_not_side_effective(e->l, e->r) && lee(e->l, e->r))

@@ -119,7 +119,6 @@ enum IP_Code {
 	IP_DECLARE_FUNCTION,
 	// local level
 	IP_LET,
-	IP_IS,
 
 	IP_DECLARE_LABEL,
 	IP_GOTO,
@@ -509,6 +508,7 @@ enum LE_Code {
 	LE_SIZE_OF = 49,
 	LE_SIZE_OF_VAL = 50,
 	LE_AS = 51,
+	LE_DECLARE_VAR = 52,
 };
 #define LOOP_DDD 1 << 0
 #define LOOP_DDE 1 << 1

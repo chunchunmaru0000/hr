@@ -12,6 +12,9 @@ constr HOW_TO_USE_DOT =
 	"* для передачи выражения в качестве первого аргумента при вызове "
 	"функции:\n   проц.освободить(регистр), "
 	"что будет равносильно освободить(проц, регистр)";
+constr EXPECTED_VAR_EXPRESSION_TO_USE_WITH_VERB_IS =
+	"При использовании слова 'есть' требуется использование выражения "
+	"переменной слева от данного слова.";
 
 struct LocalExpr *new_local_expr(enum LE_Code le_code, struct TypeExpr *type,
 								 struct Token *tvar) {
@@ -168,6 +171,7 @@ constr BACK = "назад";
 constr STEP1 = "шаг";
 constr STEP2 = "шагом";
 constr EXPECTED_DDD_OR_DDE = "Ожидалось '...' или '..='.";
+constr VERB_IS = "есть";
 
 struct LocalExpr *parse_range(struct Pser *p, struct LocalExpr *assignable_e,
 							  struct Token *c) {
@@ -303,6 +307,18 @@ repeat_after:
 			plist_set(after->co.ops, 0, e);
 		} else
 			eet(c, WRONG_DOT_USAGE, HOW_TO_USE_DOT);
+	} else if (ops1(ID)) {
+		if (sc(vs(c), VERB_IS)) {
+			// e->l is var
+			// e->type is var type
+			if (!(lcep(VAR)))
+				eet(e->tvar, EXPECTED_VAR_EXPRESSION_TO_USE_WITH_VERB_IS, 0);
+
+			consume(p); // skip 'есть'
+			after = new_local_expr(LE_DECLARE_VAR, 0, c);
+			e->type = type_expr(p);
+			after->l = e;
+		}
 	}
 
 	if (after) {

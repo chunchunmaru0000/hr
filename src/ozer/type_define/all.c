@@ -34,7 +34,7 @@ void define_var_type(struct LocalExpr *e) {
 		e->type = copy_type_expr(gvar->type);
 		e->flags |= LEF_SIDE_EFFECT_GVAR;
 	} else {
-		eet(e->tvar, "ненененененененене", 0);
+		eet(e->tvar, "Че за переменная такая эээ.", 0);
 	}
 }
 
@@ -330,6 +330,9 @@ void define_le_type(struct LocalExpr *e) {
 	} else if (lce(AS)) {
 		define_type_and_copy_flags_to_e(e->r);
 		e->type = (void *)e->l, e->l = e->r;
+	} else if (lce(DECLARE_VAR)) {
+		e->flags |= LEF_SIDE_EFFECT_MEMCH;
+		e->type = e->l->type;
 	} else
 		exit(87);
 }

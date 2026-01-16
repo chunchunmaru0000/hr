@@ -105,6 +105,13 @@ void print_le(struct LocalExpr *e, int with_n) {
 		blist_clear_free(other);
 		print_le(e->l, 0);
 		printf("%s)%s", remove_color_level(), COLOR_RESET);
+	} else if (lce(DECLARE_VAR)) {
+		struct BList *other = zero_term_blist(type_to_blist_from_str(e->type));
+		printf("%s(%s", take_color_level(), COLOR_RESET);
+		print_le(e->l, 0);
+		printf(" есть ");
+		printf("%s%s)%s", bs(other), remove_color_level(), COLOR_RESET);
+		blist_clear_free(other);
 	} else {
 		printf("%s", vs(e->tvar));
 	}
@@ -124,6 +131,9 @@ void print_le(struct LocalExpr *e, int with_n) {
 		blat_blist(out, other);                                                \
 		blist_clear_free(other);                                               \
 	} while (0)
+#define print_type(t)                                                          \
+	other = zero_term_blist(type_to_blist_from_str((t)));                      \
+	print_str(bs(other)), blist_clear_free(other);
 
 struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 	struct BList *out = new_blist(64), *other;
@@ -203,10 +213,15 @@ struct BList *bprint_le(struct LocalExpr *e, int with_n) {
 		print_str(") ( ... )");
 	} else if (lce(AS)) {
 		print_str("(окак ");
-		other = zero_term_blist(type_to_blist_from_str(e->type));
-		print_str(bs(other)), blist_clear_free(other);
+		print_type(e->type);
 		print_str(" ");
 		print_orher(e->l);
+		print_str(")");
+	} else if (lce(DECLARE_VAR)) {
+		print_str("(");
+		print_orher(e->l);
+		print_str(" есть ");
+		print_type(e->type);
 		print_str(")");
 	} else {
 		print_tvar(e);
@@ -248,18 +263,6 @@ void gen_local_expr_linux(Gg, struct LocalExpr *e) {
 	else
 		// 	exit(159);
 		printf("### NOT GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
-}
-
-void gen_local_expr_inst_linux(struct Gner *g, struct Inst *in) {
-	struct LocalExpr *e;
-	struct PList *es;
-	u32 i;
-
-	es = opt_local_expr(plist_get(in->os, 0));
-	for (i = 0; i < es->size; i++) {
-		e = plist_get(es, i);
-		gen_local_expr_linux(g, e);
-	}
 }
 
 void gen_opted(Gg, struct LocalExpr *e) {
@@ -319,8 +322,8 @@ void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 int le_depth(struct LocalExpr *e) {
 	int l_depth, r_depth;
 
-	return is_primary(e)			  ? 1
-		   : is_unary(e) || lce(BOOL) ? 2
+	return is_primary(e)						 ? 1
+		   : is_unary(e) || lce(BOOL) || lce(AS) ? 2
 		   : is_bin_le(e)
 			   ? 1 + (l_depth = le_depth(e->l), r_depth = le_depth(e->r),
 					  l_depth > r_depth ? l_depth : r_depth)
@@ -338,12 +341,15 @@ int le_depth(struct LocalExpr *e) {
 	  lceep(e->r, INT)))
 
 int is_mem(struct LocalExpr *e) {
-	return lcep(VAR) || (lcea(FIELD) && is_mem(e->l)) || index_of_int;
+	return lcep(VAR) || lce(DECLARE_VAR) || (lcea(FIELD) && is_mem(e->l)) ||
+		   index_of_int;
 }
 
 void inner_mem(Gg, struct LocalExpr *e) {
+	declare_lvar_gvar;
+
 	if (lcep(VAR)) {
-		declare_lvar_gvar;
+	eval_var:
 		get_assignee_size(g, e, &gvar, &lvar);
 		if (lvar) {
 			reg_rc_(R_RBP);
@@ -351,6 +357,11 @@ void inner_mem(Gg, struct LocalExpr *e) {
 		} else {
 			blat_ft(gvar->signature);
 		}
+	} else if (lce(DECLARE_VAR)) {
+		// declare var
+		delcare_var_from_LE_DECLARE_VAR(g, e);
+		// eval var
+		goto eval_var;
 
 	} else if (lcea(INDEX)) {
 		struct TypeExpr *item_type = arr_type(e->l->type);

@@ -193,6 +193,8 @@ sae(CVTSD2SS);
 void indent_line(struct Gner *g, struct BList *l);
 struct BList *bprint_le(struct LocalExpr *e, int with_n);
 void print_le(struct LocalExpr *e, int with_n);
+void put_vars_on_the_stack(struct Gner *g, struct PList *os);
+void delcare_var_from_LE_DECLARE_VAR(Gg, struct LocalExpr *data);
 
 #define print_local_expr_to_file(e)                                            \
 	do {                                                                       \
@@ -328,7 +330,6 @@ void merge_tuple_of_to(struct LocalExpr *of, struct LocalExpr *to);
 #define paste_with_tuple_merge_of(to, from, of)                                \
 	merge_tuple_of_to((of), (from));                                           \
 	paste_le((to), (from))
-void gen_local_expr_inst_linux(struct Gner *g, struct Inst *in);
 uc get_assignee_size(struct Gner *g, struct LocalExpr *e, struct GlobVar **gvar,
 					 struct LocalVar **lvar);
 void compare_type_and_expr(struct TypeExpr *type, struct LocalExpr *e);
