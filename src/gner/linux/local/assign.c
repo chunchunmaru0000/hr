@@ -72,7 +72,7 @@ void assign_from_literal(Gg, struct LocalExpr *assignee,
 			add_int_with_hex_comm(fun_text, literal->tvar->num);
 		}
 	} else if (gvar) {
-		blat_ft(gvar->signature), ft_add('\n');
+		blat_ft_enter(gvar->signature);
 	} else
 		exit(55);
 }

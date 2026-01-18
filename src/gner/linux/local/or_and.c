@@ -34,7 +34,7 @@ void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
 		just_cmp(g, e);
 
 		iprint_jmp(g, opposite_cmp_le(e->code), is_u_type(e->l->type->code));
-		blat_ft(false_label), ft_add('\n');
+		blat_ft_enter(false_label);
 	} else if (lceb(AND)) {
 		and_cmp(g, e->l, false_label);
 		and_cmp(g, e->r, false_label);
@@ -53,7 +53,7 @@ void and_cmp(Gg, struct LocalExpr *e, struct BList *false_label) {
 			cmp_bool(g, e);
 			op_(J0);
 		}
-		blat_ft(false_label), ft_add('\n');
+		blat_ft_enter(false_label);
 	}
 }
 
@@ -100,7 +100,7 @@ void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label) {
 		just_cmp(g, e);
 
 		iprint_jmp(g, e->code, is_u_type(e->l->type->code));
-		blat_ft(true_label), ft_add('\n');
+		blat_ft_enter(true_label);
 	} else if (lceb(OR)) {
 		or_cmp(g, e->l, true_label);
 		or_cmp(g, e->r, true_label);
@@ -119,7 +119,7 @@ void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label) {
 			cmp_bool(g, e);
 			op_(JN0);
 		}
-		blat_ft(true_label), ft_add('\n');
+		blat_ft_enter(true_label);
 	}
 }
 

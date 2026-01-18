@@ -73,7 +73,7 @@ struct Reg *prime_str(Gg, struct LocalExpr *e) {
 	}
 
 	op_reg_(MOV, r);
-	blat_ft(local_str->ptr_to_str), ft_add('\n');
+	blat_ft_enter(local_str->ptr_to_str);
 
 	return r;
 }

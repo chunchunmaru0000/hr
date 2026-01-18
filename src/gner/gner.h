@@ -393,11 +393,10 @@ void or_cmp(Gg, struct LocalExpr *e, struct BList *true_label);
 #define declare_lvar_gvar                                                      \
 	struct LocalVar *lvar = 0;                                                 \
 	struct GlobVar *gvar = 0;
+#define blat_ft_enter(l) ((blat_ft((l)), ft_add('\n')))
 #define reg_rc_(reg) blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add(' ')
-#define reg_rc_enter(reg)                                                      \
-	blat_ft(just_get_reg(g->cpu, (reg))->name), ft_add('\n')
 #define reg_(reg) blat_ft((reg)->name), ft_add(' ')
-#define reg_enter(reg) blat_ft((reg)->name), ft_add('\n')
+#define reg_enter(reg) (blat_ft_enter((reg)->name))
 void sib(struct Gner *g, uc size, enum RegCode base, uc scale,
 		 enum RegCode index, long disp, uc is_disp_blist);
 #define sib_(size, base, scale, index, disp, is_disp_bl)                       \
@@ -474,7 +473,7 @@ struct Reg *gen_to_reg_with_last_mem(Gg, struct LocalExpr *e,
 extern int lm_size;
 #define jmp_(l)                                                                \
 	op_(JMP);                                                                  \
-	blat_ft((l)), ft_add('\n');
+	blat_ft_enter((l));
 
 // ############################################################################
 // 									OZER

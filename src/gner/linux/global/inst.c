@@ -213,18 +213,19 @@ void write_flags_and_end_stack_frame(Gg) {
 		iprint_stack_frame(SA_SUB_RSP);
 		add_int_with_hex_comm(stack_frame, -g->stack_counter);
 
-		if (f->is_r15_used) {
+		if (f->is_r15_used)
 			iprint_stack_frame(SA_PUSH_R15);
-			op_(POP_R15);
-		}
-		if (f->is_r14_used) {
+		if (f->is_r14_used)
 			iprint_stack_frame(SA_PUSH_R14);
-			op_(POP_R14);
-		}
-		if (f->is_r13_used) {
+		if (f->is_r13_used)
 			iprint_stack_frame(SA_PUSH_R13);
+		if (f->is_r13_used)
 			op_(POP_R13);
-		}
+		if (f->is_r14_used)
+			op_(POP_R14);
+		if (f->is_r15_used)
+			op_(POP_R15);
+
 		for (int i = 6; i >= 0; i--) {
 			if (g->flags->used_xmm & (1 << i)) {
 				struct Reg *xmm = g->cpu->xmm[9 + i];

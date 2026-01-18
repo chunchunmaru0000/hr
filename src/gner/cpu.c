@@ -424,15 +424,18 @@ void swap_xmm_regs(Gg, struct Reg *to_x, struct Reg *from_x, int do_mov) {
 	continue;
 int try_save_xmm_to_xmm(Gg, struct Reg *xmm);
 
+#define is_rbp(rf) (((rf)->r->reg_code == R_RBP))
+#define is_rsp(rf) (((rf)->r->reg_code == R_RSP))
+
 void save_allocated_regs(Gg, struct Token *place) {
 	struct CPU *cpu = g->cpu;
 	struct RegisterFamily **rfs, *rf;
 	struct Reg **xmms, *xmm;
 	u32 i;
 
-	for (i = 0, rfs = as_rfs(cpu); i < 4; i++, rfs++) { // 4 is rbp
+	for (i = 0, rfs = as_rfs(cpu); i < 13; i++, rfs++) { // 13 is r13
 		rf = *rfs;
-		if (!rf->r->allocated)
+		if (!rf->r->allocated || is_rbp(rf) || is_rsp(rf))
 			continue;
 		if (!r15->r->allocated) {
 			save_to_r(15);

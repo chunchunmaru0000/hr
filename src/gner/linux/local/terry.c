@@ -164,7 +164,7 @@ void gen_range_loop(struct Gner *g, struct LocalExpr *e) {
 	just_cmp(g, other);
 	iprint_jmp(g, other->code, is_u_type(other->l->type->code));
 	free(other);
-	blat_ft(block_begin), ft_add('\n');
+	blat_ft_enter(block_begin);
 
 	// break label
 	if (loop->brek) {

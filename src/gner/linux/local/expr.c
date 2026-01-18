@@ -457,6 +457,7 @@ struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
 
 			if (iant_type->code == TC_PTR) {
 				mul_on_int(g, r2, item_size);
+				r2 = get_reg_to_size(g, r2, QWORD);
 				r1 = gen_to_reg(g, left, QWORD);
 
 				op_reg_reg(ADD, r1, r2);

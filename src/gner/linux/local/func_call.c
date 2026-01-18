@@ -15,7 +15,7 @@ struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 	struct TypeExpr *arg_type;
 	struct RegisterFamily *rf;
 	struct Reg *r, *to_xmm;
-	u32 i, regov = 0, xmmov = 0;
+	u32 i;
 
 	//  save changable regs before call
 	struct PList *ops_regs = new_plist(ops->size);
@@ -33,6 +33,13 @@ struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 			r = return_to_rf(g, arg_type, argument, rf);
 		}
 		plist_add(ops_regs, r);
+	}
+
+	rfs_regs = &rsi, xmm_regs = &xmm0;
+	for (i = 0; i < ops_regs->size; i++) {
+		r = plist_get(ops_regs, i);
+		is_xmm(r) ? get_xmm_to_xmm(g, r, *(xmm_regs++))
+				  : get_reg_to_rf(place, g, r, *(rfs_regs++));
 	}
 
 	return ops_regs;
@@ -60,7 +67,7 @@ void gen_call(Gg, struct LocalExpr *e) {
 			e->tvar, g, fun_args(fun_gvar->type), e->co.ops);
 
 		op_(CALL);
-		blat_ft(fun_gvar->signature), ft_add('\n');
+		blat_ft_enter(fun_gvar->signature);
 	}
 
 	for (u32 i = 0; i < ops_regs->size; i++)
