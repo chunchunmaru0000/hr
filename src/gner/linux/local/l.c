@@ -207,6 +207,35 @@ struct Reg *le_declare_var(Gg, struct LocalExpr *data) {
 	return mem_to_reg(g, data, 0);
 }
 
+constr SIZES_LITERALLY_DIFFER =
+	"Размеры указанного типа и выражения 'буквально' отличаются.";
+
+struct Reg *literally_to_reg(Gg, struct TypeExpr *literally_type,
+							 struct LocalExpr *value) {
+	int literally_size = unsafe_size_of_type(literally_type);
+
+	if (literally_size != unsafe_size_of_type(value->type))
+		eet(value->tvar, SIZES_LITERALLY_DIFFER, 0);
+
+	struct Reg *r = gen_to_reg(g, value, 0), *r2;
+
+	if (is_real_type(literally_type)) {
+		if (!is_xmm(r)) {
+			r2 = try_borrow_xmm_reg(value->tvar, g);
+			op_reg_reg(MOV_XMM, r2, r);
+			free_register(r), r = r2;
+		}
+	} else {
+		if (is_xmm(r)) {
+			r2 = try_borrow_reg(value->tvar, g, literally_size);
+			op_reg_reg(MOV_XMM, r2, r);
+			free_register(r), r = r2;
+		}
+	}
+
+	return r;
+}
+
 struct Reg *unary_to_reg(Gg, struct LocalExpr *e) {
 	struct Reg *reg = 0;
 	int unit_size;
@@ -264,6 +293,8 @@ struct Reg *gen_to_reg(Gg, struct LocalExpr *e, uc of_size) {
 		res_reg = unary_to_reg(g, e);
 	else if (lce(AS))
 		res_reg = cast_to_type(g, e->type, e->l);
+	else if (lce(LITERALLY))
+		res_reg = literally_to_reg(g, e->type, e->l);
 	else if (lce(DECLARE_VAR))
 		res_reg = le_declare_var(g, e);
 	else if (lcea(CALL))

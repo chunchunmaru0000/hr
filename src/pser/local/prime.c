@@ -154,12 +154,17 @@ struct LocalExpr *unary_l_expression(struct Pser *p) {
 		} else if (sc(vs(c), STR_SIZE_OF_VAL)) {
 			consume(p);
 			unary = new_local_expr(LE_SIZE_OF_VAL, 0, c);
-			unary->l = local_expression(p);
+			unary->l = unary_l_expression(p);
 		} else if (sc(vs(c), STR_AS)) {
 			consume(p);
 			unary = new_local_expr(LE_AS, 0, c);
 			unary->l = (void *)type_expr(p);
-			unary->r = local_expression(p);
+			unary->r = unary_l_expression(p);
+		} else if (sc(vs(c), STR_LITERALLY)) {
+			consume(p);
+			unary = new_local_expr(LE_LITERALLY, 0, c);
+			unary->l = (void *)type_expr(p);
+			unary->r = unary_l_expression(p);
 		} else
 			goto default_return;
 		return unary;

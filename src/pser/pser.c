@@ -298,6 +298,7 @@ constr STR_STRUCT = "лик";
 constr STR_AS = "окак";
 constr STR_SIZE_OF = "мера";
 constr STR_SIZE_OF_VAL = "размера";
+constr STR_LITERALLY = "буквально";
 
 struct Inst *get_global_inst(struct Pser *p) {
 	struct Token *cur = pser_cur(p); //, *n;

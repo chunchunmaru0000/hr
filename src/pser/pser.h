@@ -41,6 +41,7 @@ extern constr STR_LOOP;
 extern constr STR_AS;
 extern constr STR_SIZE_OF;
 extern constr STR_SIZE_OF_VAL;
+extern constr STR_LITERALLY;
 
 struct Loop {
 	struct BList *cont;
@@ -509,6 +510,7 @@ enum LE_Code {
 	LE_SIZE_OF_VAL = 50,
 	LE_AS = 51,
 	LE_DECLARE_VAR = 52,
+	LE_LITERALLY = 53,
 };
 #define LOOP_DDD 1 << 0
 #define LOOP_DDE 1 << 1

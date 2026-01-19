@@ -333,6 +333,9 @@ void define_le_type(struct LocalExpr *e) {
 	} else if (lce(DECLARE_VAR)) {
 		e->flags |= LEF_SIDE_EFFECT_MEMCH;
 		e->type = e->l->type;
+	} else if (lce(LITERALLY)) {
+		define_type_and_copy_flags_to_e(e->r);
+		e->type = (void *)e->l, e->l = e->r;
 	} else
 		exit(87);
 }
