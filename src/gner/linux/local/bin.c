@@ -115,6 +115,7 @@ struct Reg *xmm_bin_to_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 
 void to_ptr_arithmetic(struct LocalExpr **index, struct Pos *pos,
 					   int ptr_targ_size) {
+
 	struct Token *tok = new_tok(copy_blist_from_str("*"), MUL, pos);
 	struct LocalExpr *ptr_arithmetic =
 		new_local_expr(LE_BIN_MUL, copy_type_expr((*index)->type), tok);
@@ -181,7 +182,7 @@ struct Reg *bin_to_reg(Gg, struct LocalExpr *e) {
 		if (!is_num_le(int_or_mem) && int_or_mem_size != r1->size) {
 			r2 = gen_to_reg(g, int_or_mem, 0);
 			goto two_regs;
-		} else if (!is_xmm(r1))
+		} else if (!is_xmm(r1) && r1->size < int_or_mem_size)
 			r1 = get_reg_to_size(g, r1, int_or_mem_size);
 
 		// gen_mem_tuple can safely gen tuple for int or real too
