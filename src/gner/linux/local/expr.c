@@ -30,6 +30,7 @@ int color_level = 0;
 #define remove_color_level() (colours[--color_level % loa(colours)])
 void print_le(struct LocalExpr *e, int with_n) {
 	u32 i;
+	return;
 
 	if (e->tuple) {
 		printf("%s(%s", take_color_level(), COLOR_RESET);

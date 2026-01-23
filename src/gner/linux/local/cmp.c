@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 void cmp_bool(Gg, struct LocalExpr *e) {
-	struct Reg *r1 = 0, *r2 = 0;
+	struct Reg *r1 = 0;
 	if (lceb(SUB)) {
 		just_cmp(g, e);
 	} else if (lceb(ADD) && lceeu(e->r, MINUS)) {
@@ -19,7 +19,6 @@ void cmp_bool(Gg, struct LocalExpr *e) {
 		op_reg_reg(TEST, r1, r1);
 	}
 	free_register(r1);
-	free_register(r2);
 }
 
 //	LE_BIN_LESS 		setl 	setb
@@ -62,7 +61,10 @@ void just_cmp(Gg, struct LocalExpr *e) {
 	if (lceep(l, INT))
 		exit(112); // shouldn't be, ozer flips l int to r
 
-	else if (lceep(r, INT)) {
+	if (unsafe_size_of_type(l->type) != unsafe_size_of_type(r->type))
+		goto two_regs;
+
+	if (lceep(r, INT)) {
 		if (is_mem(l)) {
 			gen_mem_tuple(g, l);
 			gen_tuple_of(g, r);
@@ -73,22 +75,20 @@ void just_cmp(Gg, struct LocalExpr *e) {
 			op_reg_(CMP, r1);
 		}
 		add_int_with_hex_comm(fun_text, r->tvar->num);
-
 	} else if (is_mem(r)) {
 		r1 = gen_to_reg(g, l, 0);
 		gen_mem_tuple(g, r);
 
 		op_reg_(CMP, r1);
 		mem_enter(r, 0);
-
 	} else if (is_mem(l) && !have_any_side_effect(l)) {
 		gen_tuple_of(g, l);
 		r1 = gen_to_reg(g, r, 0);
 
 		op_mem_(CMP, l, 0);
 		reg_enter(r1);
-
 	} else {
+	two_regs:
 		if (!have_any_side_effect(l) && le_depth(l) < le_depth(r)) {
 			r2 = gen_to_reg(g, r, 0);
 			r1 = gen_to_reg(g, l, 0);
