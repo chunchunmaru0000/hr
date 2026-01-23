@@ -9,7 +9,6 @@ struct Reg *mem_to_reg(Gg, struct LocalExpr *e, int reg_size) {
 		mov_xmm_reg_(r);
 		mem_enter(e, 0);
 	} else {
-		reg_size = unsafe_size_of_type(e->type);
 		r = try_borrow_reg(e->tvar, g, unsafe_size_of_type(e->type));
 		op_reg_(MOV, r);
 		mem_enter(e, 0);
@@ -32,6 +31,7 @@ struct Reg *assignable_to_reg(Gg, struct LocalExpr *e,
 
 		free_register(r), r = xmm;
 	} else {
+		r = get_reg_to_size(g, r, reg_size);
 		op_reg_(MOV, r);
 	}
 	last_mem_enter(last_mem_str);

@@ -490,7 +490,7 @@ struct Reg *begin_last_inner_mem(Gg, struct LocalExpr *e, struct BList *imt) {
 
 	} else if (lcea(FIELD_OF_PTR)) {
 		struct BList *field_full_name = (struct BList *)(long)e->tvar->real;
-		r1 = gen_to_reg(g, left, 0);
+		r1 = gen_to_reg(g, left, QWORD);
 
 		imt_reg_(r1->reg_code), blat_imt(field_full_name);
 		// blist_clear_free(field_full_name);
@@ -538,12 +538,13 @@ struct Reg *gen_to_reg_with_last_mem(Gg, struct LocalExpr *e,
 	struct BList *imt = !(*last_mem_str) ? new_blist(64) : *last_mem_str;
 	struct Reg *r = 0;
 
-	lm_size ? (blat_imt(size_str(lm_size)), lm_size = 0)
+	lm_size ? blat_imt(size_str(lm_size))
 			: blat_imt(size_str(unsafe_size_of_type(e->type)));
 	imt_add('(');
 	r = last_inner_mem(g, e, trailed, imt);
 	imt_add(')'), imt_add(' ');
 
 	*last_mem_str = imt;
+	lm_size = 0;
 	return r;
 }
