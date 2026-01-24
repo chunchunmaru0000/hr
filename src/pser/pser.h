@@ -511,6 +511,7 @@ enum LE_Code {
 	LE_AS = 51,
 	LE_DECLARE_VAR = 52,
 	LE_LITERALLY = 53,
+	LE_THEN_LOOP = 54,
 };
 #define LOOP_DDD 1 << 0
 #define LOOP_DDE 1 << 1

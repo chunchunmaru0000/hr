@@ -172,6 +172,7 @@ constr STEP1 = "шаг";
 constr STEP2 = "шагом";
 constr EXPECTED_DDD_OR_DDE = "Ожидалось '...' или '..='.";
 constr VERB_IS = "есть";
+constr THEN = "тогда";
 
 struct LocalExpr *parse_range(struct Pser *p, struct LocalExpr *assignable_e,
 							  struct Token *c) {
@@ -388,6 +389,26 @@ struct LocalExpr *trnry_l_expression(struct Pser *p) {
 
 		consume(p); // skip '=>'
 		e = parse_range(p, e, c);
+	} else if (ops1(ID)) {
+		if (sc(vs(c), THEN)) {
+			// e->l is cond
+			// e->r is body
+			// e->tvar->num is loop
+
+			consume(p); // skip 'тогда'
+			trnry = new_local_expr(LE_THEN_LOOP, 0, c);
+			trnry->l = e;
+
+			struct Loop *loop = new_loop(0, 0);
+			plist_add(p->loops, loop);
+			trnry->tvar->num = (long)loop;
+
+			trnry->r = (void *)new_plist(16);
+			parse_block_of_local_inst(p, (void *)trnry->r);
+			p->loops->size--; // remove loop from loops
+
+			e = trnry;
+		}
 	}
 
 	return e;

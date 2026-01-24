@@ -336,6 +336,8 @@ void define_le_type(struct LocalExpr *e) {
 	} else if (lce(LITERALLY)) {
 		define_type_and_copy_flags_to_e(e->r);
 		e->type = (void *)e->l, e->l = e->r;
+	} else if (lce(THEN_LOOP)) {
+		define_le_type(e->l);
 	} else
 		exit(87);
 }

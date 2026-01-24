@@ -18,6 +18,7 @@ void gen_if(struct Gner *g, struct LocalExpr *e);
 void gen_if_elif(struct Gner *g, struct LocalExpr *e);
 void gen_if_else(struct Gner *g, struct LocalExpr *e);
 void gen_range_loop(struct Gner *g, struct LocalExpr *e);
+void gen_then_loop(Gg, struct LocalExpr *loop);
 
 #define colored(name, code) ("\x1B[" #code "m")
 constr colours[8] = {
@@ -261,6 +262,8 @@ void gen_local_expr_linux(Gg, struct LocalExpr *e) {
 		gen_if(g, e);
 	else if (lce(RANGE_LOOP))
 		gen_range_loop(g, e);
+	else if (lce(THEN_LOOP))
+		gen_then_loop(g, e);
 	else
 		// 	exit(159);
 		printf("### NOT GEN LOCAL EXPR INFO: e->code == %d\n", e->code);

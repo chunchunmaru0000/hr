@@ -147,6 +147,8 @@ void opt_bin_constant_folding(struct LocalExpr *e) {
 		opt_bin_constant_folding(e->r);
 		if (e->co.cond)
 			opt_bin_constant_folding(e->co.cond);
+	} else if (lce(THEN_LOOP)) {
+		opt_bin_constant_folding(e->l);
 	}
 }
 

@@ -161,10 +161,34 @@ void gen_range_loop(struct Gner *g, struct LocalExpr *e) {
 										  : LE_BIN_LESS;
 	other->l = (void *)e->tvar->num; // e->tvar->num is assignable_e
 	other->r = e->r;				 // e->r is e1
-	just_cmp(g, other);
-	iprint_jmp(g, other->code, is_u_type(other->l->type->code));
+	print_local_expr_to_file(other);
+	or_cmp(g, other, block_begin);
 	free(other);
-	blat_ft_enter(block_begin);
+
+	// break label
+	if (loop->brek) {
+		add_label(loop->brek);
+		blist_clear_free(loop->brek);
+	}
+	free(loop);
+	blist_clear_free(cmp_begin);
+	blist_clear_free(block_begin);
+}
+
+void gen_then_loop(Gg, struct LocalExpr *e) {
+	struct Loop *loop = (void *)e->tvar->num;
+	struct BList *block_begin = take_label(LC_ELSE),
+				 *cmp_begin = loop->cont ? loop->cont : take_label(LC_ELSE);
+
+	// jmp to cmp
+	jmp_(cmp_begin);
+	// next is just block
+	add_label(block_begin);
+	gen_block(g, (void *)e->r);
+	// compare/cont label
+	add_label(cmp_begin);
+	print_local_expr_to_file(e->l);
+	or_cmp(g, e->l, block_begin);
 
 	// break label
 	if (loop->brek) {
