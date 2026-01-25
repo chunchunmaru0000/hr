@@ -70,6 +70,22 @@ void gen_call(Gg, struct LocalExpr *e) {
 		blat_ft_enter(fun_gvar->signature);
 	}
 
+	// enum IS_SAVED_IN_THIS_CALL saved_regs = (long)p_last(ops_regs);
+	// ops_regs->size--; // remove saved_regs from list
+	// printf("\t\t\t\t\t\t# IS_R13_SAVED_IN_THIS_CALL [%s]\n",
+	// 	   saved_regs & IS_R13_SAVED_IN_THIS_CALL ? "██" : "  ");
+	// printf("\t\t\t\t\t\t# IS_R14_SAVED_IN_THIS_CALL [%s]\n",
+	// 	   saved_regs & IS_R14_SAVED_IN_THIS_CALL ? "██" : "  ");
+	// printf("\t\t\t\t\t\t# IS_R15_SAVED_IN_THIS_CALL [%s]\n",
+	// 	   saved_regs & IS_R15_SAVED_IN_THIS_CALL ? "██" : "  ");
+	// printf("\t\t\t\t\t\t# saved_regs value [%d]\n", saved_regs);
+	// if (saved_regs & IS_R13_SAVED_IN_THIS_CALL)
+	// 	free_register(g->r13->r);
+	// if (saved_regs & IS_R14_SAVED_IN_THIS_CALL)
+	// 	free_register(g->r14->r);
+	// if (saved_regs & IS_R15_SAVED_IN_THIS_CALL)
+	// 	free_register(g->r15->r);
+
 	for (u32 i = 0; i < ops_regs->size; i++)
 		free_register(plist_get(ops_regs, i));
 	plist_free(ops_regs);

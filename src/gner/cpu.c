@@ -189,6 +189,12 @@ void free_register(struct Reg *r) {
 	}
 
 	struct RegisterFamily *rf = r->rf;
+	// if (rf->r->reg_code == R_R13)
+	// 	printf("\t\t\t\t\t\t# FREED R13\n");
+	// else if (rf->r->reg_code == R_R14)
+	// 	printf("\t\t\t\t\t\t# FREED R14\n");
+	// else if (rf->r->reg_code == R_R15)
+	// 	printf("\t\t\t\t\t\t# FREED R15\n");
 
 	if (r->size > BYTE) {
 		free_reg_family(rf);
@@ -211,16 +217,35 @@ void free_register(struct Reg *r) {
 
 #define r_code(reg) ((reg)->r->reg_code)
 
-void free_all_regs(struct CPU *cpu) {
-	struct RegisterFamily **rfs;
-	struct Reg **xmm_regs;
+// [ ██ | ██ | ████ | ████████ ]
+#define active_byte_str(b) (b ? "██" : "__")
+void print_rf(struct RegisterFamily *rf) {
 	u32 i;
+	if (rf->l) {
+		printf("%s", active_byte_str(rf->l->allocated));
 
-	for (i = 0, rfs = as_rfs(cpu); i < 16; i++, rfs++)
-		free_reg_family(*rfs);
+		rf->h ? printf("%s", active_byte_str(rf->h->allocated))
+			  : printf("%s", rf->x->allocated ? "██" : "--");
+	} else {
+		for (i = 0; i < 2; i++)
+			printf("%s", rf->x->allocated ? "██" : "--");
+	}
+	printf("|");
 
-	for (i = 0, xmm_regs = (struct Reg **)rfs; i < 16; i++, xmm_regs++)
-		free_reg(*xmm_regs);
+	for (i = 0; i < 2; i++)
+		printf("%s", active_byte_str(rf->e->allocated));
+	printf("|");
+	for (i = 0; i < 4; i++)
+		printf("%s", active_byte_str(rf->r->allocated));
+
+	printf("\n");
+}
+void print_regs(struct CPU *cpu) {
+	for (u32 i = 0; i < 16; i++) {
+		struct RegisterFamily *rf = as_rfs(cpu)[i];
+		printf("# %s:\t", bs(rf->r->name));
+		print_rf(rf);
+	}
 }
 
 #define alloc_reg(reg)                                                         \
@@ -229,6 +254,13 @@ void free_all_regs(struct CPU *cpu) {
 		(reg)->is_value_active = 0;                                            \
 	} while (0)
 void alloc_all_family_reg(struct RegisterFamily *rf) {
+	// if (rf->r->reg_code == R_R13) {
+	// 	printf("\t\t\t\t\t\t# ALLOC ALL R13\n");
+	// } else if (rf->r->reg_code == R_R14) {
+	// 	printf("\t\t\t\t\t\t# ALLOC ALL R14\n");
+	// } else if (rf->r->reg_code == R_R15) {
+	// 	printf("\t\t\t\t\t\t# ALLOC ALL R15\n");
+	// }
 	alloc_reg(rf->r);
 	alloc_reg(rf->e);
 	alloc_reg(rf->x);
@@ -414,10 +446,6 @@ void swap_xmm_regs(Gg, struct Reg *to_x, struct Reg *from_x, int do_mov) {
 	}
 }
 
-#define r13 cpu->rex[13 - 8]
-#define r14 cpu->rex[14 - 8]
-#define r15 cpu->rex[15 - 8]
-
 #define save_to_r(num)                                                         \
 	g->flags->is_r##num##_used = 1;                                            \
 	get_reg_to_rf(place, g, rf->r, r##num);                                    \
@@ -447,7 +475,9 @@ void save_allocated_regs(Gg, struct Token *place) {
 			save_to_r(13);
 		}
 		// TODO: 3 regs on stack
-		eet(place, "а все, нет регистров", 0);
+		printf("### ТЕЛО ФУНКЦИИ:\n%s", bs(zero_term_blist(g->fun_text)));
+		print_regs(g->cpu);
+		eet(place, "а все, нет регистров чтоб сохранять на стэк", 0);
 	}
 	for (i = 0, xmms = as_xmms(cpu) + 16; i < 9; i++, xmms++) { // < xmm9
 		xmm = *xmms;

@@ -285,9 +285,10 @@ void gen_return(Gg, struct LocalExpr *e) {
 
 	return_type->code == TC_TUPLE
 		? try_return_tuple(g, return_type, e)
-		: free_register(is_real_type(return_type)
-							? return_to_xmm(g, return_type, e, g->cpu->xmm[0])
-							: return_to_rf(g, return_type, e, g->cpu->a));
+		: free_register(
+			  is_real_type(return_type)
+				  ? return_to_xmm(g, return_type, e, g->cpu->xmm[0])
+				  : return_to_rf(g, return_type, e, g->cpu->a)->rf->r);
 
 ret_or_jmp:
 	if (function_body_return) {

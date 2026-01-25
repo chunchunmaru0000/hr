@@ -142,12 +142,16 @@ struct Reg *try_borrow_reg(struct Token *place, Gg, uc of_size) {
 
 	if (reg == 0)
 		eet(place, TOO_COMPLEX_EXPR, MAKE_SIMPLER_EXPR);
-	if (is_r13(reg))
+	if (is_r13(reg)) {
 		g->flags->is_r13_used = 1;
-	else if (is_r14(reg))
+		// printf("\t\t\t\t\t\t# TAEKD R13\n");
+	} else if (is_r14(reg)) {
 		g->flags->is_r14_used = 1;
-	else if (is_r15(reg))
+		// printf("\t\t\t\t\t\t# TAEKD R14\n");
+	} else if (is_r15(reg)) {
 		g->flags->is_r15_used = 1;
+		// printf("\t\t\t\t\t\t# TAEKD R15\n");
+	}
 
 	return reg;
 }
@@ -195,7 +199,7 @@ void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 		// reg is now points to rf's reg
 		swap_basic_regs(g, rf, reg->rf, DO_XCHG);
 	} else {
-		free_reg_family(reg->rf);
+		free_register(reg);
 		swap_basic_regs(g, reg->rf, rf, DO_MOV);
 		alloc_all_family_reg(rf);
 	}

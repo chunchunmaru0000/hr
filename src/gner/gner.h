@@ -55,7 +55,6 @@ extern int return_tuple_xmm_indeces[MAX_ARGS_ON_REGISTERS];
 struct CPU *new_cpu();
 struct Reg *just_get_reg(struct CPU *cpu, enum RegCode code);
 
-void free_all_regs(struct CPU *cpu);
 void free_reg_family(struct RegisterFamily *rf);
 void free_register(struct Reg *r);
 void alloc_all_family_reg(struct RegisterFamily *rf);
@@ -146,6 +145,14 @@ void swap_basic_regs(struct Gner *g, struct RegisterFamily *rf1,
 struct Reg *try_alloc_reg(struct Token *tvar, struct RegisterFamily *rf,
 						  int size);
 #define Gg struct Gner *g
+enum IS_SAVED_IN_THIS_CALL {
+	IS_R13_SAVED_IN_THIS_CALL = 1 << 0,
+	IS_R14_SAVED_IN_THIS_CALL = 1 << 1,
+	IS_R15_SAVED_IN_THIS_CALL = 1 << 2,
+};
+#define r13 cpu->rex[13 - 8]
+#define r14 cpu->rex[14 - 8]
+#define r15 cpu->rex[15 - 8]
 void save_allocated_regs(Gg, struct Token *place);
 void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 				   struct RegisterFamily *rf);

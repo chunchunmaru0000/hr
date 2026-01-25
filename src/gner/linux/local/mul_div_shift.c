@@ -206,14 +206,14 @@ void divide_on_mem(Gg, struct LocalExpr *e, struct Reg **to_rAX,
 struct Reg *div_on_mem(Gg, struct LocalExpr *e, struct Reg *r1) {
 	struct Reg *rDX;
 	divide_on_mem(g, e, &r1, &rDX);
-	free_reg_family(rDX->rf);
+	free_register(rDX);
 	return r1;
 }
 
 struct Reg *mod_on_mem(Gg, struct LocalExpr *e, struct Reg *r1) {
 	struct Reg *rDX;
 	divide_on_mem(g, e, &r1, &rDX);
-	free_reg_family(r1->rf);
+	free_register(r1);
 	return rDX;
 }
 
@@ -244,7 +244,7 @@ void divide_on_reg(Gg, struct LocalExpr *e, struct Reg **to_rAX,
 	op_reg_enter(IDIV, r2);
 
 	if (r2->rf != g->cpu->d)
-		free_reg_family(r2->rf);
+		free_register(r2);
 	// return
 	*to_rAX = r1;
 	*to_rDX = rDX;
@@ -253,13 +253,13 @@ void divide_on_reg(Gg, struct LocalExpr *e, struct Reg **to_rAX,
 struct Reg *div_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 					   struct Reg *r2) {
 	divide_on_reg(g, e, &r1, &r2);
-	free_reg_family(r2->rf);
+	free_register(r2);
 	return r1;
 }
 
 struct Reg *mod_on_reg(Gg, struct LocalExpr *e, struct Reg *r1,
 					   struct Reg *r2) {
 	divide_on_reg(g, e, &r1, &r2);
-	free_reg_family(r1->rf);
+	free_register(r1);
 	return r2;
 }
