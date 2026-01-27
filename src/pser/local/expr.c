@@ -435,8 +435,13 @@ struct LocalExpr *asnge_l_expression(struct Pser *p) {
 
 	return e;
 }
-// TODO: make assign expr different cuz
-// a = (b = 10)	is invalid
-// a = b = 10	is valid
-bf(assng_l_expression, asnge_l_expression, ops1(EQU));
+struct LocalExpr *assng_l_expression(struct Pser *p) {
+	struct LocalExpr *e = asnge_l_expression(p);
+	struct Token *c = pser_cur(p);
+	if (ops1(EQU)) {
+		consume(p);
+		e = local_bin(e, local_expression(p), c);
+	}
+	return e;
+}
 bf(pipel_l_expression, assng_l_expression, ops1(PIPE_LINE));

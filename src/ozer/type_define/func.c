@@ -49,9 +49,9 @@ int just_same_types_of_args(struct PList *args_types, struct PList *ops) {
 		if ((is_ptr_type(fa_type) || is_ptr_type(op_type)) &&
 			are_types_equal(fa_type, op_type))
 			continue;
-		else if (is_real_type(fa_type) && is_real_type(op_type))
-			continue;
 		else if (is_num_int_type(fa_type) && is_num_int_type(op_type))
+			continue;
+		else if (is_real_type(fa_type) && is_real_type(op_type))
 			continue;
 		return 0;
 	}

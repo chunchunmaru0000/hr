@@ -36,7 +36,7 @@ struct LocalExpr *prime_l_expression(struct Pser *p) {
 		if ((c = absorb(p))->code == PAR_R) {		  // skip '('
 			set_e_code_and_consume(LE_PRIMARY_TUPLE); // skip ')'
 			e->co.ops = new_plist(1);
-			goto return_e;
+			return e;
 		}
 
 		tmp_e = local_expression(p);
@@ -62,7 +62,6 @@ struct LocalExpr *prime_l_expression(struct Pser *p) {
 	} else
 		eet(c, "эээ че за выражение", 0);
 
-return_e:
 	return e;
 }
 
