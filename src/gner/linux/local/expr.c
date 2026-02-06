@@ -264,9 +264,11 @@ void gen_local_expr_linux(Gg, struct LocalExpr *e) {
 		gen_range_loop(g, e);
 	else if (lce(THEN_LOOP))
 		gen_then_loop(g, e);
-	else
+	else {
 		// 	exit(159);
 		printf("### NOT GEN LOCAL EXPR INFO: e->code == %d\n", e->code);
+		print_le(e, 1);
+	}
 }
 
 void gen_opted(Gg, struct LocalExpr *e) {

@@ -322,7 +322,7 @@ struct Reg *borrow_basic_reg(struct CPU *cpu, uc of_size) {
 struct Reg *alloc_reg_of_size(struct RegisterFamily *rf, int size) {
 	struct Reg *res_reg = 0;
 	if (rf->r->allocated)
-		goto ret;
+		return 0;
 	if (size == QWORD)
 		res_reg = rf->r;
 	else if (size == DWORD)
@@ -335,7 +335,6 @@ struct Reg *alloc_reg_of_size(struct RegisterFamily *rf, int size) {
 		else if (rf->h && !rf->h->allocated)
 			res_reg = rf->h;
 	}
-ret:
 	return res_reg;
 }
 

@@ -149,10 +149,8 @@ void tuple_call_assign(Gg, struct LocalExpr *e) {
 		int item_type_size = unsafe_size_of_type(item_type);
 		rf = as_rfs(g->cpu)[return_tuple_regs_indeces[i]];
 
-		if (!(r1 = alloc_reg_of_size(rf, item_type_size))) {
-			r1 = try_borrow_reg(assignee->tvar, g, item_type_size);
-			get_reg_to_rf(e->tvar, g, r1, rf);
-		}
+		r1 = try_borrow_reg(assignee->tvar, g, item_type_size);
+		get_reg_to_rf(e->tvar, g, r1, rf);
 		plist_add(regs, get_reg_to_size(g, r1, assignee_size));
 	}
 
@@ -162,11 +160,10 @@ void tuple_call_assign(Gg, struct LocalExpr *e) {
 	for (i = 0; i < assignee_tuple->size; i++) {
 		assignee = plist_get(assignee_tuple, i);
 		cast_e->type = plist_get(returned_items_types, i);
+		r1 = plist_get(regs, i);
 
-		if ((r1 = plist_get(regs, i)))
-			assign_from_reg(g, assignee,
-							cast_reg_to_type(g, assignee->type, cast_e, r1));
-		// assign_from_reg(g, assignee, r1);
+		r1 = cast_reg_to_type(g, assignee->type, cast_e, r1);
+		assign_from_reg(g, assignee, r1);
 	}
 	plist_free(regs);
 	free(cast_e);
