@@ -215,26 +215,32 @@ void start_line(struct Tzer *t) {
 	t->p->line++;
 }
 
-enum TCode str_token(struct Tzer *t, struct Token *token) {
-	long start_pos = t->pos, str_len = 2;
-	struct BList *str_str = new_blist(64);
+long start_pos = 0, str_len = 0;
+struct BList *str_str = 0;
+void fill_str_from_char_to_char(struct Tzer *t, char separator) {
+	start_pos = t->pos, str_len = 2;
+	str_str = new_blist(64);
 	char c;
 
-	for (c = next(t); c != '"' && c; c = next(t)) {
+	for (c = next(t); c != separator && c; c = next(t)) {
 		if (c == '\n')
 			start_line(t);
 
-		if (c == '\\' && get_tzer_token(t, 1) == '"') {
+		if (c == '\\' && get_tzer_token(t, 1) == separator) {
 			str_len += 2;
 			next(t);
 
-			blist_add(str_str, '"');
+			blist_add(str_str, separator);
 		} else {
 			str_len++;
 			blist_add(str_str, c);
 		}
 	}
 	next(t); // skip "
+}
+
+enum TCode str_token(struct Tzer *t, struct Token *token) {
+	fill_str_from_char_to_char(t, '"');
 
 	char *str_view = malloc(str_len + 1);
 	str_view[str_len] = 0;
@@ -246,6 +252,19 @@ enum TCode str_token(struct Tzer *t, struct Token *token) {
 	blist_cut(str_str);
 
 	return STR;
+}
+
+// char is just string that is transformed into integer by its bytes
+enum TCode char_token(struct Tzer *t, struct Token *token) {
+	fill_str_from_char_to_char(t, '\'');
+	token->num = 0;
+	if (str_str->size > 8)
+		eet(token, "Размер чстроки не может быть больше 8 байт.", 0);
+
+	for (u32 i = 0; i < str_str->size; i++)
+		token->num = (token->num << 8) + str_str->st[i];
+	token->view = int_to_str(token->num);
+	return INT;
 }
 
 // next_and_alloc
@@ -541,9 +560,8 @@ struct Token *new_token(struct Tzer *t) {
 			code = usable_token(t, token);
 		else
 			code = str_token(t, token);
-	}
-	// else if (c == '\'')
-	// 	code = char_token(t, token);
+	} else if (c == '\'')
+		code = char_token(t, token);
 	else if (char_in_str(c, usable_chars))
 		code = usable_token(t, token);
 	else
