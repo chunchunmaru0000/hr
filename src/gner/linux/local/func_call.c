@@ -30,6 +30,12 @@ struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 			r = return_to_xmm(g, arg_type, argument, to_xmm);
 		} else {
 			rf = *(rfs_regs++);
+			// < R8 so that its only RSI or RDI
+			if (rf->r->reg_code < R_R8 && unsafe_size_of_type(arg_type) == 1) {
+				if (!is_num_int_type(arg_type))
+					eet(argument->tvar, "1 байт как аргумент, но не число", 0);
+				arg_type->code = arg_type->code == TC_I8 ? TC_I16 : TC_U16;
+			}
 			r = return_to_rf(g, arg_type, argument, rf);
 		}
 		plist_add(ops_regs, r);
@@ -48,11 +54,12 @@ struct PList *mov_ops_regs_to_args_regs(struct Token *place, Gg,
 void gen_call(Gg, struct LocalExpr *e) {
 	struct LocalExpr *fun_expr = e->l;
 	struct PList *ops_regs;
+	struct Reg *r;
 
 	g->flags->is_stack_used = 1;
 
 	if (e->r == 0) {
-		struct Reg *r = gen_to_reg(g, fun_expr, QWORD);
+		r = gen_to_reg(g, fun_expr, QWORD);
 
 		ops_regs = mov_ops_regs_to_args_regs(
 			e->tvar, g, fun_args(fun_expr->type), e->co.ops);
@@ -86,8 +93,10 @@ void gen_call(Gg, struct LocalExpr *e) {
 	// if (saved_regs & IS_R15_SAVED_IN_THIS_CALL)
 	// 	free_register(g->r15->r);
 
-	for (u32 i = 0; i < ops_regs->size; i++)
-		free_register(plist_get(ops_regs, i));
+	for (u32 i = 0; i < ops_regs->size; i++) {
+		r = plist_get(ops_regs, i);
+		free_register(is_xmm(r) ? r : r->rf->r);
+	}
 	plist_free(ops_regs);
 }
 

@@ -1,24 +1,18 @@
 #include "pser.h"
 
 int unsafe_size_of_struct(struct BList *name) {
-	uint32_t i;
-	long size;
 	struct Inst *declare_struct;
 	struct Token *name_token;
 
-	for (i = 0; i < parsed_structs->size; i++) {
+	for (u32 i = 0; i < parsed_structs->size; i++) {
 		declare_struct = plist_get(parsed_structs, i);
 		name_token = plist_get(declare_struct->os, DCLR_STRUCT_NAME);
 
 		if (sc((char *)name->st, vs(name_token)))
-			goto struct_name_found;
+			return (long)plist_get(declare_struct->os, DCLR_STRUCT_SIZE);
 	}
 	exit(224);
-
-struct_name_found:
-
-	size = (long)plist_get(declare_struct->os, DCLR_STRUCT_SIZE);
-	return size;
+	return -1;
 }
 
 int unsafe_size_of_type(struct TypeExpr *type) {

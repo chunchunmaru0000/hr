@@ -195,14 +195,19 @@ void get_reg_to_rf(struct Token *tvar, Gg, struct Reg *reg,
 	}
 	if (reg->rf == rf)
 		return;
+	// printf("get [%s] <-> [%s]\n", bs(reg->name), bs(rf->r->name));
+	// print_regs(g->cpu);
 	if (rf->r->allocated) {
 		// reg is now points to rf's reg
 		swap_basic_regs(g, rf, reg->rf, DO_XCHG);
+		// printf("DO_XCHG\n");
 	} else {
-		free_register(reg);
+		free_register(reg->rf->r);
 		swap_basic_regs(g, reg->rf, rf, DO_MOV);
 		alloc_all_family_reg(rf);
+		// printf("DO_MOV\n");
 	}
+	// printf("got [%s] <-> [%s]\n", bs(reg->name), bs(rf->r->name));
 }
 
 void get_xmm_to_xmm(Gg, struct Reg *xmm, struct Reg *save_to_xmm) {
