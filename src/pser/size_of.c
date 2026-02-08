@@ -1,4 +1,5 @@
 #include "pser.h"
+#include <stdio.h>
 
 int unsafe_size_of_struct(struct BList *name) {
 	struct Inst *declare_struct;
@@ -8,9 +9,10 @@ int unsafe_size_of_struct(struct BList *name) {
 		declare_struct = plist_get(parsed_structs, i);
 		name_token = plist_get(declare_struct->os, DCLR_STRUCT_NAME);
 
-		if (sc((char *)name->st, vs(name_token)))
+		if (sc(bs(name), vs(name_token)))
 			return (long)plist_get(declare_struct->os, DCLR_STRUCT_SIZE);
 	}
+	printf("Не найден лик [%s].\n", bs(name));
 	exit(224);
 	return -1;
 }
